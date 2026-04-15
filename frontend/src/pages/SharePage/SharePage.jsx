@@ -1,13 +1,17 @@
 import { FieldError, Input, Label, TextField } from '@heroui/react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { isValidUUID } from '@/lib/validation';
+import AssessmentViewPage from '@/pages/AssessmentViewPage/AssessmentViewPage';
 
 const STORAGE_KEY = 'sharePageInput';
 
 export default function SharePage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const [publicId, setPublicId] = useState(() => {
     try {
       return sessionStorage.getItem(STORAGE_KEY) || '';
@@ -18,12 +22,18 @@ export default function SharePage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showEmptyError, setShowEmptyError] = useState(false);
-  const navigate = useNavigate();
 
   // Save to sessionStorage whenever input changes
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, publicId);
   }, [publicId]);
+
+  // Handle query parameter for direct share links
+  const idFromQuery = searchParams.get('id');
+  if (idFromQuery) {
+    // Direct access with query parameter - redirect to AssessmentViewPage
+    return <AssessmentViewPage publicId={idFromQuery} />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +76,7 @@ export default function SharePage() {
 
       // Valid - clear saved input and redirect to public view
       sessionStorage.removeItem(STORAGE_KEY);
-      navigate(`/assessments/share/${id}`);
+      navigate(`/assessments/share?id=${id}`);
     } catch (err) {
       logger.error(err);
       setError('Invalid ID');
@@ -115,7 +125,7 @@ export default function SharePage() {
 
         <div className="flex items-center gap-3">
           <Button type="submit" variant="primary" isLoading={loading}>
-            Open
+            View
           </Button>
           <Button
             type="button"

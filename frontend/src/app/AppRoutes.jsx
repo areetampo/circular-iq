@@ -55,7 +55,7 @@ ProtectedRoute.propTypes = {
 
 function ShareRedirect() {
   const { publicId } = useParams();
-  return <Navigate to={`/assessments/share/${publicId}`} replace />;
+  return <Navigate to={`/assessments/share?id=${publicId}`} replace />;
 }
 
 /**
@@ -65,8 +65,7 @@ function ShareRedirect() {
  * - Static path segments before dynamic (`/assessments/compare` before `/assessments/:publicId`).
  * - Deeper share routes before shallower ones where relevant.
  *
- * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/share/:publicId`, `/assessments/share/*`.
- *
+ * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/share/:publicId`, `/assessments/share?id=`.
  * Protected: `/dashboard`, `/assessments`, `/assessments/compare?id1=&id2=`, `/assessments/:publicId`.
  */
 export default function AppRoutes() {
@@ -120,14 +119,6 @@ export default function AppRoutes() {
             element={
               <PageErrorBoundary pageName="Share Gateway">
                 <SharePage />
-              </PageErrorBoundary>
-            }
-          />
-          <Route
-            path="/assessments/share/:publicId"
-            element={
-              <PageErrorBoundary pageName="Shared Assessment View">
-                <AssessmentViewPage />
               </PageErrorBoundary>
             }
           />

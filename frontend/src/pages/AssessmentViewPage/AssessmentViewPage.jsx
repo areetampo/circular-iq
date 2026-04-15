@@ -1,7 +1,7 @@
 import { toast } from '@heroui/react';
-import { Book, FingerprintPattern, MoveLeft, RefreshCcw } from 'lucide-react';
+import { Book, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -16,9 +16,12 @@ import {
 } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 import { ResultsSkeleton } from '@/pages/ResultsPage/components';
 
-export default function AssessmentViewPage() {
-  const { publicId } = useParams();
+export default function AssessmentViewPage({ publicId: propPublicId }) {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Get publicId from either props (from SharePage) or query params (direct access)
+  const publicId = propPublicId || searchParams.get('id');
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
   const { isExporting, executeExport } = useExportState();
 
@@ -60,16 +63,16 @@ export default function AssessmentViewPage() {
         actions={[
           {
             label: 'Refresh',
-            icon: RefreshCcw,
+            icon: RotateCw,
             onClick: handleRefresh,
             variant: 'ghost',
           },
           {
-            label: 'Try new ID',
+            label: 'Try Different ID',
             icon: FingerprintPattern,
-            variant: 'primary',
-            as: Link,
+            variant: 'teal',
             to: '/assessments/share',
+            as: Link,
           },
         ]}
         showDefaultActions={false}
@@ -86,16 +89,16 @@ export default function AssessmentViewPage() {
         actions={[
           {
             label: 'Refresh',
-            icon: RefreshCcw,
+            icon: RotateCw,
             onClick: handleRefresh,
             variant: 'ghost',
           },
           {
-            label: 'Try new ID',
+            label: 'Try Different ID',
             icon: FingerprintPattern,
-            variant: 'primary',
-            as: Link,
+            variant: 'teal',
             to: '/assessments/share',
+            as: Link,
           },
         ]}
         showDefaultActions={false}
@@ -136,7 +139,7 @@ export default function AssessmentViewPage() {
     <div className="w-full space-y-0">
       {/* Simple header - no buttons or public toggle */}
       {assessment?.title && (
-        <div className="mt-8 mb-6 px-4 sm:px-6">
+        <div className="mt-8 mb-2 px-4 sm:px-6">
           <h1 className="text-center font-jua text-2xl font-medium tracking-[-0.02em] text-(--color-text-primary)">
             {assessment.title}
           </h1>

@@ -1,3 +1,4 @@
+import { MoveLeft, RotateCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -34,14 +35,16 @@ class ResultsErrorBoundary extends React.Component {
           actions={[
             {
               label: 'Refresh Page',
+              icon: RotateCw,
               onClick: () => window.location.reload(),
-              variant: 'danger',
+              variant: 'teal',
             },
             {
               label: 'Back to Assessments',
+              icon: MoveLeft,
+              variant: 'ghost',
               as: Link,
               to: '/assessments',
-              variant: 'secondary',
             },
           ]}
           showDefaultActions={false}

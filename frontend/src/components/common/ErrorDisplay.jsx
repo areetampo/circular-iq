@@ -1,5 +1,5 @@
 import { ScrollShadow } from '@heroui/react';
-import { AlertTriangle, Home, Info, RefreshCcw, ServerOff, XCircle } from 'lucide-react';
+import { AlertTriangle, Home, Info, RotateCw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
@@ -31,32 +31,32 @@ export default function ErrorDisplay({
   // Variant-specific styling
   const variants = {
     error: {
-      cardBg: '--color-bg-elevated',
-      iconBg: '--color-error-b',
+      iconBg: '--color-error-soft-ui',
+      borderColor: '--color-error-soft-ui',
       iconColor: '--color-error',
       titleColor: '--color-error',
       messageColor: '--color-text-secondary',
       defaultIcon: XCircle,
     },
     warning: {
-      cardBg: '--color-bg-elevated',
-      iconBg: '--color-warning-b',
+      iconBg: '--color-warning-soft-ui',
+      borderColor: '--color-warning-soft-ui',
       iconColor: '--color-warning',
       titleColor: '--color-warning',
       messageColor: '--color-text-secondary',
       defaultIcon: AlertTriangle,
     },
     info: {
-      cardBg: '--color-bg-elevated',
-      iconBg: '--color-info-b',
+      iconBg: '--color-info-soft-ui',
+      borderColor: '--color-info-soft-ui',
       iconColor: '--color-info',
       titleColor: '--color-info',
       messageColor: '--color-text-secondary',
       defaultIcon: Info,
     },
     404: {
-      cardBg: '--color-bg-elevated',
-      iconBg: '--color-accent-light',
+      iconBg: '--color-accent-soft-ui',
+      borderColor: '--color-accent-soft-ui',
       iconColor: '--color-accent',
       titleColor: '--color-text-primary',
       messageColor: '--color-text-secondary',
@@ -72,7 +72,7 @@ export default function ErrorDisplay({
     ? [
         {
           label: 'Refresh Page',
-          icon: RefreshCcw,
+          icon: RotateCw,
           onPress: () => window.location.reload(),
           variant: 'ghost',
         },
@@ -104,30 +104,24 @@ export default function ErrorDisplay({
       )}
     >
       <div
-        className={cn(
-          'w-full max-w-lg rounded-4xl bg-transparent p-8',
-          `border-4 border-dashed border-(--color-error-soft-ui)`,
-        )}
+        className={cn('w-full max-w-lg rounded-4xl bg-transparent p-8', 'border-4 border-dashed')}
+        style={{
+          borderColor: `var(${style.borderColor})`,
+        }}
       >
         {/* Icon + title */}
         <div className="mb-6 text-center">
           <div className="mb-4 flex justify-center">
-            {/* iconBg/10 creates that soft transparent background dynamically */}
             <div className="rounded-full p-2.5" style={{ backgroundColor: `var(${style.iconBg})` }}>
               <Icon
                 strokeWidth={2}
                 size={32}
-                className={cn(
-                  `text-(${style.iconColor})`,
-                  `${variant === 'warning' ? 'pb-1' : ''}`,
-                )}
+                className={cn(`text-(${style.iconColor})`, variant === 'warning' ? 'pb-1' : '')}
               />
             </div>
           </div>
 
-          <h1 className={cn('font-display text-2xl font-bold', `text-(${style.titleColor})`)}>
-            {title}
-          </h1>
+          <h1 className={cn('font-sniglet text-2xl', `text-(${style.titleColor})`)}>{title}</h1>
 
           {message && (
             <p

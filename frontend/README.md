@@ -245,18 +245,18 @@ frontend/src/
 
 ## Routes
 
-| Path                           | Component            | Auth | Description                               |
-| ------------------------------ | -------------------- | ---- | ----------------------------------------- |
-| `/`                            | `LandingPage`        | No   | Assessment input form with guided mode    |
-| `/auth`                        | `AuthPage`           | No   | Login / signup                            |
-| `/guide`                       | `GuidePage`          | No   | Help & methodology documentation          |
-| `/results`                     | `ResultsPage`        | No   | Results for session-based scoring         |
-| `/assessments`                 | `MyAssessmentsPage`  | Yes  | Saved assessment history                  |
-| `/assessments/:id`             | `AssessmentViewPage` | Yes  | View single saved assessment              |
-| `/assessments/share/:publicId` | `SharePage`          | No   | Public shared assessment view             |
-| `/compare`                     | `ComparePage`        | Yes  | Side-by-side comparison (query: id1, id2) |
-| `/dashboard`                   | `DashboardPage`      | No   | Global analytics dashboard                |
-| `*`                            | `NotFoundPage`       | —    | 404                                       |
+| Path                     | Component            | Auth | Description                               |
+| ------------------------ | -------------------- | ---- | ----------------------------------------- |
+| `/`                      | `LandingPage`        | No   | Assessment input form with guided mode    |
+| `/auth`                  | `AuthPage`           | No   | Login / signup                            |
+| `/guide`                 | `GuidePage`          | No   | Help & methodology documentation          |
+| `/results`               | `ResultsPage`        | No   | Results for session-based scoring         |
+| `/assessments`           | `MyAssessmentsPage`  | Yes  | Saved assessment history                  |
+| `/assessments/:id`       | `AssessmentViewPage` | Yes  | View single saved assessment              |
+| `/assessments/share?id=` | `SharePage`          | No   | Public shared assessment view             |
+| `/compare`               | `ComparePage`        | Yes  | Side-by-side comparison (query: id1, id2) |
+| `/dashboard`             | `DashboardPage`      | No   | Global analytics dashboard                |
+| `*`                      | `NotFoundPage`       | —    | 404                                       |
 
 ## Setup & Installation
 
@@ -530,7 +530,7 @@ result.gap_analysis;
     │
     ├── Save Assessment → POST /api/assessments
     ├── Export → exportCSV.js or exportPDF.js
-    └── Share → generates public_id link → /assessments/share/:publicId
+    └── Share → generates public_id link → /assessments/share?id=
 ```
 
 ### Key Routes (from AppRoutes.jsx)
@@ -542,7 +542,7 @@ result.gap_analysis;
 /results                    // ResultsPage — freshly scored result (session-based)
 /assessments                // MyAssessmentsPage — saved history (auth required)
 /assessments/:id            // AssessmentViewPage — view saved assessment
-/assessments/share/:publicId // SharePage — public shared view (no auth)
+/assessments/share?publicId= // SharePage — public shared view (no auth)
 /compare?id1=X&id2=Y        // ComparePage → AssessmentComparisonPage
 /dashboard                  // DashboardPage — global analytics
 ```
@@ -957,12 +957,13 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 /results                    → ResultsPage          (session-based scoring results)
 /assessments                → MyAssessmentsPage    (saved history, auth required)
 /assessments/:id            → AssessmentViewPage   (view saved assessment, auth required)
-/assessments/share/:publicId → SharePage           (public shared view, no auth)
+/assessments/share?id=      → SharePage           (public shared view, no auth)
 /compare                    → ComparePage          (side-by-side comparison, auth required)
 /dashboard                  → DashboardPage        (global analytics)
 *                           → NotFoundPage
 ```
 
+... (rest of the code remains the same)
 **Related files:**
 
 - `src/app/AppRoutes.jsx` — route definitions

@@ -7,12 +7,13 @@ import {
   MoveRight,
   NotebookPen,
   RefreshCw,
+  RotateCw,
   Target,
   TrendingUp,
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SectionHeading } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
@@ -718,15 +719,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         actions={[
           {
             label: 'Retry',
-            icon: RefreshCw,
-            onClick: refetch,
-            variant: 'ghost',
+            icon: RotateCw,
+            onPress: refetch,
+            variant: 'teal',
           },
           {
             label: 'Go Back',
-            onClick: handleBack,
             icon: MoveLeft,
             variant: 'ghost',
+            onClick: handleBack,
           },
         ].filter(Boolean)}
         showDefaultActions={false}
@@ -743,15 +744,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         actions={[
           {
             label: 'Retry Loading',
-            icon: RefreshCw,
+            icon: RotateCw,
+            variant: 'teal',
             onClick: refetch,
-            variant: 'ghost',
           },
           {
             label: 'Return Home',
             icon: MoveLeft,
-            variant: 'ghost',
+            as: Link,
             to: '/',
+            variant: 'ghost',
           },
         ]}
         showDefaultActions={false}
@@ -770,7 +772,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Start New Assessment',
             icon: MoveRight,
-            variant: 'ghost',
+            variant: 'teal',
+            as: Link,
             to: '/',
           },
         ]}
@@ -835,7 +838,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   logger.log('actualResult', actualResult);
 
   const publicURL = cleanUrl(
-    `${window.location.origin}/assessments/share/${currentData.public_id}`,
+    `${window.location.origin}/assessments/share?id=${currentData.public_id}`,
   );
 
   return (

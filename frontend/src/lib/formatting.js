@@ -205,31 +205,46 @@ export function formatProcessingTime(timeMs) {
 }
 
 /**
- * Formats a URL into a "presentable" editorial string by removing the protocol,
- * 'www' prefix, and port numbers, while preserving the domain and path.
- *
- * @example
- * Returns "xerneas.app/dashboard"
- * cleanUrl("https://www.xerneas.app:3000/dashboard")
- * * @param {string} urlStr - The full URL string to be formatted.
- * @returns {string} The cleaned, presentable version of the URL (e.g., "domain.com/path").
+ * Formats a URL based on configurable options.
+ * * @param {string} urlStr - The full URL string.
+ * @param {Object} options - Configuration for what to strip.
+ * @param {boolean} [options.stripWww=true] - Remove 'www.' prefix.
+ * @param {boolean} [options.stripPort=true] - Remove port numbers.
+ * @param {boolean} [options.stripQuery=false] - Remove query parameters (?x=y).
+ * @param {boolean} [options.stripTrailingSlash=true] - Remove final '/' from path.
  */
-export function cleanUrl(urlStr) {
+export function cleanUrl(urlStr, options = {}) {
+  const defaults = {
+    stripWww: true,
+    stripPort: FRONTEND_CONFIG.isProd, // Default to stripping only in prod
+    stripQuery: false,
+    stripTrailingSlash: true,
+  };
+
+  const settings = { ...defaults, ...options };
+
   try {
     const url = new URL(urlStr);
 
-    // 1. Get hostname and remove 'www.'
-    const host = url.hostname.replace(/^www\./, '');
+    // 1. Handle Hostname
+    let host = url.hostname;
+    if (settings.stripWww) {
+      host = host.replace(/^www\./, '');
+    }
 
-    // 2. Handle Port: Do not keep it only if Production mode
-    const isProd = FRONTEND_CONFIG.isProd;
-    const port = !isProd && url.port ? `:${url.port}` : '';
+    // 2. Handle Port
+    const port = !settings.stripPort && url.port ? `:${url.port}` : '';
 
-    // 3. Get the path
-    const path = url.pathname;
+    // 3. Handle Path
+    let path = url.pathname;
+    if (settings.stripTrailingSlash) {
+      path = path.replace(/\/$/, '');
+    }
 
-    // Combine them: domain:port/path
-    return `${host}${port}${path}`.replace(/\/$/, '');
+    // 4. Handle Query
+    const query = settings.stripQuery ? '' : url.search;
+
+    return `${host}${port}${path}${query}`;
   } catch (e) {
     return urlStr;
   }

@@ -1,6 +1,6 @@
 import { ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Ghost, MoveLeft, Plus } from 'lucide-react';
+import { Ghost, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -557,14 +557,16 @@ export default function MyAssessmentsPage() {
           actions={[
             {
               label: 'Retry',
-              onPress: () => refetch(),
-              variant: 'danger',
+              icon: RotateCw,
+              onPress: refetch,
+              variant: 'teal',
             },
             {
               label: 'Back to Home',
+              icon: Home,
+              variant: 'ghost',
               as: Link,
               to: '/',
-              variant: 'secondary',
             },
           ]}
           showDefaultActions={false}
@@ -767,14 +769,16 @@ export default function MyAssessmentsPage() {
           actions={[
             {
               label: 'Retry',
-              onPress: () => refetch(),
-              variant: 'ghost',
+              icon: RotateCw,
+              onPress: refetch,
+              variant: 'teal',
             },
             {
               label: 'Back to Home',
+              icon: Home,
+              variant: 'ghost',
               as: Link,
               to: '/',
-              variant: 'ghost',
             },
           ]}
           showDefaultActions={false}

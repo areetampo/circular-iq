@@ -43,12 +43,14 @@ export default function AssessmentComparisonPage() {
             icon: MoveLeft,
             variant: 'ghost',
             to: '/assessments',
+            as: Link,
           },
           {
             label: 'Try Different IDs',
             icon: FingerprintPattern,
-            variant: 'primary',
+            variant: 'teal',
             to: '/assessments/compare',
+            as: Link,
           },
         ]}
         showDefaultActions={false}
@@ -70,12 +72,14 @@ export default function AssessmentComparisonPage() {
             icon: MoveLeft,
             variant: 'ghost',
             to: '/assessments',
+            as: Link,
           },
           {
             label: 'Try Different IDs',
             icon: FingerprintPattern,
-            variant: 'primary',
+            variant: 'teal',
             to: '/assessments/compare',
+            as: Link,
           },
         ]}
         showDefaultActions={false}
@@ -95,12 +99,14 @@ export default function AssessmentComparisonPage() {
             icon: MoveLeft,
             variant: 'ghost',
             to: '/assessments',
+            as: Link,
           },
           {
             label: 'Try Different IDs',
             icon: FingerprintPattern,
-            variant: 'primary',
+            variant: 'teal',
             to: '/assessments/compare',
+            as: Link,
           },
         ]}
         showDefaultActions={false}
@@ -162,7 +168,7 @@ export default function AssessmentComparisonPage() {
       <Tooltip delay={0}>
         <Tooltip.Trigger className="item-center flex">
           <Link
-            to={`/assessments/share/${publicId}`}
+            to={`/assessments/share?id=${publicId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex transition-transform duration-150 hover:scale-110 active:scale-95"

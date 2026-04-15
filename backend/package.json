@@ -54,13 +54,11 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "axios": "^1.13.5",
-    "cheerio": "^1.2.0",
     "csv-stringify": "^6.6.0",
     "eslint": "^9.39.2",
     "globals": "^17.1.0",
     "google-translate-api-x": "^10.7.2",
     "got": "^14.6.6",
-    "nodemon": "^3.1.11",
     "pdfjs-dist": "^5.4.624",
     "pg-copy-streams": "^7.0.0",
     "pino-pretty": "^13.1.3",

@@ -153,7 +153,7 @@ export default function Navbar() {
                             size="md"
                             className="bg-(--color-accent-light) text-(--color-accent)"
                           >
-                            <Avatar.Fallback className="bg-(--color-hover-accent-strong) font-medium text-(--color-accent)">
+                            <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
                               {getUserInitials()}
                             </Avatar.Fallback>
                           </Avatar>
@@ -267,7 +267,7 @@ export default function Navbar() {
                             size="md"
                             className="bg-(--color-accent-light) text-(--color-accent)"
                           >
-                            <Avatar.Fallback className="bg-(--color-hover-accent-strong) font-medium text-(--color-accent)">
+                            <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
                               {getUserInitials()}
                             </Avatar.Fallback>
                           </Avatar>
