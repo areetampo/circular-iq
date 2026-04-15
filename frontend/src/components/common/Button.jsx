@@ -148,20 +148,22 @@ export const Button = forwardRef(function Button(
   const internalRef = useRef(null);
   const buttonRef = ref || internalRef;
 
-  // Use useButton only when Element is 'button' (or a custom component that behaves like a button)
-  // For anchor links, we keep the manual click handling (links don't use useButton)
+  // Always call useButton hook to follow React's Rules of Hooks
+  // For links, we'll ignore the returned props
+  const { buttonProps: ariaButtonProps } = useButton(
+    {
+      onPress,
+      onClick,
+      isDisabled: isButtonDisabled,
+      elementType: Element,
+      ...props,
+    },
+    buttonRef,
+  );
+
+  // Use buttonProps only for non-link elements
   let buttonProps = {};
   if (!isLink) {
-    const { buttonProps: ariaButtonProps } = useButton(
-      {
-        onPress,
-        onClick,
-        isDisabled: isButtonDisabled,
-        elementType: Element,
-        ...props,
-      },
-      buttonRef,
-    );
     buttonProps = ariaButtonProps;
   }
 

@@ -20,7 +20,7 @@ const AssessmentViewPage = lazy(() => import('@/pages/AssessmentViewPage/Assessm
 const AssessmentComparisonPage = lazy(
   () => import('@/pages/AssessmentComparisonPage/AssessmentComparisonPage'),
 );
-const ComparePage = lazy(() => import('@/pages/ComparePage/ComparePage'));
+const ComparePageWrapper = lazy(() => import('@/pages/ComparePage/ComparePageWrapper'));
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
@@ -67,8 +67,7 @@ function ShareRedirect() {
  *
  * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/share/:publicId`, `/assessments/share/*`.
  *
- * Protected: `/dashboard`, `/assessments`, `/assessments/compare`, `/assessments/compare/:publicId1/:publicId2`,
- * `/assessments/:publicId`.
+ * Protected: `/dashboard`, `/assessments`, `/assessments/compare?id1=&id2=`, `/assessments/:publicId`.
  */
 export default function AppRoutes() {
   return (
@@ -174,17 +173,7 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute>
                 <PageErrorBoundary pageName="Compare Assessments">
-                  <ComparePage />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/compare/:publicId1/:publicId2"
-            element={
-              <ProtectedRoute>
-                <PageErrorBoundary pageName="Assessment Comparison">
-                  <AssessmentComparisonPage />
+                  <ComparePageWrapper />
                 </PageErrorBoundary>
               </ProtectedRoute>
             }

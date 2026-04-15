@@ -30,6 +30,9 @@ export default function MyAssessmentsPage() {
   const [isRenaming, setIsRenaming] = useState(false);
   const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
+  // Available page size options
+  const pageSizeOptions = useMemo(() => [5, 10, 20, 50, 100], []);
+
   // Persist list filters in URL so users can share filtered lists
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -39,7 +42,8 @@ export default function MyAssessmentsPage() {
     const p = Number(searchParams.get('page') || 1);
     if (!Number.isNaN(p) && p > 0) setPage(p);
     const ps = Number(searchParams.get('pageSize') || 5);
-    if (!Number.isNaN(ps) && ps > 0) setPageSize(ps);
+    if (!Number.isNaN(ps) && ps > 0 && pageSizeOptions.includes(ps)) setPageSize(ps);
+    else if (!Number.isNaN(ps) && ps > 0) setPageSize(10); // Default to 10 for invalid sizes
     const s = searchParams.get('search');
     if (s) setSearchTerm(s);
     const sb = searchParams.get('sortBy');
@@ -259,8 +263,94 @@ export default function MyAssessmentsPage() {
       .filter(Boolean);
 
     if (publicIds.length !== 2) return null;
-    return `/assessments/compare/${publicIds[0]}/${publicIds[1]}`;
+    return `/assessments/compare?id1=${publicIds[0]}&id2=${publicIds[1]}`;
   }, [selectedIds, assessments]);
+
+  const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
+
+  // Prefetch adjacent pages for better UX
+  useEffect(() => {
+    if (totalPages > 1) {
+      // Prefetch next page if it exists
+      if (page < totalPages) {
+        prefetchAssessmentsPage(page + 1);
+      }
+      // Prefetch previous page if it exists and we're not on page 1
+      if (page > 1) {
+        prefetchAssessmentsPage(page - 1);
+      }
+    }
+  }, [page, totalPages, prefetchAssessmentsPage]);
+
+  // Render skeleton cards for initial load - Beautiful spacing
+  const renderInitialLoadPageSkeleton = useCallback(() => {
+    return (
+      <div className="mx-auto mt-6 max-w-4xl space-y-6">
+        {/* Stats grid skeleton */}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5"
+            >
+              <Skeleton animationType="shimmer" className="mb-3 h-3 w-20 rounded-sm" />
+              <Skeleton animationType="shimmer" className="mb-2 h-8 w-16 rounded-sm" />
+              <Skeleton animationType="shimmer" className="h-3 w-24 rounded-sm" />
+            </div>
+          ))}
+        </div>
+
+        {/* FilterBar Skeleton */}
+        <div className="mb-6 space-y-3">
+          {/* Search input skeleton */}
+          <div className="relative">
+            <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
+              <Skeleton animationType="shimmer" className="size-4 rounded-sm" />
+            </div>
+            <Skeleton
+              animationType="shimmer"
+              className="h-9 w-full rounded-xl bg-(--color-input-bg) pr-4 pl-9"
+            />
+          </div>
+
+          {/* Sort + Compare button row skeleton */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Sort select skeleton */}
+            <div className="max-w-50 flex-1">
+              <Skeleton
+                animationType="shimmer"
+                className="h-9 w-full rounded-md bg-(--color-input-bg) pr-10"
+              />
+            </div>
+
+            {/* Compare button skeleton */}
+            <Skeleton
+              animationType="shimmer"
+              className="h-9 w-32 rounded-md bg-(--color-input-bg)"
+            />
+          </div>
+
+          {/* Industry filter chips skeleton */}
+          <div className="flex flex-wrap gap-2">
+            {Array(12)
+              .fill(0)
+              .map((_, i) => (
+                <Skeleton
+                  key={i}
+                  animationType="shimmer"
+                  className="h-6 w-20 rounded-full bg-(--color-input-bg)"
+                />
+              ))}
+          </div>
+        </div>
+
+        {/* Assessment List Skeleton */}
+        <div className="space-y-4">
+          <AssessmentListSkeleton />
+        </div>
+      </div>
+    );
+  }, []);
 
   const handleConfirmDelete = useCallback(
     async (id) => {
@@ -311,7 +401,8 @@ export default function MyAssessmentsPage() {
         )
       ) {
         const msg = 'Name already exists';
-        toast.danger(msg, { timeout: 4000 });
+        // toast.danger(msg, { timeout: 4000 });
+        // msg is also shown in rename dialog
         throw new Error(msg);
       }
 
@@ -434,8 +525,6 @@ export default function MyAssessmentsPage() {
     [assessments, queryClient],
   );
 
-  const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
-
   // Prefetch adjacent pages for better UX
   useEffect(() => {
     if (totalPages > 1) {
@@ -449,76 +538,6 @@ export default function MyAssessmentsPage() {
       }
     }
   }, [page, totalPages, prefetchAssessmentsPage]);
-
-  // Render skeleton cards for initial load - Beautiful spacing
-  const renderInitialLoadPageSkeleton = useCallback(() => {
-    return (
-      <div className="mx-auto mt-6 max-w-4xl space-y-6">
-        {/* Stats grid skeleton */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5"
-            >
-              <Skeleton animationType="shimmer" className="mb-3 h-3 w-20 rounded-sm" />
-              <Skeleton animationType="shimmer" className="mb-2 h-8 w-16 rounded-sm" />
-              <Skeleton animationType="shimmer" className="h-3 w-24 rounded-sm" />
-            </div>
-          ))}
-        </div>
-
-        {/* FilterBar Skeleton */}
-        <div className="mb-6 space-y-3">
-          {/* Search input skeleton */}
-          <div className="relative">
-            <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
-              <Skeleton animationType="shimmer" className="size-4 rounded-sm" />
-            </div>
-            <Skeleton
-              animationType="shimmer"
-              className="h-9 w-full rounded-xl bg-(--color-input-bg) pr-4 pl-9"
-            />
-          </div>
-
-          {/* Sort + Compare button row skeleton */}
-          <div className="flex items-center justify-between gap-3">
-            {/* Sort select skeleton */}
-            <div className="max-w-50 flex-1">
-              <Skeleton
-                animationType="shimmer"
-                className="h-9 w-full rounded-md bg-(--color-input-bg) pr-10"
-              />
-            </div>
-
-            {/* Compare button skeleton */}
-            <Skeleton
-              animationType="shimmer"
-              className="h-9 w-32 rounded-md bg-(--color-input-bg)"
-            />
-          </div>
-
-          {/* Industry filter chips skeleton */}
-          <div className="flex flex-wrap gap-2">
-            {Array(12)
-              .fill(0)
-              .map((_, i) => (
-                <Skeleton
-                  key={i}
-                  animationType="shimmer"
-                  className="h-6 w-20 rounded-full bg-(--color-input-bg)"
-                />
-              ))}
-          </div>
-        </div>
-
-        {/* Assessment List Skeleton */}
-        <div className="space-y-4">
-          <AssessmentListSkeleton />
-        </div>
-      </div>
-    );
-  }, []);
 
   // ------- Helper: Render the assessment list area (with early returns) --------
   const renderAssessmentListContent = () => {
@@ -692,7 +711,6 @@ export default function MyAssessmentsPage() {
               </label>
               <Select
                 className="w-20"
-                placeholder="5"
                 value={String(pageSize)}
                 onChange={(value) => {
                   setPageSize(Number(value));
@@ -713,8 +731,8 @@ export default function MyAssessmentsPage() {
                 </Select.Trigger>
                 <Select.Popover>
                   <ListBox>
-                    {[5, 10, 20, 50, 100].map((size) => (
-                      <ListBox.Item key={size} id={size} textValue={size}>
+                    {pageSizeOptions.map((size) => (
+                      <ListBox.Item key={size} id={String(size)} textValue={String(size)}>
                         {size}
                         <ListBox.ItemIndicator />
                       </ListBox.Item>

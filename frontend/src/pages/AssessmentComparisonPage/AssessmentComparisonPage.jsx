@@ -24,11 +24,9 @@ export default function AssessmentComparisonPage() {
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
   const { isExporting, executeExport } = useExportState();
 
-  // Support both URL params (/assessments/compare/:publicId1/:publicId2) and query params (?publicId1=...&publicId2=...)
-  const publicId1 =
-    params.publicId1 || searchParams.get('publicId1') || params.id1 || searchParams.get('id1');
-  const publicId2 =
-    params.publicId2 || searchParams.get('publicId2') || params.id2 || searchParams.get('id2');
+  // Support query params (?id1=...&id2=...)
+  const publicId1 = searchParams.get('id1');
+  const publicId2 = searchParams.get('id2');
 
   const { assessment1, assessment2, comparisonData, isLoading, isError, error } =
     useAssessmentComparison(publicId1, publicId2);

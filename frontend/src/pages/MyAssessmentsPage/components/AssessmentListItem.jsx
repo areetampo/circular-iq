@@ -163,7 +163,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       </div>
 
       {/* Bottom row with additional stats and controls */}
-      <div className="mt-3 flex items-center justify-between border-t border-(--color-table-row-border) pt-2">
+      <div className="mt-5 flex items-center justify-between">
         {/* Additional stats */}
         <div className="flex items-center gap-3 text-[0.7rem] text-(--color-text-muted) [&>span]:font-mono">
           {assessment.technical_feasibility && (

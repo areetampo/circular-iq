@@ -53,10 +53,35 @@ export function StatsGrid({
 
   const displayIndustries =
     topIndustries && topIndustries.length > 0
-      ? topIndustries.map((item) => ({
-          ...item,
-          industry: getIndustryName(item.industry),
-        }))
+      ? topIndustries
+          .map((item) => ({
+            ...item,
+            industry: getIndustryName(item.industry),
+          }))
+          .sort((a, b) => {
+            // Extract count from different possible structures for comparison
+            const getCount = (item) => {
+              if (typeof item.count === 'number') {
+                return item.count;
+              } else if (item.count && typeof item.count === 'object') {
+                return item.count.count || 0;
+              }
+              return 0;
+            };
+
+            const countA = getCount(a);
+            const countB = getCount(b);
+
+            // Primary sort: by count (decreasing)
+            if (countB !== countA) {
+              return countB - countA;
+            }
+
+            // Secondary sort: by industry name (alphabetical)
+            const nameA = getIndustryName(a.industry) || '';
+            const nameB = getIndustryName(b.industry) || '';
+            return nameA.localeCompare(nameB);
+          })
       : [];
 
   const getDisplayText = () => {
@@ -139,7 +164,9 @@ export function StatsGrid({
                           className="flex w-full items-center justify-between rounded-sm px-2 py-1 hover:bg-(--color-chip-bg)"
                         >
                           <span className="text-xs">{titleize(industryName)}</span>
-                          <span className="ml-2 text-xs text-(--color-text-muted)">{count}</span>
+                          <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
+                            {count}
+                          </span>
                         </div>
                       );
                     })}

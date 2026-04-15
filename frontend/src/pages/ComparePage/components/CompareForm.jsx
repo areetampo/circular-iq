@@ -101,7 +101,7 @@ export default function CompareForm() {
 
       // Valid - clear saved inputs and navigate to comparison page
       sessionStorage.removeItem(STORAGE_KEY);
-      navigate(`/assessments/compare/${id1}/${id2}`);
+      navigate(`/assessments/compare?id1=${id1}&id2=${id2}`);
     } catch (err) {
       logger.error(err);
       setError('One or more ids incorrect');
