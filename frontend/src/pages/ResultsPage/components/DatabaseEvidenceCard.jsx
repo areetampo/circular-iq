@@ -9,13 +9,13 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   const { openResultsDatabaseEvidenceDetailsDrawer, drawer } = useGlobalDrawer();
 
   const handleViewDetails = (caseItem) => {
-    console.log('=== Clicking View Details ===');
-    console.log('Current drawer state:', drawer);
-    console.log('Case item being opened:', caseItem);
+    logger.log('=== Clicking View Details ===');
+    logger.log('Current drawer state:', drawer);
+    logger.log('Case item being opened:', caseItem);
 
     // Debug: Check if the function exists and is callable
     if (typeof openResultsDatabaseEvidenceDetailsDrawer !== 'function') {
-      console.error('openResultsDatabaseEvidenceDetailsDrawer is not a function!');
+      logger.error('openResultsDatabaseEvidenceDetailsDrawer is not a function!');
       return;
     }
 

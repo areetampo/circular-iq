@@ -19,7 +19,7 @@
     "test:watch": "vitest --watch",
     "test:run": "vitest run",
     "preview": "vite preview",
-    "clean": "npx rimraf node_modules package-lock.json"
+    "clean": "npx rimraf node_modules"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

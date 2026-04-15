@@ -11,7 +11,6 @@ import Button from '@/components/common/Button';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
 import { cn } from '@/utils/cn';
-import { logger } from '@/utils/logger';
 
 // Validation helper functions
 const validateUsernameLength = (value) => {

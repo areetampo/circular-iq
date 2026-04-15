@@ -12,7 +12,6 @@ import { usePrefetchAssessment } from '@/features/assessments/hooks/useAssessmen
 import { useAssessments } from '@/features/assessments/hooks/useAssessments';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useDebounce } from '@/hooks/useDebounce';
-import { logger } from '@/utils/logger';
 import { getSessionId } from '@/utils/session';
 import { parseSortBy } from '@/utils/sortUtils';
 
@@ -398,11 +397,11 @@ export default function MyAssessmentsPage() {
       try {
         await updateAssessment(id, { is_public: newValue });
 
-        console.log('Toggling public status for assessment:', id, 'to:', newValue);
+        logger.log('Toggling public status for assessment:', id, 'to:', newValue);
 
         // Refetch the assessments list to update the list view
         await queryClient.refetchQueries({ queryKey: ['assessments'] });
-        console.log('Refetched assessments list');
+        logger.log('Refetched assessments list');
 
         // If this assessment has a public_id, refetch both the private and public assessment
         // queries to update the results page if it's open
@@ -411,18 +410,18 @@ export default function MyAssessmentsPage() {
           await queryClient.refetchQueries({
             queryKey: ['assessment', assessment.id],
           });
-          console.log('Refetched private assessment:', assessment.id);
+          logger.log('Refetched private assessment:', assessment.id);
 
           // Refetch public assessment view
           await queryClient.refetchQueries({
             queryKey: ['publicAssessment', assessment.public_id],
           });
-          console.log('Refetched public assessment:', assessment.public_id);
+          logger.log('Refetched public assessment:', assessment.public_id);
         }
 
         // Also refetch stats to keep them in sync
         await queryClient.refetchQueries({ queryKey: ['assessmentStats'] });
-        console.log('Refetched assessment stats');
+        logger.log('Refetched assessment stats');
 
         toast.success(newValue ? 'Assessment is now public' : 'Assessment is now private', {
           timeout: 3000,

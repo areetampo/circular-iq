@@ -168,7 +168,7 @@ export function AppSessionManager() {
   useEffect(() => {
     const newSessionId = getSessionId();
     if (newSessionId !== currentSessionId.current) {
-      console.log('[SESSION_ID_CHANGED]', {
+      logger.log('[SESSION_ID_CHANGED]', {
         oldSessionId: currentSessionId.current,
         newSessionId,
         isAuthenticated,

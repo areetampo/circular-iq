@@ -93,7 +93,7 @@ function ResultsRestoreDialogContent() {
       isClosingRef.current = true;
       onClose();
     } catch (error) {
-      console.error('Cancel action failed:', error);
+      logger.error('Cancel action failed:', error);
       isClosingRef.current = true;
       onClose();
     }
@@ -132,7 +132,7 @@ function ResultsRestoreDialogContent() {
       isClosingRef.current = true;
       onClose();
     } catch (error) {
-      console.error('Restore results action failed:', error);
+      logger.error('Restore results action failed:', error);
       isClosingRef.current = true;
       onClose();
     }

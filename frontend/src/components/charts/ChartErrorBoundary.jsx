@@ -28,7 +28,7 @@ class ChartErrorBoundary extends Component {
 
     // Log error to monitoring service in production
     if (process.env.NODE_ENV === 'production') {
-      console.error('Chart Error:', error, errorInfo);
+      logger.error('Chart Error:', error, errorInfo);
     }
   }
 

@@ -6,7 +6,6 @@
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { logger } from '#utils/logger.js';
 
 /**
  * requireAuth middleware

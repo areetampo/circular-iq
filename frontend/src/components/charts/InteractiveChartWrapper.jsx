@@ -75,7 +75,7 @@ export default function InteractiveChartWrapper({
   );
 
   const handleExport = useCallback((format = 'png') => {
-    console.log(`Exporting chart as ${format}`);
+    logger.log(`Exporting chart as ${format}`);
   }, []);
 
   const toggleFullscreen = useCallback(() => {

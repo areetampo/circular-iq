@@ -23,6 +23,8 @@ import './index.css';
 
 window.logger = logger;
 
+logger.initArt();
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

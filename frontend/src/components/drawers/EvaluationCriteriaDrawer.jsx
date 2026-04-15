@@ -4,6 +4,7 @@ import { CircleDollarSign, ClipboardMinus, Link, Settings } from 'lucide-react';
 import { EVALUATION_CRITERIA_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { cn } from '@/utils/cn';
 
 export default function EvaluationCriteriaDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -54,14 +55,18 @@ export default function EvaluationCriteriaDrawer() {
                   {EVALUATION_CRITERIA_CONTENT.metrics.map((metric, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-xl bg-(--color-success-soft-ui) p-3 text-center ${
-                        metric.color === 'blue' ? 'text-(--color-info)' : 'text-(--color-success)'
-                      }`}
+                      className={cn(
+                        'rounded-xl bg-(--color-success-soft-ui) p-3 text-center',
+                        metric.color === 'blue' ? 'text-(--color-info)' : 'text-(--color-success)',
+                      )}
                     >
                       <div
-                        className={`text-2xl font-medium ${
-                          metric.color === 'blue' ? 'text-(--color-info)' : `text-(--color-success)`
-                        }`}
+                        className={cn(
+                          'text-2xl font-medium',
+                          metric.color === 'blue'
+                            ? 'text-(--color-info)'
+                            : 'text-(--color-success)',
+                        )}
                       >
                         {metric.number}
                       </div>
@@ -86,33 +91,41 @@ export default function EvaluationCriteriaDrawer() {
                     return (
                       <div
                         key={idx}
-                        className={`rounded-xl bg-(--color-warning)/10 p-3 ${
+                        className={cn(
+                          'rounded-xl p-3',
                           section.color === 'blue'
                             ? 'text-(--color-info)'
-                            : 'text-(--color-success)'
-                        }`}
+                            : 'text-(--color-success)',
+                          section.color === 'blue'
+                            ? 'bg-(--color-info-soft-ui)'
+                            : section.color === 'emerald'
+                              ? 'bg-(--color-success-soft-ui)'
+                              : 'bg-(--color-warning-soft-ui)',
+                        )}
                       >
                         <div className="mb-2 flex items-start gap-2">
                           <div
-                            className={`mb-2 flex items-start gap-2 ${
+                            className={cn(
+                              'mb-2 flex items-start gap-2',
                               section.color === 'blue'
                                 ? 'text-(--color-info)'
                                 : section.color === 'emerald'
                                   ? 'text-(--color-success)'
-                                  : 'text-(--color-warning)'
-                            }`}
+                                  : 'text-(--color-warning)',
+                            )}
                           >
                             {icon}
                           </div>
                           <div className="flex-1">
                             <h4
-                              className={`font-medium ${
+                              className={cn(
+                                'font-medium',
                                 section.color === 'blue'
                                   ? 'text-(--color-info)'
                                   : section.color === 'emerald'
                                     ? 'text-(--color-success)'
-                                    : 'text-(--color-warning)'
-                              }`}
+                                    : 'text-(--color-warning)',
+                              )}
                             >
                               {section.title}
                             </h4>
@@ -121,7 +134,7 @@ export default function EvaluationCriteriaDrawer() {
                             </p>
                           </div>
                         </div>
-                        <div className={`mt-3 grid grid-cols-1 gap-2 ${section.gridCols}`}>
+                        <div className={cn('mt-3 grid grid-cols-1 gap-2', section.gridCols)}>
                           {section.factors.map((factor, factorIdx) => (
                             <div
                               key={factorIdx}

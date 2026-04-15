@@ -330,7 +330,7 @@ export default function LandingPage() {
 
       // Debug logging (remove in production)
       if (process.env.NODE_ENV === 'development') {
-        console.log('BeforeUnload Debug:', {
+        logger.log('BeforeUnload Debug:', {
           currentFormState,
           savedState,
           hasUnsavedChanges,
@@ -368,7 +368,7 @@ export default function LandingPage() {
   useEffect(() => {
     if (isValid) {
       import('@/pages/ResultsPage/ResultsPage').catch((err) => {
-        console.warn('Failed to prefetch ResultsPage:', err);
+        logger.warn('Failed to prefetch ResultsPage:', err);
       });
     }
   }, [isValid]);
@@ -454,7 +454,7 @@ export default function LandingPage() {
         try {
           clearSession();
         } catch (e) {
-          console.error('Failed to clear session after limit reached:', e);
+          logger.error('Failed to clear session after limit reached:', e);
         }
         return;
       }

@@ -14,7 +14,7 @@
     "dev": "concurrently -n BACKEND,FRONTEND -c \"yellow,cyan\" \"npm run backend\" \"npm run frontend\"",
     "backend": "npm run dev -w backend",
     "frontend": "npm run dev -w frontend",
-    "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules package-lock.json",
+    "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules",
     "rei": "npm run clean && npm install",
     "lint": "eslint . --cache",
     "lint:errors": "eslint . --quiet",

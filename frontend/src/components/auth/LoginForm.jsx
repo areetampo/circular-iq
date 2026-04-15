@@ -9,7 +9,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
-import { logger } from '@/utils/logger';
 
 export function LoginForm({ onSwitchToSignup }) {
   const [isLoading, setIsLoading] = useState(false);

@@ -2,7 +2,7 @@
  * Shared controller utilities
  */
 
-import { logger } from './logger.js';
+import { logger } from '#utils/logger.js';
 
 /**
  * Log API operation

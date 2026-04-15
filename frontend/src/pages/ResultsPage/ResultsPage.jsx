@@ -830,9 +830,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     );
   };
 
-  console.log('navigationResult', navigationResult);
-  console.log('currentData', currentData);
-  console.log('actualResult', actualResult);
+  logger.log('navigationResult', navigationResult);
+  logger.log('currentData', currentData);
+  logger.log('actualResult', actualResult);
 
   const publicURL = cleanUrl(
     `${window.location.origin}/assessments/share/${currentData.public_id}`,

@@ -119,13 +119,13 @@ export function getDatabaseType() {
  * This prevents open handles from hanging the test runner.
  */
 export async function closeAllPools() {
-  console.log('🔌 Closing all database connections...');
+  logger.log('🔌 Closing all database connections...');
   const promises = [];
 
   if (_aivenPgPool) {
     promises.push(
       _aivenPgPool.end().catch((err) => {
-        console.error('Error closing Aiven pool:', err);
+        logger.error('Error closing Aiven pool:', err);
         return null; // Don't fail the cleanup
       }),
     );
@@ -135,7 +135,7 @@ export async function closeAllPools() {
   if (_supabasePgPool) {
     promises.push(
       _supabasePgPool.end().catch((err) => {
-        console.error('Error closing Supabase pool:', err);
+        logger.error('Error closing Supabase pool:', err);
         return null; // Don't fail the cleanup
       }),
     );
@@ -154,11 +154,11 @@ export async function closeAllPools() {
           setTimeout(() => reject(new Error('Database close timeout')), 3000),
         ),
       ]);
-      console.log('✅ Database connections closed');
+      logger.log('✅ Database connections closed');
     } catch (err) {
-      console.warn('⚠️ Database close timeout/error:', err.message);
+      logger.warn('⚠️ Database close timeout/error:', err.message);
     }
   } else {
-    console.log('✅ No database connections to close');
+    logger.log('✅ No database connections to close');
   }
 }

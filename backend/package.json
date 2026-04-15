@@ -32,7 +32,7 @@
     "store": "node pipeline/store_embeddings.js",
     "populate": "npm run merge && npm run chunk && npm run embed && npm run store",
     "test": "node tests/run-tests.js",
-    "clean": "npx rimraf node_modules package-lock.json"
+    "clean": "npx rimraf node_modules"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
