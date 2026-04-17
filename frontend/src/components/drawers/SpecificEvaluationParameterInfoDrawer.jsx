@@ -116,7 +116,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                 </div>
 
                 {guidance.scale && (
-                  <div className={cn(`rounded-xl bg-(--color-accent-light)`)}>
+                  <div className={cn(`rounded-xl bg-(--color-success-soft-ui)`)}>
                     <h4 className={cn('mb-3 text-base font-medium', cfg.panelTitle)}>
                       {SPECIFIC_PARAMETER_CONTENT.sections.scoreGuide}
                     </h4>
@@ -145,7 +145,7 @@ export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
                       {guidance.examples.map(({ score, case: exampleCase, reason }, idx) => (
                         <div
                           key={`${exampleCase}-${score}-${idx}`}
-                          className="rounded-lg bg-(--color-accent-light) px-3 py-2"
+                          className="rounded-lg bg-(--color-warning-soft-ui) px-3 py-2"
                         >
                           <p className="text-sm font-medium text-(--color-text-primary)">
                             {exampleCase} {score && `(${score})`}

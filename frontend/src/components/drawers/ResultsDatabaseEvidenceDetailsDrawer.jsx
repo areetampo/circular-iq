@@ -1,7 +1,6 @@
 import { Drawer } from '@heroui/react';
 import {
   AlertCircle,
-  BarChart3,
   Building2,
   FileText,
   FolderOpen,
@@ -161,7 +160,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               <DetailSection title="Category" icon={FolderOpen} content={data.category} />
 
               {/* Case Scores */}
-              {data.case_scores && (
+              {/* {data.case_scores && (
                 <div className="space-y-3">
                   <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
                     Performance Scores
@@ -173,7 +172,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                         key={key}
                         className="flex items-center justify-start gap-2.5 rounded-lg bg-(--color-bg-field) p-2"
                       >
-                        <span className="text-sm font-medium text-(--color-text-muted) capitalize">
+                        <span className="text-sm font-medium text-(--color-text-muted)">
                           {key.replace(/_/g, ' ')}
                         </span>
                         <span className="text-sm font-semibold text-(--color-text-primary)">
@@ -183,7 +182,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Source URL */}
               {data.source_url && (

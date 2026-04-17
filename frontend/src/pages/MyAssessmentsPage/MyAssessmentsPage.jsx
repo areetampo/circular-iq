@@ -12,6 +12,7 @@ import { usePrefetchAssessment } from '@/features/assessments/hooks/useAssessmen
 import { useAssessments } from '@/features/assessments/hooks/useAssessments';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useDebounce } from '@/hooks/useDebounce';
+import { toTitleCase } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
 import { parseSortBy } from '@/utils/sortUtils';
 
@@ -177,10 +178,7 @@ export default function MyAssessmentsPage() {
 
   const formatIndustryLabel = useCallback((industry) => {
     if (!industry) return 'General';
-    return industry
-      .toString()
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase());
+    return toTitleCase(industry.toString());
   }, []);
 
   const handleToggleIndustry = useCallback((industry) => {
@@ -402,7 +400,7 @@ export default function MyAssessmentsPage() {
       ) {
         const msg = 'Name already exists';
         // toast.danger(msg, { timeout: 4000 });
-        // msg is also shown in rename dialog
+        // msg is shown in rename dialog so no need of toast
         throw new Error(msg);
       }
 

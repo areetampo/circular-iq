@@ -276,3 +276,96 @@ export async function getFeaturedSolutions({ limit = 3, industry, q } = {}) {
 export async function getGlobalStats() {
   return requestJson('/api/analytics/global-stats');
 }
+
+/**
+ * Score assessment with real-time progress streaming via Server-Sent Events
+ * @param {Object} formData - Form data with businessProblem, businessSolution, evaluationParameters, businessContext
+ * @param {Function} onStage - Callback for progress updates (stage, message)
+ * @param {Function} onComplete - Callback for successful completion (result)
+ * @param {Function} onError - Callback for errors (error)
+ */
+export async function scoreAssessmentStream(formData, onStage, onComplete, onError) {
+  try {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(buildApiUrl('/api/score/stream'), {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        businessProblem: formData.businessProblem,
+        businessSolution: formData.businessSolution,
+        evaluationParameters: formData.evaluationParameters,
+        businessContext: formData.businessContext || null,
+      }),
+    });
+
+    // Handle HTTP 403 the same way as scoreAssessment
+    if (response.status === 403) {
+      const data = await response.json().catch(() => null);
+      throw data || { message: `Request failed (${response.status})` };
+    }
+
+    if (!response.ok) {
+      throw { message: `Request failed (${response.status})` };
+    }
+
+    // Read the response as a ReadableStream
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete events (separated by double newlines)
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || ''; // Keep incomplete event in buffer
+
+        for (const event of events) {
+          if (!event.trim()) continue;
+
+          // Parse SSE event - look for "data: " prefix
+          const dataMatch = event.match(/^data: (.+)$/m);
+          if (!dataMatch) continue;
+
+          try {
+            const eventData = JSON.parse(dataMatch[1]);
+
+            if (eventData.stage === 'error') {
+              onError(eventData);
+              return;
+            }
+
+            if (eventData.stage === 'done') {
+              onComplete(eventData.result);
+              return;
+            }
+
+            // Call progress callback for all other stages
+            onStage(eventData.stage, eventData.message);
+          } catch (parseErr) {
+            console.warn('Failed to parse SSE event:', parseErr, 'Event:', dataMatch[1]);
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  } catch (err) {
+    // Handle network/stream errors
+    if (err.status === 403) {
+      // Re-throw LIMIT_REACHED errors for the caller to handle
+      throw err;
+    }
+    onError(err);
+  }
+}

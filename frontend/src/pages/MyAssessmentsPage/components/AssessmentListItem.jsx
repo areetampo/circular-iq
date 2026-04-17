@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button, Chip, CopyIcon } from '@/components/common';
-import { formatTimestamp } from '@/lib/formatting';
+import { formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 const scoreColor = (s) =>
@@ -65,9 +65,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           {/* Tags row */}
           <div className="flex flex-wrap items-center gap-2">
             {assessment.industry && (
-              <Chip variant="factor" className="text-[0.625rem]">
-                {assessment.industry}
-              </Chip>
+              <Chip variant="factor">{toTitleCase(assessment.industry)}</Chip>
             )}
             <Chip variant="access-type" color={assessment.is_public ? 'public' : 'private'}>
               {assessment.is_public ? 'Public' : 'Private'}

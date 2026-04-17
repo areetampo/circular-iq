@@ -1,12 +1,13 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CircleX, Eye, EyeOff } from 'lucide-react';
+import { CircleX, Eye, EyeOff, KeyRound, Minus, User } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '@/components/common/Button';
+import { TEST_CREDENTIALS } from '@/constants/testCredentials';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 
@@ -159,14 +160,31 @@ export function LoginForm({ onSwitchToSignup }) {
         </Button>
       </p>
 
-      {/* Error display */}
       <div className="relative mt-4 flex min-h-10 items-center justify-center">
+        {/* Error display */}
         {submitError && (
           <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
             <CircleX size={16} strokeWidth={2.5} />
             {submitError}
           </div>
         )}
+
+        {/* test login credentials */}
+        <div className="absolute inset-x-0 top-12 flex animate-in flex-col items-center justify-center gap-1 rounded-xl bg-(--color-info-soft-ui) px-3 py-2 text-sm font-medium text-(--color-info)">
+          <div className="flex items-center gap-1 uppercase">
+            <Minus size={16} strokeWidth={2.5} />
+            <span>Test login credentials</span>
+            <Minus size={16} strokeWidth={2.5} />
+          </div>
+          <div className="flex items-center justify-center gap-1">
+            <User size={12} strokeWidth={2.5} />
+            <span>Username: {TEST_CREDENTIALS.username}</span>
+          </div>
+          <div className="flex items-center justify-center gap-1">
+            <KeyRound size={12} strokeWidth={2.5} />
+            <span>Password: {TEST_CREDENTIALS.password}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

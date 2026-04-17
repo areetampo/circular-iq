@@ -1,7 +1,7 @@
 import { AlertDialog, Checkbox } from '@heroui/react';
-import { FileCheck, RefreshCw } from 'lucide-react';
+import { ExternalLink, FileCheck, RefreshCw } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
@@ -111,8 +111,7 @@ function ResultsRestoreDialogContent() {
         localStorage.setItem('results_restore_dialog_muted_expiration', expirationTime.toString());
       }
 
-      const resultsData =
-        sessionData?.results || sessionData?.calculatedResults || sessionData?.result_json;
+      const resultsData = sessionData?.results;
       navigate('/results', {
         state: {
           result: resultsData,
@@ -155,6 +154,9 @@ function ResultsRestoreDialogContent() {
 
   if (!hasInputs && !hasResults) return null;
   if (!isDialogOpen) return null;
+
+  const resultsPageUrl = `${window.location.origin}/results`;
+  const displayResultsPageUrl = cleanUrl(resultsPageUrl, { stripProtocol: true, stripWww: true });
 
   return (
     <AlertDialog>
@@ -217,9 +219,14 @@ function ResultsRestoreDialogContent() {
                     <div className="text-default-600 leading-tight">
                       Don&apos;t show this again for 10 minutes - your results will remain
                       accessible via the navigation menu at{' '}
-                      <span className="inline whitespace-nowrap">
-                        {cleanUrl(window.location.origin)}/results
-                      </span>
+                      <Link
+                        className="flex items-center whitespace-nowrap underline"
+                        to={resultsPageUrl}
+                        onClick={handleCancel}
+                      >
+                        <span>{displayResultsPageUrl}</span>
+                        <ExternalLink size={10} strokeWidth={2} className="mt-0.5 ml-0.5 inline" />
+                      </Link>
                     </div>
                   </Checkbox.Content>
                 </Checkbox>

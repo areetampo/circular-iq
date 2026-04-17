@@ -120,6 +120,9 @@ function ReplaceInputsDialogContent() {
 
   return (
     <AlertDialog>
+      <Button className="hidden" aria-hidden="true">
+        Dialog Trigger
+      </Button>
       <AlertDialog.Backdrop
         isOpen={true}
         onOpenChange={handleBackdropChange}

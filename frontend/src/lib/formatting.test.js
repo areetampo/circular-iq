@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { titleize } from './formatting';
+import { toTitleCase } from './formatting';
 
-describe('titleize', () => {
+describe('toTitleCase', () => {
   it('converts snake_case to Title Case', () => {
-    expect(titleize('circular_economy')).toBe('Circular Economy');
+    expect(toTitleCase('circular_economy')).toBe('Circular Economy');
   });
 
   it('handles empty input', () => {
-    expect(titleize('')).toBe('N/A');
+    expect(toTitleCase('')).toBe('N/A');
   });
 });

@@ -167,6 +167,7 @@ export async function generateReasoning(
   scores,
   similarDocs = [],
   context = null,
+  emitter = null,
 ) {
   // Validate inputs
   if (!businessProblem || !businessSolution) {
@@ -219,7 +220,7 @@ export async function generateReasoning(
   }
 
   try {
-    const response = await openaiClient.chat.completions.create({
+    const stream = await openaiClient.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemRole },
@@ -228,10 +229,58 @@ export async function generateReasoning(
       temperature: 0.7,
       max_tokens: 3000,
       response_format: { type: 'json_object' },
+      stream: true,
     });
 
-    const content = response.choices[0].message.content;
-    const analysis = JSON.parse(content);
+    let buffer = '';
+    const emittedStages = new Set();
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      buffer += content;
+
+      // Emit sub-stage progress when sections first appear
+      if (emitter) {
+        if (buffer.includes('"strengths"') && !emittedStages.has('audit_strengths')) {
+          emitter('audit_strengths', 'Analysing strengths…');
+          emittedStages.add('audit_strengths');
+        }
+        if (
+          (buffer.includes('"gaps"') || buffer.includes('"weaknesses"')) &&
+          !emittedStages.has('audit_gaps')
+        ) {
+          emitter('audit_gaps', 'Identifying gaps…');
+          emittedStages.add('audit_gaps');
+        }
+        if (buffer.includes('"recommendations"') && !emittedStages.has('audit_recommendations')) {
+          emitter('audit_recommendations', 'Building recommendations…');
+          emittedStages.add('audit_recommendations');
+        }
+        if (buffer.includes('"sdg_alignment"') && !emittedStages.has('audit_sdg')) {
+          emitter('audit_sdg', 'Mapping SDG alignment…');
+          emittedStages.add('audit_sdg');
+        }
+        if (buffer.includes('"improvement_roadmap"') && !emittedStages.has('audit_roadmap')) {
+          emitter('audit_roadmap', 'Generating improvement roadmap…');
+          emittedStages.add('audit_roadmap');
+        }
+        if (buffer.includes('"market_opportunity"') && !emittedStages.has('audit_market')) {
+          emitter('audit_market', 'Assessing market opportunity…');
+          emittedStages.add('audit_market');
+        }
+      }
+    }
+
+    let analysis;
+    try {
+      analysis = JSON.parse(buffer);
+    } catch (parseErr) {
+      logger.error(
+        { parseErr, bufferLength: buffer.length },
+        'Failed to parse streamed LLM response as JSON',
+      );
+      throw new Error('Audit generation returned malformed output. Please try again.');
+    }
 
     // Validate and enhance the response
     return enhanceAnalysis(analysis, similarDocs, scores);

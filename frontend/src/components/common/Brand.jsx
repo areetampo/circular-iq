@@ -44,7 +44,7 @@ export const SiteLogo = ({ className, size = 'md' }) => {
     >
       <Link to="/">
         <Avatar.Image alt={SITE_NAME} src="/site-logo.png" />
-        <Avatar.Fallback>{SITE_NAME}</Avatar.Fallback>
+        <Avatar.Fallback>logo</Avatar.Fallback>
       </Link>
     </Avatar>
   );

@@ -13,21 +13,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/common';
-import LoaderIcon from '@/components/common/LoaderIcon';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { scoreAssessment } from '@/features/assessments/api/assessmentApi';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
+import { useLoadingStages } from '@/hooks/useLoadingStages';
 import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
-import BusinessContextContainer from '@/pages/LandingPage/components/BusinessContextContainer';
-import BusinessInputField from '@/pages/LandingPage/components/BusinessInputField';
-import EvaluationParametersContainer from '@/pages/LandingPage/components/EvaluationParametersContainer';
-import HeroSection from '@/pages/LandingPage/components/HeroSection';
-import SampleTestCasesContainer from '@/pages/LandingPage/components/SampleTestCasesContainer';
+
+import {
+  BusinessContextContainer,
+  BusinessInputField,
+  ButtonStages,
+  EvaluationParametersContainer,
+  HeroSection,
+  SampleTestCasesContainer,
+} from './components';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ export default function LandingPage() {
     clearSession,
   } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
+  const { currentStage, startStream, reset: resetProgress } = useLoadingStages();
   const {
     openAssessmentMethodologyDrawer,
     openEvaluationCriteriaDrawer,
@@ -420,54 +423,58 @@ export default function LandingPage() {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await scoreAssessment(formData);
+    setLoading(true);
+    setError(null);
 
-      // Persist inputs and save the full result snapshot
-      saveSession({
-        inputs: {
-          businessProblem: formData.businessProblem,
-          businessSolution: formData.businessSolution,
-          evaluationParameters: formData.evaluationParameters || {},
-          businessContext: formData.businessContext || {},
-        },
-        results: result,
-      });
-
-      toast.success('Assessment complete!', {
-        description: 'Your circularity evaluation has been generated successfully.',
-        timeout: 3000,
-      });
-
-      navigate('/results', { state: { result } });
-    } catch (err) {
-      // Handle anonymous limit reached
-      if (err?.code === 'LIMIT_REACHED') {
-        openLimitReachedDialog({
-          limit: err?.limit || 20,
-          message:
-            err?.message ||
-            `You've reached the limit of free evaluations. Create an account to continue assessing your circular economy initiatives!`,
+    startStream(formData, {
+      onComplete: (result) => {
+        setLoading(false);
+        resetProgress();
+        saveSession({
+          inputs: {
+            businessProblem: formData.businessProblem,
+            businessSolution: formData.businessSolution,
+            evaluationParameters: formData.evaluationParameters || {},
+            businessContext: formData.businessContext || {},
+          },
+          results: result,
         });
-        try {
-          clearSession();
-        } catch (e) {
-          logger.error('Failed to clear session after limit reached:', e);
-        }
-        return;
-      }
 
-      const errorMessage = err?.message || err?.error || 'An unexpected error occurred';
-      setError(errorMessage);
-      toast.danger('Evaluation failed', {
-        description: errorMessage,
-        timeout: 3000,
-      });
-    } finally {
-      setLoading(false);
-    }
+        toast.success('Assessment complete!', {
+          description: 'Your circularity evaluation has been generated successfully.',
+          timeout: 3000,
+        });
+
+        navigate('/results', { state: { result } });
+      },
+      onError: (err) => {
+        setLoading(false);
+        resetProgress();
+
+        // Handle anonymous limit reached
+        if (err?.code === 'LIMIT_REACHED') {
+          openLimitReachedDialog({
+            limit: err?.limit || 20,
+            message:
+              err?.message ||
+              `You've reached the limit of free evaluations. Create an account to continue assessing your circular economy initiatives!`,
+          });
+          try {
+            clearSession();
+          } catch (e) {
+            logger.error('Failed to clear session after limit reached:', e);
+          }
+          return;
+        }
+
+        const errorMessage = err?.message || err?.error || 'An unexpected error occurred';
+        setError(errorMessage);
+        toast.danger('Evaluation failed', {
+          description: errorMessage,
+          timeout: 3000,
+        });
+      },
+    });
   };
 
   const handleSampleTestSelect = (testCase) => {
@@ -669,20 +676,15 @@ export default function LandingPage() {
                 <div className="flex w-full flex-col items-center justify-center gap-2">
                   <Tooltip delay={0} isDisabled={isValid} className="w-full">
                     <Tooltip.Trigger className="w-full">
-                      <Button
-                        size="lg"
+                      <ButtonStages
+                        loading={loading}
+                        isValid={isValid}
                         onPress={handleSubmit(handleFormSubmit)}
-                        isDisabled={loading || !isValid}
+                        currentStage={currentStage}
                         variant="teal"
-                        className="h-12 rounded-4xl"
                         fullWidth
-                      >
-                        {loading ? (
-                          <LoaderIcon isButton={true} color="#ffffff" />
-                        ) : (
-                          <span>Evaluate Circularity</span>
-                        )}
-                      </Button>
+                        buttonText="Evaluate Circularity"
+                      />
                     </Tooltip.Trigger>
                     <Tooltip.Content showArrow placement="top">
                       <span>

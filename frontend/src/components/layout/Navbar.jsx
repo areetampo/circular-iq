@@ -82,9 +82,9 @@ export default function Navbar() {
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`relative cursor-pointer font-sniglet text-sm transition-colors ${
+                  className={`relative cursor-pointer text-sm transition-colors duration-300 ${
                     isActive
-                      ? 'text-(--color-accent)'
+                      ? 'font-medium text-(--color-accent)'
                       : `text-(--color-text-secondary) hover:text-(--color-text-primary)`
                   }`}
                 >

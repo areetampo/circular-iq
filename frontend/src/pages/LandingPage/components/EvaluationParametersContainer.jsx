@@ -1,5 +1,5 @@
 import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
-import { ChevronDown, Info } from 'lucide-react';
+import { ChevronDown, Info, Minus } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -64,9 +64,9 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
               >
                 <Label
                   className={cn(
-                    'inline-flex items-center gap-2 rounded-2xl px-3 py-1.5',
-                    `cursor-pointer transition-opacity duration-150 hover:opacity-80`,
-                    'border-[1.5px] text-[0.68rem] font-bold tracking-[0.08rem] uppercase',
+                    'inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-jua',
+                    `cursor-pointer transition-all duration-300 hover:scale-97 hover:opacity-90`,
+                    'border-[1.5px] text-xs font-semibold tracking-[0.08rem] uppercase',
                     (() => {
                       const cfg =
                         GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
@@ -77,7 +77,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
                   aria-label={`View details drawer for ${parameterLabels[paramKey].label}`}
                 >
-                  {parameterLabels[paramKey].label}
+                  <span>{parameterLabels[paramKey].label}</span>
                   <Info className="icon--info" size={18} strokeWidth={2} />
                 </Label>
 
@@ -218,13 +218,14 @@ function EvaluationParametersContainer({
                     strokeWidth={2}
                   />
 
-                  <div className="flex flex-1 flex-col gap-0.5 text-left">
-                    <span className="font-mono text-[0.85rem]/6 font-medium tracking-[-0.01em] text-(--color-text-primary)">
+                  <div className="flex items-center tracking-wider">
+                    <span className="font-sniglet text-[0.9rem]/6 font-medium text-(--color-text-primary) uppercase">
                       {groupName}
                     </span>
-                    <span className="text-xs/4 font-normal text-(--color-text-muted)">
-                      {cfg.subtitle}
-                    </span>
+                    <div className="text-[0.825rem]/4 font-normal text-(--color-text-muted)">
+                      <Minus size={20} strokeWidth={2} className="mx-1 inline" />
+                      <span>{cfg.subtitle}</span>
+                    </div>
                   </div>
                   <Accordion.Indicator className="text-(--color-text-muted) [&>svg]:size-4">
                     <ChevronDown />

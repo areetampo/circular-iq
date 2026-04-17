@@ -2,8 +2,7 @@ import { PieChart } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
-import { parameterGroups } from '@/constants/evaluationData';
-import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
+import { getParameterStyling } from '@/constants/groupStyleConfig';
 import { cn } from '@/utils/cn';
 
 export function ScoreCategoryBreakdown({ actualResult }) {
@@ -36,14 +35,8 @@ export function ScoreCategoryBreakdown({ actualResult }) {
                   key={i}
                   className={cn(
                     'inline-flex items-center gap-2 rounded-2xl px-1.5 py-0.5',
-                    'border-[1.5px] text-[0.68rem] font-bold tracking-[0.08rem] uppercase',
-                    (() => {
-                      const categoryParam = Object.entries(parameterGroups).find(([, factors]) =>
-                        factors.includes(factor.name),
-                      )?.[0];
-                      const cfg = GROUP_STYLE_CONFIG[categoryParam] || DEFAULT_CONFIG;
-                      return cn(cfg.paramBg, cfg.paramTextColor, cfg.paramBorder);
-                    })(),
+                    'border-[1.5px] text-[0.68rem] font-medium tracking-[0.08rem] uppercase',
+                    getParameterStyling(factor.name),
                   )}
                 >
                   {factor.name}: {factor.score}

@@ -2,7 +2,7 @@ import { Popover } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/common';
-import { titleize } from '@/lib/formatting';
+import { toTitleCase } from '@/lib/formatting';
 
 const scoreColor = (s) =>
   s >= 75
@@ -86,11 +86,11 @@ export function StatsGrid({
 
   const getDisplayText = () => {
     if (displayIndustries.length === 0) return '—';
-    if (displayIndustries.length === 1) return titleize(displayIndustries[0].industry);
+    if (displayIndustries.length === 1) return toTitleCase(displayIndustries[0].industry);
     if (displayIndustries.length === 2) {
-      return `${titleize(displayIndustries[0].industry)} & ${titleize(displayIndustries[1].industry)}`;
+      return `${toTitleCase(displayIndustries[0].industry)} & ${toTitleCase(displayIndustries[1].industry)}`;
     }
-    return `${titleize(displayIndustries[0].industry)},\n${titleize(displayIndustries[1].industry)},\n...`;
+    return `${toTitleCase(displayIndustries[0].industry)},\n${toTitleCase(displayIndustries[1].industry)},\n...`;
   };
 
   return (
@@ -163,7 +163,7 @@ export function StatsGrid({
                           key={index}
                           className="flex w-full items-center justify-between rounded-sm px-2 py-1 hover:bg-(--color-chip-bg)"
                         >
-                          <span className="text-xs">{titleize(industryName)}</span>
+                          <span className="text-xs">{toTitleCase(industryName)}</span>
                           <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
                             {count}
                           </span>

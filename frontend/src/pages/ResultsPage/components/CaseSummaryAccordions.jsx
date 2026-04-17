@@ -5,7 +5,7 @@ import React from 'react';
 
 import { SectionHeading } from '@/components/common';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
-import { titleize } from '@/lib/formatting';
+import { toTitleCase } from '@/lib/formatting';
 
 // Reusable accordion item component
 function AccordionItem({ id, icon, iconColor, title, description, children }) {
@@ -52,7 +52,7 @@ export function CaseSummaryAccordions({
     .filter((key) => evaluationParams[key] != null)
     .map((key) => ({
       key,
-      label: parameterLabels[key]?.label || titleize(key),
+      label: parameterLabels[key]?.label || toTitleCase(key),
       value: Number(evaluationParams[key]) || 0,
     }));
 

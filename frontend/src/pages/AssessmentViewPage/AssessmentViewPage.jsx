@@ -9,7 +9,7 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { useExportState } from '@/hooks/useExportState';
-import AssessmentColumn from '@/pages/AssessmentComparisonPage/components/AssessmentColumn';
+import { AssessmentColumn } from '@/pages/AssessmentComparisonPage/components';
 import {
   computeAssessmentData,
   createAssessmentHandlers,
@@ -139,8 +139,8 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
     <div className="w-full space-y-0">
       {/* Simple header - no buttons or public toggle */}
       {assessment?.title && (
-        <div className="mt-8 mb-2 px-4 sm:px-6">
-          <h1 className="text-center font-jua text-2xl font-medium tracking-[-0.02em] text-(--color-text-primary)">
+        <div className="mt-8 px-4 sm:px-6">
+          <h1 className="text-center font-jua text-3xl font-medium tracking-[-0.02em] text-(--color-text-primary)">
             {assessment.title}
           </h1>
         </div>

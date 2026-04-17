@@ -3,6 +3,7 @@ import {
   BarChart3,
   CheckCircle2,
   Download,
+  ExternalLink,
   MoveLeft,
   MoveRight,
   NotebookPen,
@@ -35,8 +36,12 @@ import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useExportState } from '@/hooks/useExportState';
-import { cleanUrl, titleize } from '@/lib/formatting';
+import { cleanUrl, formatTimestamp, toTitleCase, truncate } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
+import { cn } from '@/utils/cn';
+import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
+import { getSession, saveSession } from '@/utils/session';
+
 import {
   AuditSummaryCard,
   CaseSummaryAccordions,
@@ -56,12 +61,7 @@ import {
   ScoreOverviewSection,
   StrengthsGapsCard,
   WeightedScoreCard,
-} from '@/pages/ResultsPage/components';
-import { cn } from '@/utils/cn';
-import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
-import { getSession, saveSession } from '@/utils/session';
-
-import { formatTimestamp } from '../../lib/formatting';
+} from './components';
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
@@ -500,7 +500,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       .filter((key) => evaluationParameterValues[key] != null)
       .map((key) => ({
         key,
-        label: parameterLabels[key]?.label || titleize(key),
+        label: parameterLabels[key]?.label || toTitleCase(key),
         value: Number(evaluationParameterValues[key]) || 0,
       }));
   }, [evaluationParameterValues]);
@@ -837,8 +837,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   logger.log('currentData', currentData);
   logger.log('actualResult', actualResult);
 
-  const publicURL = cleanUrl(
-    `${window.location.origin}/assessments/share?id=${currentData.public_id}`,
+  const publicUrl = `${window.location.origin}/assessments/share?id=${currentData.public_id}`;
+  const displayPublicUrl = truncate(
+    cleanUrl(publicUrl, { stripProtocol: true, stripWww: true }),
+    30,
   );
 
   return (
@@ -900,7 +902,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     className="cursor-pointer transition-colors group-hover/checkbox:text-(--color-text-primary)"
                   >
                     <p className="text-[0.8125rem] font-medium opacity-80">
-                      Public sharing{' '}
+                      Public assessment{' '}
                       <span className="ml-0.5 text-[0.7rem] opacity-70">
                         (
                         {(
@@ -942,13 +944,20 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   isUpdatingPublic ? 'opacity-20' : '',
                 )}
               >
-                <div className="flex items-center gap-2">
-                  <span className="mr-2 font-mono">{publicURL}</span>
-                  <span className="font-mono">{'/'}</span>
-                  <CopyButton value={publicURL} description="URL" noBorder />
+                <div className="flex items-center gap-2 [&>span]:font-mono">
+                  <span>{displayPublicUrl}</span>
+                  <Link to={publicUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink
+                      size={18}
+                      strokeWidth={2}
+                      className="mx-1 mb-[4.5px] inline-flex text-black/75 transition-transform duration-150 hover:scale-110 hover:text-black active:scale-95"
+                    />
+                  </Link>
+                  <span>{'/'}</span>
+                  <CopyButton value={publicUrl} description="URL" noBorder />
+                  <span>{'/'}</span>
+                  <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />
                 </div>
-                <span className="font-mono">{'/'}</span>
-                <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />
               </div>
             </div>
           </div>

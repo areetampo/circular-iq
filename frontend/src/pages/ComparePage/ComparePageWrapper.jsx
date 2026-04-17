@@ -1,6 +1,8 @@
 import { useSearchParams } from 'react-router-dom';
-import CompareForm from './components/CompareForm';
-import AssessmentComparisonPage from '../AssessmentComparisonPage/AssessmentComparisonPage';
+
+import AssessmentComparisonPage from '@/pages/AssessmentComparisonPage/AssessmentComparisonPage';
+
+import { CompareForm } from './components';
 
 export default function ComparePageWrapper() {
   const [searchParams] = useSearchParams();

@@ -4,30 +4,19 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { Button } from '@/components/common';
+import { Button, Chip } from '@/components/common';
 import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session/hooks/useSession';
 import { cn } from '@/utils/cn';
 
-// Helper function to get score styling with elegant colors
-const getScoreStyle = (score) => {
-  if (score >= 75)
-    return {
-      color: '--color-success',
-    };
-  if (score >= 55)
-    return {
-      color: '--color-accent',
-    };
-  if (score >= 35)
-    return {
-      color: '--color-warning',
-    };
-  return {
-    color: '--color-error',
-  };
+// Helper function to get color based on score
+const getScoreColor = (score) => {
+  if (score >= 75) return 'success';
+  if (score >= 55) return 'accent';
+  if (score >= 35) return 'warning';
+  return 'error';
 };
 
 // Helper function to validate and normalize business model type values
@@ -180,7 +169,7 @@ export default function SampleTestCasesContainer({
 
     toast.success('Test case loaded!', {
       description: `"${testCase.title}" has been loaded into the form.`,
-      timeout: 4000,
+      timeout: 3000,
     });
     setShowEvaluationParameters(true);
 
@@ -272,19 +261,10 @@ export default function SampleTestCasesContainer({
               {Object.entries(testCase.evaluationParameters || {})
                 .slice(0, 3)
                 .map(([key, value]) => {
-                  const style = getScoreStyle(value);
                   return (
-                    <span
-                      key={key}
-                      className="rounded-xl border px-2 py-0.5 text-[0.625rem] font-medium"
-                      style={{
-                        backgroundColor: `color-mix(in srgb, var(${style.color}) 10%, transparent)`,
-                        color: `var(${style.color})`,
-                        borderColor: `color-mix(in srgb, var(${style.color}) 30%, transparent)`,
-                      }}
-                    >
+                    <Chip key={key} size="xs" variant="score-pill" color={getScoreColor(value)}>
                       {key.replace(/_/g, ' ')}: {value}
-                    </span>
+                    </Chip>
                   );
                 })}
             </div>

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { formatProcessingTime, titleize } from '@/lib/formatting';
+import { formatProcessingTime, toTitleCase } from '@/lib/formatting';
 
 export function ScoreOverviewSection({
   actualResult,
@@ -23,7 +23,7 @@ export function ScoreOverviewSection({
       <div className="mb-6 flex justify-center gap-4">
         {[
           actualResult.metadata?.industry && {
-            label: titleize(actualResult.metadata.industry),
+            label: toTitleCase(actualResult.metadata.industry),
           },
           actualResult.confidence_level && {
             label: `${actualResult.confidence_level}% Confidence`,

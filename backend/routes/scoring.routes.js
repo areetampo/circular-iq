@@ -137,5 +137,85 @@ export default function createScoringRouter(openai, supabase) {
     }
   });
 
+  // SSE streaming route for real-time progress updates
+  router.post('/stream', scoringRateLimiter, async (req, res) => {
+    const start = Date.now();
+    let isClosed = false;
+
+    // Handle client disconnect
+    req.on('close', () => {
+      isClosed = true;
+    });
+
+    try {
+      // Enforce anonymous usage limits before heavy processing
+      const anonCheck = await scoringController.enforceAnonymousUsage(
+        req,
+        supabaseClient,
+        serviceSupabase,
+      );
+
+      if (anonCheck && anonCheck.blocked) {
+        const status = anonCheck.status || 403;
+        logRequest('POST', '/score/stream', status, Date.now() - start);
+
+        return res.status(status).json(anonCheck.body);
+      }
+
+      const userId = await extractUserId(req, supabaseClient);
+
+      // Set SSE headers
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no');
+      res.flushHeaders();
+
+      // Define emitter function for streaming progress
+      const emit = (stage, message, data = {}) => {
+        if (isClosed) return;
+
+        try {
+          res.write(`data: ${JSON.stringify({ stage, message, ...data })}\n\n`);
+        } catch (err) {
+          logger.warn({ err }, 'Failed to write to SSE stream');
+          isClosed = true;
+        }
+      };
+
+      // Run the streaming scoring pipeline
+      await scoringController.performScoringWithStream(
+        req,
+        openaiClient || sharedOpenAI,
+        supabaseClient,
+        serviceSupabase,
+        userId,
+        emit,
+      );
+
+      logRequest('POST', '/score/stream', 200, Date.now() - start);
+    } catch (err) {
+      const status = err.status || (err.code === 'INPUT_TOO_LONG' ? 400 : 500);
+      logRequest('POST', '/score/stream', status, Date.now() - start);
+      logger.error({ err }, 'Failed to generate scoring audit (stream)');
+
+      if (!isClosed) {
+        // Send error event
+        try {
+          res.write(
+            `data: ${JSON.stringify({
+              stage: 'error',
+              message: err.message || 'Failed to generate scoring audit',
+              code: err.code || 'INTERNAL_ERROR',
+            })}\n\n`,
+          );
+        } catch (writeErr) {
+          logger.warn({ err: writeErr }, 'Failed to write error to SSE stream');
+        }
+        res.end();
+      }
+    }
+  });
+
   return router;
 }

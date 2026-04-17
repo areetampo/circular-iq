@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { titleize } from '@/lib/formatting';
+import { toTitleCase } from '@/lib/formatting';
 
 /**
  * FieldDisplayCard Component
@@ -14,7 +14,9 @@ export function FieldDisplayCard({ label, value, helpText }) {
       <div className="mb-1 text-sm font-semibold tracking-wide text-(--color-text-label) uppercase">
         {label}
       </div>
-      <div className="text-sm font-medium text-(--color-text-primary)">{titleize(value || '')}</div>
+      <div className="text-sm font-medium text-(--color-text-primary)">
+        {toTitleCase(value || '')}
+      </div>
       <div className="mt-1 text-sm wrap-break-word text-(--color-text-muted) italic">
         {helpText}
       </div>

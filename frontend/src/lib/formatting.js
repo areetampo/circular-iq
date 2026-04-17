@@ -1,7 +1,5 @@
 /** Date, number, and string formatting helpers. */
 
-import { FRONTEND_CONFIG } from '@/config';
-
 /**
  * Format number as percentage with rounding
  * @param {number} value - Value to format
@@ -21,19 +19,6 @@ export function formatPercentage(value, decimals = 1) {
 export function formatSimilarity(similarity) {
   if (typeof similarity !== 'number') return '0%';
   return `${Math.round(similarity * 100)}%`;
-}
-
-/**
- * Format parameter name from snake_case to Title Case
- * @param {string} parameter - Parameter name
- * @returns {string} Formatted name
- */
-export function formatParameterName(parameter) {
-  if (!parameter) return '';
-  return parameter
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
 }
 
 /**
@@ -126,19 +111,6 @@ export function getCurrentTimestampFormatted() {
 }
 
 /**
- * Convert text to title case, replacing underscores with spaces
- * @param {string} txt - Input text
- * @returns {string} Title-cased string or 'N/A' if empty
- */
-export function titleize(txt) {
-  return txt
-    ? String(txt)
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (l) => l.toUpperCase())
-    : 'N/A';
-}
-
-/**
  * Format a list with truncation support
  * Truncates list to specified max items and provides full list for display
  * @param {Array} items - Array of items (can have 'industry' property or be strings)
@@ -150,7 +122,7 @@ export function formatTruncatedList(items = [], maxDisplay = 2) {
     return { display: 'N/A', all: [], extra: 0 };
   }
 
-  const formatted = items.map((item) => titleize(item.industry || item));
+  const formatted = items.map((item) => toTitleCase(item.industry || item));
 
   const hasExtra = formatted.length > maxDisplay;
   const displayed = formatted.slice(0, maxDisplay);
@@ -205,47 +177,80 @@ export function formatProcessingTime(timeMs) {
 }
 
 /**
- * Formats a URL based on configurable options.
- * * @param {string} urlStr - The full URL string.
- * @param {Object} options - Configuration for what to strip.
- * @param {boolean} [options.stripWww=true] - Remove 'www.' prefix.
- * @param {boolean} [options.stripPort=true] - Remove port numbers.
- * @param {boolean} [options.stripQuery=false] - Remove query parameters (?x=y).
- * @param {boolean} [options.stripTrailingSlash=true] - Remove final '/' from path.
+ * Removes a specific number of characters from the end of a string
+ * and appends an ellipsis.
+ * * @param {string} str - The target string.
+ * @param {number} charsToRemove - How many characters to cut off.
+ * @returns {string} The truncated string.
+ */
+export function truncate(str, charsToRemove) {
+  if (!str || typeof str !== 'string') return '';
+  if (charsToRemove <= 0) return str;
+
+  // If we are removing more than the string has, just return the ellipsis
+  if (charsToRemove >= str.length) return '...';
+
+  const newLength = str.length - charsToRemove;
+  return str.substring(0, newLength) + '...';
+}
+
+/**
+ * Cleans and formats a URL string based on provided transformation options.
+ * Useful for displaying "pretty" URLs in the UI or normalizing URLs for comparison.
+ * * @param {string} urlStr - The raw URL or domain string to be cleaned.
+ * @param {Object} [options={}] - Transformation settings.
+ * @param {boolean} [options.stripProtocol=true] - Remove 'http://' or 'https://'.
+ * @param {boolean} [options.stripWww=false] - Remove the 'www.' prefix from the hostname.
+ * @param {boolean} [options.stripPort=false] - Remove the port number (e.g., ':5173').
+ * @param {boolean} [options.stripQuery=true] - Remove query parameters (e.g., '?id=1').
+ * @param {boolean} [options.stripTrailingSlash=true] - Remove the final forward slash.
+ * @returns {string} The formatted URL string. If parsing fails, returns the original input.
  */
 export function cleanUrl(urlStr, options = {}) {
   const defaults = {
-    stripWww: true,
-    stripPort: FRONTEND_CONFIG.isProd, // Default to stripping only in prod
-    stripQuery: false,
-    stripTrailingSlash: true,
+    stripProtocol: false, // Removes http:// or https://
+    stripWww: false, // Removes www.
+    stripPort: false, // Removes :port
+    stripQuery: false, // Removes ?query=params
+    stripTrailingSlash: true, // Removes / at the end
   };
 
   const settings = { ...defaults, ...options };
 
   try {
-    const url = new URL(urlStr);
+    // 1. Pre-flight check: URL constructor requires a protocol to parse correctly.
+    // If the string doesn't have one, we add a temporary one for parsing.
+    const hasProtocol = urlStr.includes('://');
+    const parseableUrl = hasProtocol ? urlStr : `http://${urlStr}`;
+    const url = new URL(parseableUrl);
 
-    // 1. Handle Hostname
+    // 2. Handle Protocol
+    let protocol = settings.stripProtocol ? '' : url.protocol + '//';
+
+    // 3. Handle Hostname (WWW)
     let host = url.hostname;
     if (settings.stripWww) {
       host = host.replace(/^www\./, '');
     }
 
-    // 2. Handle Port
+    // 4. Handle Port
+    // url.port is empty if it's the default (80/443)
     const port = !settings.stripPort && url.port ? `:${url.port}` : '';
 
-    // 3. Handle Path
+    // 5. Handle Path & Trailing Slash
     let path = url.pathname;
-    if (settings.stripTrailingSlash) {
+    if (settings.stripTrailingSlash && path.length > 1) {
       path = path.replace(/\/$/, '');
+    } else if (settings.stripTrailingSlash && path === '/') {
+      path = '';
     }
 
-    // 4. Handle Query
+    // 6. Handle Query
     const query = settings.stripQuery ? '' : url.search;
 
-    return `${host}${port}${path}${query}`;
+    return `${protocol}${host}${port}${path}${query}`;
   } catch (e) {
+    // Fallback if the string is completely mangled
     return urlStr;
   }
 }

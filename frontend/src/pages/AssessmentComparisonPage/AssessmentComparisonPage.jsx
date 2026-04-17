@@ -11,9 +11,7 @@ import { exportComparisonCSV } from '@/features/export';
 import { useExportState } from '@/hooks/useExportState';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 
-import { ComparisonSkeleton } from './components';
-import AssessmentColumn from './components/AssessmentColumn';
-import { ChangeIndicator } from './components/ChangeIndicator';
+import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
 import { computeAssessmentData, createAssessmentHandlers } from './utils/assessmentUtils';
 
 export default function AssessmentComparisonPage() {
@@ -167,16 +165,11 @@ export default function AssessmentComparisonPage() {
       )}
       <Tooltip delay={0}>
         <Tooltip.Trigger className="item-center flex">
-          <Link
-            to={`/assessments/share?id=${publicId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex transition-transform duration-150 hover:scale-110 active:scale-95"
-          >
+          <Link to={`/assessments/share?id=${publicId}`} target="_blank" rel="noopener noreferrer">
             <ExternalLink
               size={18}
               strokeWidth={2}
-              className="text-(--color-text-muted) hover:text-(--color-text-secondary)"
+              className="inline-flex text-(--color-text-muted) transition-transform duration-150 hover:scale-110 hover:text-(--color-text-secondary) active:scale-95"
             />
           </Link>
         </Tooltip.Trigger>
@@ -202,11 +195,11 @@ export default function AssessmentComparisonPage() {
         <Separator variant="secondary" className="absolute inset-x-0 bottom-0" />
         <Separator variant="secondary" className="absolute inset-x-0 top-0" />
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
-          <div>
+          <div className="pl-4">
             <AssessmentTitleWithLink assessment={assessment1} publicId={publicId1} />
             <div className="mt-1 flex items-baseline gap-1">
               <span
-                className={`font-mono text-3xl text-(${scoreColor(scoringResult1?.overall_score)})`}
+                className={`font-sniglet text-3xl text-(${scoreColor(scoringResult1?.overall_score)})`}
               >
                 {scoringResult1?.overall_score || 0}
               </span>
@@ -219,11 +212,11 @@ export default function AssessmentComparisonPage() {
             </span>
             <ChangeIndicator diff={overallDelta} />
           </div>
-          <div className="text-right">
+          <div className="pr-4 text-right">
             <AssessmentTitleWithLink assessment={assessment2} publicId={publicId2} isRightAligned />
             <div className="mt-1 flex items-baseline justify-end gap-1">
               <span
-                className={`font-mono text-3xl text-(${scoreColor(scoringResult2?.overall_score)})`}
+                className={`font-sniglet text-3xl text-(${scoreColor(scoringResult2?.overall_score)})`}
               >
                 {scoringResult2?.overall_score || 0}
               </span>

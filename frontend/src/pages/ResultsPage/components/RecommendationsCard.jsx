@@ -13,7 +13,7 @@ export function RecommendationsCard({ actualResult }) {
           Targeted steps to improve your circularity score
         </p>
 
-        <div className="rounded-xl border-0 border-(--color-accent) bg-(--color-accent-soft-ui) p-4">
+        <div className="rounded-xl border-0 border-(--color-accent) bg-(--base-secondary-400)/15 p-4">
           <ul className="space-y-3 text-sm">
             {actualResult.audit?.technical_recommendations?.length > 0
               ? actualResult.audit.technical_recommendations.map((rec, i) => (

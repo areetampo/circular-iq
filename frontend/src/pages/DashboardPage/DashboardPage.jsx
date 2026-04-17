@@ -287,7 +287,7 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       <section>
         <DashboardSectionHeading label="SEARCH SOLUTIONS" />
-        <div className="my-16 text-center text-2xl font-semibold">WIP</div>
+        <div className="my-16 text-center text-2xl font-semibold italic">work in progress ...</div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════
@@ -308,7 +308,7 @@ export default function DashboardPage() {
           <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
         </div>
 
-        <div className="my-16 text-center text-2xl font-semibold">WIP</div>
+        <div className="my-16 text-center text-2xl font-semibold italic">work in progress ...</div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════════════

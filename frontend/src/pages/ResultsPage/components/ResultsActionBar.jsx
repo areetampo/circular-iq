@@ -27,7 +27,7 @@ export function ResultsActionBar({
   openSaveAssessmentDialog,
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-3">
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
       {/* Left group - navigation */}
       <div className="flex items-center gap-3">
         {/* Show public share notice for public viewers */}
@@ -53,7 +53,7 @@ export function ResultsActionBar({
       </div>
 
       {/* Right group - actions, pushed to end */}
-      <div className="ml-auto flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button variant="ghost" size="md" onPress={onDownloadPDF} isDisabled={isExporting}>
           <Download size={14} className="mr-1" /> PDF
         </Button>
@@ -139,14 +139,24 @@ export function ResultsActionBar({
             </>
           )}
         {isPublicShare && currentData?.public_id && (
-          <CopyButton
-            value={currentData.public_id}
-            size={12}
-            strokeWidth={2.5}
-            description="ID"
-            noBorder
-            color="var(--color-text-black-77)"
-          />
+          <div className="-mr-6 flex origin-left scale-75 flex-col items-start justify-center">
+            <CopyButton
+              value={currentData.public_id}
+              size={12}
+              strokeWidth={2.5}
+              description="ID"
+              noBorder
+              color="var(--color-text-black-77)"
+            />
+            <CopyButton
+              value={window.location.href}
+              size={12}
+              strokeWidth={2.5}
+              description="URL"
+              noBorder
+              color="var(--color-text-black-77)"
+            />
+          </div>
         )}
       </div>
     </div>
