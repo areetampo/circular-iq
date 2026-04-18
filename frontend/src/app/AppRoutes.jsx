@@ -24,7 +24,7 @@ const ComparePageWrapper = lazy(() => import('@/pages/ComparePage/ComparePageWra
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
-import Footer from '../components/layout/Footer';
+import Footer from '@/components/layout/Footer';
 
 /**
  * ProtectedRoute — requires Supabase session (see useAuth).

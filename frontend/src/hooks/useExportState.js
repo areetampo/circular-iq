@@ -30,18 +30,24 @@ export function useExportState() {
       const result = await exportFn(...args);
 
       if (result.success) {
-        toast.success(result.message || `${operationType} exported successfully`, {
+        toast.success(result.message || `${operationType} downloaded successfully`, {
           timeout: 3000,
         });
       } else {
-        toast.danger(result.message || `${operationType} exported successfully`, { timeout: 4000 });
+        toast.danger(result.message || `${operationType} downloaded successfully`, {
+          timeout: 4000,
+        });
       }
 
       return result;
     } catch (error) {
-      const errorMsg = error.message || `Failed to export ${operationType}`;
-      toast.danger(errorMsg, { timeout: 4000 });
-      return { success: false, message: errorMsg };
+      logger.warn(`${operationType} export failed:`, error);
+      const genericMessage =
+        operationType === 'PDF'
+          ? 'PDF download functionality is currently unavailable'
+          : 'CSV download functionality is currently unavailable';
+      toast.danger(genericMessage, { timeout: 4000 });
+      return { success: false, message: genericMessage };
     } finally {
       // Clear appropriate loading state based on operation type
       if (operationType === 'PDF') {

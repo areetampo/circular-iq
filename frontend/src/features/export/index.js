@@ -1,2 +1,2 @@
 export { exportAssessmentCSV, exportComparisonCSV } from './exportCSV';
-export { exportAssessmentPDF, exportAuditReportToPDF } from './exportPDF';
+export { exportAssessmentPDF, exportAuditReportToPDF, exportComparisonPDF } from './exportPDF';

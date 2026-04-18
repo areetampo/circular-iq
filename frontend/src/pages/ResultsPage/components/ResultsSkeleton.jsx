@@ -2,44 +2,58 @@
  * ResultsSkeleton Component
  * Clean skeleton with no borders, only content skeletons preserving exact spacing
  */
-import { Skeleton } from '@heroui/react';
+import { Separator, Skeleton } from '@heroui/react';
 
 export default function ResultsSkeleton() {
   return (
     <div className="mx-auto max-w-5xl">
       {/* Action Buttons & Share Section */}
       <div className="my-8 space-y-4 px-4 sm:px-6">
-        {/* Title placeholder for saved assessments */}
+        {/* Title placeholder for saved assessments - left aligned like actual page */}
         <div className="mb-4">
           <Skeleton className="h-8 w-64 rounded-lg" />
         </div>
 
-        {/* ResultsActionBar skeleton */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        {/* ResultsActionBar skeleton - single row layout like actual page */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          {/* Left group - navigation buttons */}
           <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-32 rounded-md" />
-            <Skeleton className="h-8 w-28 rounded-md" />
-            <Skeleton className="h-8 w-24 rounded-md" />
+            <Skeleton className="h-8 w-32 rounded-md" /> {/* My Assessments */}
+            <Skeleton className="h-8 w-28 rounded-md" /> {/* Re-evaluate */}
           </div>
-          <div className="ml-auto flex flex-wrap items-center gap-3">
-            <Skeleton className="h-8 w-16 rounded-md" />
-            <Skeleton className="h-8 w-16 rounded-md" />
-            <Skeleton className="h-8 w-20 rounded-md" />
-            <Skeleton className="h-8 w-16 rounded-md" />
+
+          {/* Right group - action buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Skeleton className="h-8 w-16 rounded-md" /> {/* PDF */}
+            <Skeleton className="h-8 w-16 rounded-md" /> {/* CSV */}
+            <Skeleton className="h-8 w-20 rounded-md" /> {/* Save */}
+            <Skeleton className="h-8 w-24 rounded-md" /> {/* Rename */}
+            <Skeleton className="h-8 w-20 rounded-md" /> {/* Delete */}
           </div>
         </div>
 
-        {/* Share Assessment Section skeleton */}
-        <div className="px-3 py-1">
+        {/* Share Assessment Section skeleton for saved assessments */}
+        <div className="rounded-xl border-2 border-(--color-border-card) px-3 py-2">
+          {/* Checkbox toggle skeleton */}
           <div className="flex items-center gap-4">
             <Skeleton className="h-5 w-40 rounded-sm" />
-            <Skeleton className="size-6 rounded-full" />
+            <Skeleton className="size-4.5 rounded-full!" />
           </div>
-          <div className="mt-3 flex flex-col gap-3 pt-3 sm:flex-row">
-            <Skeleton className="h-10 w-full rounded-sm" />
-            <Skeleton className="h-10 w-20 rounded-sm" />
+
+          {/* Share URL section skeleton */}
+          <div className="mt-3 flex origin-top-left scale-90 flex-col gap-3 opacity-70 sm:flex-row">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-96 rounded-sm font-mono" />
+              <Skeleton className="size-4.5" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-16" />
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="flex w-full items-center justify-center">
+        <Separator variant="secondary" className="mt-4 mb-6 w-1/2" />
       </div>
 
       {/* Case Summary skeleton */}
@@ -59,7 +73,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4 rounded-sm" />
             </div>
-            <div className="border-b-2 border-(--color-border-ui)" />
+            <Separator variant="secondary" />
           </div>
 
           {/* Solution accordion skeleton */}
@@ -74,7 +88,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4 rounded-sm" />
             </div>
-            <div className="border-b-2 border-(--color-border-ui)" />
+            <Separator variant="secondary" />
           </div>
 
           {/* Business Context accordion skeleton */}
@@ -89,7 +103,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4 rounded-sm" />
             </div>
-            <div className="border-b-2 border-(--color-border-ui)" />
+            <Separator variant="secondary" />
           </div>
 
           {/* Parameter accordion skeleton */}
@@ -104,7 +118,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4 rounded-sm" />
             </div>
-            <div className="border-b-2 border-(--color-border-ui)" />
+            <Separator variant="secondary" />
           </div>
         </div>
       </div>

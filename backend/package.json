@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "RAG-powered evaluator for circular economy business evaluations",
-  "author": "Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>",
+  "author": "Areeb Ahmed Zahoori <areebrawl@gmail.com>",
   "license": "UNLICENSED",
   "main": "server/index.js",
   "type": "module",

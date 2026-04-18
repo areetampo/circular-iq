@@ -119,7 +119,8 @@ export function useAssessmentHandlers() {
     try {
       await handleDownloadPDF(assessment, scoringResult);
     } catch (error) {
-      toast.danger('No result data available to export', { timeout: 4000 });
+      logger.warn('PDF download failed:', error);
+      toast.danger('PDF download functionality is currently unavailable', { timeout: 4000 });
     }
   };
 
@@ -132,7 +133,8 @@ export function useAssessmentHandlers() {
     try {
       await handleDownloadCSV(assessment, scoringResult);
     } catch (error) {
-      toast.danger('No result data available to export', { timeout: 4000 });
+      logger.warn('CSV download failed:', error);
+      toast.danger('CSV download functionality is currently unavailable', { timeout: 4000 });
     }
   };
 

@@ -192,18 +192,18 @@ export function ResultsActionBar({
       {isPublicShare && currentData?.public_id && (
         <div className="flex origin-top-right scale-75 items-center justify-end">
           <CopyButton
-            value={window.location.href}
-            size={12}
-            strokeWidth={2.5}
-            description="URL"
-            noBorder
-            color="var(--color-text-black-77)"
-          />
-          <CopyButton
             value={currentData.public_id}
             size={12}
             strokeWidth={2.5}
             description="ID"
+            noBorder
+            color="var(--color-text-black-77)"
+          />
+          <CopyButton
+            value={window.location.href}
+            size={12}
+            strokeWidth={2.5}
+            description="URL"
             noBorder
             color="var(--color-text-black-77)"
           />

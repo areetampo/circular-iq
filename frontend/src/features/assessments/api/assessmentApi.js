@@ -353,7 +353,7 @@ export async function scoreAssessmentStream(formData, onStage, onComplete, onErr
             // Call progress callback for all other stages
             onStage(eventData.stage, eventData.message);
           } catch (parseErr) {
-            console.warn('Failed to parse SSE event:', parseErr, 'Event:', dataMatch[1]);
+            logger.warn('Failed to parse SSE event:', parseErr, 'Event:', dataMatch[1]);
           }
         }
       }

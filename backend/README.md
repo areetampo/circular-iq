@@ -2,6 +2,9 @@
 
 Node.js/Express backend powering the Circular Economy Assessor. Handles document processing, semantic search, AI-driven assessment scoring, analytics, and the data ingestion pipeline.
 
+**Author:** Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>
+**License:** UNLICENSED
+
 ## Overview
 
 The backend is the core of the RAG (Retrieval-Augmented Generation) system:
@@ -102,9 +105,10 @@ backend/
 │   └── anonymousTracking.js  # IP hashing, identifier generation (no PII stored)
 │
 ├── tests/
-│   ├── anonymous.test.js              # Anonymous tracking middleware
-│   ├── apiKeyGuard.test.js            # API key guard middleware
-│   ├── envtest.js                     # Environment variable loading
+│   ├── run-tests.js               # Test runner script
+│   ├── anonymous.test.js          # Anonymous tracking middleware
+│   ├── apiKeyGuard.test.js        # API key guard middleware
+│   ├── envtest.js                 # Environment variable loading
 │   ├── api/
 │   │   ├── analytics.enhanced.test.js
 │   │   ├── analytics.featured.test.js
@@ -570,12 +574,22 @@ AIVEN_CONNECTION_LIMIT=20
 AIVEN_CONNECTION_STRING=
 ```
 
+### Environment Setup
+
+```bash
+# From project root
+cp env/.env.example env/.env.backend
+# Edit env/.env.backend with your credentials
+```
+
 ### Configuration Files
 
 1. `config/backend.config.js` — central config object with test defaults
-2. `config/embedding.js` — embedding model name and dimension constants
-3. `config/chunk.js` — chunking parameters (min length, overlap, etc.)
-4. `pipeline/datasetsUtils.js` — dataset filesystem path constants and DATASETS registry
+2. `config/env.schema.js` — Zod schema for environment variable validation
+3. `config/embedding.js` — embedding model name and dimension constants
+4. `config/chunk.js` — chunking parameters (min length, overlap, etc.)
+5. `config/loadEnv.js` — Environment loading utilities
+6. `pipeline/datasetsUtils.js` — dataset filesystem path constants and DATASETS registry
 
 ## Import Aliases (Canonical Paths)
 
@@ -594,6 +608,16 @@ import { DATASETS } from '#pipeline/datasetsUtils.js';
 // ✗ AVOID (relative paths break when files move)
 import { performScoring } from '../../services/scoring.service.js';
 import supabase from '../../../../database/supabase.client.js';
+```
+
+### Workspace Integration
+
+The backend is part of a npm workspace. From the project root:
+
+```bash
+npm run backend    # Start backend only (http://localhost:8000)
+npm run dev        # Start both frontend and backend
+npm test           # Run backend tests
 ```
 
 ## Structured Metadata: industry & category
@@ -654,6 +678,12 @@ const industry = row.industry ?? row.metadata?.industry;
 ```bash
 npm run start    # Production server (NODE_ENV=production)
 npm run dev      # Development with watch mode (http://localhost:8000)
+```
+
+**From workspace root:**
+
+```bash
+npm run backend  # Equivalent to cd backend && npm run dev
 ```
 
 Test mode is automatically enabled when `NODE_ENV=test`:
@@ -728,12 +758,27 @@ node datasets/scripts/scrape_c2c.js --use-backup
 | `--append`     | All scripts          | Add new rows to existing CSV (renumbers IDs) |
 | `--clear-logs` | All scripts          | Clear previous run logs before starting      |
 
+### Workspace Scripts
+
+From the project root, you can also run pipeline scripts:
+
+```bash
+npm run datasets-scripts    # Run all dataset extraction scripts
+npm run populate           # Full pipeline: merge → chunk → embed → store
+```
+
 ### Validation & Testing
 
 ```bash
-npm run validate          # End-to-end pipeline validation
 npm test                  # Full test suite (all *.test.js)
-npm run poll:supabase     # Monitor vector storage
+npm run validate          # End-to-end pipeline validation (if available)
+npm run poll:supabase     # Monitor vector storage (if available)
+```
+
+**From workspace root:**
+
+```bash
+npm test                 # Runs backend tests as part of workspace testing
 ```
 
 ## Test Suite
@@ -748,8 +793,22 @@ npm run poll:supabase     # Monitor vector storage
 | `api-auth.test.js`                 | —     | API authentication flow                                                                                                     |
 | `anonymous.test.js`                | —     | Anonymous tracking middleware                                                                                               |
 | `apiKeyGuard.test.js`              | —     | API key guard unit tests                                                                                                    |
-| `documents.repository.test.js`     | —     | Repository layer methods                                                                                                    |
-| `score-validation.test.js`         | —     | Input validation edge cases                                                                                                 |
+
+### Running Tests
+
+```bash
+# From backend directory
+npm test
+
+# From workspace root
+npm test
+
+# Run specific test file
+node tests/services/scoring-logic-enrichment.test.js
+```
+
+| `documents.repository.test.js` | — | Repository layer methods |
+| `score-validation.test.js` | — | Input validation edge cases |
 
 ## Dataset Script Documentation Standards
 

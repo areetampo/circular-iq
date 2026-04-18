@@ -6,7 +6,7 @@
 export const SITE_METADATA = {
   url: 'https://circular-economy-evaluator.vercel.app',
   contact: {
-    supportEmail: 'zahooriareeb47@gmail.com',
+    supportEmail: 'areebrawl@gmail.com',
     github: 'https://github.com/areetampo/circular-economy',
   },
   seo: {

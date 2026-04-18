@@ -1,5 +1,5 @@
-import { Separator, Tooltip } from '@heroui/react';
-import { ExternalLink, FingerprintPattern, MoveLeft, Upload } from 'lucide-react';
+import { Separator, Tooltip, toast } from '@heroui/react';
+import { Download, ExternalLink, FingerprintPattern, MoveLeft } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -7,7 +7,7 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
-import { exportComparisonCSV } from '@/features/export';
+import { exportComparisonCSV, exportComparisonPDF } from '@/features/export';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 
 import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
@@ -195,6 +195,53 @@ export default function AssessmentComparisonPage() {
         </div>
       </div>
 
+      <div className="mt-2 mb-6 flex justify-end gap-2">
+        {[
+          {
+            label: 'Comparison PDF',
+            action: async () => {
+              try {
+                await exportComparisonPDF([assessment1, assessment2]);
+                toast.success('Comparison PDF downloaded successfully', {
+                  timeout: 4000,
+                });
+              } catch (error) {
+                logger.warn('Comparison PDF download failed:', error);
+                toast.danger('PDF download functionality is currently unavailable', {
+                  timeout: 4000,
+                });
+              }
+            },
+          },
+          {
+            label: 'Comparison CSV',
+            action: async () => {
+              try {
+                await exportComparisonCSV([assessment1, assessment2]);
+                toast.success('Comparison CSV downloaded successfully', {
+                  timeout: 4000,
+                });
+              } catch (error) {
+                logger.warn('Comparison CSV download failed:', error);
+                toast.danger('CSV download functionality is currently unavailable', {
+                  timeout: 4000,
+                });
+              }
+            },
+          },
+        ].map(({ label, action }) => (
+          <Button
+            key={label}
+            size="sm"
+            variant="dialog-secondary"
+            onPress={action}
+            className="w-fit"
+          >
+            <Download size={16} /> {label}
+          </Button>
+        ))}
+      </div>
+
       {/* Two columns side by side */}
       <div
         className="mx-auto max-w-7xl px-6"
@@ -235,17 +282,9 @@ export default function AssessmentComparisonPage() {
         <p className="text-sm font-medium text-(--color-text-muted)">
           Last updated: {getCurrentTimestampFormatted()}
         </p>
-        <div className="flex gap-2">
-          <Button variant="ghost" as={Link} to="/assessments">
-            <MoveLeft size={16} /> Back to Assessments
-          </Button>
-          <Button
-            variant="results-action"
-            onPress={() => exportComparisonCSV([assessment1, assessment2])}
-          >
-            <Upload size={16} /> Export CSV
-          </Button>
-        </div>
+        <Button variant="ghost" as={Link} to="/assessments">
+          <MoveLeft size={16} /> Back to Assessments
+        </Button>
       </div>
     </div>
   );

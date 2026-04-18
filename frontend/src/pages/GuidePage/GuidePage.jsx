@@ -1087,7 +1087,7 @@ const EvaluationParametersSection = () => {
                 // }}
                 onClick={() => {
                   const targetElement = document.getElementById(`param-${key}`);
-                  console.log(targetElement, key);
+                  // logger.log(targetElement, key);
                   if (targetElement) {
                     targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }

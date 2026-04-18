@@ -9,7 +9,7 @@ import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment'
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { AssessmentColumn } from '@/pages/AssessmentComparisonPage/components';
 import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
-import { ResultsSkeleton } from '@/pages/ResultsPage/components';
+import AssessmentViewPageSkeleton from '@/pages/AssessmentViewPage/components/AssessmentViewPageSkeleton';
 
 export default function AssessmentViewPage({ publicId: propPublicId }) {
   const [searchParams] = useSearchParams();
@@ -45,7 +45,7 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
   };
 
   if (loading) {
-    return <ResultsSkeleton />;
+    return <AssessmentViewPageSkeleton />;
   }
 
   if (error) {

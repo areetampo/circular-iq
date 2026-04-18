@@ -2,8 +2,6 @@
  * Shared controller utilities
  */
 
-import { logger } from '#utils/logger.js';
-
 /**
  * Log API operation
  * @param {string} operation - Operation name

@@ -2,6 +2,9 @@
 
 React 19 + Vite 7 SPA for assessing, visualising, comparing, and managing circular economy evaluations.
 
+**Author:** Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>
+**License:** UNLICENSED
+
 ## Overview
 
 The frontend provides:
@@ -105,6 +108,9 @@ frontend/src/
 │   │   ├── LoginForm.jsx
 │   │   └── SignupForm.jsx
 │   │
+│   ├── background/
+│   │   └── DriftingShapesBackground.jsx        # Animated background component
+│   │
 │   ├── charts/
 │   │   ├── BarChart.jsx      # Props: barConfigs, xAxisKey, height, showGrid, showLegend
 │   │   ├── LineChart.jsx     # Props: lines, xAxisKey, height, showGrid
@@ -196,7 +202,7 @@ frontend/src/
 │   ├── useAuth.js           # Thin wrapper over AuthContext
 │   ├── useDialog.js         # Open/close dialogs via DialogContext
 │   ├── useDrawer.js         # Open/close drawers via DrawerContext
-│   ├── useDrawerDirection.ts # Responsive direction (right on desktop, bottom on mobile)
+│   ├── useDrawerDirection.js # Responsive direction (right on desktop, bottom on mobile)
 │   ├── useExportState.js    # Export progress state (isExporting, progress)
 │   ├── useToast.js          # Toast notification wrapper
 │   ├── useDebounce.js       # Debounce helper for input fields
@@ -231,16 +237,24 @@ frontend/src/
 │   └── index.js
 │
 ├── utils/
-│   ├── cn.ts                # classnames merge (clsx + tailwind-merge) — use this, not cx
+│   ├── cn.js                # classnames merge (clsx + tailwind-merge) — use this, not cx
 │   ├── content.js           # extractProblemSolution() for drawer content parsing
 │   ├── session.js           # Session storage helpers (keys, serialisation)
 │   ├── async.js             # Async utilities (sleep, retry, timeout)
 │   ├── ui.js                # UI helpers (truncate, formatPercentage)
 │   └── logger.js            # Logging utility (respects VITE_LOG_LEVEL)
 │
+├── test/                    # Test utilities and configuration
+│   └── test-utils.jsx       # Custom render with providers for testing
+│
+├── types/                   # TypeScript type definitions
+│   └── index.d.ts           # Global type declarations
+│
 ├── index.css                # Global styles + Tailwind directives
 ├── main.jsx                 # React entry point
-└── setupTests.js            # Vitest global setup
+├── setupTests.js            # Vitest global setup
+├── vite.config.js           # Vite configuration with aliases and chunking
+└── package.json             # Dependencies and scripts
 ```
 
 ## Routes
@@ -262,7 +276,7 @@ frontend/src/
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24+
 - npm 8+
 - Backend server running (see `backend/README.md`)
 - Supabase account
@@ -270,7 +284,7 @@ frontend/src/
 ### Installation
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (from workspace root)
 npm install
 
 # 2. Create environment file
@@ -281,6 +295,9 @@ cp ../env/.env.example .env.frontend
 
 # 4. Start development server
 npm run dev   # http://localhost:5173
+
+# Or from workspace root:
+npm run frontend   # Starts frontend only
 ```
 
 ## Environment Configuration
@@ -330,7 +347,9 @@ npm run build       # Production build → dist/
 npm run preview     # Serve dist/ locally for production preview
 npm test            # Run Vitest test suite
 npm run test:watch  # Watch mode
+npm run test:run    # Run tests once
 npm run lint        # ESLint
+npm run clean       # Clean node_modules
 ```
 
 ## Architecture
@@ -418,7 +437,7 @@ openResultsDatabaseEvidenceDetailsDrawer({
 
 ### Component Patterns
 
-**HeroUI components:**
+**HeroUI v3 Components:**
 
 ```jsx
 import { Card, Skeleton, Chip, Input } from '@heroui/react';
@@ -639,9 +658,10 @@ test('debounces value', async () => {
 
 ### Test Configuration
 
-- **Config**: `vitest.config.js`
+- **Config**: `vite.config.js` (test section)
 - **Setup**: `src/setupTests.js`
 - **Utilities**: `src/test/test-utils.jsx` (custom render with providers)
+- **Environment**: jsdom with globals enabled
 
 ## Building & Deployment
 
@@ -677,7 +697,7 @@ git push origin main
 ```json
 {
   "functions": {
-    "api/**/*.js": { "runtime": "nodejs20.x" }
+    "api/**/*.js": { "runtime": "nodejs18.x" }
   },
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
@@ -690,6 +710,7 @@ Key points:
 
 - `/api/*` routes → serverless functions (NOT the SPA rewrite)
 - All other routes → `index.html` (SPA client-side routing)
+- Runtime updated to Node.js 18.x to match frontend requirements
 
 ### Deployment Checklist
 

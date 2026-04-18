@@ -34,7 +34,7 @@ const variantStyles = {
   primary:
     'bg-(--color-accent) text-white hover:bg-(--color-accent-hover) border border-transparent',
   secondary:
-    'bg-transparent text-(--color-text-primary) border border-(--color-border-strong) hover:border-(--color-primary-900)',
+    'bg-transparent text-(--color-text-primary) border border-(--color-border-strong) hover:border-(--color-primary-900)/20 hover:bg-black/5',
   ghost:
     'bg-(--color-accent-soft-10) text-(--color-text-secondary) border border-transparent hover:text-(--color-text-primary) hover:bg-(--color-hover-accent-strong)',
   ghastly:
@@ -47,10 +47,10 @@ const variantStyles = {
   'dialog-secondary':
     'bg-transparent text-(--color-text-secondary) w-full border border-(--color-border-strong) hover:bg-(--color-accent-light)',
   'eco-soft':
-    'bg-transparent text-(--color-accent) border border-(--color-border-ui) hover:border-(--color-accent) hover:bg-(--color-accent-light)',
+    'bg-transparent text-(--color-accent) border border-(--color-border-ui) hover:border-(--color-accent)/20 hover:bg-(--color-accent-light)',
   teal: 'bg-(--color-success) text-white hover:bg-(--color-success-hover) border border-transparent',
   'neutral-soft':
-    'bg-transparent text-(--color-text-secondary) border border-(--color-border-ui) hover:border-(--color-accent) hover:text-(--color-accent)',
+    'bg-transparent text-(--color-text-secondary) border border-(--color-border-ui) hover:border-(--color-accent)/20 hover:text-(--color-accent)',
 };
 
 const sizeStyles = {

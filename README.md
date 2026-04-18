@@ -2,6 +2,10 @@
 
 AI-powered platform for evaluating circular economy business initiatives against a knowledge base of 40,000+ real-world case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
+**Author:** Areeb Ahmed Zahoori <areebrawl@gmail.com>
+**License:** UNLICENSED
+**Repository:** https://github.com/areetampo/circular-economy
+
 ## Overview
 
 The platform guides users through a structured assessment and returns a complete evaluation:
@@ -64,7 +68,7 @@ The platform guides users through a structured assessment and returns a complete
 
 | Category            | Technology                                     | Purpose                                            |
 | ------------------- | ---------------------------------------------- | -------------------------------------------------- |
-| **Runtime**         | Node.js 20+                                    | Server runtime                                     |
+| **Runtime**         | Node.js 18+                                    | Server runtime                                     |
 | **Backend**         | Express.js (ESM)                               | REST API server                                    |
 | **Frontend**        | React 19 + Vite 7                              | UI framework and build tool                        |
 | **UI Library**      | HeroUI v3                                      | Component library                                  |
@@ -78,6 +82,8 @@ The platform guides users through a structured assessment and returns a complete
 | **Auth**            | Supabase Auth                                  | User authentication + Row Level Security           |
 | **Deployment**      | Vercel (frontend) + Render (backend)           | Hosting platforms                                  |
 | **Testing**         | Vitest (frontend) · Node test runner (backend) | Test frameworks                                    |
+| **Package Manager** | npm (workspaces)                               | Monorepo dependency management                     |
+| **Code Quality**    | ESLint + Prettier + Husky                      | Linting, formatting, and git hooks                 |
 
 ## Key Features
 
@@ -157,24 +163,31 @@ Live analytics from the `scoring_results_log` table (all scoring calls — authe
 │
 ├── frontend/
 │   ├── api/proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
-│   └── src/
-│       ├── app/                     # Root component, routes, global providers
-│       ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout
-│       ├── contexts/                # Auth, Dialog, Drawer, Modal React contexts
-│       ├── features/
-│       │   ├── assessments/         # API client, all hooks (useAssessment, useGlobalStats, etc.), validation, utils
-│       │   ├── export/              # exportCSV.js, exportPDF.js
-│       │   └── session/             # AppSessionManager, useSession
-│       ├── hooks/                   # useAuth, useDialog, useDrawer, useDrawerDirection, useExportState, useToast
-│       ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
-│       ├── pages/
-│       │   ├── AssessmentComparisonPage/components/   # Tab components + ComparisonSkeleton + ChangeIndicator
-│       │   ├── DashboardPage/components/              # StatCard, ChartPanel, SolutionCard, etc.
-│       │   ├── LandingPage/components/                # BusinessContextContainer, EvaluationParametersContainer, etc.
-│       │   ├── MyAssessmentsPage/components/          # AssessmentListItem, FilterBar, IndustryFilterChip
-│       │   └── ResultsPage/components/                # ScoreOverview, WeightedScoreCard, AuditSummary, DatabaseEvidence, etc.
-│       ├── constants/               # evaluationData, industries, industryThemes, drawer constants
-│       └── utils/                   # cn, content, session, async, ui, logger
+│   ├── src/
+│   │   ├── app/                     # Root component, routes, global providers
+│   │   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries
+│   │   ├── contexts/                # Auth, Dialog, Drawer, Modal React contexts
+│   │   ├── features/
+│   │   │   ├── assessments/         # API client, all hooks (useAssessment, useGlobalStats, etc.), validation, utils
+│   │   │   ├── export/              # exportCSV.js, exportPDF.js
+│   │   │   └── session/             # AppSessionManager, useSession
+│   │   ├── hooks/                   # useAuth, useDialog, useDrawer, useDrawerDirection, useExportState, useToast, useDebounce
+│   │   ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
+│   │   ├── pages/
+│   │   │   ├── AssessmentComparisonPage/components/   # Tab components + ComparisonSkeleton + ChangeIndicator
+│   │   │   ├── DashboardPage/components/              # StatCard, ChartPanel, SolutionCard, etc.
+│   │   │   ├── LandingPage/components/                # BusinessContextContainer, EvaluationParametersContainer, etc.
+│   │   │   ├── MyAssessmentsPage/components/          # AssessmentListItem, FilterBar, IndustryFilterChip
+│   │   │   └── ResultsPage/components/                # ScoreOverview, WeightedScoreCard, AuditSummary, DatabaseEvidence, etc.
+│   │   ├── constants/               # evaluationData, industries, industryThemes, drawer constants
+│   │   ├── utils/                   # cn, content, session, async, ui, logger
+│   │   ├── test/                    # Test utilities and setup
+│   │   ├── types/                   # TypeScript type definitions
+│   │   ├── index.css                # Global styles + Tailwind directives
+│   │   ├── main.jsx                 # React entry point
+│   │   └── setupTests.js            # Vitest global setup
+│   ├── vite.config.js               # Vite configuration with aliases and chunking
+│   └── package.json                 # Frontend dependencies and scripts
 │
 ├── env/
 │   └── .env.example                 # Environment variable template for both backend and frontend
@@ -186,7 +199,7 @@ Live analytics from the `scoring_results_log` table (all scoring calls — authe
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 18+ (backend), Node.js 24+ (frontend)
 - npm 8+
 - Supabase project with pgvector extension enabled
 - OpenAI API key
@@ -195,13 +208,11 @@ Live analytics from the `scoring_results_log` table (all scoring calls — authe
 
 ```bash
 # 1. Clone
-git clone <repo-url>
-cd circular-economy-assessor
+git clone https://github.com/areetampo/circular-economy.git
+cd circular-economy
 
-# 2. Install dependencies
+# 2. Install dependencies (workspace setup)
 npm install
-cd backend && npm install
-cd ../frontend && npm install
 
 # 3. Environment setup
 cp env/.env.example env/.env.backend
@@ -217,9 +228,12 @@ cp env/.env.example env/.env.frontend
 #   backend/database/migrations/05_results_logs.sql
 # Run 06_after_ingestion.sql once after bulk data load
 
-# 5. Start development servers (two terminals)
-npm run dev:backend    # http://localhost:8000
-npm run dev:frontend   # http://localhost:5173
+# 5. Start development servers (single command)
+npm run dev    # Starts both backend:8000 and frontend:5173 concurrently
+
+# Or run individually:
+npm run backend    # Backend only: http://localhost:8000
+npm run frontend   # Frontend only: http://localhost:5173
 ```
 
 ### Environment Variables
@@ -414,12 +428,33 @@ npm test          # Run Vitest test suite
 npm run lint      # ESLint
 ```
 
-### Code Style
+### Code Quality & Development
 
-- **Backend**: ESLint with project config
-- **Frontend**: ESLint with React recommended rules
-- **Formatting**: Prettier (configured, runs on save via VS Code settings)
+### Linting & Formatting
+
+- **Backend**: ESLint with project config and canonical import aliases
+- **Frontend**: ESLint with React recommended rules and Tailwind plugin
+- **Formatting**: Prettier with Tailwind plugin (configured, runs on save via VS Code settings)
+- **Git Hooks**: Husky with lint-staged for pre-commit quality checks
 - **Commits**: Conventional commit format (`feat:`, `fix:`, `docs:`, `test:`)
+
+### Import Aliases
+
+- **Backend**: Uses `#`-prefixed canonical imports (e.g., `#config/backend.config.js`)
+- **Frontend**: Uses `@/`-prefixed path aliases (e.g., `@/components/common/Button`)
+
+### Workspace Scripts
+
+```bash
+npm run dev          # Start both frontend and backend
+npm run lint         # ESLint across workspace
+npm run lint:fix     # Auto-fix ESLint issues
+npm run format       # Prettier formatting
+npm run fix-all      # Lint fix + format
+npm run test         # Run all test suites
+npm run build        # Build all packages
+npm run clean        # Clean node_modules across workspace
+```
 
 ### Development Workflow
 
