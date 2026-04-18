@@ -934,7 +934,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       </div>
 
       <div className="flex w-full items-center justify-center">
-        <Separator variant="secondary" className="mt-4 mb-6 w-2/3" />
+        <Separator variant="secondary" className="mt-4 mb-6 w-1/2" />
       </div>
 
       {/* Case Summary */}

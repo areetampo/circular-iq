@@ -131,7 +131,7 @@
   --shadow-select-popover:
     0 8px 25px -5px rgba(26, 21, 16, 0.12), 0 4px 12px -2px rgba(26, 21, 16, 0.08),
     0 0 0 1px rgba(180, 160, 130, 0.1);
-  --shadow-toast: 0 8px 20px -6px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+  --shadow-toast: 0 8px 20px -6px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.075);
   --shadow-checkbox: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-input-focus: 0 0 0 3px oklch(0.68 0.08 68 / 0.14);
 
@@ -908,14 +908,14 @@
 
 @layer utilities {
   /* ============================================= */
-  /*  COMPONENT OVERRIDES (HEROUI & CUSTOM CLASSES)        */
+  /*  COMPONENT OVERRIDES (HEROUI & CUSTOM CLASSES)*/
   /* ============================================= */
 
   /* ============================================= */
   /*  TOAST                                       */
   /* ============================================= */
   .toast {
-    @apply z-9999! flex! min-h-12! w-full! items-center! justify-center! gap-3! rounded-3xl! border! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! transition-all! duration-200! ease-out! dark:border-white/80!;
+    @apply z-9999! flex! min-h-12! w-full! items-center! justify-center! gap-3! rounded-full! border-0! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! backdrop-blur-lg! transition-all! duration-300! ease-in-out!;
   }
   .toast__content {
     @apply flex! flex-1! flex-col! gap-0! p-0!;
@@ -950,7 +950,7 @@
   /* ============================================= */
   .toast--default,
   .toast--accent {
-    @apply border! border-(--color-border-strong)! bg-(--color-toast-bg)!;
+    @apply border-(--color-border-strong)! bg-(--color-toast-bg)!;
   }
   .toast--default .toast__indicator,
   .toast--accent .toast__indicator {
