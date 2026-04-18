@@ -236,14 +236,14 @@ export default function AssessmentComparisonPage() {
           Last updated: {getCurrentTimestampFormatted()}
         </p>
         <div className="flex gap-2">
+          <Button variant="ghost" as={Link} to="/assessments">
+            <MoveLeft size={16} /> Back to Assessments
+          </Button>
           <Button
             variant="results-action"
             onPress={() => exportComparisonCSV([assessment1, assessment2])}
           >
             <Upload size={16} /> Export CSV
-          </Button>
-          <Button variant="ghost" as={Link} to="/assessments">
-            <MoveLeft size={16} /> Back to Assessments
           </Button>
         </div>
       </div>
