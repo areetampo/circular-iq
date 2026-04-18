@@ -586,10 +586,10 @@
   --color-chip-factor-border: #c0b4a4;
 
   /* Access Type Colors */
-  --color-access-public-bg: #e8f5e8;
+  --color-access-public-bg: #d2f1d2;
   --color-access-public-text: rgba(45, 90, 45, 0.7);
   --color-access-public-border: rgba(45, 90, 45, 0.2);
-  --color-access-private-bg: #ffe8e8;
+  --color-access-private-bg: rgb(246, 200, 200);
   --color-access-private-text: rgba(165, 42, 42, 0.7);
   --color-access-private-border: rgba(165, 42, 42, 0.2);
 

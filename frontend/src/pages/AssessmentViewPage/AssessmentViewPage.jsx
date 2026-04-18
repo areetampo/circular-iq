@@ -1,4 +1,3 @@
-import { toast } from '@heroui/react';
 import { Book, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,12 +7,8 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
-import { useExportState } from '@/hooks/useExportState';
 import { AssessmentColumn } from '@/pages/AssessmentComparisonPage/components';
-import {
-  computeAssessmentData,
-  createAssessmentHandlers,
-} from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
+import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 import { ResultsSkeleton } from '@/pages/ResultsPage/components';
 
 export default function AssessmentViewPage({ publicId: propPublicId }) {
@@ -23,7 +18,6 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
   // Get publicId from either props (from SharePage) or query params (direct access)
   const publicId = propPublicId || searchParams.get('id');
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
-  const { isExporting, executeExport } = useExportState();
 
   const {
     assessment: publicAssessment,
@@ -106,33 +100,6 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
     );
   }
 
-  // Create shared handler functions
-  const {
-    handleReevaluate,
-    handleDownloadPDF: baseHandleDownloadPDF,
-    handleDownloadCSV: baseHandleDownloadCSV,
-  } = createAssessmentHandlers({
-    navigate,
-    executeExport,
-  });
-
-  // Wrap handlers with toast error handling
-  const handleDownloadPDF = async (assessment, scoringResult) => {
-    try {
-      await baseHandleDownloadPDF(assessment, scoringResult);
-    } catch (error) {
-      toast.danger('No result data available to export', { timeout: 4000 });
-    }
-  };
-
-  const handleDownloadCSV = async (assessment, scoringResult) => {
-    try {
-      await baseHandleDownloadCSV(assessment, scoringResult);
-    } catch (error) {
-      toast.danger('No result data available to export', { timeout: 4000 });
-    }
-  };
-
   const assessmentData = computeAssessmentData(scoringResult);
 
   return (
@@ -153,10 +120,6 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
           scoringResult={scoringResult}
           label="Assessment"
           openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
-          isExporting={isExporting}
-          onReevaluate={() => handleReevaluate(assessment)}
-          onDownloadPDF={() => handleDownloadPDF(assessment, scoringResult)}
-          onDownloadCSV={() => handleDownloadCSV(assessment, scoringResult)}
           {...assessmentData}
         />
       </div>

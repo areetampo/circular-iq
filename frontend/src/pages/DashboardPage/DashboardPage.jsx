@@ -499,7 +499,10 @@ export default function DashboardPage() {
               <Table.ScrollContainer>
                 <Table.Content aria-label="Market benchmark table">
                   <Table.Header>
-                    <Table.Column className="px-3 py-2 text-left font-semibold text-(--color-text-muted)">
+                    <Table.Column
+                      isRowHeader
+                      className="px-3 py-2 text-left font-semibold text-(--color-text-muted)"
+                    >
                       Industry
                     </Table.Column>
                     <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">

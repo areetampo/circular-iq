@@ -32,10 +32,8 @@ import {
   usePublicAssessment,
 } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
-import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { useExportState } from '@/hooks/useExportState';
 import { cleanUrl, formatTimestamp, toTitleCase, truncate } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
@@ -73,7 +71,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const navigationFormData = location.state?.formData;
   const isRestored = location.state?.isRestored || false;
 
-  const { isExporting, executeExport } = useExportState();
   const { restoreEvaluation } = useSession();
   const { createAssessmentAsync } = useCreateAssessment();
 
@@ -812,27 +809,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )
       : 0;
 
-  const handleDownloadCSV = async () => {
-    if (!actualResult) {
-      toast.danger('No result data available to export', { timeout: 4000 });
-      return;
-    }
-
-    await executeExport(() => exportAssessmentCSV(currentData), 'CSV');
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!actualResult) {
-      toast.danger('No result data available to export', { timeout: 4000 });
-      return;
-    }
-
-    await executeExport(
-      () => exportAssessmentPDF(currentData, { elementId: 'results-content' }),
-      'PDF',
-    );
-  };
-
   logger.log('navigationResult', navigationResult);
   logger.log('currentData', currentData);
   logger.log('actualResult', actualResult);
@@ -860,10 +836,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           user={user}
           isPublicShare={isPublicShare}
           isViewFromMyAssessments={isViewFromMyAssessments}
-          isExporting={isExporting}
-          onReevaluate={handleReevaluate}
-          onDownloadPDF={handleDownloadPDF}
-          onDownloadCSV={handleDownloadCSV}
           onSave={handleSave}
           onOpenRename={handleOpenRename}
           onOpenDelete={handleOpenDelete}
@@ -872,10 +844,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           resolvedFormData={resolvedFormData}
           sessionSnapshot={sessionSnapshot}
           navigationResult={navigationResult}
-          navigate={navigate}
           openSaveAssessmentDialog={openSaveAssessmentDialog}
-          logger={logger}
-          toast={toast}
         />
 
         {/* Share Assessment Section */}

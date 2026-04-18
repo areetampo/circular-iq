@@ -1,5 +1,8 @@
+import { Cog, DollarSign, Globe, Shield, TrendingUp, Users, Zap } from 'lucide-react';
+
 export const parameterGuidance = {
   public_participation: {
+    icon: Users,
     name: 'Public Participation',
     category: 'Access Value (Social & Participation)',
     weight: 0.15,
@@ -60,6 +63,7 @@ export const parameterGuidance = {
     ],
   },
   infrastructure: {
+    icon: Globe,
     name: 'Infrastructure & Accessibility',
     category: 'Access Value (Social & Participation)',
     weight: 0.15,
@@ -121,6 +125,7 @@ export const parameterGuidance = {
     ],
   },
   market_price: {
+    icon: DollarSign,
     name: 'Market Price',
     category: 'Embedded Value (Economic & Technical)',
     weight: 0.2,
@@ -182,6 +187,7 @@ export const parameterGuidance = {
     ],
   },
   maintenance: {
+    icon: Cog,
     name: 'Maintenance',
     category: 'Embedded Value (Economic & Technical)',
     weight: 0.15,
@@ -242,6 +248,7 @@ export const parameterGuidance = {
     ],
   },
   uniqueness: {
+    icon: Shield,
     name: 'Uniqueness',
     category: 'Embedded Value (Economic & Technical)',
     weight: 0.15,
@@ -302,7 +309,8 @@ export const parameterGuidance = {
     ],
   },
   size_efficiency: {
-    name: 'Size Efficiency',
+    icon: TrendingUp,
+    name: 'Size & Efficiency',
     category: 'Processing Value (Environmental & Technical)',
     weight: 0.1,
     weightPercent: '10%',
@@ -361,6 +369,7 @@ export const parameterGuidance = {
     ],
   },
   chemical_safety: {
+    icon: Shield,
     name: 'Chemical Safety',
     category: 'Processing Value (Environmental & Technical)',
     weight: 0.1,
@@ -421,6 +430,7 @@ export const parameterGuidance = {
     ],
   },
   tech_readiness: {
+    icon: Zap,
     name: 'Tech Readiness',
     category: 'Processing Value (Environmental & Technical)',
     weight: 0.1,

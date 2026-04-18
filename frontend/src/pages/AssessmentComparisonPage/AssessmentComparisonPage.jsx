@@ -1,6 +1,6 @@
-import { Separator, toast, Tooltip } from '@heroui/react';
+import { Separator, Tooltip } from '@heroui/react';
 import { ExternalLink, FingerprintPattern, MoveLeft, Upload } from 'lucide-react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -8,21 +8,17 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV } from '@/features/export';
-import { useExportState } from '@/hooks/useExportState';
 import { getCurrentTimestampFormatted } from '@/lib/formatting';
 
 import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
-import { computeAssessmentData, createAssessmentHandlers } from './utils/assessmentUtils';
+import { computeAssessmentData } from './utils/assessmentUtils';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
-  const params = useParams();
-  const navigate = useNavigate();
 
   const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
-  const { isExporting, executeExport } = useExportState();
 
-  // Support query params (?id1=...&id2=...)
+  // Support query params (/assessments/compare/?id1=...&id2=...)
   const publicId1 = searchParams.get('id1');
   const publicId2 = searchParams.get('id2');
 
@@ -115,33 +111,6 @@ export default function AssessmentComparisonPage() {
   // Reconstruct full scoring results
   const scoringResult1 = reconstructScoringResult(assessment1);
   const scoringResult2 = reconstructScoringResult(assessment2);
-
-  // Create shared handler functions
-  const {
-    handleReevaluate,
-    handleDownloadPDF: baseHandleDownloadPDF,
-    handleDownloadCSV: baseHandleDownloadCSV,
-  } = createAssessmentHandlers({
-    navigate,
-    executeExport,
-  });
-
-  // Wrap handlers with toast error handling
-  const handleDownloadPDF = async (assessment, scoringResult) => {
-    try {
-      await baseHandleDownloadPDF(assessment, scoringResult);
-    } catch (error) {
-      toast.danger('No result data available to export', { timeout: 4000 });
-    }
-  };
-
-  const handleDownloadCSV = async (assessment, scoringResult) => {
-    try {
-      await baseHandleDownloadCSV(assessment, scoringResult);
-    } catch (error) {
-      toast.danger('No result data available to export', { timeout: 4000 });
-    }
-  };
 
   const assessment1Data = computeAssessmentData(scoringResult1);
   const assessment2Data = computeAssessmentData(scoringResult2);
@@ -245,10 +214,6 @@ export default function AssessmentComparisonPage() {
               scoringResult={scoringResult1}
               label="Assessment 1"
               openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
-              isExporting={isExporting}
-              onReevaluate={() => handleReevaluate(assessment1)}
-              onDownloadPDF={() => handleDownloadPDF(assessment1, scoringResult1)}
-              onDownloadCSV={() => handleDownloadCSV(assessment1, scoringResult1)}
               {...assessment1Data}
             />
           </div>
@@ -258,10 +223,6 @@ export default function AssessmentComparisonPage() {
               scoringResult={scoringResult2}
               label="Assessment 2"
               openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
-              isExporting={isExporting}
-              onReevaluate={() => handleReevaluate(assessment2)}
-              onDownloadPDF={() => handleDownloadPDF(assessment2, scoringResult2)}
-              onDownloadCSV={() => handleDownloadCSV(assessment2, scoringResult2)}
               {...assessment2Data}
             />
           </div>

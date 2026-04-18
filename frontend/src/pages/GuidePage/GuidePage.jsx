@@ -19,7 +19,6 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Chip } from '@/components/common';
-import { getParameterStyling } from '@/constants/groupStyleConfig.js';
 import { cn } from '@/utils/cn';
 
 import { GUIDE_PAGE_CONTENT } from './content/guidePageContent.js';
@@ -104,14 +103,14 @@ const NAV_TREE = [
     label: 'Evaluation Parameters',
     children: [
       { id: 'parameter-overview', label: 'Parameter Overview' },
-      { id: 'param-public-participation', label: 'Public Participation' },
+      { id: 'param-public_participation', label: 'Public Participation' },
       { id: 'param-infrastructure', label: 'Infrastructure' },
-      { id: 'param-market-price', label: 'Market Price' },
+      { id: 'param-market_price', label: 'Market Price' },
       { id: 'param-maintenance', label: 'Maintenance' },
       { id: 'param-uniqueness', label: 'Uniqueness' },
-      { id: 'param-size-efficiency', label: 'Size Efficiency' },
-      { id: 'param-chemical-safety', label: 'Chemical Safety' },
-      { id: 'param-tech-readiness', label: 'Tech Readiness' },
+      { id: 'param-size_efficiency', label: 'Size Efficiency' },
+      { id: 'param-chemical_safety', label: 'Chemical Safety' },
+      { id: 'param-tech_readiness', label: 'Tech Readiness' },
     ],
   },
   {
@@ -167,7 +166,7 @@ const NavItem = ({ item, level, activeId, onNavigate }) => {
 };
 
 // Mobile Navigation component
-const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
+const MobileNav = ({ activeId, mobileOpen, setMobileOpen, scrollToId }) => {
   const navRef = React.useRef(null);
 
   useEffect(() => {
@@ -202,17 +201,10 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
     return 'Overview';
   };
 
-  const scrollToId = (id) => {
+  const handleMobileNavClick = (id) => {
     setMobileOpen(false);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const headerOffset = 80;
-        const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
-        window.scrollTo({ top, behavior: 'smooth' });
-      });
-    });
+    // Small delay to let the menu close animation finish before scrolling
+    setTimeout(() => scrollToId(id), 50);
   };
 
   return (
@@ -248,14 +240,19 @@ const MobileNav = ({ activeId, mobileOpen, setMobileOpen }) => {
             >
               {NAV_TREE.map((section) => (
                 <React.Fragment key={section.id}>
-                  <NavItem item={section} level="top" activeId={activeId} onNavigate={scrollToId} />
+                  <NavItem
+                    item={section}
+                    level="top"
+                    activeId={activeId}
+                    onNavigate={handleMobileNavClick}
+                  />
                   {section.children?.map((child) => (
                     <div key={child.id} className="ml-3 border-l border-(--color-border-faint)">
                       <NavItem
                         item={child}
                         level="sub"
                         activeId={activeId}
-                        onNavigate={scrollToId}
+                        onNavigate={handleMobileNavClick}
                       />
                     </div>
                   ))}
@@ -1071,29 +1068,36 @@ const EvaluationParametersSection = () => {
               <div
                 key={key}
                 className={cn(
-                  'card--lift cursor-pointer rounded-xl border-[1.5px] p-4',
-                  getParameterStyling(key),
+                  'card--lift cursor-pointer rounded-xl p-4',
+                  // getParameterStyling(key),
+                  'bg-(--color-success-soft-ui)',
                 )}
-                style={{
-                  borderColor: (() => {
-                    // 1. Get the string of classes
-                    const classes = getParameterStyling(key);
-                    // 2. Find the specific border class (e.g., "border-(--color-success)/50")
-                    const borderClass = classes.split(' ').find((c) => c.startsWith('border-'));
-                    // 3. Extract the variable.
-                    // This regex looks for what's inside the parentheses: (--color-something)
-                    const match = borderClass.match(/\(([^)]+)\)/);
-                    const varName = match ? match[1] : '--border-color-ui'; // fallback
-                    return `color-mix(in srgb, var(${varName}), transparent 70%)`;
-                  })(),
+                // style={{
+                //   borderColor: (() => {
+                //     // 1. Get the string of classes
+                //     const classes = getParameterStyling(key);
+                //     // 2. Find the specific border class (e.g., "border-(--color-success)/50")
+                //     const borderClass = classes.split(' ').find((c) => c.startsWith('border-'));
+                //     // 3. Extract the variable.
+                //     // This regex looks for what's inside the parentheses: (--color-something)
+                //     const match = borderClass.match(/\(([^)]+)\)/);
+                //     const varName = match ? match[1] : '--border-color-ui'; // fallback
+                //     return `color-mix(in srgb, var(${varName}), transparent 70%)`;
+                //   })(),
+                // }}
+                onClick={() => {
+                  const targetElement = document.getElementById(`param-${key}`);
+                  console.log(targetElement, key);
+                  if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
                 }}
-                onClick={() =>
-                  document.getElementById(`param-${key}`)?.scrollIntoView({ behavior: 'smooth' })
-                }
               >
                 <div className="mb-1 flex items-start justify-between gap-2">
                   <p className="text-sm font-semibold text-(--color-text-primary)">{param.name}</p>
-                  <Chip data-variant="status">{param.weightPercent}</Chip>
+                  <Chip data-variant="status" className="bg-(--color-info-soft-ui)">
+                    Weight: <span className="ml-1 text-sm font-medium">{param.weightPercent}</span>
+                  </Chip>
                 </div>
                 <p className="mb-2 text-[0.8rem] text-(--color-text-muted)">{param.category}</p>
                 <p className="text-xs text-(--color-text-muted)">{param.definition}</p>
@@ -1104,103 +1108,117 @@ const EvaluationParametersSection = () => {
       </div>
 
       {/* Individual Parameter Details */}
-      {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.parameters).map(([key, param]) => (
-        <div key={key} className="mt-10 scroll-mt-24" id={`param-${key}`}>
-          <div className="overflow-hidden rounded-xl border-[1.5px] border-(--color-border-ui)">
-            <Accordion allowsMultipleExpanded>
-              <Accordion.Item key={key}>
-                <Accordion.Heading>
-                  <Accordion.Trigger>
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <h4 className="text-sm font-semibold text-(--color-text-primary)">
-                          {param.name}
-                        </h4>
-                        <p className="mt-0.5 text-xs text-(--color-text-muted)">{param.category}</p>
-                      </div>
-                      <Chip data-variant="status">{param.weightPercent}</Chip>
+      <Accordion
+        allowsMultipleExpanded
+        className="mt-10 overflow-hidden rounded-xl border-[1.5px] border-(--color-border-ui)"
+      >
+        {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.parameters).map(([key, param]) => (
+          <Accordion.Item defaultExpanded key={key}>
+            {/* Sentinel for intersection observer — sits at scroll target position */}
+            <div
+              id={`param-${key}`}
+              className="scroll-mt-24"
+              style={{ height: '1px', marginTop: '-1px' }}
+            />
+            <div>
+              <Accordion.Heading>
+                <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
+                  <div className="flex items-center gap-3">
+                    {param.icon
+                      ? React.createElement(param.icon, {
+                          size: 20,
+                          className: 'text-(--color-accent)',
+                        })
+                      : null}
+                    <div>
+                      <h4 className="text-lg font-medium text-(--color-text-primary)">
+                        {param.name}
+                      </h4>
+                      <p className="text-sm text-(--color-text-muted)">
+                        {param.category} - {param.weightPercent}
+                      </p>
                     </div>
-                    <Accordion.Indicator />
-                  </Accordion.Trigger>
-                </Accordion.Heading>
-                <Accordion.Panel>
-                  <Accordion.Body className="mt-2">
-                    <div className="space-y-4">
-                      {/* Scoring Scale */}
-                      <div>
-                        <h5 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
-                          Scoring Scale
-                        </h5>
-                        <div className="space-y-1.5">
-                          {param.scale.map((level) => (
-                            <div
-                              key={level.score}
-                              className="flex items-start gap-3 rounded-md bg-(--color-success-soft-ui) p-2.5"
-                            >
-                              <span className="w-7 shrink-0 text-right font-mono text-sm font-bold text-(--color-accent)">
-                                {level.score}
-                              </span>
-                              <div>
-                                <p className="text-sm font-semibold text-(--color-text-primary)">
-                                  {level.label}
-                                </p>
-                                <p className="text-xs text-(--color-text-muted)">
-                                  {level.description}
-                                </p>
-                              </div>
+                  </div>
+                  <Accordion.Indicator className="text-(--color-text-muted)" />
+                </Accordion.Trigger>
+              </Accordion.Heading>
+              <Accordion.Panel>
+                <Accordion.Body className="mt-4">
+                  <div className="space-y-4">
+                    {/* Scoring Scale */}
+                    <div>
+                      <h5 className="mb-3 text-center text-sm font-medium text-(--color-text-primary)">
+                        Scoring Scale
+                      </h5>
+                      <div className="space-y-1.5">
+                        {param.scale.map((level) => (
+                          <div
+                            key={level.score}
+                            className="flex items-start gap-3 rounded-md bg-(--color-success-soft-ui) p-2.5"
+                          >
+                            <span className="w-7 shrink-0 text-right font-mono text-sm font-bold text-(--color-info)">
+                              {level.score}
+                            </span>
+                            <div>
+                              <p className="text-sm font-semibold text-(--color-text-primary)">
+                                {level.label}
+                              </p>
+                              <p className="text-xs text-(--color-text-muted)">
+                                {level.description}
+                              </p>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Methodology & Calibration */}
-                      <div>
-                        <h5 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
-                          Methodology & Calibration
-                        </h5>
-                        <div className="space-y-2">
-                          <p className="text-sm text-(--color-text-secondary)">
-                            {param.methodology}
-                          </p>
-                          <div className="flex items-center justify-start gap-2 rounded-lg bg-(--color-warning-soft-ui) px-3 py-2.5 text-sm text-(--color-text-muted) italic">
-                            <Lightbulb className="size-3.5 shrink-0 text-(--color-accent)" />
-                            {param.calibration}
                           </div>
-                        </div>
+                        ))}
                       </div>
+                    </div>
 
-                      {/* Example Cases */}
-                      <div>
-                        <h5 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
-                          Example Cases
-                        </h5>
-                        <div className="space-y-2">
-                          {param.examples.map((ex, i) => (
-                            <div
-                              key={i}
-                              className="flex items-start gap-3 rounded-md border border-(--color-border-faint) bg-(--color-accent-soft-ui) p-2.5"
-                            >
-                              <span className="w-7 shrink-0 text-right font-mono text-sm font-bold text-(--color-accent)">
-                                {ex.score}
-                              </span>
-                              <div>
-                                <p className="text-sm font-semibold text-(--color-text-primary)">
-                                  {ex.case}
-                                </p>
-                                <p className="text-xs text-(--color-text-muted)">{ex.reason}</p>
-                              </div>
-                            </div>
-                          ))}
+                    {/* Methodology & Calibration */}
+                    <div>
+                      <h5 className="mb-3 text-center text-sm font-semibold text-(--color-text-primary)">
+                        Methodology & Calibration
+                      </h5>
+                      <div className="space-y-2">
+                        <p className="text-center text-sm text-(--color-text-secondary)">
+                          {param.methodology}
+                        </p>
+                        <div className="flex items-center justify-start gap-2 rounded-lg bg-(--color-warning-soft-ui) px-3 py-2.5 text-sm text-(--color-text-muted) italic">
+                          <Lightbulb className="size-3.5 shrink-0 text-(--color-accent)" />
+                          {param.calibration}
                         </div>
                       </div>
                     </div>
-                  </Accordion.Body>
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
-          </div>
-        </div>
-      ))}
+
+                    {/* Example Cases */}
+                    <div>
+                      <h5 className="mb-3 text-center text-sm font-semibold text-(--color-text-primary)">
+                        Example Cases
+                      </h5>
+                      <div className="space-y-2">
+                        {param.examples.map((ex, i) => (
+                          <div
+                            key={i}
+                            className="flex items-start gap-3 rounded-md border border-(--color-border-faint) bg-(--color-accent-soft-ui) p-2.5"
+                          >
+                            <span className="w-7 shrink-0 text-right font-mono text-sm font-bold text-(--color-info)">
+                              {ex.score}
+                            </span>
+                            <div>
+                              <p className="text-sm font-semibold text-(--color-text-primary)">
+                                {ex.case}
+                              </p>
+                              <p className="text-xs text-(--color-text-muted)">{ex.reason}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Accordion.Body>
+              </Accordion.Panel>
+            </div>
+          </Accordion.Item>
+        ))}
+      </Accordion>
     </section>
   );
 };
@@ -1425,7 +1443,10 @@ const UnderstandingResultsSection = () => (
         <Table.ScrollContainer>
           <Table.Content aria-label="Action fields table">
             <Table.Header>
-              <Table.Column className="px-3 py-2 font-semibold text-(--color-text-muted)">
+              <Table.Column
+                isRowHeader
+                className="px-3 py-2 font-semibold text-(--color-text-muted)"
+              >
                 Field
               </Table.Column>
               <Table.Column className="px-3 py-2 font-semibold text-(--color-text-muted)">
@@ -1599,6 +1620,10 @@ export default function GuidePage() {
   const [activeId, setActiveId] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Add refs for scroll lock mechanism
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef(null);
+
   const sections = [
     <OverviewSection key="overview" />,
     <GettingStartedSection key="getting-started" />,
@@ -1670,12 +1695,15 @@ export default function GuidePage() {
             intersecting.delete(entry.target.id);
           }
         });
-        pickActive();
+        // Guard pickActive during programmatic scroll
+        if (!isScrollingRef.current) {
+          pickActive();
+        }
       },
-      // Wider band: fires when element enters the middle 37% of the viewport.
-      // Top 8% is the sticky header dead zone.
-      // Bottom 55% means the element must be in the upper half to count.
-      { rootMargin: '-8% 0px -55% 0px', threshold: 0 },
+      // Wider band: fires when element enters middle 58% of viewport.
+      // Top 12% is sticky header dead zone.
+      // Bottom 30% means element must be in upper portion to count.
+      { rootMargin: '-12% 0px -30% 0px', threshold: 0 },
     );
 
     elements.forEach((el) => observer.observe(el));
@@ -1689,6 +1717,24 @@ export default function GuidePage() {
   const scrollToId = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
+
+    // Lock the observer for the scroll duration — do NOT set activeId here
+    isScrollingRef.current = true;
+    clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+      // After scroll settles, force-set the correct active id
+      setActiveId(id);
+    }, 900); // slightly longer than smooth scroll duration
+
+    // Handle accordion opening for parameter subheadings
+    if (id.startsWith('param-')) {
+      const accordionTrigger = el.querySelector('button[aria-expanded="false"]');
+      if (accordionTrigger) {
+        accordionTrigger.click();
+      }
+    }
+
     const headerOffset = 80; // matches sticky header + some breathing room
     const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
     window.scrollTo({ top, behavior: 'smooth' });
@@ -1705,7 +1751,12 @@ export default function GuidePage() {
       </div>
 
       {/* Mobile Navigation */}
-      <MobileNav activeId={activeId} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <MobileNav
+        activeId={activeId}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        scrollToId={scrollToId}
+      />
 
       {/* Main content */}
       <div className="px-4 sm:px-6 lg:px-8">

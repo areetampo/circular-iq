@@ -40,11 +40,6 @@ export function AssessmentColumn({
   avgFactorScore,
   resolvedBusinessViabilityScore,
   openResultsDatabaseEvidenceDetailsDrawer,
-  // Props for ResultsActionBar
-  isExporting = false,
-  onReevaluate,
-  onDownloadPDF,
-  onDownloadCSV,
 }) {
   const fieldHelp = {
     industry: 'Sector we matched from your description',
@@ -91,118 +86,114 @@ export function AssessmentColumn({
 
   return (
     <div className="space-y-6">
-      {/* Case Summary */}
-      <div className="py-4">
-        <ResultsActionBar
-          currentData={assessment}
-          user={null}
-          isPublicShare={true}
-          isViewFromMyAssessments={false}
-          isExporting={isExporting}
-          onReevaluate={onReevaluate}
-          onDownloadPDF={onDownloadPDF}
-          onDownloadCSV={onDownloadCSV}
-          onSave={null}
-          onOpenRename={null}
-          onOpenDelete={null}
-          defaultAssessmentName={null}
-          actualResult={scoringResult}
-          resolvedFormData={null}
-          sessionSnapshot={null}
-          navigationResult={null}
-          navigate={null}
-          openSaveAssessmentDialog={null}
-          logger={console}
-          toast={console}
-        />
+      {/* Results Content wrapper for PDF export */}
+      <div id="results-content" className="space-y-6">
+        {/* Case Summary */}
+        <div className="py-4">
+          <ResultsActionBar
+            currentData={assessment}
+            user={null}
+            isPublicShare={true}
+            isViewFromMyAssessments={false}
+            onSave={null}
+            onOpenRename={null}
+            onOpenDelete={null}
+            defaultAssessmentName={null}
+            actualResult={scoringResult}
+            resolvedFormData={null}
+            sessionSnapshot={null}
+            navigationResult={null}
+            openSaveAssessmentDialog={null}
+          />
 
-        <div className="flex w-full items-center justify-center">
-          <Separator variant="secondary" className="mt-6 mb-8 w-2/3" />
+          <div className="flex w-full items-center justify-center">
+            <Separator variant="secondary" className="mt-6 mb-8 w-2/3" />
+          </div>
+
+          <CaseSummaryAccordions
+            businessProblem={assessment.business_problem}
+            businessSolution={assessment.business_solution}
+            businessContext={assessment.business_context}
+            evaluationParameters={assessment.evaluation_parameters}
+          />
         </div>
 
-        <CaseSummaryAccordions
-          businessProblem={assessment.business_problem}
-          businessSolution={assessment.business_solution}
-          businessContext={assessment.business_context}
-          evaluationParameters={assessment.evaluation_parameters}
+        <ScoreOverviewSection
+          actualResult={scoringResult}
+          overallScore={overallScore}
+          casesSummaries={casesSummaries}
+          strengths={strengths}
+          gaps={gaps}
+          isViewFromMyAssessments={false}
+          currentData={null}
+          optimisticIsPublic={false}
+          topFactor={topFactor}
+          focusFactor={focusFactor}
+          avgFactorScore={avgFactorScore}
+          resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
+          reportTips={null}
         />
+        <Separator variant="secondary" className="my-8" />
+
+        <CircularEconomyTierCard actualResult={scoringResult} />
+        <Separator variant="secondary" className="my-8" />
+
+        <WeightedScoreCard actualResult={scoringResult} />
+        <Separator variant="secondary" className="my-8" />
+
+        <ParameterConsistencyCard actualResult={scoringResult} />
+        <Separator variant="secondary" className="my-8" />
+
+        <RStrategyAlignmentCard actualResult={scoringResult} />
+        <Separator variant="secondary" className="my-8" />
+
+        <ScoreCategoryBreakdown actualResult={scoringResult} />
+        <Separator variant="secondary" className="my-8" />
+
+        <SharedGapAnalysisCard result={scoringResult} variant="transparent" />
+        <Separator variant="secondary" className="my-8" />
+
+        {/* <div className="space-y-0"> */}
+        <IndustryMetadataSection actualResult={scoringResult} fieldHelp={fieldHelp} />
+        <Separator variant="secondary" className="my-8" />
+
+        <CategoryAnalysis
+          actualResult={scoringResult}
+          resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
+        />
+        <Separator variant="secondary" className="my-8" />
+
+        <PerformanceComparison
+          resolvedRadarData={radarData}
+          radarConfigs={radarConfigs}
+          detailLoading={false}
+        />
+        <Separator variant="secondary" className="my-8" />
+
+        <IntegrityAnalysis strengths={strengths} gaps={gaps} />
+        <Separator variant="secondary" className="my-8" />
+
+        {/* </div> */}
+
+        {/* SharedAuditSummaryCard */}
+        <SharedAuditSummaryCard result={scoringResult} variant="transparent" />
+        <Separator variant="secondary" className="my-8" />
+
+        {/* DatabaseEvidenceCard */}
+        <DatabaseEvidenceCard actualResult={scoringResult} casesSummaries={casesSummaries} />
+        <Separator variant="secondary" className="my-8" />
+
+        <SectionHeading
+          variant="small"
+          icon={<NotebookPen className="size-4 text-(--color-accent)" />}
+          className="mt-8"
+        >
+          Strategic Synthesis
+        </SectionHeading>
+
+        <StrengthsGapsCard strengths={strengths} gaps={gaps} />
+        <RecommendationsCard actualResult={scoringResult} />
       </div>
-
-      <ScoreOverviewSection
-        actualResult={scoringResult}
-        overallScore={overallScore}
-        casesSummaries={casesSummaries}
-        strengths={strengths}
-        gaps={gaps}
-        isViewFromMyAssessments={false}
-        currentData={null}
-        optimisticIsPublic={false}
-        topFactor={topFactor}
-        focusFactor={focusFactor}
-        avgFactorScore={avgFactorScore}
-        resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
-        reportTips={null}
-      />
-      <Separator variant="secondary" className="my-8" />
-
-      <CircularEconomyTierCard actualResult={scoringResult} />
-      <Separator variant="secondary" className="my-8" />
-
-      <WeightedScoreCard actualResult={scoringResult} />
-      <Separator variant="secondary" className="my-8" />
-
-      <ParameterConsistencyCard actualResult={scoringResult} />
-      <Separator variant="secondary" className="my-8" />
-
-      <RStrategyAlignmentCard actualResult={scoringResult} />
-      <Separator variant="secondary" className="my-8" />
-
-      <ScoreCategoryBreakdown actualResult={scoringResult} />
-      <Separator variant="secondary" className="my-8" />
-
-      <SharedGapAnalysisCard result={scoringResult} variant="transparent" />
-      <Separator variant="secondary" className="my-8" />
-
-      {/* <div className="space-y-0"> */}
-      <IndustryMetadataSection actualResult={scoringResult} fieldHelp={fieldHelp} />
-      <Separator variant="secondary" className="my-8" />
-
-      <CategoryAnalysis
-        actualResult={scoringResult}
-        resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
-      />
-      <Separator variant="secondary" className="my-8" />
-
-      <PerformanceComparison
-        resolvedRadarData={radarData}
-        radarConfigs={radarConfigs}
-        detailLoading={false}
-      />
-      <Separator variant="secondary" className="my-8" />
-
-      <IntegrityAnalysis strengths={strengths} gaps={gaps} />
-      <Separator variant="secondary" className="my-8" />
-
-      {/* </div> */}
-
-      {/* SharedAuditSummaryCard */}
-      <SharedAuditSummaryCard result={scoringResult} variant="transparent" />
-      <Separator variant="secondary" className="my-8" />
-
-      {/* DatabaseEvidenceCard */}
-      <DatabaseEvidenceCard actualResult={scoringResult} casesSummaries={casesSummaries} />
-      <Separator variant="secondary" className="my-8" />
-
-      <SectionHeading
-        variant="small"
-        icon={<NotebookPen className="size-4 text-(--color-accent)" />}
-        className="mt-8"
-      >
-        Strategic Synthesis
-      </SectionHeading>
-
-      <StrengthsGapsCard strengths={strengths} gaps={gaps} />
-      <RecommendationsCard actualResult={scoringResult} />
     </div>
   );
 }
@@ -220,11 +211,6 @@ AssessmentColumn.propTypes = {
   avgFactorScore: PropTypes.number.isRequired,
   resolvedBusinessViabilityScore: PropTypes.number.isRequired,
   openResultsDatabaseEvidenceDetailsDrawer: PropTypes.func.isRequired,
-  // Props for ResultsActionBar
-  isExporting: PropTypes.bool,
-  onReevaluate: PropTypes.func,
-  onDownloadPDF: PropTypes.func,
-  onDownloadCSV: PropTypes.func,
 };
 
 export default AssessmentColumn;

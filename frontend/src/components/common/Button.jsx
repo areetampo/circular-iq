@@ -5,101 +5,52 @@ import { mergeProps, useButton } from 'react-aria';
 
 import { cn } from '@/utils/cn';
 
-/**
- * Spinner component for loading state
- */
-const Spinner = ({ size = 'sm' }) => (
-  <svg
-    className={cn(
-      'animate-spin',
-      size === 'sm' && 'size-4',
-      size === 'md' && 'size-5',
-      size === 'lg' && 'size-6',
-    )}
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-    />
-  </svg>
-);
+const Spinner = ({ size = 'md' }) => {
+  const spinnerSize = {
+    xs: 'w-3 h-3',
+    sm: 'w-3.5 h-3.5',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5',
+  }[size];
 
-/**
- * Variant styles (same as before)
- */
+  return (
+    <svg
+      className={cn('animate-spin', spinnerSize)}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+};
+
 const variantStyles = {
-  primary: [
-    'bg-(--color-accent) text-white',
-    'hover:bg-(--color-accent-hover)',
-    'border border-transparent',
-    'transition-colors duration-150',
-  ].join(' '),
-  secondary: [
-    'bg-transparent text-(--color-text-primary)',
-    'border border-(--color-border-strong)',
-    'hover:border-(--color-primary-900)',
-    'transition-colors duration-150',
-  ].join(' '),
-  ghost: [
-    'bg-(--color-accent-soft-10) text-(--color-text-secondary)',
-    'border border-transparent',
-    'hover:text-(--color-text-primary) hover:bg-(--color-hover-accent-strong)',
-    'transition-colors duration-150',
-  ].join(' '),
-  ghastly: [
-    'bg-transparent text-(--color-text-muted)',
-    'border border-transparent',
-    'hover:bg-(--color-hover-subtle) hover:text-(--color-text-primary)',
-    'transition-colors duration-150',
-  ].join(' '),
-  danger: [
-    'bg-(--color-error) text-white',
-    'border border-(--color-error-border-strong)',
-    'hover:opacity-90',
-    'transition-opacity duration-150',
-  ].join(' '),
-  'results-action': [
-    'bg-transparent text-(--color-text-secondary)',
-    'border-[1.5px] border-(--color-border-ui)',
-    'hover:bg-(--color-accent-light)',
-    'text-xs tracking-wide uppercase',
-    'transition-colors duration-150',
-  ].join(' '),
-  'dialog-primary': [
-    'bg-(--color-accent) text-white w-full',
-    'hover:bg-(--color-accent-hover)',
-    'transition-colors duration-150',
-  ].join(' '),
-  'dialog-secondary': [
-    'bg-transparent text-(--color-text-secondary) w-full',
-    'border border-(--color-border-strong)',
-    'hover:bg-(--color-accent-light)',
-    'transition-colors duration-150',
-  ].join(' '),
-  'eco-soft': [
-    'bg-transparent text-(--color-accent)',
-    'border border-(--color-border-ui)',
-    'hover:border-(--color-accent) hover:bg-(--color-accent-light)',
-    'text-xs',
-    'transition-colors duration-150',
-  ].join(' '),
-  teal: [
-    'bg-(--color-success) text-white',
-    'hover:bg-(--color-success-hover)',
-    'border border-transparent',
-    'transition-colors duration-150',
-  ].join(' '),
-  'neutral-soft': [
-    'bg-transparent text-(--color-text-secondary)',
-    'border border-(--color-border-ui)',
-    'hover:border-(--color-accent) hover:text-(--color-accent)',
-    'transition-colors duration-150',
-  ].join(' '),
+  primary:
+    'bg-(--color-accent) text-white hover:bg-(--color-accent-hover) border border-transparent',
+  secondary:
+    'bg-transparent text-(--color-text-primary) border border-(--color-border-strong) hover:border-(--color-primary-900)',
+  ghost:
+    'bg-(--color-accent-soft-10) text-(--color-text-secondary) border border-transparent hover:text-(--color-text-primary) hover:bg-(--color-hover-accent-strong)',
+  ghastly:
+    'bg-transparent text-(--color-text-muted) border border-transparent hover:bg-(--color-hover-subtle) hover:text-(--color-text-primary)',
+  danger:
+    'bg-(--color-error) text-white border border-(--color-error-border-strong) hover:opacity-90 transition-opacity',
+  'results-action':
+    'bg-transparent text-(--color-text-secondary) border-[1.5px] border-(--color-border-ui) hover:bg-(--color-accent-light) text-xs tracking-wide uppercase',
+  'dialog-primary': 'bg-(--color-accent) text-white w-full hover:bg-(--color-accent-hover)',
+  'dialog-secondary':
+    'bg-transparent text-(--color-text-secondary) w-full border border-(--color-border-strong) hover:bg-(--color-accent-light)',
+  'eco-soft':
+    'bg-transparent text-(--color-accent) border border-(--color-border-ui) hover:border-(--color-accent) hover:bg-(--color-accent-light)',
+  teal: 'bg-(--color-success) text-white hover:bg-(--color-success-hover) border border-transparent',
+  'neutral-soft':
+    'bg-transparent text-(--color-text-secondary) border border-(--color-border-ui) hover:border-(--color-accent) hover:text-(--color-accent)',
 };
 
 const sizeStyles = {
@@ -109,10 +60,6 @@ const sizeStyles = {
   lg: 'px-5 py-2.5 text-base',
 };
 
-/**
- * Custom Button using native elements – no HeroUI dependency.
- * Supports `as` (component override) and `to` for anchor/routing.
- */
 export const Button = forwardRef(function Button(
   {
     className = '',
@@ -123,8 +70,8 @@ export const Button = forwardRef(function Button(
     disabled = false,
     isLoading = false,
     children,
-    onPress, // will be used by useButton
-    onClick, // fallback, merged by useButton
+    onPress,
+    onClick,
     as: Component = 'button',
     to,
     href,
@@ -136,7 +83,6 @@ export const Button = forwardRef(function Button(
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
   const isButtonDisabled = isDisabled || disabled || isLoading;
 
-  // Determine if we render an anchor or a button
   let Element = Component;
   let isLink = Element !== 'button';
   if (to && Component === 'button') {
@@ -144,12 +90,9 @@ export const Button = forwardRef(function Button(
     isLink = true;
   }
 
-  // Create a ref for useButton (only used for button elements)
   const internalRef = useRef(null);
   const buttonRef = ref || internalRef;
 
-  // Always call useButton hook to follow React's Rules of Hooks
-  // For links, we'll ignore the returned props
   const { buttonProps: ariaButtonProps } = useButton(
     {
       onPress,
@@ -161,13 +104,11 @@ export const Button = forwardRef(function Button(
     buttonRef,
   );
 
-  // Use buttonProps only for non-link elements
   let buttonProps = {};
   if (!isLink) {
     buttonProps = ariaButtonProps;
   }
 
-  // For links, we create a simple click handler that prevents navigation when disabled
   const handleLinkClick = (event) => {
     if (isButtonDisabled) {
       event.preventDefault();
@@ -178,7 +119,7 @@ export const Button = forwardRef(function Button(
   };
 
   const baseClasses = cn(
-    'transition-colors duration-150 rounded-lg font-sans inline-flex items-center justify-center gap-2 outline-none cursor-pointer',
+    'transition-colors duration-200 rounded-lg font-sans inline-flex items-center justify-center gap-2 outline-none cursor-pointer',
     variantStyles[variant] || variantStyles.primary,
     resolvedSize,
     isButtonDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
@@ -186,27 +127,30 @@ export const Button = forwardRef(function Button(
     className,
   );
 
+  // ✅ Content rendering: original content always keeps its layout (icon + text side by side)
+  // The wrapper span always has the same classes – only its visibility changes.
+  // Spinner is absolutely positioned over the same area, does not affect button size.
   const content = (
     <span className="relative inline-flex items-center justify-center">
-      {/* Original children – hidden when loading, but still occupy space */}
+      {/* Original children – always in layout, never changes display style */}
       <span
-        className={
-          isLoading ? 'invisible' : 'relative inline-flex items-center justify-center gap-1.5'
-        }
+        className={cn(
+          'inline-flex items-center justify-center gap-1.5',
+          isLoading ? 'invisible' : 'visible',
+        )}
       >
         {children}
       </span>
 
-      {/* Spinner – absolutely positioned over the same area */}
+      {/* Spinner – absolute, centered, only shown when loading */}
       {isLoading && (
         <span className="absolute inset-0 flex items-center justify-center">
-          <Spinner size={size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : 'md'} />
+          <Spinner size={size} />
         </span>
       )}
     </span>
   );
 
-  // Render anchor (link) – manual handling
   if (isLink) {
     return (
       <Element
@@ -223,13 +167,11 @@ export const Button = forwardRef(function Button(
     );
   }
 
-  // Render button – using useButton props
   const finalProps = mergeProps(buttonProps, {
     className: baseClasses,
     type,
     disabled: isButtonDisabled ? true : undefined,
     'aria-disabled': isButtonDisabled,
-    // Merge any additional props passed directly (but avoid overriding buttonProps)
   });
 
   return (
@@ -243,7 +185,17 @@ Button.displayName = 'Button';
 
 Button.propTypes = {
   variant: PropTypes.oneOf([
-    /* your variants */
+    'primary',
+    'secondary',
+    'ghost',
+    'ghastly',
+    'danger',
+    'results-action',
+    'dialog-primary',
+    'dialog-secondary',
+    'eco-soft',
+    'teal',
+    'neutral-soft',
   ]),
   size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg']),
   fullWidth: PropTypes.bool,

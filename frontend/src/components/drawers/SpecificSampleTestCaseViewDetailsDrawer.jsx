@@ -131,7 +131,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                                 </p>
                               </div>
                             </div>
-                            <div className={cn('grid grid-cols-1 gap-1')}>
+                            <div className={cn('grid grid-cols-1 gap-1', 'pl-7')}>
                               {paramKeys.map((paramKey) => {
                                 const value = evaluationParameters[paramKey];
                                 if (value === undefined || value === null) return null;
@@ -141,10 +141,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                                 return (
                                   <div
                                     key={paramKey}
-                                    className="flex w-fit items-center gap-3 rounded-full px-3 py-1"
-                                    style={{
-                                      backgroundColor: `color-mix(in srgb, var${styling.textColor.replace('text-', '')}, transparent 90%)`,
-                                    }}
+                                    className="flex w-fit items-center gap-3 rounded-full"
                                   >
                                     <div className="rounded-full">
                                       <p className="text-sm font-medium text-(--color-text-primary) uppercase">

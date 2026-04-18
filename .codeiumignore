@@ -1,0 +1,34 @@
+# ---------------------------------------------------------
+# WINDsurf / CODEIUM IGNORE
+# ---------------------------------------------------------
+
+node_modules/
+dist/
+build/
+.next/
+.vite/
+.git/
+.vscode/
+.scratch/
+
+**/backend/datasets/archives/
+**/backend/datasets/out/
+**/backend/datasets/processed/
+**/backend/datasets/raw/
+**/backend/datasets/manual_entries/
+
+*.csv
+*.jsonl
+*.pdf
+*.sql
+*.log
+*.tmp
+*.tsbuildinfo
+
+**/backend/tests/**
+coverage/
+.nyc_output/
+
+.env
+.env.*
+env/.env.*

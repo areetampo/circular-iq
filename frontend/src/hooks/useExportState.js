@@ -8,7 +8,8 @@ import { useState } from 'react';
  * @returns {Object}
  */
 export function useExportState() {
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingCSV, setIsExportingCSV] = useState(false);
   // toasts are shown directly via HeroUI's toast helper
 
   /**
@@ -18,10 +19,16 @@ export function useExportState() {
    * @param {*} args - Arguments to pass to export function
    */
   const executeExport = async (exportFn, operationType = 'CSV', ...args) => {
-    setIsExporting(true);
+    // Set appropriate loading state based on operation type
+    if (operationType === 'PDF') {
+      setIsExportingPDF(true);
+    } else if (operationType === 'CSV') {
+      setIsExportingCSV(true);
+    }
+
     try {
       const result = await exportFn(...args);
-      // mimic previous wrapper behaviour: success=3000ms, error/danger=4000ms
+
       if (result.success) {
         toast.success(result.message || `${operationType} exported successfully`, {
           timeout: 3000,
@@ -29,18 +36,29 @@ export function useExportState() {
       } else {
         toast.danger(result.message || `${operationType} exported successfully`, { timeout: 4000 });
       }
+
       return result;
     } catch (error) {
       const errorMsg = error.message || `Failed to export ${operationType}`;
       toast.danger(errorMsg, { timeout: 4000 });
       return { success: false, message: errorMsg };
     } finally {
-      setIsExporting(false);
+      // Clear appropriate loading state based on operation type
+      if (operationType === 'PDF') {
+        setIsExportingPDF(false);
+      } else if (operationType === 'CSV') {
+        setIsExportingCSV(false);
+      }
     }
   };
 
+  // Legacy isExporting for backward compatibility (true if either export is active)
+  const isExporting = isExportingPDF || isExportingCSV;
+
   return {
     isExporting,
+    isExportingPDF,
+    isExportingCSV,
     executeExport,
   };
 }

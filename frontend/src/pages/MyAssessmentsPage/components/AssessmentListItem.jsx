@@ -67,9 +67,9 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             {assessment.industry && (
               <Chip variant="factor">{toTitleCase(assessment.industry)}</Chip>
             )}
-            <Chip variant="access-type" color={assessment.is_public ? 'public' : 'private'}>
+            {/* <Chip variant="access-type" color={assessment.is_public ? 'public' : 'private'}>
               {assessment.is_public ? 'Public' : 'Private'}
-            </Chip>
+            </Chip> */}
           </div>
         </div>
 

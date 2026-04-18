@@ -16,19 +16,16 @@ import { cn } from '@/utils/cn';
  */
 const variantStyles = {
   // Industry filter chips - used in MyAssessmentsPage filter bar
-  // index.css: h-7, px-3, text-[12px], border-(--color-border-strong), bg-transparent
   filter: [
-    'h-7 rounded-full border px-3 text-xs font-medium',
+    'rounded-full border font-medium',
     'border-[1.5px] border-(--color-border-ui) bg-transparent text-black/60',
     'transition-all duration-150 ease-in-out cursor-pointer',
     'hover:border-(--color-accent)/50 hover:text-black',
   ].join(' '),
 
   // Tag chips — compact label chips
-  // index.css: h-5.5, px-2, text-[11px], bg-(--color-chip-bg), border-(--color-border-subtle), normal-case
-  // rounded-md in CSS overridden to rounded-full per spec
   tag: [
-    'h-5.5 rounded-full border px-2 text-[11px] font-medium normal-case',
+    'rounded-full border font-medium normal-case',
     'border-(--color-border-subtle) bg-(--color-chip-bg) text-(--color-text-secondary)',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
@@ -36,14 +33,14 @@ const variantStyles = {
   // Public/Private chips - simple design for AssessmentListItem
   // Minimal, clean appearance with color tints
   'access-type': [
-    'text-[0.625rem] font-medium text-xs border rounded-full',
+    'font-medium border rounded-full',
     'transition-all duration-150 ease-in-out',
-    'opacity-85',
+    'opacity-90',
   ].join(' '),
 
   // Source chips - for database evidence cards
   source: [
-    'font-medium text-xs rounded-full',
+    'font-medium rounded-full',
     'bg-[oklch(0.92_0.02_240/0.6)] text-[oklch(0.4_0.05_240)]',
     'border border-[oklch(0.8_0.03_240)]',
     'transition-all duration-150 ease-in-out',
@@ -51,14 +48,14 @@ const variantStyles = {
 
   // Percentage match chips
   match: [
-    'rounded-full text-xs font-medium shadow-sm',
+    'rounded-full font-medium shadow-sm',
     'border',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
 
   // Recycling/Reuse strategy chips - for database evidence cards
   strategy: [
-    'font-medium text-xs rounded-full',
+    'font-medium rounded-full',
     'bg-(--color-chip-strategy-bg) text-(--color-chip-strategy-text)',
     'border border-(--color-chip-strategy-border)',
     'transition-all duration-150 ease-in-out',
@@ -66,7 +63,7 @@ const variantStyles = {
 
   // Materials chips - for database evidence cards
   materials: [
-    'font-medium text-xs rounded-full',
+    'font-medium rounded-full',
     'bg-(--color-chip-materials-bg) text-(--color-chip-materials-text)',
     'border border-(--color-chip-materials-border)',
     'transition-all duration-150 ease-in-out',
@@ -74,60 +71,45 @@ const variantStyles = {
 
   // Factor classification chips - for scoring factors
   factor: [
-    'font-medium text-sm rounded-full',
+    'font-medium rounded-full',
     'bg-(--color-chip-factor-bg) text-(--color-chip-factor-text)',
     'border border-(--color-chip-factor-border)',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
 
   // Status chips - for various status indicators, can be combined with color prop
-  // index.css: h-5, px-1.75, text-[10px], font-semibold, tracking-[0.06em], uppercase
-  // border-(--color-border-faint), bg-(--color-chip-bg-faint)
-  // rounded-md in CSS overridden to rounded-full per spec
   status: [
-    'h-5 rounded-full border px-1.75 text-[10px] font-semibold tracking-[0.06em] uppercase',
+    'rounded-full border font-semibold tracking-[0.06em] uppercase',
     'border-(--color-border-faint) bg-(--color-chip-bg-faint) text-(--color-text-secondary)',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
 
   // Info chips - for general informational purposes
-  // index.css: h-6, px-2.5, text-[11px], bg-(--color-chip-bg), border-(--color-border-subtle)
-  // rounded-md in CSS overridden to rounded-full per spec
   info: [
-    'h-6 rounded-full border px-2.5 text-[11px] font-medium',
+    'rounded-full border font-medium',
     'border-(--color-border-subtle) bg-(--color-chip-bg) text-(--color-text-secondary)',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
 
   // Case reference chips - for case numbers and references
   case: [
-    'text-xs rounded-full',
+    'rounded-full',
     'bg-(--color-chip-factor-bg) text-(--color-chip-factor-text)',
     'border border-(--color-chip-factor-border)',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
 
   // Severity chips - for gap analysis severity levels, color-coded based on severity
-  severity: [
-    'rounded-full font-bold text-xs',
-    'border transition-all duration-150 ease-in-out',
-  ].join(' '),
+  severity: ['rounded-full font-bold', 'border transition-all duration-150 ease-in-out'].join(' '),
 
   // Score pills - for sample test case score displays
-  'score-pill': [
-    'rounded-full border text-[0.625rem] font-medium',
-    'transition-all duration-150 ease-in-out',
-  ].join(' '),
+  'score-pill': ['rounded-full border font-medium', 'transition-all duration-150 ease-in-out'].join(
+    ' ',
+  ),
 };
 
 /**
- * Variants that manage their own height/padding and should NOT receive
- * the generic sizeStyles, since they encode that directly above.
- */
-const SELF_SIZED_VARIANTS = new Set(['filter', 'tag', 'info', 'status']);
-
-/**
- * Size styles — only applied to variants not in SELF_SIZED_VARIANTS.
+ * Size styles - applied to all chip variants.
  */
 const sizeStyles = {
   xs: 'px-1.5 py-0 text-[0.65rem]',
@@ -286,8 +268,7 @@ export const Chip = forwardRef(function Chip(
   { className, variant = 'info', size = 'sm', color, active = false, children, onClick, ...props },
   ref,
 ) {
-  const isSelfSized = SELF_SIZED_VARIANTS.has(variant);
-  const resolvedSize = isSelfSized ? '' : (sizeStyles[size] ?? sizeStyles.sm);
+  const resolvedSize = sizeStyles[size] ?? sizeStyles.sm;
 
   const baseClasses =
     'inline-flex items-center justify-center gap-1 outline-none rounded-full whitespace-nowrap max-w-50 font-sans tracking-[0.01em]';
