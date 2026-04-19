@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { ButtonStages } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
@@ -25,7 +26,6 @@ import { getCharacterCount } from '@/lib/validation';
 import {
   BusinessContextContainer,
   BusinessInputField,
-  ButtonStages,
   EvaluationParametersContainer,
   HeroSection,
   SampleTestCasesContainer,

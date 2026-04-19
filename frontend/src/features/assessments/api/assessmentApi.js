@@ -11,7 +11,7 @@
 import {
   safeValidateAssessmentsList,
   validateAssessment,
-} from '@/features/assessments/api/assessmentSchema';
+} from '@/features/assessments/schemas/assessmentSchema';
 import { buildApiUrl } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabase';
 

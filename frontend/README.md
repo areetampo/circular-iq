@@ -170,8 +170,9 @@ frontend/src/
 ├── features/
 │   ├── assessments/
 │   │   ├── api/
-│   │   │   ├── assessmentApi.js     # All API functions: scoreAssessment, getAssessments, saveAssessment,
-│   │   │   │                        #   compareAssessments, getGlobalStats, getDocumentStats, etc.
+│   │   │   └── assessmentApi.js     # All API functions: scoreAssessment, getAssessments, saveAssessment,
+│   │   │                              #   compareAssessments, getGlobalStats, getDocumentStats, etc.
+│   │   ├── schemas/
 │   │   │   └── assessmentSchema.js  # Zod response validation schemas
 │   │   │
 │   │   ├── hooks/

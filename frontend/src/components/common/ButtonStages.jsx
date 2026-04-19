@@ -1,4 +1,4 @@
-// src/pages/LandingPage/components/ButtonStages.jsx
+// src/components/common/ButtonStages.jsx
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
@@ -160,9 +160,9 @@ export default function ButtonStages({
 }
 
 ButtonStages.propTypes = {
-  /** Whether the button is in a loading state */
+  /** Whether button is in a loading state */
   loading: PropTypes.bool.isRequired,
-  /** Whether the button action is currently valid/enabled */
+  /** Whether button action is currently valid/enabled */
   isValid: PropTypes.bool.isRequired,
   /** Callback function when the button is pressed */
   onPress: Button.propTypes.onPress,
@@ -172,7 +172,7 @@ ButtonStages.propTypes = {
   variant: Button.propTypes.variant,
   /** Additional CSS classes to apply */
   className: PropTypes.string,
-  /** Whether the button should take full width */
+  /** Whether button should take full width */
   fullWidth: Button.propTypes.fullWidth,
   /* text in the button */
   buttonText: PropTypes.string,

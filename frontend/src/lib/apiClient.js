@@ -4,23 +4,27 @@ import { FRONTEND_CONFIG } from '@/config';
 
 /**
  * Build the full API endpoint URL
- * In production on Vercel, routes through /api/proxy
+ * In production on Vercel, routes through /api/proxy (injects API key server-side)
+ * Exception: /api/score/stream bypasses proxy — SSE cannot stream through serverless functions
  * In development, goes directly to the backend
  *
  * @param {string} path - API path (e.g., '/api/score', '/api/assessments')
  * @returns {string} Full URL for the API endpoint
  */
 export function buildApiUrl(path) {
-  // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
-  // In production on Vercel, use the serverless proxy function
-  //! [Proxy disabled — all requests go directly to backend]
+  if (FRONTEND_CONFIG.isProd) {
+    // SSE streaming cannot go through Vercel serverless proxy — it buffers the whole response.
+    // Stream endpoint is protected by Supabase auth + anonymous usage limits instead.
+    if (normalizedPath === '/api/score/stream') {
+      return `${FRONTEND_CONFIG.apiBaseUrl}${normalizedPath}`;
+    }
 
-  // if (FRONTEND_CONFIG.isProd) {
-  //   const encodedPath = encodeURIComponent(normalizedPath);
-  //   return `/api/proxy?path=${encodedPath}`;
-  // }
+    // All other routes go through the Vercel proxy which injects INTERNAL_BACKEND_API_KEY server-side
+    const encodedPath = encodeURIComponent(normalizedPath);
+    return `/api/proxy?path=${encodedPath}`;
+  }
 
   // In development, call the backend directly
   return `${FRONTEND_CONFIG.apiBaseUrl}${normalizedPath}`;
