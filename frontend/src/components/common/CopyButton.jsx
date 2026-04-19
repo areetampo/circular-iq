@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
-import { CopyIcon } from './CopyIcon';
+import CopyIcon from './CopyIcon';
 
 /**
  * CopyButton Component
