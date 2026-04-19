@@ -17,10 +17,6 @@ const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
 const SharePage = lazy(() => import('@/pages/SharePage/SharePage'));
-const AssessmentViewPage = lazy(() => import('@/pages/AssessmentViewPage/AssessmentViewPage'));
-const AssessmentComparisonPage = lazy(
-  () => import('@/pages/AssessmentComparisonPage/AssessmentComparisonPage'),
-);
 const ComparePageWrapper = lazy(() => import('@/pages/ComparePage/ComparePageWrapper'));
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));

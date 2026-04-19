@@ -15,11 +15,12 @@ export function buildApiUrl(path) {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
   // In production on Vercel, use the serverless proxy function
-  if (FRONTEND_CONFIG.isProd) {
-    // Encode the path to handle query parameters safely
-    const encodedPath = encodeURIComponent(normalizedPath);
-    return `/api/proxy?path=${encodedPath}`;
-  }
+  //! [Proxy disabled — all requests go directly to backend]
+
+  // if (FRONTEND_CONFIG.isProd) {
+  //   const encodedPath = encodeURIComponent(normalizedPath);
+  //   return `/api/proxy?path=${encodedPath}`;
+  // }
 
   // In development, call the backend directly
   return `${FRONTEND_CONFIG.apiBaseUrl}${normalizedPath}`;

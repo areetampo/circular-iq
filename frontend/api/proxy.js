@@ -17,6 +17,9 @@
  * - All requests are authenticated server-to-server
  */
 
+//! [Proxy disabled — all requests go directly to backend]
+//! frontend/src/lib/apiClient.js - buildApiUrl function
+
 export default async function handler(req, res) {
   // Enable CORS for requests from the Vercel domain
   res.setHeader('Access-Control-Allow-Credentials', 'true');
