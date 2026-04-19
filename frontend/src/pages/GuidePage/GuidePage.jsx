@@ -1110,10 +1110,11 @@ const EvaluationParametersSection = () => {
       {/* Individual Parameter Details */}
       <Accordion
         allowsMultipleExpanded
+        defaultExpandedKeys={Object.keys(GUIDE_PAGE_CONTENT.evaluationParameters.parameters)}
         className="mt-10 overflow-hidden rounded-xl border-[1.5px] border-(--color-border-ui)"
       >
         {Object.entries(GUIDE_PAGE_CONTENT.evaluationParameters.parameters).map(([key, param]) => (
-          <Accordion.Item defaultExpanded key={key}>
+          <Accordion.Item key={key}>
             {/* Sentinel for intersection observer — sits at scroll target position */}
             <div
               id={`param-${key}`}
