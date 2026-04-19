@@ -20,7 +20,8 @@ export const logger = {
     // if (!isDev) { reportToExternalService(args); }
   },
   initArt: () => {
-    console.log(`
+    if (!isDev)
+      console.log(`
 
                                      █
   █ █                      █ █      ████

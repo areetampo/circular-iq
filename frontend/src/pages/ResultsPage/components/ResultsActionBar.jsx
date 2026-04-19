@@ -1,7 +1,7 @@
 import { toast } from '@heroui/react';
-import { CircleX, Download, FolderPen, MoveLeft, RefreshCw, Save } from 'lucide-react';
+import { CircleX, Download, Eye, FolderPen, MoveLeft, RefreshCw, Save } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { Button, CopyButton } from '@/components/common';
 import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
@@ -22,6 +22,8 @@ export function ResultsActionBar({
   navigationResult,
   openSaveAssessmentDialog,
 }) {
+  const location = useLocation();
+
   // Create internal handlers using centralized assessment handlers
   const {
     handleDownloadPDFWithErrorHandling,
@@ -77,6 +79,11 @@ export function ResultsActionBar({
           {(currentData || actualResult) && (
             <Button variant="ghost" size="md" onPress={handleReevaluateClick}>
               <RefreshCw size={14} className="mr-1" /> Re-evaluate
+            </Button>
+          )}
+          {location.pathname === '/assessments/share' && (
+            <Button as={Link} to="/assessments/share" variant="ghost" size="md">
+              <Eye size={14} className="mr-1" /> View another
             </Button>
           )}
         </div>

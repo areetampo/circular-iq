@@ -27,7 +27,7 @@ export default function MyAssessmentsPage() {
   const [selectedIndustries, setSelectedIndustries] = useState(['all']);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
   const [isRenaming, setIsRenaming] = useState(false);
   const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
@@ -42,7 +42,7 @@ export default function MyAssessmentsPage() {
     if (industries) setSelectedIndustries(industries.split(',').filter(Boolean));
     const p = Number(searchParams.get('page') || 1);
     if (!Number.isNaN(p) && p > 0) setPage(p);
-    const ps = Number(searchParams.get('pageSize') || 5);
+    const ps = Number(searchParams.get('pageSize') || 10);
     if (!Number.isNaN(ps) && ps > 0 && pageSizeOptions.includes(ps)) setPageSize(ps);
     else if (!Number.isNaN(ps) && ps > 0) setPageSize(10); // Default to 10 for invalid sizes
     const s = searchParams.get('search');
@@ -64,7 +64,7 @@ export default function MyAssessmentsPage() {
     }
     if (page && page !== 1) params.page = String(page);
     else delete params.page;
-    if (pageSize && pageSize !== 5) params.pageSize = String(pageSize);
+    if (pageSize && pageSize !== 10) params.pageSize = String(pageSize);
     else delete params.pageSize;
     if (searchTerm) params.search = searchTerm;
     else delete params.search;

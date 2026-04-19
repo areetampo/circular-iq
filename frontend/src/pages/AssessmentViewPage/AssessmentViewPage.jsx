@@ -1,6 +1,6 @@
-import { Book, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
+import { Eye, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -10,10 +10,12 @@ import { reconstructScoringResult } from '@/features/assessments/utils';
 import { AssessmentColumn } from '@/pages/AssessmentComparisonPage/components';
 import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 import AssessmentViewPageSkeleton from '@/pages/AssessmentViewPage/components/AssessmentViewPageSkeleton';
+import { useSafeBack } from '@/utils/navigation';
 
 export default function AssessmentViewPage({ publicId: propPublicId }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Get publicId from either props (from SharePage) or query params (direct access)
   const publicId = propPublicId || searchParams.get('id');
@@ -36,13 +38,7 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
     window.location.reload();
   }, [navigate]);
 
-  const handleSafeBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
-  };
+  const goBackSafely = useSafeBack('/');
 
   if (loading) {
     return <AssessmentViewPageSkeleton />;
@@ -126,13 +122,13 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
 
       {/* Simple footer */}
       <div className="mt-8 flex items-center justify-center gap-3 p-6">
-        <Button onClick={handleSafeBack} variant="ghost">
+        <Button onClick={goBackSafely} variant="ghost">
           <MoveLeft size={16} />
           Back
         </Button>
-        <Button as={Link} to="/assessments" variant="ghost">
-          <Book size={16} />
-          Go to assessments
+        <Button as={Link} to="/assessments/share" variant="ghost">
+          <Eye size={16} />
+          View another
         </Button>
       </div>
     </div>

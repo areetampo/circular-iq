@@ -25,6 +25,8 @@ window.logger = logger;
 
 logger.initArt();
 
+window.__APP_INITIAL_HISTORY_LENGTH = window.history.length;
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

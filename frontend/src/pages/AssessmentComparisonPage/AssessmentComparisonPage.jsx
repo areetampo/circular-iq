@@ -195,51 +195,58 @@ export default function AssessmentComparisonPage() {
         </div>
       </div>
 
-      <div className="mt-2 mb-6 flex justify-end gap-2">
-        {[
-          {
-            label: 'Comparison PDF',
-            action: async () => {
-              try {
-                await exportComparisonPDF([assessment1, assessment2]);
-                toast.success('Comparison PDF downloaded successfully', {
-                  timeout: 4000,
-                });
-              } catch (error) {
-                logger.warn('Comparison PDF download failed:', error);
-                toast.danger('PDF download functionality is currently unavailable', {
-                  timeout: 4000,
-                });
-              }
-            },
-          },
-          {
-            label: 'Comparison CSV',
-            action: async () => {
-              try {
-                await exportComparisonCSV([assessment1, assessment2]);
-                toast.success('Comparison CSV downloaded successfully', {
-                  timeout: 4000,
-                });
-              } catch (error) {
-                logger.warn('Comparison CSV download failed:', error);
-                toast.danger('CSV download functionality is currently unavailable', {
-                  timeout: 4000,
-                });
-              }
-            },
-          },
-        ].map(({ label, action }) => (
-          <Button
-            key={label}
-            size="sm"
-            variant="dialog-secondary"
-            onPress={action}
-            className="w-fit"
-          >
-            <Download size={16} /> {label}
+      <div className="mt-2 mb-6 flex justify-between px-5">
+        <div>
+          <Button as={Link} to="/assessments/compare" variant="ghost" size="sm">
+            <MoveLeft size={14} className="mr-1" /> Compare Others
           </Button>
-        ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {[
+            {
+              label: 'Comparison PDF',
+              action: async () => {
+                try {
+                  await exportComparisonPDF([assessment1, assessment2]);
+                  toast.success('Comparison PDF downloaded successfully', {
+                    timeout: 4000,
+                  });
+                } catch (error) {
+                  logger.warn('Comparison PDF download failed:', error);
+                  toast.danger('PDF download functionality is currently unavailable', {
+                    timeout: 4000,
+                  });
+                }
+              },
+            },
+            {
+              label: 'Comparison CSV',
+              action: async () => {
+                try {
+                  await exportComparisonCSV([assessment1, assessment2]);
+                  toast.success('Comparison CSV downloaded successfully', {
+                    timeout: 4000,
+                  });
+                } catch (error) {
+                  logger.warn('Comparison CSV download failed:', error);
+                  toast.danger('CSV download functionality is currently unavailable', {
+                    timeout: 4000,
+                  });
+                }
+              },
+            },
+          ].map(({ label, action }) => (
+            <Button
+              key={label}
+              size="sm"
+              variant="dialog-secondary"
+              onPress={action}
+              className="w-fit"
+            >
+              <Download size={16} /> {label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Two columns side by side */}
