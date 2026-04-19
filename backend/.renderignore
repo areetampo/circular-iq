@@ -1,10 +1,50 @@
-DATASETS_REFERENCE.md
-PIPELINE_ADDING_DATASETS.md
-PIPELINE_RUNNING.md
-README.md
-database/README.md
-tests/
-datasets/
-pipeline/
-database/migrations/
-.gitignore
+# Exclude all datasets (the main source of large files)
+backend/datasets/
+
+# Exclude pipeline scripts if not needed at runtime
+backend/pipeline/
+
+# Exclude tests and test artifacts
+backend/tests/
+backend/coverage/
+backend/.nyc_output/
+
+# Exclude logs and temp files
+backend/logs/
+*.log
+*.tmp
+*.temp
+*.swp
+
+# Exclude environment files (use Render env vars instead)
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Exclude IDE and OS junk
+.idea/
+.DS_Store
+Thumbs.db
+
+# Exclude build outputs (if any)
+backend/dist/
+backend/build/
+backend/out/
+
+# Exclude local database dumps or scratch data
+backend/database/*.sqlite
+backend/database/*.db
+backend/.scratch/
+
+# Exclude markdown/docs (optional, but reduces noise)
+backend/*.md
+backend/DATASETS_REFERENCE.md
+backend/HEALTH_ENDPOINTS.md
+backend/PIPELINE_ADDING_DATASETS.md
+backend/PIPELINE_RUNNING.md
+
+# Exclude legacy backups
+backend/datasets/archives/scrape_backup/
+
+# Exclude Node modules (already not committed, but safe to ignore)
+backend/node_modules/
