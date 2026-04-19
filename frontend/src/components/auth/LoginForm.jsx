@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import Button from '@/components/common/Button';
+import { Button, CopyButton } from '@/components/common';
 import { TEST_CREDENTIALS } from '@/constants/testCredentials';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
@@ -176,13 +176,15 @@ export function LoginForm({ onSwitchToSignup }) {
             <span>Test login credentials</span>
             <Minus size={16} strokeWidth={2.5} />
           </div>
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1.5">
             <User size={12} strokeWidth={2.5} />
             <span>Username: {TEST_CREDENTIALS.username}</span>
+            <CopyButton strokeWidth={2.5} className="ml-0.5" size={12} value={TEST_CREDENTIALS.username} />
           </div>
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1.5">
             <KeyRound size={12} strokeWidth={2.5} />
             <span>Password: {TEST_CREDENTIALS.password}</span>
+            <CopyButton strokeWidth={2.5} className="ml-0.5" size={12} value={TEST_CREDENTIALS.password} />
           </div>
         </div>
       </div>
