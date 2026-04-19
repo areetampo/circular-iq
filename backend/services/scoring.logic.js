@@ -452,10 +452,17 @@ export function calculateRStrategyAlignment(params, rStrategy) {
   else rating = 'Poor Alignment';
 
   const message =
-    misalignedFactors.length === 0
+    alignmentScore >= 75
       ? `Your factor scores strongly support a ${normalised} strategy.`
-      : `${normalised} strategy requires strong ${criticalFactors.slice(0, 2).join(' and ')}, ` +
-        `but ${misalignedFactors.join(', ')} ${misalignedFactors.length === 1 ? 'is' : 'are'} below threshold.`;
+      : alignmentScore >= 55
+        ? `Your factor scores moderately support a ${normalised} strategy, with room to strengthen ` +
+          `${criticalFactors.slice(0, 2).join(' and ')}.`
+        : misalignedFactors.length > 0
+          ? `${normalised} strategy requires strong ${criticalFactors.slice(0, 2).join(' and ')}, ` +
+            `but ${misalignedFactors.join(', ')} ${misalignedFactors.length === 1 ? 'is' : 'are'} ` +
+            `below threshold.`
+          : `Your scores show weak overall alignment with a ${normalised} strategy — ` +
+            `consider reviewing your critical factor scores: ${criticalFactors.slice(0, 2).join(', ')}.`;
 
   return {
     strategy: normalised,
@@ -502,20 +509,30 @@ function calculateConfidenceLevel(scores) {
   const values = Object.values(scores);
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
 
-  // Calculate variance
-  const variance =
-    values.reduce((sum, val) => {
-      return sum + Math.pow(val - mean, 2);
-    }, 0) / values.length;
-
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
   const stdDev = Math.sqrt(variance);
 
-  // High standard deviation = less confident in the score
-  // (Indicates inconsistent or cherry-picked metrics)
-  let confidence = 100 - stdDev * 0.5; // Scale std dev to 0-50 range
-  confidence = Math.max(30, Math.min(100, confidence)); // Clamp to 30-100
+  // 1. Variance penalty: very uniform OR very spread scores reduce confidence
+  // Optimal stddev is 10-20 (realistic differentiation). Very low or very high hurts.
+  const variancePenalty =
+    stdDev < 5
+      ? 15 // suspiciously uniform
+      : stdDev > 30
+        ? 10 // wildly inconsistent
+        : 0;
 
-  return Math.round(confidence);
+  // 2. Extreme scores penalty: scores at exact 0 or 100 reduce credibility
+  const extremeCount = values.filter((v) => v === 0 || v === 100).length;
+  const extremePenalty = extremeCount * 5;
+
+  // 3. Low mean penalty: very low overall scores suggest the solution is underdeveloped,
+  // making self-assessment less reliable
+  const lowMeanPenalty = mean < 30 ? 10 : mean < 45 ? 5 : 0;
+
+  // 4. Baseline: start at 85 (self-assessment always has inherent uncertainty),
+  // not 100 (which would imply perfect knowledge)
+  const raw = 85 - variancePenalty - extremePenalty - lowMeanPenalty;
+  return Math.max(30, Math.min(90, Math.round(raw)));
 }
 
 /**

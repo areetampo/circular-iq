@@ -10,6 +10,14 @@ export function setOpenAIClient(client) {
   openaiClient = client;
 }
 
+// Place this above the Promise.all in cleanSimilarCases
+const IMPACT_ARTIFACT_PATTERNS = [
+  /^Score:\s*\d+\/\d+/i,
+  /^\d+\s*certifications?$/i,
+  /^BAT-AEL:\s*[\d.,]+\s*mg\/l$/i,
+  /^[\d.,]+\s*mg\/l$/i,
+];
+
 /**
  * Main export function: Generate complete audit with metadata and gap analysis
  *
@@ -346,6 +354,12 @@ function buildUserPrompt(
   gapContext = '',
   context = null,
 ) {
+  // Extract valid case IDs for evidence_source_id constraints
+  const validCaseIds = (similarDocs || [])
+    .slice(0, 4)
+    .map((doc) => doc.id)
+    .filter(Boolean);
+
   var similarCasesInfo =
     'No direct matches found in database for this specific query. Proceed with general circular economy principles.';
 
@@ -361,12 +375,14 @@ function buildUserPrompt(
         const fields = doc.metadata?.fields || {};
         const problemText = fields.problem || doc.content || '';
         const solutionText = fields.solution || '';
+        const impactText = fields.impact || '';
         const strategy = fields.circular_strategy || doc.metadata?.r_strategy || '';
         const materials = fields.materials || '';
 
         const parts = [`Case ${idx + 1} (ID: ${id}, Similarity: ${similarity}%)`];
-        if (problemText) parts.push(`Problem: ${problemText.substring(0, 300)}`);
-        if (solutionText) parts.push(`Solution: ${solutionText.substring(0, 300)}`);
+        if (problemText) parts.push(`Problem: ${problemText.substring(0, 250)}`);
+        if (solutionText) parts.push(`Solution: ${solutionText.substring(0, 250)}`);
+        if (impactText) parts.push(`Impact: ${impactText.substring(0, 150)}`);
         if (strategy) parts.push(`Strategy: ${strategy}`);
         if (materials) parts.push(`Materials: ${materials}`);
 
@@ -405,7 +421,8 @@ from a mature operation. Adjust your recommendations to be stage-appropriate.\n`
   "integrity_gaps": [
     {
       "issue": "<Specific concern where user scores may be inflated vs. database evidence>",
-      "evidence_source_id": "<ID of similar case that contradicts user's claims>",
+      "evidence_source_id": "<The exact case ID (e.g. sei_00004) from DATABASE EVIDENCE that
+      supports this gap, or null if no case directly applies. Never fabricate IDs.>",
       "severity": "<low|medium|high>"
     }
   ],
@@ -413,7 +430,7 @@ from a mature operation. Adjust your recommendations to be stage-appropriate.\n`
   "strengths": [
     {
       "aspect": "<Specific strength validated by database evidence>",
-      "evidence_source_id": "<ID of similar case that supports this strength>"
+      "evidence_source_id": "<The exact case ID from DATABASE EVIDENCE, or null>"
     }
   ],
 
@@ -448,9 +465,12 @@ from a mature operation. Adjust your recommendations to be stage-appropriate.\n`
   "market_opportunity_summary": "<2-3 sentences: What is the realistic market opportunity for this solution given the scores and database evidence? Include a rough scale assessment (niche/regional/national/global) and any key market timing factors.>",
 
   "key_metrics_comparison": {
-    "market_readiness": "<How user's tech_readiness score compares to similar cases in the database>",
-    "scalability": "<Assessment based on user's infrastructure score vs. database benchmarks>",
-    "economic_viability": "<Reality check on user's market_price score given database evidence>"
+    "market_readiness": "<If cases available: how user's tech_readiness compares to similar cases.
+    If no cases: 'No database comparison available.'>",
+    "scalability": "<If cases available: infrastructure score vs database benchmarks.
+    If no cases: 'No database comparison available.'>",
+    "economic_viability": "<If cases available: market_price score vs database evidence.
+    If no cases: 'No database comparison available.'>"
   }
 }
 
@@ -472,10 +492,19 @@ ${gapContext}${contextBlock}
 
 IMPORTANT for new fields:
 - improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step". target_factor MUST be one of these exact values only: public_participation, infrastructure, market_price, maintenance, uniqueness, size_efficiency, chemical_safety, tech_readiness. Do not use any other value.
+Each of the 3 items must target a DIFFERENT target_factor — no two roadmap items may share the same target_factor value. Prioritise the three lowest-scoring or most strategically critical factors.
 - sdg_alignment: return 2-4 SDGs most relevant to circular economy: SDG 12 (Responsible Consumption), SDG 13 (Climate Action), SDG 9 (Industry Innovation), SDG 8 (Decent Work), SDG 11 (Sustainable Cities), SDG 6 (Clean Water) are the most common. Only include SDGs with genuine relevance.
 - market_opportunity_summary: grounded in the database evidence and scores, not generic statements.
-- similar_cases_summaries: return EXACTLY one entry per similar case provided in the DATABASE EVIDENCE section. If 4 cases are provided, return exactly 4 summaries — one per case, in order. Never return fewer than the number of cases provided.
-- key_metrics_comparison: provide all three fields (market_readiness, scalability, economic_viability) with specific comparisons to the database cases. Do not leave any field as "unavailable".
+- similar_cases_summaries: If no cases were provided in DATABASE EVIDENCE, return an empty array [].
+  Otherwise return EXACTLY one entry per case provided, in order. Each entry must reference only
+  the case data shown — do not invent or summarise cases that were not in the input.
+- evidence_source_id fields: must be an exact ID from the DATABASE EVIDENCE section (e.g.
+  "sei_00004") or null. Valid IDs for this request: [${validCaseIds.join(', ') || 'none available'}]. Do not use placeholder values
+  like "CASE-1234", "N/A", or any invented identifier.
+- key_metrics_comparison: If no similar cases were provided in DATABASE EVIDENCE, set all three
+  fields to "No database comparison available — assessment based on general CE principles only."
+  When cases ARE available, provide specific comparisons referencing actual case data, not invented
+  benchmark ranges.
 
 CRITICAL: Be honest. If the user's scores are too high, say so with evidence. If the idea is unproven, cite that similar ideas struggled. Make this feel like a professional audit.`;
 }
@@ -591,13 +620,19 @@ export async function cleanSimilarCases(cases) {
   const cleaned = await Promise.all(
     cases.map(async (c) => {
       try {
+        // Pre-process impact field to filter out metadata artifacts
+        const impact = IMPACT_ARTIFACT_PATTERNS.some((p) => p.test((c.impact || '').trim()))
+          ? ''
+          : c.impact;
+
         // Only include fields that have actual content — avoids LLM hallucinating
         // content for empty fields and wastes fewer tokens
         const rawLines = [
           c.summary ? `Summary: ${c.summary}` : null,
           c.problem ? `Problem: ${c.problem}` : null,
           c.solution ? `Solution: ${c.solution}` : null,
-          c.impact ? `Impact: ${c.impact}` : null,
+          impact ? `Impact: ${impact}` : null,
+          c.circular_strategy ? `Strategy: ${c.circular_strategy}` : null, // ADD THIS
         ]
           .filter(Boolean)
           .join('\n');
@@ -611,17 +646,41 @@ Your tasks:
 4. Reframe "problem" text as a clear "Problem Addressed" statement — what challenge or need this project was solving. Start with "This project addressed..." or a similar user-facing framing.
 5. Reframe "solution" text as a clear "Solution Implemented" description — what was actually done. Keep all specific details, numbers, and materials.
 6. Clean the "summary" to be a single clean sentence describing what the project achieved.
-7. Keep "impact" factual — just fix OCR and truncation, do not reframe.
+7. Clean the "impact" field:
+   - Fix OCR artifacts and truncation as with other fields.
+   - If the impact reads as a project outcome, achievement, or measured result (e.g. "Diverted
+     500 tonnes from landfill", "Reduced energy use by 50%"), keep it factual and unchanged
+     beyond OCR fixes.
+   - If the impact reads as a problem-context statistic or background fact rather than what the
+     project achieved (e.g., "Textile agriculture accounts for 20% of agricultural water use"),
+     reframe it as what the project contributed toward addressing that context, or set it to
+     empty string if no outcome can be inferred from the problem/solution text.
+   - Do NOT invent specific numbers or outcomes not present in the input.
+8. REGULATORY CONTENT HANDLING: Detect if the solution text is regulatory/technical specification text (indicators: BAT-AEL patterns, footnote markers like "( 3 )", "≥ 95 %", "mg/l", "m3/t", numeric footnote references in brackets, EU regulatory citation patterns). If it is:
+   - Rewrite the solution to describe the underlying environmental improvement technique in plain business language. Extract the actual practice (e.g., "adopting biological wastewater treatment systems targeting ≤10 mg/l BOD output") and state it as what was done.
+   - Rewrite the impact to state the environmental outcome in plain language (e.g., "Reduced textile wastewater pollutant load to regulatory best-practice levels"). If the impact is just a technical threshold value (e.g., "BAT-AEL: 150 mg/l"), translate it to a meaningful plain-English outcome or set it to empty string.
+9. If the 'solution' text describes a problem or challenge (e.g., 'Due to underdeveloped standards, products include toxic chemicals...') rather than an action taken, reframe it to describe what was done or recommended as a solution. Start with 'The solution involved...' or 'This initiative implemented...'. Do not just copy the problem text.
+10. If 'Summary' was not provided, generate a concise one-sentence summary from the Problem and Solution text. Do not leave it empty if Problem or Solution content is available.
+11. TITLE GENERATION: Generate a concise descriptive 5–8 word title in title case based on the
+project's problem/solution content. Always generate one.
+12. STRATEGY CONDENSATION: If the Strategy field is a verbose certification or multi-attribute
+    string longer than 60 characters (e.g., "Cradle-to-Cradle Certified (General - Environmental
+    Policy and Management: Silver, Material Health: Bronze, ...)"), condense it to its essential
+    meaning in 3–8 words (e.g., "Cradle-to-Cradle Certified" or "C2C Certified — Multi-Category").
+    If it is already concise (e.g., "Recycling", "Material Reuse", "Product-as-a-Service"), return
+    it unchanged.
 
 Do NOT invent information. Do NOT change facts, numbers, organisations, or proper nouns.
 If a field was not provided, return an empty string for that key.
 
 Return ONLY a JSON object with these exact keys:
 {
-  "summary": "<one clean sentence: what the project achieved>",
-  "problem": "<reframed problem addressed, starting from user-facing perspective>",
-  "solution": "<reframed solution implemented, preserving all specific details>",
-  "impact": "<impact text with OCR fixed and truncation cleaned>"
+  "summary": "...",
+  "problem": "...",
+  "solution": "...",
+  "impact": "...",
+  "generated_title": "<Always generate a concise 5–8 word descriptive title in title case based on the problem/solution content, e.g. 'Modular Lighting-as-a-Service for Offices'>",
+  "circular_strategy": "<Condensed strategy label if input was verbose, otherwise unchanged>"
 }
 
 RAW TEXT TO CLEAN:
@@ -631,7 +690,7 @@ ${rawLines}`;
           model: 'gpt-4o-mini',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0,
-          max_tokens: 800,
+          max_tokens: 1100,
           response_format: { type: 'json_object' },
         });
 
@@ -640,10 +699,22 @@ ${rawLines}`;
           ...c,
           // Only overwrite if the original had content AND cleanup returned content
           // This prevents empty-field hallucination from overwriting good data
-          summary: c.summary && result.summary ? result.summary : c.summary,
+          summary: result.summary || c.summary || '',
           problem: c.problem && result.problem ? result.problem : c.problem,
           solution: c.solution && result.solution ? result.solution : c.solution,
-          impact: c.impact && result.impact ? result.impact : c.impact,
+          impact: IMPACT_ARTIFACT_PATTERNS.some((p) => p.test((c.impact || '').trim()))
+            ? ''
+            : c.impact && result.impact
+              ? result.impact
+              : c.impact,
+          title:
+            c.title && !/^Case\s+[a-z0-9_]+$/i.test(c.title)
+              ? c.title
+              : result.generated_title || c.title || '',
+          circular_strategy:
+            c.circular_strategy && result.circular_strategy
+              ? result.circular_strategy
+              : c.circular_strategy,
         };
       } catch (_) {
         // If cleanup fails for any case, return original unchanged
