@@ -891,7 +891,7 @@
 }
 
 .app__bg::before {
-  @apply pointer-events-none fixed inset-0 -z-10 bg-[url('/app-bg.svg')] opacity-20 filter-[contrast(130%)_brightness(105%)_grayscale(1)] content-[''];
+  @apply pointer-events-none fixed inset-0 -z-10 bg-[url('/app-bg.svg')] opacity-20 filter-[contrast(100%)_brightness(150%)_grayscale(1)] content-[''];
 }
 
 .app__content {
