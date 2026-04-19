@@ -174,14 +174,26 @@ export default function createScoringRouter(openai, supabase) {
       // Define emitter function for streaming progress
       const emit = (stage, message, data = {}) => {
         if (isClosed) return;
-
         try {
           res.write(`data: ${JSON.stringify({ stage, message, ...data })}\n\n`);
+          // Force flush through Render's nginx proxy — critical for SSE in production
+          if (typeof res.flush === 'function') res.flush();
         } catch (err) {
           logger.warn({ err }, 'Failed to write to SSE stream');
           isClosed = true;
         }
       };
+
+      const heartbeat = setInterval(() => {
+        if (!isClosed) {
+          try {
+            res.write(': heartbeat\n\n');
+            if (typeof res.flush === 'function') res.flush();
+          } catch (_) {
+            // Ignore heartbeat errors
+          }
+        }
+      }, 5000);
 
       // Run the streaming scoring pipeline
       await scoringController.performScoringWithStream(
@@ -192,6 +204,10 @@ export default function createScoringRouter(openai, supabase) {
         userId,
         emit,
       );
+
+      clearInterval(heartbeat);
+
+      if (!isClosed) res.end();
 
       logRequest('POST', '/score/stream', 200, Date.now() - start);
     } catch (err) {

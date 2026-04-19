@@ -362,7 +362,11 @@ export async function scoreAssessmentStream(formData, onStage, onComplete, onErr
     }
   } catch (err) {
     // Handle network/stream errors
-    if (err.status === 403) {
+    // Check for 403 errors - can be either Error instance with status or plain object from 403 JSON response
+    if (
+      err.status === 403 ||
+      (typeof err === 'object' && err !== null && !err.message && Object.keys(err).length > 0)
+    ) {
       // Re-throw LIMIT_REACHED errors for the caller to handle
       throw err;
     }
