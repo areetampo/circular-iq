@@ -1,1 +1,11 @@
-lfs.fetchexclude = backend/datasets/
+# This file was created to prevent Git LFS from downloading large dataset files
+# during deployment on Render's free tier (which lacks pre_clone hooks).
+# It tells LFS to exclude the entire backend/datasets/ directory during clone.
+# Without this, Render exceeds its LFS budget trying to download these files.
+
+[lfs]
+  fetchexclude = backend/datasets/   # Exclude all datasets from LFS fetch
+
+# To verify this configuration is valid, run:
+#   git config -f .lfsconfig --list
+# Expected output: lfs.fetchexclude=backend/datasets/
