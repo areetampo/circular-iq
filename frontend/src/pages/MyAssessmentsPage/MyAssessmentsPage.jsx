@@ -291,9 +291,9 @@ export default function MyAssessmentsPage() {
               key={i}
               className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5"
             >
-              <Skeleton animationType="shimmer" className="mb-3 h-3 w-20 rounded-sm" />
-              <Skeleton animationType="shimmer" className="mb-2 h-8 w-16 rounded-sm" />
-              <Skeleton animationType="shimmer" className="h-3 w-24 rounded-sm" />
+              <Skeleton animationType="shimmer" className="mb-3 h-3 w-20" />
+              <Skeleton animationType="shimmer" className="mb-2 h-8 w-16" />
+              <Skeleton animationType="shimmer" className="h-3 w-24" />
             </div>
           ))}
         </div>
@@ -303,7 +303,7 @@ export default function MyAssessmentsPage() {
           {/* Search input skeleton */}
           <div className="relative">
             <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
-              <Skeleton animationType="shimmer" className="size-4 rounded-sm" />
+              <Skeleton animationType="shimmer" className="size-4" />
             </div>
             <Skeleton
               animationType="shimmer"
@@ -336,7 +336,7 @@ export default function MyAssessmentsPage() {
                 <Skeleton
                   key={i}
                   animationType="shimmer"
-                  className="h-6 w-20 rounded-full bg-(--color-input-bg)"
+                  className="h-6 w-20 rounded-full! bg-(--color-input-bg)"
                 />
               ))}
           </div>

@@ -16,7 +16,7 @@ import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { SectionHeading } from '@/components/common';
+import { SectionHeading, Spinner } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -865,7 +865,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 isDisabled={isUpdatingPublic}
                 className="group/checkbox w-fit"
               >
-                <Checkbox.Content>
+                <Checkbox.Content className="-mr-1.5">
                   <Label
                     htmlFor={`assessment-public-toggle-${currentData.id}`}
                     className="cursor-pointer transition-colors group-hover/checkbox:text-(--color-text-primary)"
@@ -886,14 +886,17 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     </p>
                   </Label>
                 </Checkbox.Content>
-                <Checkbox.Control
-                  className={cn(
-                    'origin-left scale-90',
-                    'group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)',
-                  )}
-                >
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
+                {isUpdatingPublic ? (
+                  <Spinner />
+                ) : (
+                  <Checkbox.Control
+                    className={cn(
+                      'group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)',
+                    )}
+                  >
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                )}
               </Checkbox>
             )}
 

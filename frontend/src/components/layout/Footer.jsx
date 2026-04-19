@@ -1,3 +1,5 @@
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { motion } from 'framer-motion';
 import { Citrus, Copyright } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -16,7 +18,7 @@ const footerLinks = [
 const socialLinks = [
   {
     name: 'GitHub',
-    icon: 'fi fi-brands-github',
+    icon: faGithub,
     url: 'https://github.com/areetampo/circular-economy',
   },
 ];
@@ -52,7 +54,7 @@ export default function Footer() {
                 seconds.
               </p>
 
-              <div className="flex flex-col items-start gap-2">
+              <div className="-mt-1 flex flex-col items-start gap-2">
                 {socialLinks.map((social) => (
                   <a
                     key={social.name}
@@ -62,7 +64,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <i className={cn(social.icon, 'text-xl')}></i>
+                    <FontAwesomeIcon icon={faGithub} size="xl" />
                   </a>
                 ))}
                 <p className="max-w-xs text-xs/relaxed text-(--color-text-secondary) italic">

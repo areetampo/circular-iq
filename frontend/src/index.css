@@ -1498,6 +1498,14 @@
     @apply inline-flex! items-center! gap-3!;
   }
 
+  .checkbox {
+    &:disabled,
+    &[data-disabled='true'],
+    &[aria-disabled='true'] {
+      @apply pointer-events-none! cursor-not-allowed! opacity-75!;
+    }
+  }
+
   .checkbox__control,
   [data-slot='checkbox-control'] {
     @apply relative! size-4! rounded-lg! border! border-(--color-checkbox)! bg-(--color-checkbox-bg)! shadow-checkbox! transition-all! duration-200! ease-in-out!;
@@ -1520,13 +1528,6 @@
   [data-slot='checkbox-control']:focus-visible,
   [data-slot='checkbox-control'][data-focus-visible='true'] {
     @apply outline-2! outline-offset-2! outline-(--color-checkbox)!;
-  }
-
-  .checkbox__control[data-disabled='true'],
-  .checkbox__control:disabled,
-  [data-slot='checkbox-control'][data-disabled='true'],
-  [data-slot='checkbox-control']:disabled {
-    @apply cursor-not-allowed! opacity-50!;
   }
 
   .checkbox__control::before,

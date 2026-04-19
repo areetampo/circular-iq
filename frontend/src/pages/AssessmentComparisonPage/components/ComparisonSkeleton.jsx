@@ -10,26 +10,26 @@ export function ComparisonSkeleton() {
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="pl-4">
             <div className="mb-1 flex items-center gap-2">
-              <Skeleton className="h-8 w-64 rounded-lg" />
-              <Skeleton className="size-5 rounded-full" />
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="size-6" />
             </div>
             <div className="flex items-baseline gap-1">
-              <Skeleton className="h-8 w-16 rounded-lg" />
-              <Skeleton className="h-4 w-8 rounded-sm" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-4 w-8" />
             </div>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Skeleton className="h-4 w-8 rounded-sm" />
-            <Skeleton className="h-8 w-16 rounded-lg" />
+            <Skeleton className="h-4 w-8" />
+            <Skeleton className="h-8 w-16" />
           </div>
           <div className="pr-4 text-right">
             <div className="mb-1 ml-auto flex items-center justify-end gap-2">
-              <Skeleton className="size-5 rounded-full" />
-              <Skeleton className="h-8 w-64 rounded-lg" />
+              <Skeleton className="size-6" />
+              <Skeleton className="h-8 w-64" />
             </div>
             <div className="flex items-baseline justify-end gap-1">
-              <Skeleton className="h-8 w-16 rounded-lg" />
-              <Skeleton className="h-4 w-8 rounded-sm" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-4 w-8" />
             </div>
           </div>
         </div>
@@ -37,8 +37,8 @@ export function ComparisonSkeleton() {
 
       {/* Export buttons */}
       <div className="mt-2 mb-6 flex justify-end gap-2">
-        <Skeleton className="h-8 w-32 rounded-md" />
-        <Skeleton className="h-8 w-32 rounded-md" />
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-8 w-32" />
       </div>
 
       {/* Two columns side by side with AssessmentColumn structure */}
@@ -59,13 +59,13 @@ export function ComparisonSkeleton() {
                 <div className="py-4">
                   <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-32 rounded-md" />
-                      <Skeleton className="h-8 w-28 rounded-md" />
-                      <Skeleton className="h-8 w-24 rounded-md" />
+                      <Skeleton className="h-8 w-32" />
+                      <Skeleton className="h-8 w-48" />
+                      <Skeleton className="h-8 w-24" />
                     </div>
                     <div className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-16 rounded-md" />
-                      <Skeleton className="h-8 w-16 rounded-md" />
+                      <Skeleton className="h-8 w-16" />
+                      <Skeleton className="h-8 w-16" />
                     </div>
                   </div>
 
@@ -76,16 +76,16 @@ export function ComparisonSkeleton() {
                   {/* Case Summary Accordions */}
                   <div className="space-y-4">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="rounded-lg border border-(--color-border-ui) p-4">
+                      <div key={i} className="border border-(--color-border-ui) p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Skeleton className="size-5 rounded-full" />
+                            <Skeleton className="size-5 rounded-full!" />
                             <div>
-                              <Skeleton className="mb-1 h-4 w-32 rounded-sm" />
-                              <Skeleton className="h-3 w-48 rounded-sm" />
+                              <Skeleton className="mb-1 h-4 w-32" />
+                              <Skeleton className="h-3 w-48" />
                             </div>
                           </div>
-                          <Skeleton className="size-4 rounded-sm" />
+                          <Skeleton className="size-4" />
                         </div>
                       </div>
                     ))}
@@ -95,86 +95,86 @@ export function ComparisonSkeleton() {
                 {/* Score Overview Section */}
                 <div className="space-y-4">
                   <div className="text-center">
-                    <Skeleton className="mx-auto mb-3 h-16 w-32 rounded-lg" />
-                    <Skeleton className="mx-auto mb-2 h-8 w-16 rounded-sm" />
+                    <Skeleton className="mx-auto mb-3 h-16 w-32" />
+                    <Skeleton className="mx-auto mb-2 h-8 w-16" />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
-                    <Skeleton className="h-20 w-full rounded-lg" />
-                    <Skeleton className="h-20 w-full rounded-lg" />
-                    <Skeleton className="h-20 w-full rounded-lg" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
                   </div>
                 </div>
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Circular Economy Tier Card */}
-                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Weighted Score Card */}
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Parameter Consistency Card */}
-                <Skeleton className="h-28 w-full rounded-lg" />
+                <Skeleton className="h-28 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* R Strategy Alignment Card */}
-                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Score Category Breakdown */}
-                <Skeleton className="h-36 w-full rounded-lg" />
+                <Skeleton className="h-36 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Gap Analysis Card */}
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Industry Metadata Section */}
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4">
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
                   </div>
                 </div>
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Category Analysis */}
-                <Skeleton className="h-40 w-full rounded-lg" />
+                <Skeleton className="h-40 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Performance Comparison (Radar Chart) */}
-                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-48 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Integrity Analysis */}
                 <div className="grid grid-cols-2 gap-4">
-                  <Skeleton className="h-32 w-full rounded-lg" />
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-32 w-full" />
                 </div>
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Audit Summary Card */}
-                <Skeleton className="h-28 w-full rounded-lg" />
+                <Skeleton className="h-28 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Database Evidence Card */}
-                <Skeleton className="h-36 w-full rounded-lg" />
+                <Skeleton className="h-36 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Strategic Synthesis Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Skeleton className="size-4 rounded-full" />
-                    <Skeleton className="h-6 w-32 rounded-lg" />
+                    <Skeleton className="size-4 rounded-full!" />
+                    <Skeleton className="h-6 w-32" />
                   </div>
-                  <Skeleton className="h-32 w-full rounded-lg" />
-                  <Skeleton className="h-28 w-full rounded-lg" />
+                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-28 w-full" />
                 </div>
               </div>
             </div>
@@ -188,13 +188,13 @@ export function ComparisonSkeleton() {
                 <div className="py-4">
                   <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-32 rounded-md" />
-                      <Skeleton className="h-8 w-28 rounded-md" />
-                      <Skeleton className="h-8 w-24 rounded-md" />
+                      <Skeleton className="h-8 w-32" />
+                      <Skeleton className="h-8 w-48" />
+                      <Skeleton className="h-8 w-24" />
                     </div>
                     <div className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-16 rounded-md" />
-                      <Skeleton className="h-8 w-16 rounded-md" />
+                      <Skeleton className="h-8 w-16" />
+                      <Skeleton className="h-8 w-16" />
                     </div>
                   </div>
 
@@ -205,16 +205,16 @@ export function ComparisonSkeleton() {
                   {/* Case Summary Accordions */}
                   <div className="space-y-4">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="rounded-lg border border-(--color-border-ui) p-4">
+                      <div key={i} className="border border-(--color-border-ui) p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Skeleton className="size-5 rounded-full" />
+                            <Skeleton className="size-5 rounded-full!" />
                             <div>
-                              <Skeleton className="mb-1 h-4 w-32 rounded-sm" />
-                              <Skeleton className="h-3 w-48 rounded-sm" />
+                              <Skeleton className="mb-1 h-4 w-32" />
+                              <Skeleton className="h-3 w-48" />
                             </div>
                           </div>
-                          <Skeleton className="size-4 rounded-sm" />
+                          <Skeleton className="size-4" />
                         </div>
                       </div>
                     ))}
@@ -224,86 +224,86 @@ export function ComparisonSkeleton() {
                 {/* Score Overview Section */}
                 <div className="space-y-4">
                   <div className="text-center">
-                    <Skeleton className="mx-auto mb-3 h-16 w-32 rounded-lg" />
-                    <Skeleton className="mx-auto mb-2 h-8 w-16 rounded-sm" />
+                    <Skeleton className="mx-auto mb-3 h-16 w-32" />
+                    <Skeleton className="mx-auto mb-2 h-8 w-16" />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
-                    <Skeleton className="h-20 w-full rounded-lg" />
-                    <Skeleton className="h-20 w-full rounded-lg" />
-                    <Skeleton className="h-20 w-full rounded-lg" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
                   </div>
                 </div>
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Circular Economy Tier Card */}
-                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Weighted Score Card */}
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Parameter Consistency Card */}
-                <Skeleton className="h-28 w-full rounded-lg" />
+                <Skeleton className="h-28 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* R Strategy Alignment Card */}
-                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Score Category Breakdown */}
-                <Skeleton className="h-36 w-full rounded-lg" />
+                <Skeleton className="h-36 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Gap Analysis Card */}
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-32 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Industry Metadata Section */}
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-4">
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
-                    <Skeleton className="h-16 w-full rounded-lg" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
                   </div>
                 </div>
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Category Analysis */}
-                <Skeleton className="h-40 w-full rounded-lg" />
+                <Skeleton className="h-40 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Performance Comparison (Radar Chart) */}
-                <Skeleton className="h-48 w-full rounded-lg" />
+                <Skeleton className="h-48 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Integrity Analysis */}
                 <div className="grid grid-cols-2 gap-4">
-                  <Skeleton className="h-32 w-full rounded-lg" />
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-32 w-full" />
                 </div>
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Audit Summary Card */}
-                <Skeleton className="h-28 w-full rounded-lg" />
+                <Skeleton className="h-28 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Database Evidence Card */}
-                <Skeleton className="h-36 w-full rounded-lg" />
+                <Skeleton className="h-36 w-full" />
                 <Skeleton className="my-8 h-px w-full" />
 
                 {/* Strategic Synthesis Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Skeleton className="size-4 rounded-full" />
-                    <Skeleton className="h-6 w-32 rounded-lg" />
+                    <Skeleton className="size-4 rounded-full!" />
+                    <Skeleton className="h-6 w-32" />
                   </div>
-                  <Skeleton className="h-32 w-full rounded-lg" />
-                  <Skeleton className="h-28 w-full rounded-lg" />
+                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-28 w-full" />
                 </div>
               </div>
             </div>
@@ -314,8 +314,8 @@ export function ComparisonSkeleton() {
       {/* Footer skeleton */}
       <div className="mt-8 flex items-center justify-between p-6">
         <Skeleton className="absolute inset-x-0 top-0 h-px w-full" />
-        <Skeleton className="h-4 w-48 rounded-sm" />
-        <Skeleton className="h-8 w-32 rounded-md" />
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-8 w-32" />
       </div>
     </div>
   );

@@ -9,3 +9,4 @@ export { default as ErrorDisplay } from './ErrorDisplay';
 export { default as LoaderComponent } from './LoaderComponent';
 export { default as LoaderIcon } from './LoaderIcon';
 export { default as SectionHeading } from './SectionHeading';
+export { default as Spinner } from './Spinner';

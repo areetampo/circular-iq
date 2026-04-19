@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Button, Chip, CopyIcon } from '@/components/common';
+import { Button, Chip, CopyIcon, Spinner } from '@/components/common';
 import { formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
@@ -198,17 +198,21 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             </Checkbox.Content>
           </Checkbox>
 
-          {/* Public/Private checkbox */}
+          {/* Public/Private checkbox with HeroUI Spinner */}
           <Checkbox
             id={`public-toggle-${assessment.id}`}
             isSelected={assessment.is_public}
             onChange={() => handleTogglePublic(assessment.id)}
-            disabled={togglingPublic === assessment.id}
+            isDisabled={togglingPublic === assessment.id}
             className="group/checkbox"
           >
-            <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
-              <Checkbox.Indicator />
-            </Checkbox.Control>
+            {togglingPublic === assessment.id ? (
+              <Spinner />
+            ) : (
+              <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+            )}
             <Checkbox.Content className="-ml-1.5">
               <Label
                 htmlFor={`public-toggle-${assessment.id}`}
@@ -256,68 +260,68 @@ export const AssessmentCardSkeleton = () => (
       {/* Title and metadata section */}
       <div className="min-w-0 flex-1">
         {/* Title skeleton */}
-        <Skeleton animationType="shimmer" className="mb-1 h-4 w-3/4 rounded-sm" />
+        <Skeleton animationType="shimmer" className="mb-2 h-6 w-3/4" />
 
         {/* Date skeleton */}
-        <Skeleton animationType="shimmer" className="mb-2 h-3 w-24 rounded-sm" />
+        <Skeleton animationType="shimmer" className="mb-2 h-3 w-32" />
 
         {/* Tags row skeleton */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Industry chip skeleton */}
-          <Skeleton animationType="shimmer" className="h-5 w-16 rounded-full" />
+          <Skeleton animationType="shimmer" className="h-6 w-20 rounded-full!" />
           {/* Public/Private chip skeleton */}
-          <Skeleton animationType="shimmer" className="h-5 w-12 rounded-full" />
+          <Skeleton animationType="shimmer" className="h-6 w-16 rounded-full!" />
         </div>
       </div>
 
       {/* Score section */}
       <div className="min-w-20 shrink-0 text-right">
         {/* Score skeleton */}
-        <Skeleton animationType="shimmer" className="mb-0.5 ml-auto h-6 w-16 rounded-sm" />
+        <Skeleton animationType="shimmer" className="mb-2 ml-auto h-7 w-24" />
         {/* Confidence skeleton */}
-        <Skeleton animationType="shimmer" className="ml-auto h-3 w-12 rounded-sm" />
+        <Skeleton animationType="shimmer" className="ml-auto h-3 w-16" />
       </div>
 
       {/* Action buttons skeleton */}
-      <div className="flex shrink-0 items-center gap-1">
-        {/* View button skeleton */}
-        <div className="flex items-center gap-1 rounded-lg px-2 py-1">
-          <Skeleton animationType="shimmer" className="size-2.5 rounded-sm" />
-          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded-sm" />
-        </div>
-        {/* Rename button skeleton */}
-        <div className="flex items-center gap-1 rounded-lg px-2 py-1">
-          <Skeleton animationType="shimmer" className="size-2.5 rounded-sm" />
-          <Skeleton animationType="shimmer" className="h-2.5 w-10 rounded-sm" />
-        </div>
-        {/* Delete button skeleton */}
-        <div className="flex items-center gap-1 rounded-lg px-2 py-1">
-          <Skeleton animationType="shimmer" className="size-2.5 rounded-sm" />
-          <Skeleton animationType="shimmer" className="h-2.5 w-8 rounded-sm" />
-        </div>
+      <div className="grid shrink-0 grid-cols-[auto_auto_auto] grid-rows-2 items-start gap-x-1 gap-y-0.5">
+        {/* View, rename, delete, copy id buttons skeleton */}
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className={cn(
+              'flex items-center gap-1 px-2 py-1',
+              i < 2 && 'row-span-2',
+              i === 2 && 'col-start-3 row-start-1',
+              i === 3 && 'col-start-3 row-start-2',
+            )}
+          >
+            <Skeleton animationType="shimmer" className="size-2.5" />
+            <Skeleton animationType="shimmer" className="h-2.5 w-8" />
+          </div>
+        ))}
       </div>
     </div>
 
     {/* Bottom row with additional stats and controls */}
-    <div className="mt-3 flex items-center justify-between border-t border-(--color-table-row-border) pt-3">
+    <div className="mt-3 flex items-center justify-between pt-3">
       {/* Additional stats skeleton */}
       <div className="flex items-center gap-3">
-        <Skeleton animationType="shimmer" className="h-3 w-16 rounded-sm" />
-        <Skeleton animationType="shimmer" className="h-3 w-14 rounded-sm" />
-        <Skeleton animationType="shimmer" className="h-3 w-16 rounded-sm" />
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} animationType="shimmer" className="h-3 w-18" />
+        ))}
       </div>
 
       {/* Controls skeleton */}
       <div className="flex items-center gap-3">
         {/* Select to compare checkbox skeleton */}
         <div className="flex items-center gap-1.5">
-          <Skeleton animationType="shimmer" className="size-3 rounded-sm" />
-          <Skeleton animationType="shimmer" className="h-3 w-20 rounded-sm" />
+          <Skeleton animationType="shimmer" className="size-4" />
+          <Skeleton animationType="shimmer" className="h-3 w-22" />
         </div>
         {/* Public checkbox skeleton */}
         <div className="flex items-center gap-1.5">
-          <Skeleton animationType="shimmer" className="size-3 rounded-sm" />
-          <Skeleton animationType="shimmer" className="h-3 w-10 rounded-sm" />
+          <Skeleton animationType="shimmer" className="size-4" />
+          <Skeleton animationType="shimmer" className="h-3 w-12" />
         </div>
       </div>
     </div>

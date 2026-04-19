@@ -2,6 +2,8 @@ import { Checkbox, Label, ListBox, Select } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import { Spinner } from '@/components/common';
+
 const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
 
 const BUSINESS_MODEL_OPTIONS = [
@@ -153,8 +155,8 @@ function BusinessContextContainer({
           control={control}
           render={({ field }) => (
             <div
-              className="flex cursor-pointer items-center justify-between rounded-xl border-2 border-(--color-border-ui)/75 px-4 py-3 transition-colors duration-150"
-              onClick={() => field.onChange(!field.value)}
+              className="group/checkbox flex cursor-pointer items-center justify-between rounded-xl border-2 border-(--color-border-ui)/75 px-4 py-3 transition-colors duration-150"
+              onClick={() => !loading && field.onChange(!field.value)}
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1 font-mono">
@@ -168,11 +170,15 @@ function BusinessContextContainer({
                 isSelected={field.value === true}
                 onChange={(checked) => field.onChange(checked)}
                 isDisabled={loading}
-                className="scale-125"
+                className="group/checkbox scale-125"
               >
-                <Checkbox.Control>
-                  <Checkbox.Indicator />
-                </Checkbox.Control>
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                )}
               </Checkbox>
             </div>
           )}

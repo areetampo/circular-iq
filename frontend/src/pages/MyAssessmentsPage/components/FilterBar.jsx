@@ -76,7 +76,7 @@ export function FilterBar({
         </div>
 
         {/* Compare button */}
-        <Tooltip delay={0} isDisabled={selectedIds.size === 2}>
+        <Tooltip delay={0}>
           <Tooltip.Trigger>
             <Button
               variant="results-action"
@@ -89,7 +89,11 @@ export function FilterBar({
             </Button>
           </Tooltip.Trigger>
           <Tooltip.Content showArrow placement="top">
-            <p>Select exactly 2 assessments to compare</p>
+            <p>
+              {selectedIds.size === 2
+                ? 'Compare these two assessments'
+                : 'Select exactly 2 assessments to compare'}
+            </p>
           </Tooltip.Content>
         </Tooltip>
       </div>
