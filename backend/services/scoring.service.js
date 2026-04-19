@@ -491,20 +491,13 @@ ${similarCasesInfo}
 ${gapContext}${contextBlock}
 
 IMPORTANT for new fields:
-- improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific — not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step". target_factor MUST be one of these exact values only: public_participation, infrastructure, market_price, maintenance, uniqueness, size_efficiency, chemical_safety, tech_readiness. Do not use any other value.
-Each of the 3 items must target a DIFFERENT target_factor — no two roadmap items may share the same target_factor value. Prioritise the three lowest-scoring or most strategically critical factors.
+- improvement_roadmap: exactly 3 items, ordered by priority (1=highest). Be specific - not "improve tech readiness" but "partner with an existing certified e-waste processor to outsource the technical processing step". target_factor MUST be one of these exact values only: public_participation, infrastructure, market_price, maintenance, uniqueness, size_efficiency, chemical_safety, tech_readiness. Do not use any other value.
+- Each of the 3 improvement_roadmap items MUST target a DIFFERENT target_factor - no two items may share the same target_factor value. Choose the three most distinct, highest-impact factors.
 - sdg_alignment: return 2-4 SDGs most relevant to circular economy: SDG 12 (Responsible Consumption), SDG 13 (Climate Action), SDG 9 (Industry Innovation), SDG 8 (Decent Work), SDG 11 (Sustainable Cities), SDG 6 (Clean Water) are the most common. Only include SDGs with genuine relevance.
 - market_opportunity_summary: grounded in the database evidence and scores, not generic statements.
-- similar_cases_summaries: If no cases were provided in DATABASE EVIDENCE, return an empty array [].
-  Otherwise return EXACTLY one entry per case provided, in order. Each entry must reference only
-  the case data shown — do not invent or summarise cases that were not in the input.
-- evidence_source_id fields: must be an exact ID from the DATABASE EVIDENCE section (e.g.
-  "sei_00004") or null. Valid IDs for this request: [${validCaseIds.join(', ') || 'none available'}]. Do not use placeholder values
-  like "CASE-1234", "N/A", or any invented identifier.
-- key_metrics_comparison: If no similar cases were provided in DATABASE EVIDENCE, set all three
-  fields to "No database comparison available — assessment based on general CE principles only."
-  When cases ARE available, provide specific comparisons referencing actual case data, not invented
-  benchmark ranges.
+- similar_cases_summaries: If no cases were provided in DATABASE EVIDENCE, return an empty array []. Otherwise return EXACTLY one entry per case provided, in order. Each entry must reference only the case data shown - do not invent or summarise cases that were not in the input.
+- evidence_source_id fields: must be an exact ID from the DATABASE EVIDENCE section (e.g. "sei_00004") or null. Valid IDs for this request: [${validCaseIds.join(', ') || 'none available'}]. Do not use placeholder values like "CASE-1234", "N/A", or any invented identifier.
+- key_metrics_comparison: If no similar cases were provided in DATABASE EVIDENCE, set all three fields to "No database comparison available - assessment based on general CE principles only." When cases ARE available, provide specific comparisons referencing actual case data, not invented benchmark ranges.
 
 CRITICAL: Be honest. If the user's scores are too high, say so with evidence. If the idea is unproven, cite that similar ideas struggled. Make this feel like a professional audit.`;
 }
@@ -535,6 +528,14 @@ Metadata: ${JSON.stringify(metadata)}`;
  * @private
  */
 function enhanceAnalysis(analysis, similarDocs, scores) {
+  // Helper to sanitise fabricated evidence_source_id values
+  const sanitiseSourceId = (id) => {
+    if (!id || typeof id !== 'string') return null;
+    const fake = /^(N\/A|n\/a|none|null|undefined|CASE-\d+|case-\d+)$/i;
+    if (fake.test(id.trim())) return null;
+    return id.trim();
+  };
+
   // Ensure all required fields exist
   const enhanced = {
     confidence_score: Math.max(0, Math.min(100, analysis.confidence_score || 0)),
@@ -545,7 +546,7 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
     integrity_gaps: Array.isArray(analysis.integrity_gaps)
       ? analysis.integrity_gaps.map((gap) => ({
           issue: gap.issue || 'Unspecified issue',
-          evidence_source_id: gap.evidence_source_id || null,
+          evidence_source_id: sanitiseSourceId(gap.evidence_source_id),
           severity: ['low', 'medium', 'high'].includes(gap.severity) ? gap.severity : 'low',
         }))
       : [],
@@ -553,7 +554,7 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
     strengths: Array.isArray(analysis.strengths)
       ? analysis.strengths.map((str) => ({
           aspect: str.aspect || 'Unspecified strength',
-          evidence_source_id: str.evidence_source_id || null,
+          evidence_source_id: sanitiseSourceId(str.evidence_source_id),
         }))
       : [],
 
@@ -562,11 +563,15 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
       : [],
 
     similar_cases_summaries: Array.isArray(analysis.similar_cases_summaries)
-      ? analysis.similar_cases_summaries.filter((s) => typeof s === 'string').slice(0, 5)
+      ? analysis.similar_cases_summaries.filter((s) => typeof s === 'string').slice(0, 4)
       : [],
 
-    improvement_roadmap: Array.isArray(analysis.improvement_roadmap)
-      ? analysis.improvement_roadmap.slice(0, 3).map((item, i) => ({
+    improvement_roadmap: (() => {
+      if (!Array.isArray(analysis.improvement_roadmap)) return [];
+      const seenFactors = new Set();
+      return analysis.improvement_roadmap
+        .slice(0, 3)
+        .map((item, i) => ({
           priority: item.priority || i + 1,
           action: item.action || 'No action specified',
           target_factor: item.target_factor || null,
@@ -574,7 +579,13 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
           impact: ['low', 'medium', 'high'].includes(item.impact) ? item.impact : 'medium',
           timeframe: item.timeframe || 'Not specified',
         }))
-      : [],
+        .filter((item) => {
+          if (!item.target_factor) return true; // keep null-factor items, don't dedupe on null
+          if (seenFactors.has(item.target_factor)) return false;
+          seenFactors.add(item.target_factor);
+          return true;
+        });
+    })(),
 
     sdg_alignment: Array.isArray(analysis.sdg_alignment)
       ? analysis.sdg_alignment
