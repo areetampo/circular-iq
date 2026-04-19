@@ -10,13 +10,14 @@
     "node": ">=24.x"
   },
   "scripts": {
+    "clean": "npx rimraf node_modules",
+    "rei": "npm run clean && npm install",
     "x": "node -e \"if (process.env.NODE_ENV !== 'production' && !process.env.CI && !process.env.VERCEL) { try { require('husky').install() } catch (e) { console.log('Skipping husky'); } }\"",
     "dev": "vite --mode frontend",
     "lint": "eslint .",
     "test:watch": "vitest --watch",
     "test:run": "vitest run",
     "preview": "vite preview",
-    "clean": "npx rimraf node_modules",
     "test": "vitest",
     "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL && process.env.NODE_ENV !== 'production') { try { require('husky').install() } catch (e) { console.log('Husky not available, skipping'); } }\"",
     "build": "vite build --mode production"
@@ -41,6 +42,7 @@
     "react-router-dom": "^7.13.0",
     "recharts": "^2.15.4",
     "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
     "zod": "^3.25.76"
   },
   "devDependencies": {

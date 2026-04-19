@@ -20,13 +20,8 @@ build/
 *.jsonl
 *.pdf
 *.sql
-*.log
 *.tmp
 *.tsbuildinfo
-
-**/backend/tests/**
-coverage/
-.nyc_output/
 
 .env
 .env.*

@@ -11,20 +11,20 @@
     "frontend"
   ],
   "scripts": {
+    "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules",
+    "rei": "npm run clean && npm install",
     "dev": "concurrently -n BACKEND,FRONTEND -c \"yellow,cyan\" \"npm run backend\" \"npm run frontend\"",
     "backend": "npm run dev -w backend",
     "frontend": "npm run dev -w frontend",
-    "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules",
-    "rei": "npm run clean && npm install",
     "lint": "eslint . --cache",
     "lint:errors": "eslint . --quiet",
     "lint:fix": "eslint . --fix --cache",
     "lint:frontend": "eslint frontend",
     "format": "prettier --write .",
     "fix-all": "npm run lint:fix && npm run format",
+    "test": "npm test --workspaces --if-present",
     "prepare": "node -e \"if (!process.env.CI && !process.env.VERCEL) { try { require('husky').install() } catch (e) { console.log('Husky not available, skipping'); } }\"",
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present"
   },
   "keywords": [
     "AI",

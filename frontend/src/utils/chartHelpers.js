@@ -56,14 +56,14 @@ export const getScaleColors = () => [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Only show a PieChart when we have ≥ 1 distinct values with total ≥ 1
+ * Only show a PieChart when we have >= 2 distinct values with total >= 2
  * @param {Array} data - Chart data array
  * @returns {boolean} - Whether pie chart is usable
  */
 export function usablePie(data) {
-  if (!data || data.length < 1) return false;
+  if (!data || data.length < 2) return false;
   const total = data.reduce((s, d) => s + (d.value ?? 0), 0);
-  return total >= 1;
+  return total >= 2;
 }
 
 /**

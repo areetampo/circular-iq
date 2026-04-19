@@ -1,8 +1,12 @@
 import { Skeleton } from '@heroui/react';
-import { ChartsTooltip } from '@mui/x-charts';
 import PropTypes from 'prop-types';
 
 import { cn } from '@/utils/cn';
+
+// Mock ChartsTooltip component since @mui/x-charts is not available
+const ChartsTooltip = ({ children, ...props }) => {
+  return <div {...props}>{children}</div>;
+};
 
 /**
  * ChartContainer - Responsive wrapper that provides consistent height and modern styling

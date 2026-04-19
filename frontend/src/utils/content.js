@@ -157,10 +157,10 @@ export function extractCaseInfo(caseItem, index) {
  */
 export function getMatchStrength(similarity) {
   const percentage = similarity * 100;
-  if (percentage >= 80) return { label: 'Excellent Match', color: 'strong' };
-  if (percentage >= 60) return { label: 'Strong Match', color: 'decent' };
-  if (percentage >= 40) return { label: 'Decent Match', color: 'decent' };
-  return { label: 'Poor Match', color: 'weak' };
+  if (percentage >= 80) return { label: 'Excellent Match', color: 'text-green-600' };
+  if (percentage >= 60) return { label: 'Strong Match', color: 'text-blue-600' };
+  if (percentage >= 40) return { label: 'Decent Match', color: 'text-yellow-600' };
+  return { label: 'Poor Match', color: 'text-red-600' };
 }
 
 /**

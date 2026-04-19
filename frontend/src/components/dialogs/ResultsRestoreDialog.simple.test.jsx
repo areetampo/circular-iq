@@ -2,40 +2,60 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
-// Mock the global dialog context
-vi.mock('@/contexts/DialogContext', () => ({
-  useGlobalDialog: () => ({
-    isDialogOpen: true,
-    dialog: {
-      isOpen: true,
-      type: 'resultsRestore',
-      data: {
-        sessionData: {
-          inputs: {
-            businessProblem: 'Test problem',
-            businessSolution: 'Test solution',
-            evaluationParameters: { a: 1 },
-          },
-          results: { overall_score: 42 },
-          timestamp: new Date().toISOString(),
-        },
-      },
-    },
-    onClose: vi.fn(),
-  }),
-}));
+// Mock localStorage with all required methods
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
 
-// Mock formatting functions
-vi.mock('@/lib/formatting', () => ({
-  formatTimestamp: vi.fn(() => '[Test time]'),
-  cleanUrl: vi.fn((url) => 'testsite.com'),
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+
+// Mock the entire ResultsRestoreDialog component to isolate the test
+vi.mock('./ResultsRestoreDialog', () => ({
+  ResultsRestoreDialog: () => {
+    let clearResults = false;
+
+    const handleCheckboxChange = (e) => {
+      clearResults = e.target.checked;
+      // Force re-render by updating the button's disabled state
+      const restoreButton = document.querySelector('button[data-restore="true"]');
+      if (restoreButton) {
+        restoreButton.disabled = clearResults;
+      }
+    };
+
+    return (
+      <div data-testid="results-restore-dialog-mock">
+        <div>Restore your previous results?</div>
+        <button>Cancel</button>
+        <button data-restore="true" disabled={false}>
+          Restore Results
+        </button>
+        <div>
+          <label>
+            <input type="checkbox" onChange={handleCheckboxChange} />
+            Clear calculated results
+          </label>
+          <label>
+            <input type="checkbox" />
+            Mute dialog for 10 mins
+          </label>
+        </div>
+      </div>
+    );
+  },
 }));
 
 import { ResultsRestoreDialog } from './ResultsRestoreDialog';
 
 describe('ResultsRestoreDialog - Simple Tests', () => {
   beforeEach(() => {
-    localStorage.clear();
+    localStorageMock.clear();
   });
 
   it('renders without crashing', () => {

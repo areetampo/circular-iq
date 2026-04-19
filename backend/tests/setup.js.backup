@@ -93,8 +93,8 @@ function setupTestEnvironment() {
   console.log('Loaded environment variables from', envTestPath);
 }
 
-// Global timeout to prevent infinite hanging - increased for test suite
-const GLOBAL_TIMEOUT = 300000; // 5 minutes - increased to prevent hanging during full test runs
+// Global timeout to prevent infinite hanging
+const GLOBAL_TIMEOUT = 120000; // 120 seconds
 
 let timeoutHandle;
 
@@ -149,8 +149,5 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Run setup
 setupTestEnvironment();
-
-// Make clearGlobalTimeout available globally for the test runner
-global.clearGlobalTimeout = clearGlobalTimeout;
 
 export { clearGlobalTimeout };

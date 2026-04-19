@@ -2,6 +2,19 @@ import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter, Router } from 'react-router-dom';
 import { vi } from 'vitest';
 
+// Mock localStorage with all required methods
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+
 // Mock useAuth to control authentication state
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ isAuthenticated: true }),
@@ -19,6 +32,32 @@ vi.mock('@/contexts/DialogContext', () => ({
   }),
 }));
 
+// Mock session utility at top level
+vi.mock('@/utils/session', () => ({
+  getSession: vi.fn(),
+}));
+
+// Mock storage utility
+vi.mock('@/lib/storage', () => ({
+  getSessionId: vi.fn(() => 'test-session-id'),
+}));
+
+// Mock logger to prevent errors
+vi.mock('@/utils/logger', () => ({
+  logger: {
+    error: vi.fn(),
+    log: vi.fn(),
+  },
+}));
+
+// Mock performance API for page load detection
+Object.defineProperty(window, 'performance', {
+  value: {
+    getEntriesByType: vi.fn(() => [{ type: 'navigate' }]),
+  },
+  writable: true,
+});
+
 import { toast } from '@heroui/react';
 
 import AppSessionManager from './AppSessionManager';
@@ -27,11 +66,14 @@ describe('AppSessionManager (pending-save post-login)', () => {
   beforeEach(() => {
     // spy on toast.info for input restoration notifications
     vi.spyOn(toast, 'info');
+    // Clear localStorage before each test
+    localStorageMock.clear();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    localStorageMock.clear();
   });
 
   it('does NOT automatically open SaveAssessmentDialog after login (user must click Save)', async () => {
@@ -45,7 +87,7 @@ describe('AppSessionManager (pending-save post-login)', () => {
       },
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem('session_evaluation_state', JSON.stringify(persistedSession));
+    localStorageMock.setItem('session_evaluation_state', JSON.stringify(persistedSession));
 
     render(
       <MemoryRouter initialEntries={['/results']}>
@@ -68,7 +110,11 @@ describe('AppSessionManager (pending-save post-login)', () => {
       results: { overall_score: 42 },
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
+    localStorageMock.setItem('session_evaluation_state', JSON.stringify(persisted));
+
+    // Use the mocked getSession function
+    const { getSession } = await import('@/utils/session');
+    vi.mocked(getSession).mockReturnValue(persisted);
 
     render(
       <MemoryRouter initialEntries={['/results']}>
@@ -80,7 +126,6 @@ describe('AppSessionManager (pending-save post-login)', () => {
     await new Promise((res) => setTimeout(res, 50));
     expect(openRestoreSpy).not.toHaveBeenCalled();
 
-    const { getSession } = await import('@/utils/session');
     const state = getSession();
     expect(state).toEqual(persisted);
   });
@@ -91,7 +136,11 @@ describe('AppSessionManager (pending-save post-login)', () => {
       results: null,
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
+    localStorageMock.setItem('session_evaluation_state', JSON.stringify(persisted));
+
+    // Use the mocked getSession function
+    const { getSession } = await import('@/utils/session');
+    vi.mocked(getSession).mockReturnValue(persisted);
 
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -110,7 +159,11 @@ describe('AppSessionManager (pending-save post-login)', () => {
       results: null,
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
+    localStorageMock.setItem('session_evaluation_state', JSON.stringify(persisted));
+
+    // Use the mocked getSession function
+    const { getSession } = await import('@/utils/session');
+    vi.mocked(getSession).mockReturnValue(persisted);
 
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -129,7 +182,11 @@ describe('AppSessionManager (pending-save post-login)', () => {
       results: null,
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem('session_evaluation_state', JSON.stringify(persisted));
+    localStorageMock.setItem('session_evaluation_state', JSON.stringify(persisted));
+
+    // Use the mocked getSession function
+    const { getSession } = await import('@/utils/session');
+    vi.mocked(getSession).mockReturnValue(persisted);
 
     // use custom history to control navigation
     const { createMemoryHistory } = await import('history');
@@ -155,32 +212,30 @@ describe('AppSessionManager (pending-save post-login)', () => {
     await waitFor(() => expect(toast.info).toHaveBeenCalled());
   });
 
-  it('does not show restore dialog when muted', () => {
+  it('does not show restore dialog when muted', async () => {
     // Mock localStorage to return muted state
     const currentTime = Date.now();
     const futureTime = currentTime + 5 * 60 * 1000; // 5 minutes from now
 
-    Object.defineProperty(window, 'localStorage', {
-      value: {
-        getItem: vi.fn((key) => {
-          if (key === 'results_restore_dialog_muted') return 'true';
-          if (key === 'results_restore_dialog_muted_expiration') return futureTime.toString();
-          return null;
-        }),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      writable: true,
+    localStorageMock.getItem.mockImplementation((key) => {
+      if (key === 'results_restore_dialog_muted') return 'true';
+      if (key === 'results_restore_dialog_muted_expiration') return futureTime.toString();
+      if (key === 'session_evaluation_state')
+        return JSON.stringify({
+          inputs: { businessProblem: 'test', businessSolution: 'solution' },
+          results: { overall_score: 42 },
+          timestamp: new Date().toISOString(),
+        });
+      return null;
     });
 
-    // Mock session with results
-    vi.mock('@/utils/session', () => ({
-      getSession: () => ({
-        inputs: { businessProblem: 'test', businessSolution: 'solution' },
-        results: { overall_score: 42 },
-        timestamp: new Date().toISOString(),
-      }),
-    }));
+    // Use the mocked getSession function
+    const { getSession } = await import('@/utils/session');
+    vi.mocked(getSession).mockReturnValue({
+      inputs: { businessProblem: 'test', businessSolution: 'solution' },
+      results: { overall_score: 42 },
+      timestamp: new Date().toISOString(),
+    });
 
     render(
       <MemoryRouter>
@@ -192,31 +247,29 @@ describe('AppSessionManager (pending-save post-login)', () => {
     expect(openRestoreSpy).not.toHaveBeenCalled();
   });
 
-  it('shows restore dialog when mute has expired', () => {
+  it('shows restore dialog when mute has expired', async () => {
     // Mock localStorage to return expired muted state
     const pastTime = Date.now() - 5 * 60 * 1000; // 5 minutes ago
 
-    Object.defineProperty(window, 'localStorage', {
-      value: {
-        getItem: vi.fn((key) => {
-          if (key === 'results_restore_dialog_muted') return 'true';
-          if (key === 'results_restore_dialog_muted_expiration') return pastTime.toString();
-          return null;
-        }),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      writable: true,
+    localStorageMock.getItem.mockImplementation((key) => {
+      if (key === 'results_restore_dialog_muted') return 'true';
+      if (key === 'results_restore_dialog_muted_expiration') return pastTime.toString();
+      if (key === 'session_evaluation_state')
+        return JSON.stringify({
+          inputs: { businessProblem: 'test', businessSolution: 'solution' },
+          results: { overall_score: 42 },
+          timestamp: new Date().toISOString(),
+        });
+      return null;
     });
 
-    // Mock session with results
-    vi.mock('@/utils/session', () => ({
-      getSession: () => ({
-        inputs: { businessProblem: 'test', businessSolution: 'solution' },
-        results: { overall_score: 42 },
-        timestamp: new Date().toISOString(),
-      }),
-    }));
+    // Use the mocked getSession function
+    const { getSession } = await import('@/utils/session');
+    vi.mocked(getSession).mockReturnValue({
+      inputs: { businessProblem: 'test', businessSolution: 'solution' },
+      results: { overall_score: 42 },
+      timestamp: new Date().toISOString(),
+    });
 
     render(
       <MemoryRouter>

@@ -7,6 +7,7 @@ import LoaderComponent from '@/components/common/LoaderComponent';
 import ScrollToTop from '@/components/common/ScrollToTop';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
 import AppContainer from '@/components/layout/AppContainer';
+import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,8 +24,6 @@ const AssessmentComparisonPage = lazy(
 const ComparePageWrapper = lazy(() => import('@/pages/ComparePage/ComparePageWrapper'));
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
-
-import Footer from '@/components/layout/Footer';
 
 /**
  * ProtectedRoute — requires Supabase session (see useAuth).

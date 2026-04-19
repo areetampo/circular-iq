@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { cleanUrl, formatTimestamp } from '@/lib/formatting';
+import { cn } from '@/utils/cn';
 
 /**
  * Session Restore Dialog
@@ -207,29 +208,43 @@ function ResultsRestoreDialogContent() {
                   <Checkbox.Content>Clear calculated results</Checkbox.Content>
                 </Checkbox>
 
-                <Checkbox
-                  isSelected={muteDialog}
-                  onChange={setMuteDialog}
-                  className="group/checkbox text-xs"
-                >
-                  <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                  <Checkbox.Content>
-                    <div className="text-default-600 leading-tight">
-                      Don&apos;t show this again for 10 minutes - your results will remain
-                      accessible via the navigation menu at{' '}
-                      <Link
-                        className="flex items-center whitespace-nowrap underline"
-                        to={resultsPageUrl}
-                        onClick={handleCancel}
-                      >
-                        <span>{displayResultsPageUrl}</span>
-                        <ExternalLink size={10} strokeWidth={2} className="mt-0.5 ml-0.5 inline" />
-                      </Link>
-                    </div>
-                  </Checkbox.Content>
-                </Checkbox>
+                <div className="relative pb-4.5">
+                  <Checkbox
+                    isSelected={muteDialog}
+                    onChange={setMuteDialog}
+                    className="group/checkbox text-xs"
+                  >
+                    <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                      <Checkbox.Indicator />
+                    </Checkbox.Control>
+                    <Checkbox.Content>
+                      <div className="text-default-600 leading-3.5">
+                        Don&apos;t show this again for 10 minutes - your results will remain
+                        accessible via the navigation menu at{' '}
+                      </div>
+                    </Checkbox.Content>
+                  </Checkbox>
+                  <Link
+                    className={cn(
+                      'absolute top-6.5 left-7 flex items-center whitespace-nowrap',
+                      clearResults
+                        ? 'pointer-events-none cursor-not-allowed opacity-60'
+                        : 'underline',
+                    )}
+                    to={clearResults ? '#' : resultsPageUrl}
+                    onClick={(e) => {
+                      // can't visit the results if checked to clear them
+                      if (clearResults) {
+                        e.preventDefault();
+                        return;
+                      }
+                      handleCancel();
+                    }}
+                  >
+                    <span>{displayResultsPageUrl}</span>
+                    <ExternalLink size={10} strokeWidth={2} className="mt-0.5 ml-0.5 inline" />
+                  </Link>
+                </div>
               </div>
             </AlertDialog.Body>
 
