@@ -1,9 +1,10 @@
 export { SITE_FULL_NAME, SITE_NAME, SiteFullName, SiteLogo, SiteName } from './Brand';
 export { default as Button } from './Button';
+export { default as ButtonStages } from './ButtonStages';
 export { ChartContainer, ChartTooltip, ChartTooltipContent } from './ChartWrapper';
 export { default as Chip } from './Chip';
 export { default as CopyButton } from './CopyButton';
-export { CopyIcon } from './CopyIcon';
+export { default as CopyIcon } from './CopyIcon';
 export { default as ErrorDisplay } from './ErrorDisplay';
 export { default as LoaderComponent } from './LoaderComponent';
 export { default as LoaderIcon } from './LoaderIcon';

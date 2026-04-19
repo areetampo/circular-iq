@@ -12,7 +12,7 @@ import { cn } from '@/utils/cn';
  * @param {number} size - Size for the icons in pixels (default: 16)
  * @param {number} strokeWidth - Stroke width for the icons (default: 2)
  */
-export function CopyIcon({
+export default function CopyIcon({
   copyIconClassname,
   hasCopied = false,
   color,
