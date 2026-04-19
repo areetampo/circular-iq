@@ -52,7 +52,7 @@ export default function AssessmentComparisonPage() {
     );
   }
 
-  if (!isLoading) return <ComparisonSkeleton />;
+  if (isLoading) return <ComparisonSkeleton />;
 
   if (isError) {
     return (
