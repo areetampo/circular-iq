@@ -107,11 +107,33 @@ const parseAllowedOrigins = () => {
 };
 
 const parsePublicRoutes = () => {
-  const defaults = ['/health', '/api/search'];
+  const defaults = [
+    '/health',
+    '/health/detailed',
+    '/health/database',
+    '/health/openai',
+    '/health/system',
+    '/health/config',
+    '/health/readiness',
+    '/health/liveness',
+    '/health/version',
+    '/api/search',
+  ];
   const routes = env.PUBLIC_ROUTES ?? [];
 
   if (env.NODE_ENV === 'test') {
-    return ['/health', '/api/search'];
+    return [
+      '/health',
+      '/health/detailed',
+      '/health/database',
+      '/health/openai',
+      '/health/system',
+      '/health/config',
+      '/health/readiness',
+      '/health/liveness',
+      '/health/version',
+      '/api/search',
+    ];
   }
 
   return [...new Set([...defaults, ...routes])];
@@ -176,7 +198,15 @@ export const BACKEND_CONFIG = deepFreeze({
 
   api: [
     // Health & Root
-    { method: 'GET', endpoint: '/health', description: 'System Health Check' },
+    { method: 'GET', endpoint: '/health', description: 'Basic Health Check (Load Balancer)' },
+    { method: 'GET', endpoint: '/health/detailed', description: 'Comprehensive Health Check' },
+    { method: 'GET', endpoint: '/health/database', description: 'Database Health Check' },
+    { method: 'GET', endpoint: '/health/openai', description: 'OpenAI API Health Check' },
+    { method: 'GET', endpoint: '/health/system', description: 'System Resources Health Check' },
+    { method: 'GET', endpoint: '/health/config', description: 'Configuration Health Check' },
+    { method: 'GET', endpoint: '/health/readiness', description: 'Kubernetes Readiness Probe' },
+    { method: 'GET', endpoint: '/health/liveness', description: 'Kubernetes Liveness Probe' },
+    { method: 'GET', endpoint: '/health/version', description: 'Version and Build Information' },
     { method: 'GET', endpoint: '/', description: 'Welcome/Root Endpoint' },
 
     // User Profile

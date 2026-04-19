@@ -16,8 +16,10 @@ import { createSupabaseAnonClient, createSupabaseClient } from '#database/supaba
 import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
+import healthRoutes from '#routes/health.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
+import { getMinimalHealth, getSystemHealth } from '#services/health.service.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -138,12 +140,33 @@ app.use(helmet());
 app.use(express.json({ limit: '512kb' }));
 app.use(express.urlencoded({ limit: '512kb', extended: true }));
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-  });
+// Comprehensive health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    const { detailed = 'false', checks } = req.query;
+
+    if (detailed === 'true') {
+      // Detailed health check with all services
+      const healthData = await getSystemHealth({
+        checks: checks ? checks.split(',') : ['database', 'openai', 'system', 'config'],
+      });
+      res.json(healthData);
+    } else {
+      // Minimal health check for load balancers
+      const healthData = await getMinimalHealth();
+
+      // Set appropriate HTTP status based on health
+      const statusCode = healthData.status === 'ok' ? 200 : 503;
+      res.status(statusCode).json(healthData);
+    }
+  } catch (error) {
+    logger.error({ err: error }, 'Health check failed');
+    res.status(503).json({
+      status: 'error',
+      error: 'Health check failed',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Catch-all for root pings to stop CORS errors in deployment logs
@@ -190,6 +213,7 @@ const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 validateConfig();
 
 // mount routers
+app.use('/health', healthRoutes);
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/search', createSearchRouter(openai));
