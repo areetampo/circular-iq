@@ -65,6 +65,7 @@ import {
   OUT_TEST_COMBINED_INPUT_FINAL_CSV,
   writeJson,
 } from '#pipeline/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const ENRICH_SCORES = process.argv.includes('--enrich-scores');
 const useArchive = process.argv.includes('--archives');

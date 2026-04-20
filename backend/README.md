@@ -59,13 +59,11 @@ backend/
 │   ├── analytics.routes.js   # GET /api/analytics/...
 │   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/...
 │   ├── scoring.routes.js     # POST /api/score
-│   └── search.routes.js      # POST /api/search
-│
+│   └──
 ├── controllers/              # Request handlers — validate, delegate, format
 │   ├── analytics.controller.js   # Analytics, global-stats, featured solutions, document stats
 │   ├── assessments.controller.js # Assessment CRUD, market analysis, comparison
 │   ├── scoring.controller.js     # Full scoring pipeline orchestration + log
-│   └── search.controller.js      # Semantic search over documents knowledge base
 │
 ├── services/                 # Core business logic — no HTTP context
 │   ├── scoring.service.js    # Hybrid search RPC + LLM audit + similar cases pipeline
@@ -423,44 +421,6 @@ Validate that a `publicId` exists and is publicly accessible. Returns `{ valid: 
 #### GET `/api/assessments/compare`
 
 Compare two assessments. Query params: `id1`, `id2`. Returns both assessments plus computed `factorDiffs`, `comparisonData`, and `overallDiff`.
-
-### Search Endpoint
-
-#### POST `/api/search`
-
-Hybrid semantic + keyword search over the documents knowledge base.
-
-**Request body:**
-
-```json
-{
-  "query": "packaging waste reduction biodegradable",
-  "industry": "packaging",
-  "category": null,
-  "source": null,
-  "limit": 10
-}
-```
-
-**Response:**
-
-```json
-{
-  "results": [
-    {
-      "id": "emf_00042",
-      "content": "Solution: Replace single-use plastics...",
-      "industry": "packaging",
-      "category": "materials",
-      "source": "emf",
-      "similarity": 0.87,
-      "rrf_score": 0.91,
-      "metadata": { "r_strategy": "recycling", "scale": "commercial" }
-    }
-  ],
-  "count": 8
-}
-```
 
 ## API Endpoints
 

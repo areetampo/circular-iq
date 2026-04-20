@@ -19,16 +19,11 @@ function logRequest(method, path, status, duration) {
   }
 }
 
-export function setOpenAIClient(client) {
-  analyticsController.setOpenAIClient(client);
-}
-
 export default function createAnalyticsRouter(supabase, serviceSupabase) {
   const router = express.Router();
 
   router.get('/', analyticsController.getSummary(supabase));
   router.get('/enhanced', analyticsController.getEnhanced(supabase));
-  router.get('/featured-solutions', analyticsController.getFeaturedSolutions(supabase));
   router.post('/embeddings/reindex', analyticsController.postEmbeddingsReindex());
   router.get('/documents/summary', analyticsController.getDocumentsSummary());
   router.get('/documents/stats', analyticsController.getDocumentsStats(supabase));

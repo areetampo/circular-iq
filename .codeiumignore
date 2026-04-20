@@ -11,10 +11,11 @@ build/
 .vscode/
 
 **/backend/datasets/archives/
+**/backend/datasets/for_search/
+**/backend/datasets/manual_entries/
 **/backend/datasets/out/
 **/backend/datasets/processed/
 **/backend/datasets/raw/
-**/backend/datasets/manual_entries/
 
 *.csv
 *.jsonl

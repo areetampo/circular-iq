@@ -6,8 +6,6 @@ backend/pipeline/
 
 # Exclude tests and test artifacts
 backend/tests/
-backend/coverage/
-backend/.nyc_output/
 
 # Exclude logs and temp files
 backend/logs/
@@ -31,10 +29,8 @@ backend/dist/
 backend/build/
 backend/out/
 
-# Exclude local database dumps or scratch data
-backend/database/*.sqlite
-backend/database/*.db
-backend/.scratch/
+# Exclude local database dumps
+backend/database/*.sql
 
 # Exclude markdown/docs (optional, but reduces noise)
 backend/*.md

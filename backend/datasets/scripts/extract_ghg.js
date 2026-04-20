@@ -40,6 +40,7 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const DATASET_KEY = DATASET_KEYS.ghg;
 const dataset = DATASET_LOOKUP[DATASET_KEY];

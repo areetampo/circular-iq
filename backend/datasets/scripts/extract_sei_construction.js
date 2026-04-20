@@ -41,6 +41,7 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const require = createRequire(import.meta.url);
 

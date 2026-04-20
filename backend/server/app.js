@@ -18,7 +18,6 @@ import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import healthRoutes from '#routes/health.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
-import createSearchRouter from '#routes/search.routes.js';
 import { getMinimalHealth, getSystemHealth } from '#services/health.service.js';
 
 const app = express();
@@ -216,7 +215,6 @@ validateConfig();
 app.use('/health', healthRoutes);
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
-app.use('/api/search', createSearchRouter(openai));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
 
 app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {

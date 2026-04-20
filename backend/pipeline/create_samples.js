@@ -26,6 +26,7 @@ import {
   OUT_TEST_COMBINED_INPUT_FINAL_CSV,
   STRINGIFY_OPTIONS,
 } from '#pipeline/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 // ===== Configuration =====
 const archives = process.argv.includes('--archives');

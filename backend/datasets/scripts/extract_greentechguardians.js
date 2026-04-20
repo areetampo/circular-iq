@@ -24,6 +24,7 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 // -------------------- Configuration --------------------
 const DATASET_KEY = DATASET_KEYS.gtg;

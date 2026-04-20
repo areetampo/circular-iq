@@ -1,14 +1,12 @@
 import { Table } from '@heroui/react';
 import { Globe, RotateCw } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
 import { Button } from '@/components/common';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
 import { useDocumentStats } from '@/features/assessments/hooks/useDocumentStats';
-import { useFeaturedSolutions } from '@/features/assessments/hooks/useFeaturedSolutions';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -57,38 +55,9 @@ const getMaterialColors = () => [
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   // Timestamp for "Updated at" display
   const [updatedAt, setUpdatedAt] = useState(new Date());
-
-  // Search & filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeSearch, setActiveSearch] = useState(undefined);
-  const [categoryFilter, setCategoryFilter] = useState(undefined);
-  const [industryFilter, setIndustryFilter] = useState(undefined);
-
-  const handleSearchSubmit = useCallback(() => {
-    setActiveSearch(searchQuery.trim() || undefined);
-  }, [searchQuery]);
-
-  const handleSearchClear = useCallback(() => {
-    setSearchQuery('');
-    setActiveSearch(undefined);
-  }, []);
-
-  // Open a single solution in the evidence drawer with full content
-  const handleOpenSolution = useCallback(
-    (solution) => {
-      openResultsDatabaseEvidenceDetailsDrawer({
-        title: solution.title || 'Solution Details',
-        content: solution.problem || solution.solution || '',
-        caseItem: solution, // drawer reads .problem and .solution directly
-        matchPercentage: null, // no similarity context here
-      });
-    },
-    [openResultsDatabaseEvidenceDetailsDrawer],
-  );
 
   // ── Global data ─────────────────────────────────────────────────────────────
   const {
@@ -142,14 +111,6 @@ export default function DashboardPage() {
       setUpdatedAt(new Date());
     }
   }, [globalLoading, userStatsLoading, docLoading]);
-
-  // ── Featured solutions — filtered by category/industry + search ──────────────
-  const { solutions: featuredSolutions, isLoading: featuredLoading } = useFeaturedSolutions({
-    limit: 8,
-    q: activeSearch || undefined,
-    industry: industryFilter || undefined,
-    enabled: true,
-  });
 
   // ── Chart data (all memoised) ─────────────────────────────────────────────────
 
@@ -229,17 +190,6 @@ export default function DashboardPage() {
 
   const qualityRate = junkRate != null ? (100 - junkRate).toFixed(1) : null;
 
-  // Category chips for filtering (derived from current solutions list)
-  const availableCategories = useMemo(() => {
-    const cats = new Set((featuredSolutions || []).map((s) => s.category).filter(Boolean));
-    return Array.from(cats);
-  }, [featuredSolutions]);
-
-  const filteredSolutions = useMemo(() => {
-    if (!categoryFilter) return featuredSolutions || [];
-    return (featuredSolutions || []).filter((s) => s.category === categoryFilter);
-  }, [featuredSolutions, categoryFilter]);
-
   // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────
   const renderPieOrSingle = (data, colors, emptyMsg) => {
     if (!data || data.length === 0) return <EmptyChart />;
@@ -305,7 +255,11 @@ export default function DashboardPage() {
           />
           <StatCard title="Industries" value={docStats?.byIndustry?.length} loading={docLoading} />
           <StatCard title="Sources" value={docStats?.bySources?.length} loading={docLoading} />
-          <StatCard title="Categories" value={availableCategories?.length} loading={docLoading} />
+          <StatCard
+            title="Categories"
+            value={docStats?.byCategory?.length || 0}
+            loading={docLoading}
+          />
         </div>
 
         <div className="my-16 text-center text-2xl font-semibold italic">work in progress ...</div>

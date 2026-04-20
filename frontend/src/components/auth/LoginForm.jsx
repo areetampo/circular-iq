@@ -179,12 +179,22 @@ export function LoginForm({ onSwitchToSignup }) {
           <div className="flex items-center justify-center gap-1.5">
             <User size={12} strokeWidth={2.5} />
             <span>Username: {TEST_CREDENTIALS.username}</span>
-            <CopyButton strokeWidth={2.5} className="ml-0.5" size={12} value={TEST_CREDENTIALS.username} />
+            <CopyButton
+              strokeWidth={2.5}
+              className="ml-0.5"
+              size={12}
+              value={TEST_CREDENTIALS.username}
+            />
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <KeyRound size={12} strokeWidth={2.5} />
             <span>Password: {TEST_CREDENTIALS.password}</span>
-            <CopyButton strokeWidth={2.5} className="ml-0.5" size={12} value={TEST_CREDENTIALS.password} />
+            <CopyButton
+              strokeWidth={2.5}
+              className="ml-0.5"
+              size={12}
+              value={TEST_CREDENTIALS.password}
+            />
           </div>
         </div>
       </div>

@@ -58,6 +58,7 @@ import {
   prepareWrite,
   writeJsonl,
 } from '#pipeline/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const useArchive = process.argv.includes('--archives');
 const test = process.argv.includes('--test');

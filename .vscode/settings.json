@@ -1,9 +1,10 @@
 {
   "search.exclude": {
+    "**/.husky/**": true,
+    "**/.scratch/**": true,
     "**/backend/database/migrations/**": true,
-    "**/backend/datasets/{archives,manual_entries,out,processed,raw}/**": true,
-    "**/*.{csv,jsonl,pdf,sql}": true,
-    "**/.scratch/**": true
+    "**/backend/datasets/{archives,for_search,,manual_entries,out,processed,raw}/**": true,
+    "**/*.{csv,jsonl,pdf,sql}": true
   },
 
   "files.exclude": {
@@ -15,10 +16,11 @@
   },
 
   "files.watcherExclude": {
+    "**/.husky/**": true,
+    "**/.scratch/**": true,
     "**/backend/datasets/**": true,
-    "**/frontend/dist/**": true,
     "**/backend/tests/**": true,
-    "**/.scratch/**": true
+    "**/frontend/dist/**": true
   },
 
   "eslint.workingDirectories": [{ "mode": "auto" }],

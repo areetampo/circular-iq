@@ -39,6 +39,7 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const DATASET_KEY = DATASET_KEYS.eulac;
 const RAW_PDF = path.join(getDatasetRawDir(DATASET_KEY), 'eulac_case_studies.pdf');

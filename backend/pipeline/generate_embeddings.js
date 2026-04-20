@@ -56,6 +56,7 @@ import {
   OUT_TEST_CHUNKS_JSON,
   OUT_TEST_EMBEDDED_CHUNKS_JSONL,
 } from '#pipeline/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 // ================= CONFIGURATION =================
 const DRY_RUN = process.argv.includes('--dry-run') || !BACKEND_CONFIG.openai.apiKey;

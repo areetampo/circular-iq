@@ -45,7 +45,7 @@ import {
     readBackupCsv,
     writeCsv,
 } from '#utils/datasetsUtils.js';
-
+import { logger } from '#utils/logger.js';
 
 puppeteerExtra.use(StealthPlugin());
 

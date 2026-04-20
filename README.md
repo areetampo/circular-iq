@@ -2,9 +2,9 @@
 
 AI-powered platform for evaluating circular economy business initiatives against a knowledge base of 40,000+ real-world case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
-**Author:** Areeb Ahmed Zahoori <areebrawl@gmail.com>
-**License:** UNLICENSED
-**Repository:** https://github.com/areetampo/circular-economy
+- **Author:** Areeb Ahmed Zahoori <areebrawl@gmail.com>
+- **License:** UNLICENSED
+- **Repository:** https://github.com/areetampo/circular-economy
 
 ## Overview
 
@@ -34,9 +34,8 @@ The platform guides users through a structured assessment and returns a complete
 │                                                                     │
 │  API Layer (Express.js — ESM)                                       │
 │  ├─ /api/score — full scoring + enrichment pipeline                 │
-│  ├─ /api/analytics — global stats, featured solutions, doc stats    │
-│  ├─ /api/assessments — assessment CRUD + comparison                 │
-│  └─ /api/search — semantic search over knowledge base               │
+│  ├─ /api/analytics — global stats, doc stats    │
+│  └─ /api/assessments — assessment CRUD + comparison                 │
 │                                                                     │
 │  Business Logic Layer (Services)                                    │
 │  ├─ scoring.service.js — hybrid search + LLM audit orchestration    │
@@ -119,7 +118,7 @@ These inputs improve LLM calibration and enable stage-appropriate scoring.
 
 - **40,000+ document chunks** from 34+ curated datasets
 - Sources: Ellen MacArthur Foundation, WBCSD, Eurostat, academic papers, government reports, corporate sustainability reports
-- Hybrid search: vector cosine similarity (pgvector HNSW) + BM25 keyword matching
+- Vector search: cosine similarity on OpenAI embeddings (pgvector HNSW)
 - Per-field chunking: problem, solution, impact, materials, circular_strategy
 - Structured metadata: industry, R-strategy, scale, geographic focus, primary material
 
@@ -132,7 +131,7 @@ Live analytics from the `scoring_results_log` table (all scoring calls — authe
 - Distributions: score bands, CE tier, risk level, R-strategy, primary material, geographic focus, company scale
 - Weekly volume trend (12-week rolling window)
 - Industry benchmark table from `get_market_data()` RPC (opted-in contributions only)
-- Knowledge base statistics and featured solutions search with category chip filtering
+- Knowledge base statistics
 
 ### Assessment Management
 
@@ -147,7 +146,7 @@ Live analytics from the `scoring_results_log` table (all scoring calls — authe
 ```txt
 ├── backend/
 │   ├── config/                      # Centralised config, env schema, embedding constants, chunk config
-│   ├── controllers/                 # Route handlers (analytics, scoring, assessments, search)
+│   ├── controllers/                 # Route handlers (analytics, scoring, assessments)
 │   ├── database/
 │   │   ├── migrations/              # SQL migration files 01–06 (run in Supabase SQL editor)
 │   │   ├── repositories/            # Data access layer (documents.repository.js)
@@ -290,7 +289,6 @@ VITE_ENABLE_ANALYTICS=true    # optional
 | ------ | ----------------------------------- | -------- | ----------------------------------------------- |
 | `GET`  | `/api/analytics`                    | Optional | Summary analytics                               |
 | `GET`  | `/api/analytics/enhanced`           | Optional | Enhanced analytics with time series             |
-| `GET`  | `/api/analytics/featured-solutions` | Optional | Featured solutions from knowledge base          |
 | `POST` | `/api/analytics/embeddings/reindex` | Optional | Reindex embeddings (maintenance)                |
 | `GET`  | `/api/analytics/documents/summary`  | Optional | Documents data summary                          |
 | `GET`  | `/api/analytics/documents/stats`    | Optional | Knowledge base statistics                       |
@@ -310,14 +308,12 @@ VITE_ENABLE_ANALYTICS=true    # optional
 | `DELETE` | `/api/assessments/:id`                | Required | Delete assessment                                |
 | `GET`    | `/api/assessments/compare`            | Required | Compare two assessments (query params: id1, id2) |
 
-### Search & Utility
+### Utility
 
-| Method | Endpoint            | Auth     | Description                                     |
-| ------ | ------------------- | -------- | ----------------------------------------------- |
-| `POST` | `/api/search`       | Optional | Hybrid semantic + keyword search over documents |
-| `GET`  | `/health`           | None     | Health check                                    |
-| `GET`  | `/docs/methodology` | None     | Methodology and scoring framework metadata      |
-| `GET`  | `/api/profile`      | Required | Authenticated user profile                      |
+| Method | Endpoint       | Auth     | Description                |
+| ------ | -------------- | -------- | -------------------------- |
+| `GET`  | `/health`      | None     | Health check               |
+| `GET`  | `/api/profile` | Required | Authenticated user profile |
 
 ## Authentication
 
@@ -388,13 +384,11 @@ npm run embed -- --archives
 npm run store -- --archives   # also forces Supabase backend
 ```
 
-### Search Architecture
+### Search & Retrieval Architecture
 
 - **Vector Search** — cosine similarity on OpenAI embeddings (HNSW index, < 100ms)
 - **Keyword Search** — BM25 algorithm for exact term matches (< 50ms)
-- **Hybrid Search** — RRF (Reciprocal Rank Fusion) combining both scores
 - **Metadata Filtering** — industry, scale, R-strategy filtering via B-tree indexes
-- **Re-ranking** — AI-powered relevance scoring on top results
 
 ## Development Guide
 
@@ -505,7 +499,6 @@ npx vitest --watch                                             # Watch mode
 | `assessments-routes.test.js`       | —     | CRUD endpoints, auth guards                                                                                        |
 | `scoring.rpc.test.js`              | —     | Scoring pipeline integration                                                                                       |
 | `analytics.enhanced.test.js`       | —     | Analytics endpoints                                                                                                |
-| `analytics.featured.test.js`       | —     | Featured solutions                                                                                                 |
 | `api-auth.test.js`                 | —     | API key guard                                                                                                      |
 | `anonymous.test.js`                | —     | Anonymous tracking middleware                                                                                      |
 | `apiKeyGuard.test.js`              | —     | Auth middleware unit tests                                                                                         |

@@ -5,7 +5,6 @@
 
 import { Ring2 } from 'ldrs/react';
 import 'ldrs/react/Ring2.css';
-
 import PropTypes from 'prop-types';
 
 // import { cn } from '@/utils/cn';

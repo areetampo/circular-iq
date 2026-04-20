@@ -250,24 +250,6 @@ export async function getComparisonAssessments(id1, id2) {
 }
 
 /**
- * Fetch a small set of featured solutions (uses the `documents` table on the server)
- * Useful for surfacing curated problem→solution examples on the dashboard.
- */
-export async function getFeaturedSolutions({ limit = 3, industry, q } = {}) {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (industry != null) params.set('industry', industry);
-  if (q) params.set('q', q);
-  const path = params.toString()
-    ? `/api/analytics/featured-solutions?${params}`
-    : '/api/analytics/featured-solutions';
-  const data = await requestJson(path);
-  return {
-    count: data?.count || 0,
-    solutions: Array.isArray(data?.solutions) ? data.solutions : [],
-  };
-}
-
-/**
  * Fetch global dashboard statistics.
  * Aggregates from scoring_results_log (all scoring calls, anon + auth)
  * + get_market_data RPC + get_assessment_statistics RPC.

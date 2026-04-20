@@ -37,6 +37,7 @@ import {
     verifyPathsExist,
     writeCsv,
 } from '#utils/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const require = createRequire(import.meta.url);
 const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');

@@ -32,6 +32,8 @@ import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify/sync';
 
+import { logger } from '#utils/logger.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -39,21 +41,21 @@ const __dirname = path.dirname(__filename);
 // FILESYSTEM PATHS
 // =============================================================================
 
-// root of the backend project (one level up from utils/)
+//* root of the backend project (one level up from utils/)
 export const BACKEND_ROOT = path.resolve(__dirname, '..');
-// dataset directory moved out of utils; reference via backend root
+//* dataset directory moved out of utils; reference via backend root
 export const DATASETS_DIR = path.join(BACKEND_ROOT, 'datasets');
 export const DATASETS_RAW_DIR = path.join(DATASETS_DIR, 'raw');
 export const DATASETS_PROCESSED_DIR = path.join(DATASETS_DIR, 'processed');
 export const DATASETS_MANUAL_ENTRIES_DIR = path.join(DATASETS_DIR, 'manual_entries');
 export const DATASETS_SCRIPTS_DIR = path.join(DATASETS_DIR, 'scripts');
 
-// archived output files stored at root of archives/
+//* archived output files stored at root of archives/
 export const DATASETS_ARCHIVES_DIR = path.join(DATASETS_DIR, 'archives');
 
 export const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_backup');
-// subfolders are created within scrape_backup/ for specific datasets' backup,
-// each containing a CSV file and a logs.txt file.
+//* subfolders are created within scrape_backup/ for specific datasets' backup,
+//* each containing a CSV file and a logs.txt file.
 
 export const ARCHIVES_COMBINED_INPUT_CSV = path.join(DATASETS_ARCHIVES_DIR, 'combined_input.csv');
 export const ARCHIVES_COMBINED_INPUT_FINAL_CSV = path.join(
@@ -65,13 +67,13 @@ export const ARCHIVES_EMBEDDED_CHUNKS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'embedded_chunks.jsonl',
 );
-// archived stored documents (for dry-run in archive mode)
+//* archived stored documents (for dry-run in archive mode)
 export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'stored_documents.jsonl',
 );
 
-// archives test files
+//* archives test files
 export const ARCHIVES_TEST_DIR = path.join(DATASETS_ARCHIVES_DIR, 'test_files');
 export const ARCHIVES_TEST_COMBINED_INPUT_CSV = path.join(
   ARCHIVES_TEST_DIR,
@@ -96,7 +98,7 @@ export const ARCHIVES_TEST_STORED_DOCUMENTS_JSONL = path.join(
 // components live in the normal dataset directories. Only the root CSV files are
 // placed directly inside archives/.
 
-// output directory holds generated artifacts that are safe to regenerate
+//* output directory holds generated artifacts that are safe to regenerate
 export const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
 
 export const OUT_COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
@@ -108,7 +110,7 @@ export const OUT_CHUNKS_JSON = path.join(DATASETS_OUTPUT_DIR, 'chunks.json');
 export const OUT_EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedded_chunks.jsonl');
 export const OUT_STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
 
-// out test files
+//* out test files
 export const OUT_TEST_DIR = path.join(DATASETS_OUTPUT_DIR, 'test_files');
 export const OUT_TEST_COMBINED_INPUT_CSV = path.join(OUT_TEST_DIR, 'combined_input_test.csv');
 export const OUT_TEST_COMBINED_INPUT_FINAL_CSV = path.join(
@@ -120,6 +122,17 @@ export const OUT_TEST_EMBEDDED_CHUNKS_JSONL = path.join(OUT_TEST_DIR, 'embedded_
 export const OUT_TEST_STORED_DOCUMENTS_JSONL = path.join(
   OUT_TEST_DIR,
   'stored_documents_test.jsonl',
+);
+
+//* datasets/for_search
+export const DATASETS_FOR_SEARCH_DIR = path.join(DATASETS_DIR, 'for_search');
+export const DATASETS_FOR_SEARCH_COMBINED_INPUT_CSV = path.join(
+  DATASETS_FOR_SEARCH_DIR,
+  'combined_input.csv',
+);
+export const DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON = path.join(
+  DATASETS_FOR_SEARCH_DIR,
+  'ce_cases_embeddings_cache.json',
 );
 
 // =============================================================================
