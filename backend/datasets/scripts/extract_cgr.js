@@ -262,7 +262,7 @@ async function extractPDFText() {
   const data = new Uint8Array(fileBuffer);
   const pdf = await pdfjsLib.getDocument({ data }).promise;
 
-  logger.info(`PDF loaded. Pages: ${pdf.numPages}`);
+  logger.info({ pages: pdf.numPages }, 'PDF loaded');
 
   let fullText = '';
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -281,7 +281,7 @@ async function extractPDFText() {
 // MAIN
 // =============================================================================
 async function main() {
-  logger.info(`Reading PDF: ${inputFile}`);
+  logger.info({ inputFile }, 'Reading PDF');
   const text = await extractPDFText();
 
   const sentenceCandidates = text.split(/(?<=[.!?])\s+/);
@@ -322,7 +322,7 @@ async function main() {
     });
   }
 
-  logger.info(`Extracted ${rows.length} candidate rows.`);
+  logger.info({ count: rows.length }, 'Extracted candidate rows');
 
   // Deduplicate based on problem text
   const unique = [];
@@ -335,12 +335,13 @@ async function main() {
     }
   }
 
-  logger.info(`After deduplication: ${unique.length} rows.`);
+  logger.info({ count: unique.length }, 'After deduplication');
 
   // Write CSV using the helper (handles unquoted header, quoted data)
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, unique);
   logger.info(
-    `✓ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    { written: writeResult.writtenCount, outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount },
+    'Wrote rows to output file'
   );
 }
 

@@ -370,7 +370,7 @@ async function extractMultipleFromOverview(text) {
  * Used when --use-backup flag is passed to script.
  */
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -384,7 +384,7 @@ async function rebuildFromBackup() {
       return;
     }
 
-    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info({ count: backupRows.length }, 'Processing backup rows');
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     const items = backupRows
@@ -410,14 +410,14 @@ async function rebuildFromBackup() {
             qualityScore,
           };
         } catch (e) {
-          logger.warn(`‼ Skipping invalid backup row: ${e.message}`);
+          logger.warn({ error: e.message }, 'Skipping invalid backup row');
           return null;
         }
       })
       .filter((item) => item !== null);
 
     if (items.length === 0) {
-      logger.warn(`‼ No valid items could be reconstructed from backup.`);
+      logger.warn({}, 'No valid items could be reconstructed from backup');
       await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -441,9 +441,10 @@ async function rebuildFromBackup() {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `\n✨ Successfully rebuilt ${writeResult.writtenCount} EMF case studies from backup (${writeResult.duplicateCount} duplicate rows removed)`,
+      { written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      'Successfully rebuilt EMF case studies from backup'
     );
-    logger.info(`📁 Saved to: ${OUTPUT_PATH}`);
+    logger.info({ outputPath: OUTPUT_PATH }, 'Saved to output file');
     await appendLogs(
       DATASET_KEY,
       `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
@@ -466,7 +467,7 @@ async function scrape_emf() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping EMF. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping EMF');
 
   let browser;
   try {
@@ -627,12 +628,13 @@ async function scrape_emf() {
       metadata_json: JSON.stringify(item.metadata),
     }));
 
-    logger.info(`\n✓ Scraped ${finalRows.length} EMF case studies.`);
+    logger.info({ count: finalRows.length }, 'Scraped EMF case studies');
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      'Saved to output file'
     );
 
     const firstRow = finalRows[0];

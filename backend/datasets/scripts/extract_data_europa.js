@@ -32,12 +32,12 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 
 import {
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getDatasetProcessedCsvPath,
-    getDatasetRawDir,
-    verifyPathsExist,
-    writeCsv,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getDatasetProcessedCsvPath,
+  getDatasetRawDir,
+  verifyPathsExist,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -193,10 +193,10 @@ async function translateBatchFrenchToEnglish(texts) {
     toTranslate.forEach((orig, idx) => {
       translationCache.set(orig.trim(), translated[idx]);
     });
-    logger.info(`  ✓ Translated ${translated.length} texts from French to English.`);
+    logger.info({ count: translated.length }, 'Translated texts from French to English');
     return translated;
   } catch (err) {
-    logger.warn(`Batch translation failed: ${err.message}`);
+    logger.warn({ error: err.message }, 'Batch translation failed');
     return texts; // fallback to original
   }
 }
@@ -368,7 +368,7 @@ function extractPDFStats(sentence) {
  * Process a PDF and extract indicator‑based rows.
  */
 async function processPDFIndicators(filePath, fileName) {
-  logger.info(`  📄 Processing PDF for indicators: ${fileName}`);
+  logger.info({ fileName }, 'Processing PDF for indicators');
   const text = await extractPDFText(filePath, 30);
   const sentences = text
     .split(/(?<=[.!?])\s+/)
@@ -423,7 +423,7 @@ async function main() {
 
   for (const file of files) {
     const filePath = path.join(rawDir, file);
-    logger.info(`📂 Processing: ${file}`);
+    logger.info({ file }, 'Processing file');
 
     if (file.endsWith('.csv')) {
       const delimiter = await detectDelimiter(filePath);
@@ -473,15 +473,16 @@ async function main() {
   }));
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
-  logger.info(`\n✨ Successfully unified files into ${finalRows.length} high‑quality rows.`);
+  logger.info({ count: finalRows.length }, 'Successfully unified files into high-quality rows');
   logger.info(
-    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+    'Saved to output file'
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal Error during extraction:', err.message);
+    logger.error('\nFatal Error during extraction:', err.message);
     process.exit(1);
   });
 }

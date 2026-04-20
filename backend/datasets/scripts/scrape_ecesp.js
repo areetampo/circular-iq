@@ -29,23 +29,23 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import {
-    appendLogs,
-    cleanText,
-    clearLogs,
-    createBackupHelper,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getBrowserLaunchOptions,
-    getDatasetProcessedCsvPath,
-    getDatasetScrapeLogsPath,
-    getExtraHttpHeaders,
-    getUserAgentOptions,
-    getViewportOptions,
-    hasAppendBackupFlag,
-    hasAppendProcessedFlag,
-    isBackupRecoveryMode,
-    readBackupCsv,
-    writeCsv,
+  appendLogs,
+  cleanText,
+  clearLogs,
+  createBackupHelper,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getBrowserLaunchOptions,
+  getDatasetProcessedCsvPath,
+  getDatasetScrapeLogsPath,
+  getExtraHttpHeaders,
+  getUserAgentOptions,
+  getViewportOptions,
+  hasAppendBackupFlag,
+  hasAppendProcessedFlag,
+  isBackupRecoveryMode,
+  readBackupCsv,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -341,7 +341,7 @@ function scoreItem(description, results) {
 // Backup recovery (unchanged except for using new extraction in rebuild)
 // ============================================================================
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -355,7 +355,7 @@ async function rebuildFromBackup() {
       return;
     }
 
-    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info({ count: backupRows.length }, 'Processing backup rows');
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Reconstruct items from the stored metadata_json
@@ -379,7 +379,7 @@ async function rebuildFromBackup() {
             metadata,
           };
         } catch (e) {
-          logger.warn(`‼ Skipping invalid backup row: ${e.message}`);
+          logger.warn({ error: e.message }, 'Skipping invalid backup row');
           return null;
         }
       })
@@ -403,11 +403,11 @@ async function rebuildFromBackup() {
     // Take top BEST_LIMIT
     const bestItems = uniqueItems.slice(0, BEST_LIMIT);
 
-    logger.info(`✓ Selected ${bestItems.length} best items from backup`);
+    logger.info({ count: bestItems.length }, 'Selected best items from backup');
     await appendLogs(DATASET_KEY, `Selected ${bestItems.length} items after scoring/filtering.`);
 
     if (bestItems.length === 0) {
-      logger.warn(`‼ No valid items could be reconstructed from backup.`);
+      logger.warn({}, 'No valid items could be reconstructed from backup');
       await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -429,9 +429,10 @@ async function rebuildFromBackup() {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `\n✨ Successfully rebuilt ${writeResult.writtenCount} ECESP items from backup (${writeResult.duplicateCount} duplicate rows removed)`,
+      { written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      '✓ Successfully rebuilt ECESP items from backup'
     );
-    logger.info(`📁 Saved to: ${OUTPUT_PATH}`);
+    logger.info({ outputPath: OUTPUT_PATH }, '✓ Saved to output file');
     await appendLogs(
       DATASET_KEY,
       `✓ Recovery complete. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
@@ -457,7 +458,7 @@ async function scrape_ecesp() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping ECESP. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping ECESP');
 
   let browser;
   try {
@@ -826,9 +827,10 @@ async function scrape_ecesp() {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `\n✓ Scraped ${writeResult.writtenCount} ECESP items (${writeResult.duplicateCount} duplicate rows removed).`,
+      { written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      '✓ Scraped ECESP items'
     );
-    logger.info(`📁 Saved to: ${OUTPUT_PATH}`);
+    logger.info({ outputPath: OUTPUT_PATH }, '✓ Saved to output file');
 
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];

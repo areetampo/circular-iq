@@ -265,27 +265,27 @@ async function main() {
 
   for (const ds of datasets) {
     if (!ds.file) {
-      logger.warn(`‼ ️ No file defined for dataset key "${ds.key}" – skipping.`);
+      logger.warn({ key: ds.key }, 'No file defined for dataset key, skipping');
       continue;
     }
 
     const filePath = path.join(rawDir, ds.file);
     if (!fs.existsSync(filePath)) {
-      logger.warn(`‼ ️ File not found: ${filePath} – skipping.`);
+      logger.warn({ filePath }, 'File not found, skipping');
       continue;
     }
 
-    logger.info(`📄 Processing ${ds.file}`);
+    logger.info({ file: ds.file }, 'Processing file');
     let rows;
     try {
       rows = parseEurostatCSV(filePath);
     } catch (err) {
-      logger.error(`✕ Error parsing ${ds.file}: ${err.message}`);
+      logger.error({ file: ds.file, error: err.message }, 'Error parsing file');
       continue;
     }
 
     if (rows.length === 0) {
-      logger.warn(`‼ ️ No valid rows extracted from ${ds.file}`);
+      logger.warn({ file: ds.file }, 'No valid rows extracted from file');
       continue;
     }
 

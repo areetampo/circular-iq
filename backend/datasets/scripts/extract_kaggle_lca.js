@@ -32,13 +32,13 @@ import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 
 import {
-    cleanText,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getDatasetProcessedCsvPath,
-    getDatasetRawDir,
-    verifyPathsExist,
-    writeCsv,
+  cleanText,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getDatasetProcessedCsvPath,
+  getDatasetRawDir,
+  verifyPathsExist,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -233,7 +233,7 @@ async function main() {
   const requiredKeys = ['product_lca', 'livestock', 'supply_chain'];
   for (const key of requiredKeys) {
     if (!dataset.raw_folder_contents?.[key]) {
-      logger.warn(`‼ Missing raw_folder_contents.${key} – check dataset definition.`);
+      logger.warn({ key }, 'Missing raw_folder_contents key');
     }
   }
 
@@ -249,15 +249,15 @@ async function main() {
 
   for (const file of files) {
     if (!file.name) {
-      logger.warn(`‼ Skipping undefined file.`);
+      logger.warn({}, 'Skipping undefined file');
       continue;
     }
     const filePath = path.join(rawDir, file.name);
     if (!fs.existsSync(filePath)) {
-      logger.warn(`‼ File not found: ${filePath} – skipping.`);
+      logger.warn({ filePath }, 'File not found, skipping');
       continue;
     }
-    logger.info(`📄 Processing ${file.name} ...`);
+    logger.info({ fileName: file.name }, 'Processing file');
     try {
       const rows = await file.handler(filePath);
       // Compute quality score for each row and add to collection
@@ -265,13 +265,13 @@ async function main() {
         row._qualityScore = computeQualityScoreFromMetadata(row);
         allRows.push(row);
       }
-      logger.info(`   → ${rows.length} high‑quality rows.`);
+      logger.info({ count: rows.length }, 'High-quality rows processed');
     } catch (err) {
-      logger.error(`✕ Error processing ${file.name}:`, err);
+      logger.error({ fileName: file.name, error: err }, 'Error processing file');
     }
   }
 
-  logger.info(`\n📊 Total rows collected: ${allRows.length}`);
+  logger.info({ total: allRows.length }, 'Total rows collected');
 
   if (allRows.length === 0) {
     logger.info('✕ No data processed. Exiting.');
@@ -281,14 +281,15 @@ async function main() {
   // Sort by quality score (descending) and select top TARGET_ROWS
   const finalRows = allRows.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, TARGET_ROWS);
 
-  logger.info(`🎯 Selected ${finalRows.length} highest‑quality rows (target: ${TARGET_ROWS}).`);
-  logger.info(
-    `   Quality score range: ${Math.min(...finalRows.map((r) => r._qualityScore))} – ${Math.max(...finalRows.map((r) => r._qualityScore))}`,
-  );
+  logger.info({ selected: finalRows.length, target: TARGET_ROWS }, 'Selected highest-quality rows');
+  const minScore = Math.min(...finalRows.map((r) => r._qualityScore));
+  const maxScore = Math.max(...finalRows.map((r) => r._qualityScore));
+  logger.info({ minScore, maxScore }, 'Quality score range');
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `✓ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    { written: writeResult.writtenCount, outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount },
+    'Successfully wrote rows to output file'
   );
 }
 

@@ -157,7 +157,7 @@ function computeScore(row, bulletType, repairabilityScore) {
 }
 
 async function main() {
-  logger.info(`Reading CSV files from: ${RAW_DIR}`);
+  logger.info({ rawDir: RAW_DIR }, 'Reading CSV files');
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.endsWith('.csv'));
   if (files.length === 0) {
     logger.warn('No CSV files found.');
@@ -172,7 +172,7 @@ async function main() {
       .replace(/_/g, ' ')
       .replace(/\b\w/g, (l) => l.toUpperCase());
     const filePath = path.join(RAW_DIR, file);
-    logger.info(`Processing ${file} (category: ${category})`);
+    logger.info({ file, category }, 'Processing file');
 
     const content = fs.readFileSync(filePath, 'utf-8');
     const records = parse(content, {
@@ -270,7 +270,7 @@ async function main() {
     }
   }
 
-  logger.info(`Total raw rows generated: ${allRows.length}`);
+  logger.info({ count: allRows.length }, 'Total raw rows generated');
 
   // Sort by score descending and keep top MAX_ROWS
   allRows.sort((a, b) => b.score - a.score);

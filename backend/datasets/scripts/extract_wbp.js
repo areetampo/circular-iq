@@ -165,10 +165,10 @@ async function parseTaxonomyPDF(filePath) {
       return FALLBACK_SECTOR_MAP;
     }
 
-    logger.info(`📚 Sector taxonomy loaded from PDF: ${sectorMap.size} codes.`);
+    logger.info({ codes: sectorMap.size }, 'Sector taxonomy loaded from PDF');
     return sectorMap;
   } catch (err) {
-    logger.warn('‼ Error parsing taxonomy PDF, using hard‑coded mapping:', err.message);
+    logger.warn({ error: err.message }, 'Error parsing taxonomy PDF, using hard-coded mapping');
     return FALLBACK_SECTOR_MAP;
   }
 }
@@ -433,7 +433,7 @@ async function main() {
 
   // 3. Load and merge projects
   const allProjects = loadProjects(basicData, detailedData);
-  logger.info(`📦 Loaded ${allProjects.length} projects.`);
+  logger.info({ count: allProjects.length }, 'Loaded projects');
 
   // 4. Parse report PDFs
   const reports = [];
@@ -447,10 +447,10 @@ async function main() {
       const countryMatch = file.match(/report_([a-z_]+)\.pdf/i);
       const country = countryMatch ? countryMatch[1].replace(/_/g, ' ') : '';
       reports.push({ file, country: country.toLowerCase(), ...parsed });
-      logger.info(`📄 Parsed report: ${file} (country: ${country})`);
+      logger.info({ file, country }, 'Parsed report');
     }
   } else {
-    logger.info('‼ Reports folder not found, skipping report extraction.');
+    logger.info({}, 'Reports folder not found, skipping report extraction');
   }
 
   // Build report lookup by country
@@ -564,13 +564,14 @@ async function main() {
 
   rows.sort((a, b) => b._scoreValue - a._scoreValue);
   const topRows = rows.slice(0, MAX_OUTPUT_ROWS);
-  logger.info(`🎯 Selected top ${topRows.length} rows (max ${MAX_OUTPUT_ROWS}) by quality score.`);
+  logger.info({ count: topRows.length, maxRows: MAX_OUTPUT_ROWS }, 'Selected top rows by quality score');
 
   const finalRows = topRows.map(({ _scoreValue, ...rest }) => rest);
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    { written: writeResult.writtenCount, outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount },
+    'Success! Wrote records to output file'
   );
 }
 

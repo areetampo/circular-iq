@@ -67,16 +67,16 @@ async function main() {
   try {
     raw = await fs.readFile(INPUT_FILE, 'utf-8');
   } catch (err) {
-    logger.error(`✕ Input file not found: ${INPUT_FILE}`);
+    logger.error({ inputFile: INPUT_FILE }, 'Input file not found');
     throw err;
   }
 
   const records = parse(raw, { columns: true, skip_empty_lines: true });
-  logger.info(`📄 Raw records: ${records.length}`);
+  logger.info({ count: records.length }, 'Raw records');
 
   // 2. Filter out aggregate regions
   const filteredRecords = records.filter((r) => r.Location && !aggregateNames.has(r.Location));
-  logger.info(`📍 After removing aggregates: ${filteredRecords.length}`);
+  logger.info({ count: filteredRecords.length }, 'After removing aggregates');
 
   // 3. Score by completeness and pick top 50
   const scoredRows = filteredRecords
@@ -87,7 +87,7 @@ async function main() {
     .sort((a, b) => b.score - a.score)
     .slice(0, MAX_RECORDS);
 
-  logger.info(`🏆 Selected top ${scoredRows.length} rows (by completeness).`);
+  logger.info({ count: scoredRows.length }, 'Selected top rows by completeness');
 
   // 4. Transform to standard format
   const processed = scoredRows.map(({ data: r }) => {

@@ -218,7 +218,7 @@ async function cleanData() {
     countries.push(current);
   }
 
-  logger.info(`Parsed ${countries.length} raw country entries.`);
+  logger.info({ count: countries.length }, 'Parsed raw country entries');
 
   // Deduplicate by country name
   const countryMap = new Map();
@@ -226,7 +226,7 @@ async function cleanData() {
     countryMap.set(c.country, c);
   }
   const uniqueCountries = Array.from(countryMap.values());
-  logger.info(`After deduplication: ${uniqueCountries.length} unique countries.`);
+  logger.info({ count: uniqueCountries.length }, 'After deduplication');
 
   if (uniqueCountries.length === 0) {
     logger.warn('‼ ️ No countries found. The CSV might be empty or misparsed.');

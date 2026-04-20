@@ -96,7 +96,7 @@ function computeQualityScore(record) {
 async function main() {
   // Read all JSONL files
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.endsWith('.jsonl'));
-  logger.info(`Found ${files.length} JSONL files:`, files);
+  logger.info({ count: files.length, files }, 'Found JSONL files');
 
   // Map to store unique records by (problem + solution) – deduplicates across files
   const records = new Map();
@@ -107,7 +107,7 @@ async function main() {
     const cleaned = content.replace(/:\s*NaN\b/g, ': null'); // clean NaN
     const lines = cleaned.split('\n').filter((line) => line.trim());
 
-    logger.info(`Processing ${file} (${lines.length} lines)`);
+    logger.info({ file, lines: lines.length }, 'Processing file');
 
     for (const line of lines) {
       try {
@@ -121,17 +121,17 @@ async function main() {
           records.set(key, { record: data, priority: PRIORITY[file] || 0 });
         }
       } catch (e) {
-        logger.warn(`Skipping invalid JSON in ${file}: ${e.message}`);
+        logger.warn({ file, error: e.message }, 'Skipping invalid JSON');
       }
     }
   }
 
-  logger.info(`Unique JSONL records after deduplication: ${records.size}`);
+  logger.info({ unique: records.size }, 'Unique JSONL records after deduplication');
 
   // --- Read and merge AI_EarthHack_Dataset.csv ---
   const csvContent = fs.readFileSync(ai_earthhack_dataset, 'utf-8');
   const rows = parse(csvContent, { columns: true, skip_empty_lines: true, trim: true });
-  logger.info(`EarthHack CSV has ${rows.length} rows`);
+  logger.info({ rows: rows.length }, 'EarthHack CSV rows');
 
   for (const row of rows) {
     const problem = row.problem?.trim();
@@ -154,7 +154,7 @@ async function main() {
     }
   }
 
-  logger.info(`Total unique records after merging CSV: ${records.size}`);
+  logger.info({ total: records.size }, 'Total unique records after merging CSV');
 
   // Build final rows array with quality scores
   const finalRowsWithScore = [];

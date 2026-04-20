@@ -245,18 +245,18 @@ function processDataset(datasetKey) {
   const cfg = datasets[datasetKey];
   if (!cfg) return [];
 
-  logger.info(`\nProcessing ${datasetKey} dataset...`);
-  logger.info(`Input: ${cfg.input}`);
+  logger.info({ datasetKey }, 'Processing dataset');
+  logger.info({ input: cfg.input }, 'Input file');
 
   if (!fs.existsSync(cfg.input)) {
-    logger.error(`Input file not found: ${cfg.input}`);
+    logger.error({ input: cfg.input }, 'Input file not found');
     return [];
   }
 
   const content = fs.readFileSync(cfg.input, 'utf8');
   const records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ',' });
 
-  logger.info(`Total rows in file: ${records.length}`);
+  logger.info({ total: records.length }, 'Total rows in file');
 
   const processed = [];
   const skipped = [];
@@ -319,8 +319,8 @@ function processDataset(datasetKey) {
     else skipped.push({ row, reason: 'Mapping returned null' });
   }
 
-  logger.info(`Processed: ${processed.length} rows`);
-  logger.info(`Skipped: ${skipped.length} rows`);
+  logger.info({ processed: processed.length }, 'Processed rows');
+  logger.info({ skipped: skipped.length }, 'Skipped rows');
 
   return processed;
 }
@@ -332,8 +332,8 @@ async function writeCombined(rows) {
   }
 
   // --- NEW: Sort by quality score and keep top MAX_ROWS ---
-  logger.info(`Total rows after processing: ${rows.length}`);
-  logger.info(`Selecting top ${MAX_ROWS} rows based on quality score...`);
+  logger.info({ total: rows.length }, 'Total rows after processing');
+  logger.info({ maxRows: MAX_ROWS }, 'Selecting top rows based on quality score');
 
   // Compute scores
   const withScores = rows.map((row) => ({ row, score: scoreRow(row) }));
@@ -342,7 +342,7 @@ async function writeCombined(rows) {
   // Take top MAX_ROWS
   const topRows = withScores.slice(0, MAX_ROWS).map((item) => item.row);
 
-  logger.info(`Selected ${topRows.length} rows.`);
+  logger.info({ selected: topRows.length }, 'Selected rows');
 
   const finalRows = topRows.map((row) => ({
     problem: row.problem || '',

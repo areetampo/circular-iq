@@ -3,7 +3,7 @@
     "**/.husky/**": true,
     "**/.scratch/**": true,
     "**/backend/database/migrations/**": true,
-    "**/backend/datasets/{archives,for_search,,manual_entries,out,processed,raw}/**": true,
+    "**/backend/datasets/{archives,for_search,manual_entries,out,processed,raw}/**": true,
     "**/*.{csv,jsonl,pdf,sql}": true
   },
 

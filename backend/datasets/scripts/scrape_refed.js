@@ -100,7 +100,7 @@ async function fetchAllSolutions() {
   const pageSize = 100; // API likely supports pagination via query params
 
   while (hasMore && allSolutions.length < MAX_SOLUTIONS) {
-    logger.info(`Fetching solutions page ${page}...`);
+    logger.info({ page }, 'Fetching solutions page');
     await appendLogs(DATASET_KEY, `Fetching solutions page ${page}...`);
     // The API might support pagination with ?page= or ?offset=
     // Adjust the params based on actual behavior – if not, this will just fetch the same first page repeatedly
@@ -223,7 +223,7 @@ async function rebuildFromBackup() {
     logger.warn('No backup found.');
     return;
   }
-  logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+  logger.info({ count: backupRows.length }, 'Processing backup rows');
 
   // Optional: deduplicate backup rows by content (in case backup itself has duplicates)
   const seenKeys = new Set();
@@ -240,14 +240,14 @@ async function rebuildFromBackup() {
   }
 
   if (uniqueRows.length !== backupRows.length) {
-    logger.info(`Removed ${backupRows.length - uniqueRows.length} duplicate rows from backup.`);
+    logger.info({ removed: backupRows.length - uniqueRows.length }, 'Removed duplicate rows from backup');
     await appendLogs(
       DATASET_KEY,
       `Removed ${backupRows.length - uniqueRows.length} duplicates from backup.`,
     );
   }
 
-  logger.info(`✓ Rebuilt ${uniqueRows.length} rows from backup.`);
+  logger.info({ count: uniqueRows.length }, 'Rebuilt rows from backup');
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, uniqueRows, {
     append: APPEND_PROCESSED,
   });
@@ -266,12 +266,12 @@ async function fetchAndTransform() {
 
   logger.info('Fetching solutions...');
   const solutions = await fetchAllSolutions();
-  logger.info(`Fetched ${solutions.length} total solutions`);
+  logger.info({ count: solutions.length }, 'Fetched total solutions');
   await appendLogs(DATASET_KEY, `Fetched ${solutions.length} solutions`);
 
   // Filter to only include solutions that are included in the model
   const validSolutions = solutions.filter((s) => s.attributes?.include_in_model === true);
-  logger.info(`${validSolutions.length} solutions are included in the model`);
+  logger.info({ count: validSolutions.length }, 'Solutions are included in the model');
   await appendLogs(DATASET_KEY, `${validSolutions.length} solutions marked include_in_model=true`);
 
   // Transform and deduplicate by content
@@ -295,7 +295,7 @@ async function fetchAndTransform() {
 
   const duplicatesSkipped = validSolutions.length - rowsWithoutIds.length;
   if (duplicatesSkipped > 0) {
-    logger.info(`Skipped ${duplicatesSkipped} duplicate solutions based on content.`);
+    logger.info({ skipped: duplicatesSkipped }, 'Skipped duplicate solutions based on content');
     await appendLogs(
       DATASET_KEY,
       `Skipped ${duplicatesSkipped} duplicate solutions based on content.`,
@@ -309,7 +309,7 @@ async function fetchAndTransform() {
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, rowsWithoutIds, {
     append: APPEND_PROCESSED,
   });
-  logger.info(`✓ Successfully transformed ${rowsWithoutIds.length} unique solutions.`);
+  logger.info({ count: rowsWithoutIds.length }, 'Successfully transformed unique solutions');
   logger.info(
     `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
   );
@@ -327,7 +327,7 @@ async function main() {
   await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
-    logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+    logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
     await rebuildFromBackup();
     return;
   }

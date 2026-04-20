@@ -328,7 +328,7 @@ async function fetchAllForKeyWord({
 }
 
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -342,14 +342,14 @@ async function rebuildFromBackup() {
       return;
     }
 
-    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info({ count: backupRows.length }, 'Processing backup rows');
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Apply the same filter as live scrape
     let filtered = backupRows.filter((row) => row.problem && (row.materials || row.category));
 
     if (filtered.length === 0) {
-      logger.warn(`‼ No valid rows after filtering.`);
+      logger.warn({}, 'No valid rows after filtering');
       await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -368,7 +368,7 @@ async function rebuildFromBackup() {
       uniqueRows = uniqueRows.slice(0, TARGET_ROWS);
     }
 
-    logger.info(`✓ Selected ${uniqueRows.length} high-quality rows from backup`);
+    logger.info({ count: uniqueRows.length }, 'Selected high-quality rows from backup');
     await appendLogs(
       DATASET_KEY,
       `Selected ${uniqueRows.length} rows after filtering and deduplication.`,
@@ -389,12 +389,13 @@ async function rebuildFromBackup() {
       };
     });
 
-    logger.info(`\n✨ Rebuilt ${finalRows.length} Open Beauty Facts products from backup`);
+    logger.info({ count: finalRows.length }, 'Rebuilt Open Beauty Facts products from backup');
     const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      { outputPath: outputFile, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      'Saved to output file'
     );
     await appendLogs(
       DATASET_KEY,
@@ -418,7 +419,7 @@ async function main() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping OBF. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping OBF');
 
   await appendLogs(
     DATASET_KEY,
@@ -433,14 +434,14 @@ async function main() {
   logger.info('🔍 Fetching per keyword with individual parameters...');
   for (const kw of KEYWORDS) {
     const FINAL_FETCH_PAGE = Math.min(kw.END_PAGE, kw.START_PAGE + kw.MAX_PAGES_TO_FETCH - 1);
-    logger.info(`\n📦 Keyword: "${kw.keyword}" (PAGES: ${kw.START_PAGE}-${FINAL_FETCH_PAGE})`);
+    logger.info({ keyword: kw.keyword, startPage: kw.START_PAGE, endPage: FINAL_FETCH_PAGE }, 'Processing keyword');
     const products = await fetchAllForKeyWord(kw);
     for (const p of products) {
       if (!productMap.has(p.source_url)) {
         productMap.set(p.source_url, p);
       }
     }
-    logger.info(`   → Unique total so far: ${productMap.size}`);
+    logger.info({ total: productMap.size }, 'Unique total so far');
     pagesProcessed.push(kw.keyword);
   }
   allProducts = Array.from(productMap.values());
@@ -452,7 +453,7 @@ async function main() {
     return;
   }
 
-  logger.info(`\n📊 Total unique products fetched: ${allProducts.length}`);
+  logger.info({ count: allProducts.length }, 'Total unique products fetched');
   await appendLogs(DATASET_KEY, `Total raw products collected: ${allProducts.length}`);
 
   let transformed = allProducts.filter((p) => p.problem && (p.materials || p.category));
@@ -461,7 +462,7 @@ async function main() {
     transformed = transformed.slice(0, TARGET_ROWS);
   }
 
-  logger.info(`✨ Kept ${transformed.length} high‑quality rows.`);
+  logger.info({ count: transformed.length }, 'Kept high-quality rows');
   await appendLogs(DATASET_KEY, `After filtering: kept ${transformed.length} rows.`);
 
   const finalRows = transformed.map((row, idx) => ({

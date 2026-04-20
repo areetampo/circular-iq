@@ -264,12 +264,12 @@ async function main() {
   const rows = [];
 
   for (const range of CASE_RANGES) {
-    logger.info(`Extracting case study ${range.id} (pages ${range.start}–${range.end})...`);
+    logger.info({ caseId: range.id, startPage: range.start, endPage: range.end }, 'Extracting case study');
     let text;
     try {
       text = await extractPagesText(RAW_PDF, range.start, range.end);
     } catch (err) {
-      logger.error(`✕ Failed to extract pages for case ${range.id}: ${err.message}`);
+      logger.error({ caseId: range.id, error: err.message }, 'Failed to extract pages for case');
       continue; // skip this case study and move to next
     }
 

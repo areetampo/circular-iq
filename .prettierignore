@@ -3,7 +3,7 @@ node_modules
 dist
 build
 
-# RAG / AI Datasets (Don't format these!)
+# RAG / AI Datasets
 backend/datasets/
 *.csv
 *.jsonl

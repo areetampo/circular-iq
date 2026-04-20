@@ -27,23 +27,23 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import {
-    appendLogs,
-    cleanText,
-    clearLogs,
-    createBackupHelper,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getBrowserLaunchOptions,
-    getDatasetProcessedCsvPath,
-    getDatasetScrapeLogsPath,
-    getExtraHttpHeaders,
-    getUserAgentOptions,
-    getViewportOptions,
-    hasAppendBackupFlag,
-    hasAppendProcessedFlag,
-    isBackupRecoveryMode,
-    readBackupCsv,
-    writeCsv,
+  appendLogs,
+  cleanText,
+  clearLogs,
+  createBackupHelper,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getBrowserLaunchOptions,
+  getDatasetProcessedCsvPath,
+  getDatasetScrapeLogsPath,
+  getExtraHttpHeaders,
+  getUserAgentOptions,
+  getViewportOptions,
+  hasAppendBackupFlag,
+  hasAppendProcessedFlag,
+  isBackupRecoveryMode,
+  readBackupCsv,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -90,7 +90,7 @@ function scoreProductQuality(certifications) {
  * Used when --use-backup flag is passed.
  */
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -103,7 +103,7 @@ async function rebuildFromBackup() {
       return;
     }
 
-    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info({ count: backupRows.length }, 'Processing backup rows');
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Deduplicate backup rows by source_url
@@ -114,7 +114,7 @@ async function rebuildFromBackup() {
       }
     }
     const uniqueBackupRows = Array.from(uniqueMap.values());
-    logger.info(`   → ${uniqueBackupRows.length} unique rows after deduplication.`);
+    logger.info({ unique: uniqueBackupRows.length }, 'Unique rows after deduplication');
 
     const productDetails = uniqueBackupRows
       .map((row) => {
@@ -142,7 +142,7 @@ async function rebuildFromBackup() {
             certCount,
           };
         } catch (e) {
-          logger.warn(`‼ Skipping invalid backup row: ${e.message}`);
+          logger.warn({ error: e.message }, 'Skipping invalid backup row');
           return null;
         }
       })
@@ -150,14 +150,14 @@ async function rebuildFromBackup() {
       .sort((a, b) => b.qualityScore - a.qualityScore)
       .slice(0, MAX_ROWS);
 
-    logger.info(`✓ Selected ${productDetails.length} high-quality C2C products from backup`);
+    logger.info({ count: productDetails.length }, 'Selected high-quality C2C products from backup');
     await appendLogs(
       DATASET_KEY,
       `Selected ${productDetails.length} products after scoring/filtering.`,
     );
 
     if (productDetails.length === 0) {
-      logger.warn(`‼ No valid product details could be reconstructed from backup.`);
+      logger.warn({}, 'No valid product details could be reconstructed from backup');
       await appendLogs(DATASET_KEY, `‼ No valid products – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -211,12 +211,13 @@ async function rebuildFromBackup() {
       };
     });
 
-    logger.info(`\n✨ Rebuilt ${finalRows.length} C2C products from backup`);
+    logger.info({ count: finalRows.length }, 'Rebuilt C2C products from backup');
     const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      'Saved to output file'
     );
     await appendLogs(
       DATASET_KEY,
@@ -244,7 +245,7 @@ async function scrape_c2c() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping C2C. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping C2C');
 
   let browser;
   try {
@@ -641,7 +642,7 @@ async function scrape_c2c() {
         };
       });
 
-      logger.info(`\n✓ Scraped ${finalRows.length} unique C2C products.`);
+      logger.info({ count: finalRows.length }, 'Scraped unique C2C products');
       const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
         append: APPEND_PROCESSED,
       });

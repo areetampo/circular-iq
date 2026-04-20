@@ -587,10 +587,10 @@ function extractGeneral(text, fileName) {
 // Main processing
 // ----------------------------------------------------------------------
 async function main() {
-  logger.info(`🔍 Scanning ${RAW_DIR} for PDF files...`);
+  logger.info({ rawDir: RAW_DIR }, 'Scanning directory for PDF files');
 
   if (!fs.existsSync(RAW_DIR)) {
-    logger.error(`✕ Raw directory not found: ${RAW_DIR}`);
+    logger.error({ rawDir: RAW_DIR }, 'Raw directory not found');
     process.exit(1);
   }
 
@@ -606,7 +606,7 @@ async function main() {
 
   for (const file of pdfFiles) {
     const filePath = path.join(RAW_DIR, file);
-    logger.info(`📄 Processing ${file}...`);
+    logger.info({ file }, 'Processing file');
 
     try {
       const text = await extractTextFromPDF(filePath);
@@ -630,9 +630,9 @@ async function main() {
       }
 
       allRows.push(...rows);
-      logger.info(`   ✓ Extracted ${rows.length} record(s).`);
+      logger.info({ count: rows.length }, 'Extracted records');
     } catch (err) {
-      logger.error(`   ✕ Error processing ${file}:`, err.message);
+      logger.error({ file, error: err.message }, 'Error processing file');
     }
   }
 
@@ -648,14 +648,15 @@ async function main() {
   }));
   scored.sort((a, b) => b.score - a.score);
 
-  logger.info(`\n🎯 Total extracted rows: ${scored.length}`);
+  logger.info({ total: scored.length }, 'Total extracted rows');
 
   // Remove temporary fields
   const final = scored.map(({ _scoreValue, score, ...rest }) => rest);
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
   logger.info(
-    `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    { written: writeResult.writtenCount, outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount },
+    'Success! Wrote records to output file'
   );
 }
 

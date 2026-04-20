@@ -104,17 +104,17 @@ async function main() {
     try {
       await fs.access(filePath);
     } catch {
-      logger.warn(`File not found, skipping: ${file}`);
+      logger.warn({ file }, 'File not found, skipping');
       continue;
     }
 
-    logger.info(`Processing ${file}...`);
+    logger.info({ file }, 'Processing file');
     const content = await fs.readFile(filePath, 'utf-8');
     const records = parse(content, { columns: true, skip_empty_lines: true });
-    logger.info(`  Total records: ${records.length}`);
+    logger.info({ total: records.length }, 'Total records');
 
     if (records.length === 0) {
-      logger.warn(`  File is empty, skipping.`);
+      logger.warn({}, 'File is empty, skipping');
       continue;
     }
 
@@ -132,7 +132,7 @@ async function main() {
 
     // Quick check: if these columns are missing, skip
     if (!records[0][countryCol] || !records[0][sectorCol] || !records[0][fossilBioCol]) {
-      logger.warn(`  Required columns not found, skipping file.`);
+      logger.warn({}, 'Required columns not found, skipping file');
       continue;
     }
 
@@ -161,7 +161,7 @@ async function main() {
       return country && topCountries.includes(country) && SECTOR_MAP[sector];
     });
 
-    logger.info(`  Filtered to ${filtered.length} records (top 20 countries, relevant sectors).`);
+    logger.info({ filtered: filtered.length }, 'Filtered records (top 20 countries, relevant sectors)');
 
     // Aggregate by country, sector, year, and gas (summing fossil_bio)
     const aggregated = new Map(); // key: country|sector|year
@@ -229,11 +229,12 @@ async function main() {
   });
 
   const finalRows = allRows.slice(0, MAX_ROWS);
-  logger.info(`Selected ${finalRows.length} rows.`);
+  logger.info({ selected: finalRows.length }, 'Selected rows');
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `✓ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    { written: writeResult.writtenCount, outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount },
+    'Wrote rows to output file'
   );
 }
 

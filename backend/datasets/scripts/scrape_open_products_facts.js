@@ -384,34 +384,45 @@ function isHighQuality(row) {
   const solutionWords = (row.solution || '').split(/\s+/).length;
   return problemWords >= MIN_PROBLEM_WORDS && solutionWords >= MIN_SOLUTION_WORDS;
 }
-
 /**
  * Rebuild final CSV from backup content (unchanged).
  */
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...`);
+  logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
-    await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
+    await appendLogs(
+      DATASET_KEY,
+      '♻️ RECOVERY MODE: Rebuilding from backup started.',
+    );
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `‼ No backup content found. Cannot rebuild output.`;
+      const msg = '‼ No backup content found. Cannot rebuild output.';
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
-      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
+      await appendLogs(
+        DATASET_KEY,
+        '\n--- End of recovery run (no data) ---\n',
+      );
       return;
     }
 
-    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info({ count: backupRows.length }, 'Processing backup rows');
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     let transformed = backupRows.filter(isHighQuality);
 
     if (transformed.length === 0) {
-      logger.warn(`‼ No valid rows after filtering.`);
-      await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
-      await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
+      logger.warn('No valid rows after filtering');
+      await appendLogs(
+        DATASET_KEY,
+        '‼ No valid rows – output file unchanged.',
+      );
+      await appendLogs(
+        DATASET_KEY,
+        '\n--- End of recovery run (no output) ---\n',
+      );
       return;
     }
 
@@ -419,12 +430,18 @@ async function rebuildFromBackup() {
       transformed = transformed.slice(0, TARGET_ROWS);
     }
 
-    logger.info(`✓ Selected ${transformed.length} high-quality rows from backup`);
-    await appendLogs(DATASET_KEY, `Selected ${transformed.length} rows after filtering.`);
+  logger.info({ count: transformed.length }, 'Selected high-quality rows from backup');
+    await appendLogs(
+      DATASET_KEY,
+      `Selected ${transformed.length} rows after filtering.`,
+    );
 
     const finalRows = transformed.map((row, idx) => {
       const metadataJson =
-        typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row);
+        typeof row.metadata_json === 'string'
+          ? row.metadata_json
+          : JSON.stringify(row);
+
       return {
         problem: row.problem || '',
         solution: row.solution || '',
@@ -437,12 +454,13 @@ async function rebuildFromBackup() {
       };
     });
 
-    logger.info(`\n✨ Rebuilt ${finalRows.length} Open Products Facts products from backup`);
+    logger.info({ count: finalRows.length }, 'Rebuilt Open Products Facts products from backup');
     const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      { outputPath: outputFile, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      'Saved to output file'
     );
     await appendLogs(
       DATASET_KEY,
@@ -468,20 +486,20 @@ async function main() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping OPF. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping OPF');
 
   await appendLogs(
     DATASET_KEY,
     `🚀 Scrape started. API_BASE: ${API_BASE}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
   );
 
-  logger.info('🔍 Fetching per keyword config with individual parameters...');
+  logger.info({}, 'Fetching per keyword config with individual parameters...');
   const productMap = new Map();
 
   for (const config of KEYWORD_CONFIG) {
     const display = config.keywords.join(', ');
     const maxPage = Math.min(config.END_PAGE, config.START_PAGE + config.MAX_PAGES_TO_FETCH - 1);
-    logger.info(`\n📦 Keyword group: "${display}" (PAGES: ${config.START_PAGE}-${maxPage})`);
+    logger.info({}, `Processing keyword group: ${display}, startPage: ${config.START_PAGE}, endPage: ${maxPage}`);
 
     const rows = await fetchAllForKeyWord(config);
     for (const row of rows) {
@@ -490,20 +508,20 @@ async function main() {
         productMap.set(key, row);
       }
     }
-    logger.info(`   → Unique total so far: ${productMap.size}`);
+    logger.info({ count: productMap.size }, 'Unique total so far');
   }
 
   await backup.flush();
 
   if (productMap.size === 0) {
-    logger.info('✕ No products fetched. Exiting.');
+    logger.info({}, 'No products fetched. Exiting');
     await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
 
   const allProducts = Array.from(productMap.values());
-  logger.info(`\n📊 Total unique products fetched: ${allProducts.length}`);
+  logger.info({ count: allProducts.length }, 'Total unique products fetched');
   await appendLogs(DATASET_KEY, `Total raw products collected: ${allProducts.length}`);
 
   let highQuality = allProducts.filter(isHighQuality);
@@ -512,7 +530,7 @@ async function main() {
     highQuality = highQuality.slice(0, TARGET_ROWS);
   }
 
-  logger.info(`✨ Kept ${highQuality.length} high‑quality rows.`);
+  logger.info({ count: highQuality.length }, 'Kept high-quality rows');
   await appendLogs(DATASET_KEY, `After filtering: kept ${highQuality.length} rows.`);
 
   const finalRows = highQuality.map((row) => ({

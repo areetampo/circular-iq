@@ -246,7 +246,7 @@ function transformProduct(product) {
  * Rebuild final CSV from backup content (recovery mode).
  */
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup...`);
+  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup');
   await appendLogs(DATASET_KEY, `♻️ Recovery mode started.`);
 
   try {
@@ -258,7 +258,7 @@ async function rebuildFromBackup() {
       return;
     }
 
-    logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+    logger.info({ count: backupRows.length }, 'Processing backup rows');
     await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
     // Apply the same quality filter as live scrape
@@ -267,7 +267,7 @@ async function rebuildFromBackup() {
     });
 
     if (transformed.length === 0) {
-      logger.warn(`‼ No rows passed the filter.`);
+      logger.warn({}, 'No rows passed the filter');
       await appendLogs(DATASET_KEY, `‼ No rows passed the filter.`);
       return;
     }
@@ -288,7 +288,7 @@ async function rebuildFromBackup() {
         typeof row.metadata_json === 'string' ? row.metadata_json : JSON.stringify(row),
     }));
 
-    logger.info(`\n✨ Rebuilt ${finalRows.length} products from backup`);
+    logger.info({ count: finalRows.length }, 'Rebuilt products from backup');
     const writeResult = await writeCsv(DATASET_KEY, outputFile, finalRows, {
       append: APPEND_PROCESSED,
     });
@@ -316,7 +316,7 @@ async function main() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping Open Food Facts. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping Open Food Facts');
 
   const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
   await appendLogs(

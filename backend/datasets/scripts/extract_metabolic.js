@@ -81,7 +81,7 @@ async function extractTextFromPdf(filePath) {
   try {
     pdfDocument = await loadingTask.promise;
   } catch (err) {
-    logger.error(`  PDF parse error: ${err.message}`);
+    logger.error({ error: err.message }, 'PDF parse error');
     return null;
   }
 
@@ -473,18 +473,18 @@ async function main() {
       // item has { filename, detailUrl, pdfUrl }
       metadataMap.set(item.filename, item.detailUrl || '');
     }
-    logger.info(`Loaded source URLs for ${metadataMap.size} files from metadata.json.`);
+    logger.info({ count: metadataMap.size }, 'Loaded source URLs from metadata.json');
   } else {
-    logger.warn('‼ metadata.json not found – source_url will be empty.');
+    logger.warn({}, 'metadata.json not found – source_url will be empty');
   }
 
   if (!fs.existsSync(RAW_DIR)) {
-    logger.error(`Raw directory not found: ${RAW_DIR}`);
+    logger.error({ rawDir: RAW_DIR }, 'Raw directory not found');
     process.exit(1);
   }
 
   const files = fs.readdirSync(RAW_DIR).filter((f) => f.toLowerCase().endsWith('.pdf'));
-  logger.info(`Found ${files.length} PDF files in ${RAW_DIR}`);
+  logger.info({ count: files.length, rawDir: RAW_DIR }, 'Found PDF files');
 
   let allRows = [];
 
@@ -492,10 +492,10 @@ async function main() {
     const filePath = path.join(RAW_DIR, file);
     const sourceUrl = metadataMap.get(file) || '';
 
-    logger.info(`\nProcessing ${file}...`);
+    logger.info({ file }, 'Processing file');
 
     if (!isValidPdf(filePath)) {
-      logger.info('  Invalid PDF header – skipping.');
+      logger.info({}, 'Invalid PDF header – skipping');
       continue;
     }
 
@@ -506,7 +506,7 @@ async function main() {
     }
 
     const chunks = chunkText(text);
-    logger.info(`  Extracted ${chunks.length} candidate chunks.`);
+    logger.info({ count: chunks.length }, 'Extracted candidate chunks');
 
     for (const chunk of chunks) {
       const score = scoreChunk(chunk);
@@ -539,11 +539,11 @@ async function main() {
         _score: score,
       });
 
-      if (allRows.length % 100 === 0) logger.info(`  Collected ${allRows.length}+ rows so far...`);
+      if (allRows.length % 100 === 0) logger.info({ collected: allRows.length }, 'Collected rows so far');
     }
   }
 
-  logger.info(`\nTotal raw rows extracted: ${allRows.length}`);
+  logger.info({ total: allRows.length }, 'Total raw rows extracted');
 
   // Sort by score and take top FINAL_ROW_LIMIT
   const sorted = allRows.sort((a, b) => b._score - a._score);

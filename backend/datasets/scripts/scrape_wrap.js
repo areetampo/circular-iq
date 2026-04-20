@@ -209,12 +209,12 @@ async function downloadFile(url, destPath, retries = 5) {
       }
 
       await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(destPath));
-      logger.info(`-- Successfully downloaded: ${destPath}`);
+      logger.info({ destPath }, 'Successfully downloaded');
       return;
     } catch (err) {
       clearTimeout(timeout);
       if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-      logger.warn(`Download attempt ${i + 1} failed for ${url}: ${err.message}`);
+      logger.warn({ attempt: i + 1, url, error: err.message }, 'Download attempt failed');
       if (i === retries - 1)
         throw new Error(`Failed to download after ${retries} attempts: ${err.message}`);
       const delay = 2000 * Math.pow(2, i) + Math.random() * 1000;
@@ -402,11 +402,11 @@ async function downloadReportOrGuide(page, url, outputDir) {
 
   const destPath = path.join(outputDir, filename);
   if (fs.existsSync(destPath)) {
-    logger.info(`      PDF already exists: ${filename}`);
+    logger.info({ filename }, 'PDF already exists');
     return { pdfUrl, localPath: destPath };
   }
 
-  logger.info(`   -- Downloading PDF: ${filename}`);
+  logger.info({ filename }, 'Downloading PDF');
   try {
     await downloadFile(pdfUrl, destPath);
     await appendLogs(
@@ -415,7 +415,7 @@ async function downloadReportOrGuide(page, url, outputDir) {
     );
     return { pdfUrl, localPath: destPath };
   } catch (err) {
-    logger.error(`      Failed to download PDF: ${err.message}`);
+    logger.error({ filename, error: err.message }, 'Failed to download PDF');
     return null;
   }
 }
@@ -447,7 +447,7 @@ async function processResource(browser, url, category) {
 
       // Validate: must be a meaningful case study
       if (!isValidCaseStudy(row.problem, row.solution)) {
-        logger.info(`      ‼ Skipping case study (invalid content): ${url}`);
+        logger.info({ url }, 'Skipping case study (invalid content)');
         await appendLogs(
           DATASET_KEY,
           `Skipped case study (invalid): ${url} — problem: "${row.problem.substring(0, 50)}..."`,
@@ -474,7 +474,7 @@ async function processResource(browser, url, category) {
 // ========== BACKUP RECOVERY ==========
 
 async function rebuildFromBackup() {
-  logger.info(`♻️ BACKUP RECOVERY MODE: Rebuilding case studies from backup...`);
+  logger.info({}, 'BACKUP RECOVERY MODE: Rebuilding case studies from backup');
   await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding case studies from backup.`);
 
   const backupRows = await readBackupCsv(DATASET_KEY);
@@ -485,7 +485,7 @@ async function rebuildFromBackup() {
     return;
   }
 
-  logger.info(`📖 Processing ${backupRows.length} backup rows...`);
+  logger.info({ count: backupRows.length }, 'Processing backup rows');
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows from case studies.`);
 
   // Apply same validation during recovery
@@ -495,7 +495,7 @@ async function rebuildFromBackup() {
   const skippedCount = backupRows.length - validRows.length;
 
   if (skippedCount > 0) {
-    logger.info(`   Filtered out ${skippedCount} invalid rows during recovery.`);
+    logger.info({ skippedCount }, 'Filtered out invalid rows during recovery');
     await appendLogs(DATASET_KEY, `Filtered out ${skippedCount} invalid rows during recovery.`);
   }
 
@@ -510,19 +510,20 @@ async function rebuildFromBackup() {
     metadata_json: row.metadata_json || '{}',
   }));
 
-  logger.info(`\n✨ Rebuilt ${finalRows.length} case study rows from backup`);
+  logger.info({ count: finalRows.length }, 'Rebuilt case study rows from backup');
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
   logger.info(
-    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+    'Saved to output file'
   );
   await appendLogs(
     DATASET_KEY,
     `✓ Case studies recovered. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 
-  logger.info(`\n📝 NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js`);
+  logger.info({}, 'NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js');
   await appendLogs(
     DATASET_KEY,
     `📝 For PDF extraction from guides/reports, run: node extract_wrap.js`,
@@ -535,7 +536,7 @@ async function rebuildFromBackup() {
 async function scrapeCategory(browser, category) {
   const { name, listUrl, START_PAGE, END_PAGE, MAX_PAGES_TO_FETCH, outputDir } = category;
   const FINAL_FETCH_PAGE = Math.min(END_PAGE, START_PAGE + MAX_PAGES_TO_FETCH - 1);
-  logger.info(`\n=== Scraping category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE} ===`);
+  logger.info({ name, startPage: START_PAGE, endPage: FINAL_FETCH_PAGE }, 'Scraping category');
   await appendLogs(
     DATASET_KEY,
     `Starting category: ${name}, PAGES: ${START_PAGE}-${FINAL_FETCH_PAGE}`,
@@ -546,7 +547,7 @@ async function scrapeCategory(browser, category) {
 
   for (let pageNum = START_PAGE; pageNum <= FINAL_FETCH_PAGE; pageNum++) {
     const pageUrl = listUrl + pageNum;
-    logger.info(`  Page ${pageNum}/${FINAL_FETCH_PAGE}: ${pageUrl}`);
+    logger.info({ pageNum, totalPages: FINAL_FETCH_PAGE, pageUrl }, 'Processing page');
     await appendLogs(DATASET_KEY, `Page ${pageNum}: ${pageUrl}`);
 
     let retries = 3;
@@ -566,14 +567,14 @@ async function scrapeCategory(browser, category) {
           await appendLogs(DATASET_KEY, `  No resources found on page ${pageNum}.`);
           break;
         }
-        logger.info(`    Found ${links.length} resources.`);
+        logger.info({ count: links.length }, 'Found resources');
         success = true;
       } catch (err) {
         retries--;
-        logger.warn(`  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`);
+        logger.warn({ pageNum, retries, error: err.message }, 'Page error');
         await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${err.message}`);
         if (retries === 0) {
-          logger.warn(`  ‼ Skipping page ${pageNum} after 3 failed attempts.`);
+          logger.warn({ pageNum }, 'Skipping page after 3 failed attempts');
           await appendLogs(DATASET_KEY, `Skipping page ${pageNum} after 3 failed attempts.`);
         } else {
           await sleep(5000 * (3 - retries));
@@ -588,7 +589,7 @@ async function scrapeCategory(browser, category) {
     const pageRows = [];
 
     for (const link of links) {
-      logger.info(`    Fetching: ${link}`);
+      logger.info({ link }, 'Fetching resource');
       let resourceRetries = 2;
       let resourceSuccess = false;
 
@@ -622,11 +623,12 @@ async function scrapeCategory(browser, category) {
         } catch (err) {
           resourceRetries--;
           logger.warn(
-            `      ‼ Resource error (retries left: ${resourceRetries}): ${err.message}`,
+            { resourceRetries, error: err.message },
+            'Resource error'
           );
           await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
           if (resourceRetries === 0) {
-            logger.warn(`      ‼ Skipping resource after 2 failed attempts.`);
+            logger.warn({}, 'Skipping resource after 2 failed attempts');
             await appendLogs(DATASET_KEY, `Skipping resource ${link} after 2 failed attempts.`);
           } else {
             await sleep(3000);
@@ -644,7 +646,7 @@ async function scrapeCategory(browser, category) {
           `Page ${pageNum}: backed up ${pageRows.length} case study rows.`,
         );
       } catch (e) {
-        logger.warn(`  ‼ Backup add failed: ${e.message}`);
+        logger.warn({ error: e.message }, 'Backup add failed');
         await appendLogs(DATASET_KEY, `  ‼ Backup add failed: ${e.message}`);
       }
     } else if (name !== 'case-studies') {
@@ -655,9 +657,9 @@ async function scrapeCategory(browser, category) {
   }
 
   if (name === 'case-studies') {
-    logger.info(`  → Collected ${allRows.length} rows from ${name}`);
+    logger.info({ count: allRows.length, category: name }, 'Collected rows from category');
   } else {
-    logger.info(`  → Downloaded ${pdfCount} PDFs to ${outputDir}`);
+    logger.info({ pdfCount, outputDir }, 'Downloaded PDFs to directory');
   }
   return { rows: allRows, pdfCount };
 }
@@ -673,7 +675,7 @@ async function scrape_wrap() {
   }
 
   const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
-  logger.info(`Scraping WRAP resources. Detailed logs: ${logFilePath}`);
+  logger.info({ logFilePath }, 'Scraping WRAP resources');
   await appendLogs(
     DATASET_KEY,
     `🚀 Scrape started. Categories: ${ACTIVE_CATEGORIES.map((c) => c.name).join(', ')}`,
@@ -703,7 +705,7 @@ async function scrape_wrap() {
       const validRows = allRows.filter((row) => isValidCaseStudy(row.problem, row.solution));
       const skipped = allRows.length - validRows.length;
       if (skipped > 0) {
-        logger.info(`\n‼ Filtered out ${skipped} invalid rows during final assembly.`);
+        logger.info({ skipped }, 'Filtered out invalid rows during final assembly');
         await appendLogs(
           DATASET_KEY,
           `Filtered out ${skipped} invalid rows during final assembly.`,
@@ -721,12 +723,13 @@ async function scrape_wrap() {
         metadata_json: row.metadata_json,
       }));
 
-      logger.info(`\n✓ Scraped ${finalRows.length} valid case study rows.`);
+      logger.info({ count: finalRows.length }, 'Scraped valid case study rows');
       const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
         append: APPEND_PROCESSED,
       });
       logger.info(
-        `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+        { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+        'Saved to output file'
       );
 
       if (finalRows.length > 0) {
@@ -740,13 +743,13 @@ async function scrape_wrap() {
         );
       }
     } else {
-      logger.info(`\n※ No case study rows scraped.`);
+      logger.info({}, 'No case study rows scraped');
     }
 
     if (totalPdfs > 0) {
-      logger.info(`✓ Downloaded ${totalPdfs} PDFs into:`);
-      logger.info(`   - Reports: ${REPORTS_DIR}`);
-      logger.info(`   - Guides: ${GUIDES_DIR}`);
+      logger.info({ totalPdfs }, 'Downloaded PDFs into directories');
+      logger.info({ dir: REPORTS_DIR }, 'Reports directory');
+      logger.info({ dir: GUIDES_DIR }, 'Guides directory');
       await appendLogs(
         DATASET_KEY,
         `✓ Downloaded ${totalPdfs} PDFs into: Reports: ${REPORTS_DIR}, Guides: ${GUIDES_DIR}`,

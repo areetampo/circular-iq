@@ -181,9 +181,9 @@ async function main() {
   let allScoredRows = [];
 
   for (const meta of PDF_METADATA) {
-    logger.info(`Extracting: ${meta.sector}...`);
+    logger.info({ sector: meta.sector }, 'Extracting');
     const rows = await processFile(meta);
-    logger.info(`  → ${rows.length} rows.`);
+    logger.info({ count: rows.length }, 'Rows extracted');
     allScoredRows.push(...rows);
   }
 

@@ -32,18 +32,18 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 
 import {
-    appendLogs,
-    clearLogs,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getBrowserLaunchOptions,
-    getDatasetRawDir,
-    getDatasetScrapeLogsPath,
-    getExtraHttpHeaders,
-    getUserAgentOptions,
-    getViewportOptions,
-    isBackupRecoveryMode,
-    randomDelay,
+  appendLogs,
+  clearLogs,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getBrowserLaunchOptions,
+  getDatasetRawDir,
+  getDatasetScrapeLogsPath,
+  getExtraHttpHeaders,
+  getUserAgentOptions,
+  getViewportOptions,
+  isBackupRecoveryMode,
+  randomDelay,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -66,7 +66,8 @@ async function rebuildFromBackup() {
 async function scrape() {
   await clearLogs(DATASET_KEY);
   await appendLogs(DATASET_KEY, `🚀 Scrape started...`);
-  logger.info(`Scraping Metabolic publications. Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`);
+  const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
+  logger.info({ logFilePath }, 'Scraping Metabolic publications');
 
   // Launch browser with stealth
   const launchOptions = getBrowserLaunchOptions();
@@ -91,21 +92,21 @@ async function scrape() {
     // Get the list of desired files from dataset.raw_folder_contents
     const fileMap = dataset.raw_folder_contents || {};
     const entries = Object.entries(fileMap);
-    logger.info(`Found ${entries.length} publications to download.`);
+    logger.info({ count: entries.length }, 'Found publications to download');
     await appendLogs(DATASET_KEY, `Found ${entries.length} publications in raw_folder_contents.`);
 
     const metadataList = []; // will store { filename, detailUrl, pdfUrl }
 
     for (let i = 0; i < entries.length; i++) {
       const [filename, detailUrl] = entries[i];
-      logger.info(`[${i + 1}/${entries.length}] ${filename} -> ${detailUrl}`);
+      logger.info({ current: i + 1, total: entries.length, filename, detailUrl }, 'Processing publication');
 
       const localPath = path.join(RAW_DIR, filename);
       let pdfUrl = null;
       let downloaded = false;
 
       if (fs.existsSync(localPath)) {
-        logger.info(`  File already exists, skipping.`);
+        logger.info({}, 'File already exists, skipping');
         await appendLogs(DATASET_KEY, `  Already exists: ${filename}`);
         // Still record metadata for existing file
         metadataList.push({ filename, detailUrl, pdfUrl: '' });
@@ -147,7 +148,7 @@ async function scrape() {
 
         if (!iframeFound) {
           const pageTitle = await page.title().catch(() => 'unknown');
-          logger.warn(`  No iframe found for ${detailUrl}. Page title: "${pageTitle}"`);
+          logger.warn({ detailUrl, pageTitle }, 'No iframe found');
           await appendLogs(DATASET_KEY, `  No iframe found, page title: ${pageTitle}`);
           continue;
         }
@@ -168,7 +169,7 @@ async function scrape() {
           continue;
         }
 
-        logger.info(`  Downloading ${pdfUrl} -> ${filename}`);
+        logger.info({ pdfUrl, filename }, 'Downloading PDF');
 
         // Get cookies from the current page
         const cookies = await page.cookies();
@@ -203,14 +204,14 @@ async function scrape() {
         // Check content-type
         const contentType = response.headers['content-type'];
         if (!contentType || !contentType.includes('pdf')) {
-          logger.warn(`  Content-Type is not PDF: ${contentType}`);
+          logger.warn({ contentType }, 'Content-Type is not PDF');
           let preview = '';
           response.data.on('data', (chunk) => {
             preview += chunk.toString('utf8', 0, 200);
             response.data.destroy();
           });
           await new Promise((resolve) => response.data.on('end', resolve));
-          logger.warn(`  Preview: ${preview}`);
+          logger.warn({ preview }, 'Content preview');
           continue;
         }
 
@@ -222,11 +223,11 @@ async function scrape() {
           writer.on('error', reject);
         });
 
-        logger.info(`  Saved PDF (size: ${fs.statSync(localPath).size} bytes)`);
+        logger.info({ size: fs.statSync(localPath).size }, 'Saved PDF');
         downloaded = true;
         await appendLogs(DATASET_KEY, `  Downloaded: ${filename}`);
       } catch (err) {
-        logger.error(`  Error: ${err.message}`);
+        logger.error({ error: err.message }, 'Error');
         await appendLogs(DATASET_KEY, `  ERROR: ${detailUrl} - ${err.message}`);
       }
 
@@ -238,12 +239,12 @@ async function scrape() {
     // Write metadata.json file
     const metadataPath = path.join(RAW_DIR, 'metadata.json');
     await fs.promises.writeFile(metadataPath, JSON.stringify(metadataList, null, 2));
-    logger.info(`✓ Wrote metadata to ${metadataPath}`);
+    logger.info({ metadataPath }, 'Wrote metadata');
     await appendLogs(DATASET_KEY, `Metadata saved for ${metadataList.length} entries.`);
 
-    logger.info(`\n✓ Processed ${entries.length} publications.`);
+    logger.info({ count: entries.length }, 'Processed publications');
   } catch (error) {
-    logger.error('✕ Fatal error:', error);
+    logger.error({ error }, 'Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {

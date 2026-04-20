@@ -11,7 +11,12 @@ import {
   retryWithBackoff,
 } from '#config/embedding.js';
 import { supabase } from '#database/index.js';
-import { DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON } from '#pipeline/datasetsUtils.js';
+import {
+  DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON,
+  assertFileExists,
+  writeJson,
+} from '#pipeline/datasetsUtils.js';
+import { logger } from '#utils/logger.js';
 
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
@@ -56,7 +61,7 @@ const flagsProvided = [
   RESTORE_SUPABASE_MISSING,
 ].filter(Boolean).length;
 if (flagsProvided > 1) {
-  console.error('❌ Error: Multiple flags provided. Please use only one flag at a time.');
+  logger.error('Error: Multiple flags provided. Please use only one flag at a time.');
   process.exit(1);
 }
 
@@ -69,50 +74,88 @@ const DEFAULT_MODE = !(
 );
 
 if (DEFAULT_MODE) {
-  console.log('◉ DEFAULT MODE: Generate ALL embeddings → cache + Supabase (overwrite both)');
+  logger.info('DEFAULT MODE: Generate ALL embeddings → cache + Supabase (overwrite both)');
 } else if (GEN_CACHE_ALL) {
-  console.log(
-    '◉ --gen-cache-all: Generate ALL embeddings → cache only (overwrite cache, no Supabase)',
+  logger.info(
+    '--gen-cache-all: Generate ALL embeddings → cache only (overwrite cache, no Supabase)',
   );
 } else if (GEN_CACHE_MISSING) {
-  console.log(
-    '◉ --gen-cache-missing: Generate ONLY missing embeddings → cache only (preserve existing, no Supabase)',
+  logger.info(
+    '--gen-cache-missing: Generate ONLY missing embeddings → cache only (preserve existing, no Supabase)',
   );
 } else if (RESTORE_SUPABASE_ALL) {
-  console.log(
-    '◉ --restore-supabase-all: Restore ALL embeddings from cache → Supabase (overwrite, no OpenAI)',
+  logger.info(
+    '--restore-supabase-all: Restore ALL embeddings from cache → Supabase (overwrite, no OpenAI)',
   );
 } else if (RESTORE_SUPABASE_MISSING) {
-  console.log(
-    '◉ --restore-supabase-missing: Restore ONLY missing embeddings from cache → Supabase (no OpenAI)',
+  logger.info(
+    '--restore-supabase-missing: Restore ONLY missing embeddings from cache → Supabase (no OpenAI)',
   );
 }
 
+/**
+ * Build the text that gets embedded for a row.
+ *
+ * We include title + company from metadata_json (when present) as context
+ * before problem + solution. This enriches semantic search so that queries
+ * like "CEWOOD panels" or "acoustic wood wool" surface the right rows even
+ * when the product name appears only in metadata_json, not in the core fields.
+ *
+ * NOTE: metadata_json may arrive as a parsed object (from Supabase select)
+ * or as a raw JSON string (if row came from CSV). Both cases are handled.
+ */
 function getTextToEmbed(row) {
   const parts = [];
+
+  // Extract searchable context fields from metadata_json
+  try {
+    const meta =
+      row.metadata_json && typeof row.metadata_json === 'object'
+        ? row.metadata_json
+        : JSON.parse(row.metadata_json || '{}');
+
+    // Title and product name: highest-signal identifiers
+    const title = meta.title || meta.product_name || '';
+    if (title) parts.push(title);
+
+    // Company: useful for org-level semantic queries
+    const company = meta.company || meta.Company || '';
+    if (company) parts.push(company);
+  } catch {
+    // metadata_json unparseable — skip silently, core fields still embedded
+  }
+
+  // Core descriptive fields
   if (row.problem) parts.push(row.problem);
   if (row.solution) parts.push(row.solution);
+
   return parts.join('\n\n').trim() || '[No text]';
 }
 
 async function loadCache() {
   try {
+    assertFileExists(
+      DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON,
+      'Embeddings cache file',
+    );
     const data = await fs.readFile(
       DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON,
       'utf8',
     );
-    return new Map(JSON.parse(data));
-  } catch {
+    return new Map(Object.entries(JSON.parse(data)));
+  } catch (error) {
+    if (error.message.includes('not found')) {
+      logger.info('Cache file does not exist, starting with empty cache');
+    } else {
+      logger.warn({ error: error.message }, 'Could not load cache file, starting with empty cache');
+    }
     return new Map();
   }
 }
 
 async function saveCache(cache) {
   const obj = Object.fromEntries(cache);
-  await fs.writeFile(
-    DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON,
-    JSON.stringify(obj, null, 2),
-  );
+  await writeJson(DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON, obj);
 }
 
 async function getEmbedding(text) {
@@ -134,14 +177,16 @@ async function updateEmbedding(id, embeddingVector) {
   if (error) throw new Error(`Failed to update ${id}: ${error.message}`);
 }
 
-// Helper: fetch all rows (for default, gen-cache-all, gen-cache-missing)
+// Fetch all rows including metadata_json (needed for richer embedding text)
 async function fetchAllRows() {
-  const { data, error } = await supabase.from('ce_cases').select('id, problem, solution');
+  const { data, error } = await supabase
+    .from('ce_cases')
+    .select('id, problem, solution, metadata_json');
   if (error) throw error;
   return data;
 }
 
-// Helper: fetch rows with NULL embedding (for restore-supabase-missing)
+// Fetch only rows with NULL embedding (for restore-supabase-missing)
 async function fetchRowsWithNullEmbedding() {
   const { data, error } = await supabase.from('ce_cases').select('id').is('embedding', null);
   if (error) throw error;
@@ -149,19 +194,18 @@ async function fetchRowsWithNullEmbedding() {
 }
 
 async function main() {
-  // Load current cache
   let cache = await loadCache();
-  console.log(`Loaded cache with ${cache.size} entries.`);
+  logger.info({ entries: cache.size }, 'Loaded cache');
 
   // --------------------------------------------------------------------------
   // MODE: RESTORE-SUPABASE-ALL (overwrite all Supabase embeddings from cache)
   // --------------------------------------------------------------------------
   if (RESTORE_SUPABASE_ALL) {
     if (cache.size === 0) {
-      console.error('❌ Cache is empty. Nothing to restore.');
+      logger.error('Cache is empty. Nothing to restore.');
       process.exit(1);
     }
-    console.log(`Restoring ${cache.size} embeddings from cache to Supabase (overwrite)...`);
+    logger.info({ count: cache.size }, 'Restoring embeddings from cache to Supabase (overwrite)');
     const entries = Array.from(cache.entries());
     let updated = 0;
     for (let i = 0; i < entries.length; i += EMBEDDING_BATCH_SIZE) {
@@ -170,22 +214,21 @@ async function main() {
         batch.map(async ([id, embedding]) => {
           await updateEmbedding(id, embedding);
           updated++;
-          console.log(`✓ ${id} updated in Supabase`);
+          logger.info({ id }, 'Updated in Supabase');
         }),
       );
-      console.log(`Progress: ${updated}/${cache.size}`);
+      logger.info({ updated, total: cache.size }, 'Progress');
       if (i + EMBEDDING_BATCH_SIZE < entries.length) {
         await new Promise((resolve) => setTimeout(resolve, EMBEDDING_BATCH_DELAY_MS));
       }
     }
-    console.log(`✅ Restored ${updated} embeddings to Supabase (all from cache).`);
-    // Final validation query
+    logger.info({ updated }, 'Restored embeddings to Supabase (all from cache)');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
       .is('embedding', null);
     if (error) throw error;
-    console.log(`📊 Supabase still has ${count} rows with NULL embedding.`);
+    logger.info({ count }, 'Supabase rows with NULL embedding');
     return;
   }
 
@@ -194,9 +237,9 @@ async function main() {
   // --------------------------------------------------------------------------
   if (RESTORE_SUPABASE_MISSING) {
     const missingRows = await fetchRowsWithNullEmbedding();
-    console.log(`Found ${missingRows.length} rows with NULL embedding in Supabase.`);
+    logger.info({ count: missingRows.length }, 'Found rows with NULL embedding in Supabase');
     if (missingRows.length === 0) {
-      console.log('No missing embeddings to restore.');
+      logger.info('No missing embeddings to restore');
       return;
     }
     let restored = 0;
@@ -209,28 +252,25 @@ async function main() {
             const embedding = cache.get(row.id);
             await updateEmbedding(row.id, embedding);
             restored++;
-            console.log(`✓ ${row.id} restored from cache to Supabase`);
+            logger.info({ id: row.id }, 'Restored from cache to Supabase');
           } else {
             missingInCache++;
-            console.warn(`⚠️  ${row.id} missing in cache — cannot restore.`);
+            logger.warn({ id: row.id }, 'Missing in cache — cannot restore');
           }
         }),
       );
-      console.log(
-        `Progress: ${restored}/${missingRows.length} restored, ${missingInCache} missing from cache`,
-      );
+      logger.info({ restored, total: missingRows.length, missingInCache }, 'Progress');
       if (i + EMBEDDING_BATCH_SIZE < missingRows.length) {
         await new Promise((resolve) => setTimeout(resolve, EMBEDDING_BATCH_DELAY_MS));
       }
     }
-    console.log(`✅ Restored ${restored} rows. ${missingInCache} rows missing from cache.`);
-    // Final validation
+    logger.info({ restored, missingInCache }, 'Restored rows');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
       .is('embedding', null);
     if (error) throw error;
-    console.log(`📊 Supabase still has ${count} rows with NULL embedding.`);
+    logger.info({ count }, 'Supabase rows with NULL embedding');
     return;
   }
 
@@ -238,40 +278,39 @@ async function main() {
   // For all remaining modes, we need all rows from the database
   // --------------------------------------------------------------------------
   const allRows = await fetchAllRows();
-  console.log(`Total rows in ce_cases: ${allRows.length}`);
+  logger.info({ count: allRows.length }, 'Total rows in ce_cases');
 
   // --------------------------------------------------------------------------
   // MODE: GEN-CACHE-ALL (generate all embeddings, update cache only)
   // --------------------------------------------------------------------------
   if (GEN_CACHE_ALL) {
-    console.log('Generating embeddings for ALL rows (cache only)...');
+    logger.info('Generating embeddings for ALL rows (cache only)');
     let generated = 0;
     for (let i = 0; i < allRows.length; i += EMBEDDING_BATCH_SIZE) {
       const batch = allRows.slice(i, i + EMBEDDING_BATCH_SIZE);
       await Promise.all(
         batch.map(async (row) => {
           const text = getTextToEmbed(row);
-          console.log(`Generating embedding for ${row.id} (${text.length} chars)...`);
+          logger.info({ id: row.id, chars: text.length }, 'Generating embedding');
           const embedding = await getEmbedding(text);
           cache.set(row.id, embedding);
           generated++;
-          console.log(`✓ ${row.id} generated and cached`);
+          logger.info({ id: row.id }, 'Generated and cached');
         }),
       );
-      console.log(`Progress: ${generated}/${allRows.length}`);
+      logger.info({ generated, total: allRows.length }, 'Progress');
       await saveCache(cache);
       if (i + EMBEDDING_BATCH_SIZE < allRows.length) {
         await new Promise((resolve) => setTimeout(resolve, EMBEDDING_BATCH_DELAY_MS));
       }
     }
-    console.log(`✅ Generated and cached ${generated} embeddings.`);
-    // Optional: show Supabase NULL count (cache-only doesn't change Supabase)
+    logger.info({ generated }, 'Generated and cached embeddings');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
       .is('embedding', null);
     if (error) throw error;
-    console.log(`📊 Supabase currently has ${count} rows with NULL embedding.`);
+    logger.info({ count }, 'Supabase currently has rows with NULL embedding');
     return;
   }
 
@@ -280,9 +319,9 @@ async function main() {
   // --------------------------------------------------------------------------
   if (GEN_CACHE_MISSING) {
     const missingInCache = allRows.filter((row) => !cache.has(row.id));
-    console.log(`Found ${missingInCache.length} rows missing from cache.`);
+    logger.info({ count: missingInCache.length }, 'Found rows missing from cache');
     if (missingInCache.length === 0) {
-      console.log('Cache already contains all rows. Nothing to generate.');
+      logger.info('Cache already contains all rows. Nothing to generate');
       return;
     }
     let generated = 0;
@@ -291,65 +330,61 @@ async function main() {
       await Promise.all(
         batch.map(async (row) => {
           const text = getTextToEmbed(row);
-          console.log(`Generating embedding for ${row.id} (${text.length} chars)...`);
+          logger.info({ id: row.id, chars: text.length }, 'Generating embedding');
           const embedding = await getEmbedding(text);
           cache.set(row.id, embedding);
           generated++;
-          console.log(`✓ ${row.id} generated and added to cache`);
+          logger.info({ id: row.id }, 'Generated and added to cache');
         }),
       );
-      console.log(`Progress: ${generated}/${missingInCache.length}`);
+      logger.info({ generated, total: missingInCache.length }, 'Progress');
       await saveCache(cache);
       if (i + EMBEDDING_BATCH_SIZE < missingInCache.length) {
         await new Promise((resolve) => setTimeout(resolve, EMBEDDING_BATCH_DELAY_MS));
       }
     }
-    console.log(`✅ Generated and cached ${generated} new embeddings.`);
-    // Optional: show Supabase NULL count
+    logger.info({ generated }, 'Generated and cached new embeddings');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
       .is('embedding', null);
     if (error) throw error;
-    console.log(`📊 Supabase currently has ${count} rows with NULL embedding.`);
+    logger.info({ count }, 'Supabase currently has rows with NULL embedding');
     return;
   }
 
   // --------------------------------------------------------------------------
   // DEFAULT MODE: generate all embeddings, overwrite cache + Supabase
   // --------------------------------------------------------------------------
-  console.log('DEFAULT MODE: Generating embeddings for ALL rows (overwrite cache + Supabase)...');
+  logger.info('DEFAULT MODE: Generating embeddings for ALL rows (overwrite cache + Supabase)');
   let generated = 0;
   for (let i = 0; i < allRows.length; i += EMBEDDING_BATCH_SIZE) {
     const batch = allRows.slice(i, i + EMBEDDING_BATCH_SIZE);
     await Promise.all(
       batch.map(async (row) => {
         const text = getTextToEmbed(row);
-        console.log(`Generating embedding for ${row.id} (${text.length} chars)...`);
+        logger.info({ id: row.id, chars: text.length }, 'Generating embedding');
         const embedding = await getEmbedding(text);
-        // Update cache
         cache.set(row.id, embedding);
-        // Update Supabase
         await updateEmbedding(row.id, embedding);
         generated++;
-        console.log(`✓ ${row.id} generated and stored in cache + Supabase`);
+        logger.info({ id: row.id }, 'Generated and stored in cache + Supabase');
       }),
     );
-    console.log(`Progress: ${generated}/${allRows.length}`);
+    logger.info({ generated, total: allRows.length }, 'Progress');
     await saveCache(cache);
     if (i + EMBEDDING_BATCH_SIZE < allRows.length) {
       await new Promise((resolve) => setTimeout(resolve, EMBEDDING_BATCH_DELAY_MS));
     }
   }
-  console.log(`✅ Generated and stored ${generated} embeddings (cache + Supabase).`);
+  logger.info({ generated }, 'Generated and stored embeddings (cache + Supabase)');
 
-  // Final validation: count rows still with NULL embedding
   const { count, error } = await supabase
     .from('ce_cases')
     .select('id', { count: 'exact', head: true })
     .is('embedding', null);
   if (error) throw error;
-  console.log(`📊 Supabase has ${count} rows with NULL embedding (should be 0).`);
+  logger.info({ count }, 'Supabase rows with NULL embedding (should be 0)');
 }
 
-main().catch(console.error);
+main().catch((error) => logger.error({ error }, 'Main failed'));

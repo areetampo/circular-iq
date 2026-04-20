@@ -90,7 +90,7 @@ function scoreCaseQuality(data) {
  */
 async function extractCaseData(page, url, title) {
   try {
-    logger.info(`    Visiting detail page: ${url}`);
+    logger.info({ url }, 'Visiting detail page');
     await appendLogs(DATASET_KEY, `Visiting detail page: ${url}`);
 
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
@@ -117,11 +117,11 @@ async function extractCaseData(page, url, title) {
         containerFound = true;
         content = await page.$eval(selector, (el) => el.innerText);
         if (content && content.trim().length > 0) {
-          logger.info(`    Found content using selector: ${selector}`);
+          logger.info({ selector }, 'Found content using selector');
           break;
         }
       } catch (err) {
-        logger.error(`Error occurred while waiting for selector ${selector}: ${err.message}`);
+        logger.error({ selector, error: err.message }, 'Error while waiting for selector');
         // selector not found or empty, try next
       }
     }
@@ -282,7 +282,7 @@ async function extractCaseData(page, url, title) {
 
     return rowData;
   } catch (error) {
-    logger.error(`Error extracting ${url}:`, error.message);
+    logger.error({ url, error: error.message }, 'Error extracting');
     await appendLogs(DATASET_KEY, `ERROR: ${url} - ${error.message}`);
     return null;
   }
@@ -302,7 +302,7 @@ async function rebuildFromBackup() {
     return;
   }
 
-  logger.info(`Found ${backupRows.length} rows in backup`);
+  logger.info({ count: backupRows.length }, 'Found rows in backup');
   await appendLogs(DATASET_KEY, `Read ${backupRows.length} backup rows.`);
 
   // Parse metadata and restore quality scores
@@ -320,7 +320,7 @@ async function rebuildFromBackup() {
           qualityScore,
         };
       } catch (e) {
-        logger.error(`Error parsing backup row: ${e.message}`);
+        logger.error({ error: e.message }, 'Error parsing backup row');
         return null;
       }
     })
@@ -329,7 +329,7 @@ async function rebuildFromBackup() {
   // Sort by quality and take top MAX_ROWS
   const topCases = cases.sort((a, b) => b.qualityScore - a.qualityScore).slice(0, MAX_ROWS);
 
-  logger.info(`Selected ${topCases.length} high‑quality cases after scoring/filtering`);
+  logger.info({ count: topCases.length }, 'Selected high-quality cases after scoring/filtering');
   await appendLogs(DATASET_KEY, `Selected ${topCases.length} cases after scoring/filtering.`);
 
   if (topCases.length === 0) {
@@ -344,7 +344,7 @@ async function rebuildFromBackup() {
     return cleanRow;
   });
 
-  logger.info(`✓ Rebuilt ${finalRows.length} rows from backup`);
+  logger.info({ count: finalRows.length }, 'Rebuilt rows from backup');
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows, {
     append: APPEND_PROCESSED,
   });
@@ -362,8 +362,9 @@ async function scrape() {
 
   await appendLogs(DATASET_KEY, `🚀 Scrape started...`);
 
-  logger.info(`Scraping Kalundborg Symbiosis cases from ${LISTING_URL}`);
-  logger.info(`Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`);
+  logger.info({ url: LISTING_URL }, 'Scraping Kalundborg Symbiosis cases');
+  const logFilePath = getDatasetScrapeLogsPath(DATASET_KEY);
+  logger.info({ logFilePath }, 'Logs path');
 
   const browser = await puppeteerExtra.launch(getBrowserLaunchOptions());
   const page = await browser.newPage();
@@ -390,7 +391,7 @@ async function scrape() {
         .filter((c) => c.url && c.title);
     });
 
-    logger.info(`Found ${cases.length} cases on listing page`);
+    logger.info({ count: cases.length }, 'Found cases on listing page');
     await appendLogs(DATASET_KEY, `Found ${cases.length} cases`);
 
     const allRows = [];
@@ -398,7 +399,7 @@ async function scrape() {
     // Process each case
     for (let i = 0; i < cases.length; i++) {
       const caseItem = cases[i];
-      logger.info(`[${i + 1}/${cases.length}] Processing: ${caseItem.title}`);
+      logger.info({ current: i + 1, total: cases.length, title: caseItem.title }, 'Processing case');
       await appendLogs(
         DATASET_KEY,
         `Processing [${i + 1}/${cases.length}]: ${caseItem.title} - ${caseItem.url}`,
@@ -428,7 +429,7 @@ async function scrape() {
     // Sort by quality score (already computed) and take top MAX_ROWS
     const topRows = validRows.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, MAX_ROWS);
 
-    logger.info(`Valid rows: ${validRows.length}, keeping top ${topRows.length} by quality score`);
+    logger.info({ valid: validRows.length, keeping: topRows.length }, 'Valid rows, keeping top by quality score');
     await appendLogs(DATASET_KEY, `Valid rows: ${validRows.length}, keeping top ${topRows.length}`);
 
     // Prepare final rows (strip temporary fields)
@@ -441,10 +442,11 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    logger.info('\n✓ Scraping complete!');
-    logger.info(`   Kept (top ${MAX_ROWS}): ${finalRows.length}`);
+    logger.info({}, 'Scraping complete');
+    logger.info({ maxRows: MAX_ROWS, kept: finalRows.length }, 'Kept top rows');
     logger.info(
-      `   Output: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
+      'Output saved'
     );
 
     const firstRow = finalRows[0];

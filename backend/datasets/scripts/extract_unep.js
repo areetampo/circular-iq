@@ -235,11 +235,11 @@ async function processMaterialFootprint(filePath) {
 // Main: process all files, then filter top TARGET_ROWS by score
 // ----------------------------------------------------------------------
 async function main() {
-  logger.info(`🔍 Scanning ${RAW_DIR}...`);
+  logger.info({ rawDir: RAW_DIR }, 'Scanning directory');
 
   // Ensure raw folder exists
   if (!fs.existsSync(RAW_DIR)) {
-    logger.error(`✕ Raw directory not found: ${RAW_DIR}`);
+    logger.error({ rawDir: RAW_DIR }, 'Raw directory not found');
     process.exit(1);
   }
 
@@ -260,17 +260,17 @@ async function main() {
   for (const fh of fileHandlers) {
     const filePath = path.join(RAW_DIR, fh.name);
     if (!fs.existsSync(filePath)) {
-      logger.info(`‼ ️  File not found: ${fh.name} – skipping.`);
+      logger.info({ fileName: fh.name }, 'File not found, skipping');
       continue;
     }
 
-    logger.info(`📄 Processing ${fh.name}...`);
+    logger.info({ fileName: fh.name }, 'Processing file');
     try {
       const results = await fh.handler(filePath);
-      logger.info(`   ✓ Extracted ${results.length} records.`);
+      logger.info({ count: results.length }, 'Extracted records');
       allResults.push(...results);
     } catch (err) {
-      logger.error(`   ✕ Error processing ${fh.name}:`, err.message);
+      logger.error({ fileName: fh.name, error: err.message }, 'Error processing file');
     }
   }
 
@@ -288,7 +288,7 @@ async function main() {
   scored.sort((a, b) => b.score - a.score);
   const topRows = scored.slice(0, TARGET_ROWS);
 
-  logger.info(`\n🎯 Selected top ${topRows.length} rows by quality score.`);
+  logger.info({ selected: topRows.length }, 'Selected top rows by quality score');
 
   // Remove temporary fields
   const final = topRows.map(({ _scoreValue, score, ...rest }) => rest);
@@ -296,7 +296,8 @@ async function main() {
   // writeCsv handles directory creation, clearing and read-only locking
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, final);
   logger.info(
-    `✓ Success! Wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    { written: writeResult.writtenCount, outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount },
+    'Success! Wrote records to output file'
   );
 }
 

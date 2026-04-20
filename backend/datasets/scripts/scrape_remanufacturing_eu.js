@@ -102,7 +102,7 @@ async function scrape() {
   try {
     const targetUrl = dataset.urls.case_studies;
 
-    logger.info(`Navigating to ${targetUrl}`);
+    logger.info({ targetUrl }, 'Navigating to target URL');
     await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 60000 });
 
     // Wait for the page to load
@@ -151,7 +151,7 @@ async function scrape() {
       return results;
     });
 
-    logger.info(`Found ${allCases.length} total case studies across all industries.`);
+    logger.info({ count: allCases.length }, 'Found total case studies across all industries');
     await appendLogs(DATASET_KEY, `Found ${allCases.length} total cases.`);
 
     // Deduplicate by PDF filename (some cases might share the same PDF? unlikely but safe)
@@ -166,18 +166,18 @@ async function scrape() {
         seenFilenames.add(filename);
         uniqueCases.push({ ...item, filename });
       } else {
-        logger.info(`  Skipping duplicate PDF: ${filename} (${item.title})`);
+        logger.info({ filename, title: item.title }, 'Skipping duplicate PDF');
       }
     }
 
-    logger.info(`Processing ${uniqueCases.length} unique case studies.`);
+    logger.info({ count: uniqueCases.length }, 'Processing unique case studies');
 
     // Download all PDFs
     for (let i = 0; i < uniqueCases.length; i++) {
       const item = uniqueCases[i];
       const localPath = path.join(RAW_DIR, item.filename);
 
-      logger.info(`[${i + 1}/${uniqueCases.length}] ${item.title} (${item.industry})`);
+      logger.info({ current: i + 1, total: uniqueCases.length, title: item.title, industry: item.industry }, 'Processing case study');
 
       const backupRow = {
         industry: item.industry,
@@ -190,7 +190,7 @@ async function scrape() {
 
       if (!fs.existsSync(localPath)) {
         try {
-          logger.info(`  Downloading ${item.pdfUrl} -> ${item.filename}`);
+          logger.info({ pdfUrl: item.pdfUrl, filename: item.filename }, 'Downloading PDF');
 
           const cookies = await page.cookies();
           const cookieString = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
@@ -212,7 +212,7 @@ async function scrape() {
 
           const contentType = response.headers['content-type'];
           if (!contentType || !contentType.includes('pdf')) {
-            logger.warn(`  Content-Type is not PDF: ${contentType}, skipping.`);
+            logger.warn({ contentType }, 'Content-Type is not PDF, skipping');
             backupRow.downloaded = 'failed (not pdf)';
           } else {
             const writer = fs.createWriteStream(localPath);
@@ -221,7 +221,7 @@ async function scrape() {
               writer.on('finish', resolve);
               writer.on('error', reject);
             });
-            logger.info(`  Saved PDF (${fs.statSync(localPath).size} bytes)`);
+            logger.info({ size: fs.statSync(localPath).size }, 'Saved PDF');
             await appendLogs(
               DATASET_KEY,
               `  Downloaded: ${item.filename} (${item.title}, ${item.pdfUrl}) - ${contentType}, ${response.headers['content-length']} bytes`,
@@ -229,12 +229,12 @@ async function scrape() {
             backupRow.downloaded = 'yes';
           }
         } catch (err) {
-          logger.error(`  Error downloading: ${err.message}`);
+          logger.error({ error: err.message }, 'Error downloading');
           backupRow.downloaded = `failed (${err.message})`;
           await appendLogs(DATASET_KEY, `  Download error for ${item.filename}: ${err.message}`);
         }
       } else {
-        logger.info(`  File already exists, skipping download.`);
+        logger.info({}, 'File already exists, skipping download');
         backupRow.downloaded = 'yes';
       }
 
@@ -244,7 +244,7 @@ async function scrape() {
         totalPdfCollected++;
         downloadedCases.push(item);
         if (totalPdfCollected >= TOTAL_PDF_COLLECTED_LIMIT) {
-          logger.info(`Reached limit of ${TOTAL_PDF_COLLECTED_LIMIT} PDFs collected. Stopping.`);
+          logger.info({ limit: TOTAL_PDF_COLLECTED_LIMIT }, 'Reached limit of PDFs collected');
           await appendLogs(DATASET_KEY, `Reached limit: ${totalPdfCollected} PDFs collected.`);
           break;
         }
@@ -265,13 +265,13 @@ async function scrape() {
       pdf_url: item.pdfUrl,
     }));
     await fs.promises.writeFile(metadataPath, JSON.stringify(metadataList, null, 2));
-    logger.info(`✓ Wrote metadata to ${metadataPath}`);
+    logger.info({ metadataPath }, 'Wrote metadata');
     await appendLogs(
       DATASET_KEY,
       `Wrote metadata for ${metadataList.length} cases to ${metadataPath}`,
     );
 
-    logger.info(`\n✓ Scrape completed. PDFs saved to ${RAW_DIR}`);
+    logger.info({ rawDir: RAW_DIR }, 'Scrape completed');
     await appendLogs(DATASET_KEY, `Scrape completed. Total PDFs: ${totalPdfCollected}`);
   } catch (error) {
     logger.error('✕ Fatal error:', error);

@@ -79,7 +79,7 @@ async function main() {
   try {
     raw = await fs.readFile(inputFile, 'utf-8');
   } catch (err) {
-    logger.error(`✕ Input file not found: ${inputFile}`);
+    logger.error({ inputFile }, 'Input file not found');
     throw err;
   }
 
@@ -90,7 +90,7 @@ async function main() {
     trim: true,
   });
 
-  logger.info(`📄 Parsed ${records.length} TRI records`);
+  logger.info({ count: records.length }, 'Parsed TRI records');
 
   // 2. Detect key columns dynamically
   const keys = Object.keys(records[0] || {});
@@ -142,7 +142,7 @@ async function main() {
     })
     .filter((r) => r.chemical && r.totalRelease > 0); // basic quality filter
 
-  logger.info(`✓ Usable rows (chemical + release > 0): ${enriched.length}`);
+  logger.info({ count: enriched.length }, 'Usable rows (chemical + release > 0)');
 
   // 4. Compute normalized scores for each dimension
   const maxTotalRelease = Math.max(...enriched.map((r) => r.totalRelease));
@@ -165,7 +165,7 @@ async function main() {
   // 5. Sort by combined score descending and take top TARGET_ROWS
   const topRows = scored.sort((a, b) => b.combinedScore - a.combinedScore).slice(0, TARGET_ROWS);
 
-  logger.info(`🏆 Selected top ${topRows.length} rows by combined score.`);
+  logger.info({ count: topRows.length }, 'Selected top rows by combined score');
 
   // 6. Transform to standard format
   const processed = topRows.map((r) => {

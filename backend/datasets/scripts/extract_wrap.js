@@ -26,13 +26,13 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import {
-    cleanText,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    DATASETS_PROCESSED_DIR,
-    getDatasetRawDir,
-    verifyPathsExist,
-    writeCsv,
+  cleanText,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  DATASETS_PROCESSED_DIR,
+  getDatasetRawDir,
+  verifyPathsExist,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -324,12 +324,12 @@ async function main() {
     logger.warn('No PDF files found in', RAW_DIR);
     return;
   }
-  logger.info(`Found ${pdfFiles.length} PDFs.`);
+  logger.info({ count: pdfFiles.length }, 'Found PDFs');
 
   const allCandidates = [];
 
   for (const { fullPath, relPath } of pdfFiles) {
-    logger.info(`Processing ${relPath}...`);
+    logger.info({ relPath }, 'Processing file');
     try {
       const text = await extractPdfText(fullPath);
       const paragraphs = text
@@ -356,11 +356,11 @@ async function main() {
         }
       });
     } catch (err) {
-      logger.error(`✕ Failed to extract text from ${relPath}: ${err.message}`);
+      logger.error({ relPath, error: err.message }, 'Failed to extract text from file');
     }
   }
 
-  logger.info(`Collected ${allCandidates.length} candidate paragraphs.`);
+  logger.info({ count: allCandidates.length }, 'Collected candidate paragraphs');
   if (allCandidates.length === 0) return;
 
   const rows = allCandidates.map((cand) => {
@@ -392,10 +392,11 @@ async function main() {
 
   const limitedRows = rows.slice(0, MAX_ROWS);
 
-  logger.info(`Generated ${limitedRows.length} rows. (limited to top ${MAX_ROWS} rows by score)`);
+  logger.info({ count: limitedRows.length, maxRows: MAX_ROWS }, 'Generated rows (limited by score)');
   const writeResult = await writeCsv(DATASET_KEY, outputPath, limitedRows);
   logger.info(
-    `✓ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    { written: writeResult.writtenCount, outputPath, duplicates: writeResult.duplicateCount },
+    'Written rows to output file'
   );
 }
 

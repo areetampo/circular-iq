@@ -175,7 +175,7 @@ function processMaskLCA() {
     return rows;
   }
 
-  logger.info(`✓ Found header at row ${headerRowIndex}, material column index ${materialColIdx}`);
+  logger.info({ headerRow: headerRowIndex, materialColumn: materialColIdx }, 'Found header and material column');
   const headers = data[headerRowIndex];
 
   // Data rows start after header
@@ -215,7 +215,7 @@ function processMaskLCA() {
     });
   }
 
-  logger.info(`✓ Extracted ${rows.length} rows from Mask LCA`);
+  logger.info({ count: rows.length }, 'Extracted rows from Mask LCA');
   return rows;
 }
 
@@ -283,9 +283,9 @@ function processSMESurvey() {
     });
   }
 
-  logger.info(`✓ Extracted ${rows.length} raw rows from SME Survey`);
+  logger.info({ count: rows.length }, 'Extracted raw rows from SME Survey');
   const sampled = randomSample(rows, SME_SAMPLE_SIZE);
-  logger.info(`   → Sampled ${sampled.length} rows`);
+  logger.info({ count: sampled.length }, 'Sampled rows');
   return sampled;
 }
 
@@ -439,7 +439,7 @@ function processNetworkCentrality() {
     });
   }
 
-  logger.info(`✓ Extracted ${rows.length} rows from Network Centrality`);
+  logger.info({ count: rows.length }, 'Extracted rows from Network Centrality');
   return rows;
 }
 
@@ -499,7 +499,7 @@ function processSustainableBusinessModel() {
   }
 
   const sampled = randomSample(allRows, SBM_SAMPLE_SIZE);
-  logger.info(`✓ Extracted ${sampled.length} rows (out of ${allRows.length} total)`);
+  logger.info({ sampled: sampled.length, total: allRows.length }, 'Extracted sampled rows');
   return sampled;
 }
 
@@ -516,18 +516,18 @@ async function main() {
 
   let allRows = [...maskRows, ...smeRows, ...swaraRows, ...networkRows, ...sbmRows];
 
-  logger.info(`\n📊 Summary:`);
-  logger.info(`  - Mask LCA rows: ${maskRows.length}`);
-  logger.info(`  - SME Survey rows: ${smeRows.length}`);
-  logger.info(`  - SWARA rows: ${swaraRows.length}`);
-  logger.info(`  - Network Centrality rows: ${networkRows.length}`);
-  logger.info(`  - Sustainable Business Model rows: ${sbmRows.length}`);
-  logger.info(`  - Total: ${allRows.length}`);
+  logger.info({}, 'Summary');
+  logger.info({ mask: maskRows.length }, 'Mask LCA rows');
+  logger.info({ sme: smeRows.length }, 'SME Survey rows');
+  logger.info({ swara: swaraRows.length }, 'SWARA rows');
+  logger.info({ network: networkRows.length }, 'Network Centrality rows');
+  logger.info({ sbm: sbmRows.length }, 'Sustainable Business Model rows');
+  logger.info({ total: allRows.length }, 'Total rows');
 
   // --- Intelligent selection ---
 
   if (allRows.length > MAX_ROWS) {
-    logger.info(`\n🔍 Applying intelligent filtering to keep the ${MAX_ROWS} best rows...`);
+    logger.info({ maxRows: MAX_ROWS }, 'Applying intelligent filtering');
 
     // 1. Identify rows from small, high‑value sources (keep all of them)
     //    We detect them by metadata fields rather than category, because category can be ambiguous.
@@ -559,11 +559,9 @@ async function main() {
     // 6. Final set
     allRows = [...highValueRows, ...bestRemaining];
 
-    logger.info(
-      `   - Kept all ${highValueRows.length} high‑value rows (SWARA + Network Centrality)`,
-    );
-    logger.info(`   - Selected ${bestRemaining.length} top rows from other sources`);
-    logger.info(`   → Final row count: ${allRows.length}`);
+    logger.info({ highValue: highValueRows.length }, 'Kept all high-value rows');
+    logger.info({ selected: bestRemaining.length }, 'Selected top rows from other sources');
+    logger.info({ final: allRows.length }, 'Final row count');
   }
 
   if (allRows.length === 0) {
