@@ -11,13 +11,13 @@ import helmet from 'helmet';
 import { OpenAI } from 'openai';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { EMBEDDING_DIMENSION, EMBEDDING_MODEL } from '#config/embedding.js';
 import { createSupabaseAnonClient, createSupabaseClient } from '#database/supabase.client.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import healthRoutes from '#routes/health.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
+import createSearchRouter from '#routes/search.routes.js';
 import { getMinimalHealth, getSystemHealth } from '#services/health.service.js';
 
 const app = express();
@@ -216,6 +216,7 @@ app.use('/health', healthRoutes);
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
+app.use('/api/search', createSearchRouter(supabase));
 
 app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
   try {
@@ -250,90 +251,6 @@ app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   }
-});
-
-app.get('/docs/methodology', (req, res) => {
-  res.json({
-    title: 'Circular Economy Business Auditor - Methodology',
-    version: '1.0.0',
-    framework: {
-      name: '8-Factor Circular Economy Evaluation Framework',
-      description: 'Deterministic scoring system for assessing circular economy business viability',
-      factors: {
-        'Access Value (Social & Participation)': {
-          public_participation: {
-            weight: 0.15,
-            range: '0-100',
-            description: 'How easily can stakeholders engage with your system?',
-            low: 'Limited to specific groups',
-            high: 'Universal accessibility',
-          },
-          infrastructure: {
-            weight: 0.15,
-            range: '0-100',
-            description: 'Existing infrastructure availability and geographic reach',
-            low: 'Limited infrastructure - significant investment needed',
-            high: 'Strong existing infrastructure supports this',
-          },
-        },
-        'Embedded Value (Economic & Material)': {
-          market_price: {
-            weight: 0.2,
-            range: '0-100',
-            description: 'Economic value of recovered materials and market demand',
-            low: 'Requires subsidies or policy support',
-            high: 'Strong market demand and recovery value',
-          },
-          maintenance: {
-            weight: 0.1,
-            range: '0-100',
-            description: 'Ease and cost of upkeep, system durability',
-            low: 'High maintenance demands',
-            high: 'Very easy to maintain, low cost',
-          },
-          uniqueness: {
-            weight: 0.1,
-            range: '0-100',
-            description: 'Innovation level and competitive advantage',
-            low: 'Conventional approach',
-            high: 'Highly innovative',
-          },
-        },
-        'Processing Value (Technical & Operational)': {
-          size_efficiency: {
-            weight: 0.1,
-            range: '0-100',
-            description: 'Physical footprint and transportation efficiency',
-            low: 'Significant space and resources needed',
-            high: 'Highly space-efficient, minimal footprint',
-          },
-          chemical_safety: {
-            weight: 0.1,
-            range: '0-100',
-            description: 'Environmental hazards and health risks (inverse scale)',
-            low: 'Significant hazards - strict protocols required',
-            high: 'Minimal environmental and health risks',
-          },
-          tech_readiness: {
-            weight: 0.1,
-            range: '0-100',
-            description: 'Technology maturity and implementation complexity',
-            low: 'Emerging technology, significant R&D needed',
-            high: 'Proven technology, ready for deployment',
-          },
-        },
-      },
-    },
-    scoring_formula: 'overall_score = Σ(sub_score * weight) for all 8 factors',
-    total_weight: 1.0,
-    database: {
-      name: '...many...',
-      size: 'Dynamic (embedded in Supabase)',
-      embedding_model: EMBEDDING_MODEL,
-      embedding_dimensions: EMBEDDING_DIMENSION,
-      retrieval_method: 'Cosine similarity search',
-    },
-  });
 });
 
 // 404 handler

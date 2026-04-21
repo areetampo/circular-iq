@@ -69,7 +69,7 @@ GET /health?detailed=true&checks=database,openai
       "status": "healthy",
       "environment": "production",
       "apiAuthEnabled": true,
-      "publicRoutes": ["/health", "/api/search"],
+      "publicRoutes": ["/health", "/api/score", "/api/score/stream", "/api/assessments/public"],
       "timestamp": "2025-01-19T10:35:00.000Z"
     }
   }

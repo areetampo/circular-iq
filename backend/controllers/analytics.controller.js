@@ -7,7 +7,6 @@
 import { spawn } from 'child_process';
 import path from 'path';
 
-import { documentsRepository } from '#database/index.js';
 import { filterSchema } from '#middleware/validation.middleware.js';
 import {
   buildRecentMonths,
@@ -500,44 +499,6 @@ export function postEmbeddingsReindex() {
       logger.error({ err }, 'Failed to start embedding pipeline');
       res.status(500).json({
         error: err?.message || 'Failed to start embedding pipeline',
-        code: err?.code || 'INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
-}
-
-export function getDocumentsSummary() {
-  return async (req, res) => {
-    try {
-      const [byIndustry, byCategory, byRStrategy, byScale, bySource] = await Promise.all([
-        documentsRepository.countBy('industry'),
-        documentsRepository.countBy('category'),
-        documentsRepository.countBy("metadata->>'r_strategy'"),
-        documentsRepository.countBy("metadata->>'scale'"),
-        documentsRepository.countBy('source'),
-      ]);
-      res.json({ byIndustry, byCategory, byRStrategy, byScale, bySource });
-    } catch (err) {
-      logger.error({ err }, 'Failed to fetch document summary');
-      res.status(500).json({
-        error: err?.message || 'Failed to fetch document summary',
-        code: err?.code || 'INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
-}
-
-export function getDocumentsStats(/*supabase*/) {
-  return async (req, res) => {
-    try {
-      const data = await documentsRepository.getStatistics();
-      res.json({ stats: data });
-    } catch (err) {
-      logger.error({ err }, 'Failed to fetch document stats');
-      res.status(500).json({
-        error: err?.message || 'Failed to fetch document stats',
         code: err?.code || 'INTERNAL_ERROR',
         timestamp: new Date().toISOString(),
       });

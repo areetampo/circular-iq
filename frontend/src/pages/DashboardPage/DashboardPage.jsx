@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, LineChart, PieChart } from '@/components/charts';
 import { Button } from '@/components/common';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
-import { useDocumentStats } from '@/features/assessments/hooks/useDocumentStats';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -101,16 +100,13 @@ export default function DashboardPage() {
     isLoading: userStatsLoading,
   } = useAssessmentStats({ enabled: !!user });
 
-  // ── Doc stats ─────────────────────────────────────────────────────────────────
-  const { stats: docStats, loading: docLoading } = useDocumentStats();
-
   // Update timestamp when data finishes loading
   useEffect(() => {
     // Update timestamp when all data has finished loading
-    if (!globalLoading && !userStatsLoading && !docLoading) {
+    if (!globalLoading && !userStatsLoading) {
       setUpdatedAt(new Date());
     }
-  }, [globalLoading, userStatsLoading, docLoading]);
+  }, [globalLoading, userStatsLoading]);
 
   // ── Chart data (all memoised) ─────────────────────────────────────────────────
 
@@ -183,11 +179,6 @@ export default function DashboardPage() {
     [userByRisk],
   );
 
-  const totalDocs = useMemo(
-    () => (docStats?.byIndustry || []).reduce((s, d) => s + (d.count || 0), 0),
-    [docStats],
-  );
-
   const qualityRate = junkRate != null ? (100 - junkRate).toFixed(1) : null;
 
   // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────
@@ -237,6 +228,7 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       <section>
         <DashboardSectionHeading label="SEARCH SOLUTIONS" />
+
         <div className="my-16 text-center text-2xl font-semibold italic">work in progress ...</div>
       </section>
 
@@ -245,22 +237,6 @@ export default function DashboardPage() {
           ════════════════════════════════════════════════════════════════════ */}
       <section>
         <DashboardSectionHeading label="KNOWLEDGE DATABASE STATS" />
-
-        {/* Doc stats */}
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard
-            title="Total Documents"
-            value={totalDocs?.toLocaleString()}
-            loading={docLoading}
-          />
-          <StatCard title="Industries" value={docStats?.byIndustry?.length} loading={docLoading} />
-          <StatCard title="Sources" value={docStats?.bySources?.length} loading={docLoading} />
-          <StatCard
-            title="Categories"
-            value={docStats?.byCategory?.length || 0}
-            loading={docLoading}
-          />
-        </div>
 
         <div className="my-16 text-center text-2xl font-semibold italic">work in progress ...</div>
       </section>

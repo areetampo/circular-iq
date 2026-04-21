@@ -171,7 +171,7 @@ frontend/src/
 │   ├── assessments/
 │   │   ├── api/
 │   │   │   └── assessmentApi.js     # All API functions: scoreAssessment, getAssessments, saveAssessment,
-│   │   │                              #   compareAssessments, getGlobalStats, getDocumentStats, etc.
+│   │   │                              #   compareAssessments, getGlobalStats, etc.
 │   │   ├── schemas/
 │   │   │   └── assessmentSchema.js  # Zod response validation schemas
 │   │   │
@@ -180,7 +180,6 @@ frontend/src/
 │   │   │   ├── useAssessments.js          # List + delete with optimistic update
 │   │   │   ├── useAssessmentComparison.js # Fetch and compare two assessments
 │   │   │   ├── useAssessmentStats.js      # User aggregate stats (totalAssessments, avgScore, etc.)
-│   │   │   ├── useDocumentStats.js        # Knowledge base stats (byIndustry, byCategory, byRStrategy)
 │   │   │   ├── useFeaturedSolutions.js    # Featured solutions with optional semantic search
 │   │   │   └── useGlobalStats.js          # Global dashboard stats from /api/analytics/global-stats
 │   │   │

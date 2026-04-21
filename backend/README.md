@@ -360,10 +360,6 @@ Detailed analytics with time series, industry metrics, score distributions, and 
 
 Returns curated solutions from the knowledge base. Supports semantic search (`q` query param) or falls back to recent documents. Supports `industry`, `category`, `source`, `limit` parameters.
 
-#### GET `/api/analytics/documents/stats`
-
-Returns knowledge base statistics grouped by industry, category, source, and R-strategy.
-
 #### GET `/api/analytics/global-stats`
 
 See the full response shape documented above in the [GET /api/analytics/global-stats](#get-apianalyticsglobal-stats) section.

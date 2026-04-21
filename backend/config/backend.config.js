@@ -117,7 +117,6 @@ const parsePublicRoutes = () => {
     '/health/readiness',
     '/health/liveness',
     '/health/version',
-    '/api/search',
   ];
   const routes = env.PUBLIC_ROUTES ?? [];
 
@@ -132,7 +131,6 @@ const parsePublicRoutes = () => {
       '/health/readiness',
       '/health/liveness',
       '/health/version',
-      '/api/search',
     ];
   }
 
@@ -212,9 +210,6 @@ export const BACKEND_CONFIG = deepFreeze({
     // User Profile
     { method: 'GET', endpoint: '/api/profile', description: 'User Profile Data (Auth Required)' },
 
-    // Search
-    { method: 'POST', endpoint: '/api/search', description: 'Search Documents' },
-
     // Scoring/RAG
     {
       method: 'POST',
@@ -229,16 +224,6 @@ export const BACKEND_CONFIG = deepFreeze({
       method: 'GET',
       endpoint: '/api/analytics/featured-solutions',
       description: 'Featured Solutions',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/analytics/documents/summary',
-      description: 'Documents Summary Stats',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/analytics/documents/stats',
-      description: 'Documents Detailed Stats',
     },
     {
       method: 'GET',

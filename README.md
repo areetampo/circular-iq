@@ -294,8 +294,6 @@ VITE_ENABLE_ANALYTICS=true    # optional
 | `GET`  | `/api/analytics`                    | Optional | Summary analytics                               |
 | `GET`  | `/api/analytics/enhanced`           | Optional | Enhanced analytics with time series             |
 | `POST` | `/api/analytics/embeddings/reindex` | Optional | Reindex embeddings (maintenance)                |
-| `GET`  | `/api/analytics/documents/summary`  | Optional | Documents data summary                          |
-| `GET`  | `/api/analytics/documents/stats`    | Optional | Knowledge base statistics                       |
 | `GET`  | `/api/analytics/global-stats`       | Optional | Global dashboard stats from scoring_results_log |
 
 ### Assessments

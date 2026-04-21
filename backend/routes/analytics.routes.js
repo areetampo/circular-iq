@@ -25,8 +25,6 @@ export default function createAnalyticsRouter(supabase, serviceSupabase) {
   router.get('/', analyticsController.getSummary(supabase));
   router.get('/enhanced', analyticsController.getEnhanced(supabase));
   router.post('/embeddings/reindex', analyticsController.postEmbeddingsReindex());
-  router.get('/documents/summary', analyticsController.getDocumentsSummary());
-  router.get('/documents/stats', analyticsController.getDocumentsStats(supabase));
   router.get('/global-stats', analyticsController.getGlobalStats(serviceSupabase));
 
   // fallback error handler for unexpected errors
