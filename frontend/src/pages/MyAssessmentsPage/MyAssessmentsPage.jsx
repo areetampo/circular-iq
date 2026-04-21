@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Ghost, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
 
 import { Button, ErrorDisplay } from '@/components/common';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
@@ -584,7 +585,7 @@ export default function MyAssessmentsPage() {
             Start your first assessment to track your circular economy progress and get personalized
             recommendations.
           </p>
-          <Button as={Link} to="/" variant="primary">
+          <Button as={HashLink} to="/#ce-assessment-form" variant="primary" smooth>
             <Plus size={16} /> Start Your First Assessment
           </Button>
         </div>

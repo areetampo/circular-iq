@@ -1,4 +1,8 @@
-import { BarChart3, CheckCircle2, Leaf, Zap } from 'lucide-react';
+import { BarChart3, CheckCircle2, Leaf, MoveRight, TextSearch, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
+
+import { Button } from '@/components/common';
 
 import AuthBrandHeader from './AuthBrandHeader';
 
@@ -31,6 +35,18 @@ export default function AuthLeftPanel() {
           </li>
         ))}
       </ul>
+
+      {/* Buttons */}
+      <div className="flex flex-col items-center justify-center gap-3">
+        <Button variant="results-action" as={HashLink} to="/#ce-assessment-form" smooth>
+          <MoveRight size={16} strokeWidth={2} />
+          <span>Start an Assessment</span>
+        </Button>
+        <Button variant="teal" as={Link} to="/guide">
+          <TextSearch size={16} strokeWidth={2} />
+          <span>View Guide</span>
+        </Button>
+      </div>
     </div>
   );
 }

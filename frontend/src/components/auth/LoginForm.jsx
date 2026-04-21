@@ -64,7 +64,7 @@ export function LoginForm({ onSwitchToSignup }) {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full md_lg:-mt-20">
       {/* Header */}
       <div className="mb-7 text-center">
         <h2 className="text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">

@@ -8,8 +8,8 @@ export default function AuthBrandHeader({ className, layout = 'col' }) {
     <div
       className={cn(
         'flex flex-col items-center justify-center',
+        layout === 'row' ? '-mt-4 mb-6 flex-row gap-2 pr-4' : '',
         className,
-        layout === 'row' ? '-mt-4 mb-6 flex-row gap-2' : '',
       )}
     >
       <SiteLogo size="lg" />

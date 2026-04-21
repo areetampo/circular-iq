@@ -536,7 +536,7 @@ export default function LandingPage() {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               viewport={{ once: true }}
             >
-              <div className="space-y-8">
+              <div className="scroll-mt-32 space-y-8" id="ce-assessment-form">
                 {/* Business Problem */}
                 <BusinessInputField
                   id="business-problem"
