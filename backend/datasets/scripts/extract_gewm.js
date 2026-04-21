@@ -138,11 +138,11 @@ async function runPythonExtraction() {
 
   try {
     const { stdout, stderr } = await execPromise(command);
-    if (stderr) logger.error('Python stderr:', stderr);
-    logger.info('Python stdout:', stdout);
+    if (stderr) logger.error({ stderr }, 'Python stderr');
+    logger.info({ stdout }, 'Python stdout');
     logger.info('✓ Python extraction completed.');
   } catch (error) {
-    logger.error('✕ Error running Python script:', error.message);
+    logger.error({ error: error.message }, '✕ Error running Python script');
     throw error;
   }
 }
@@ -229,7 +229,7 @@ async function cleanData() {
   logger.info({ count: uniqueCountries.length }, 'After deduplication');
 
   if (uniqueCountries.length === 0) {
-    logger.warn('‼ ️ No countries found. The CSV might be empty or misparsed.');
+    logger.warn('‼ ️  No countries found. The CSV might be empty or misparsed.');
     return;
   }
 
@@ -271,7 +271,12 @@ async function cleanData() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, mapped); // now allowed inside async function
   logger.info(
-    `✓ Final cleaned CSV written to ${OUTPUT_PATH} with ${writeResult.writtenCount} rows (${writeResult.duplicateCount} duplicate rows removed).`,
+    {
+      outputPath: OUTPUT_PATH,
+      writtenCount: writeResult.writtenCount,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Final cleaned CSV written'
   );
 }
 
@@ -291,6 +296,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  logger.error('Unhandled error:', err);
+  logger.error({ error: err }, 'Unhandled error');
   process.exit(1);
 });

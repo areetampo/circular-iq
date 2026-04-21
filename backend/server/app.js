@@ -76,11 +76,11 @@ function validateConfig() {
     if (IS_PROD) {
       throw new Error(message);
     }
-    logger.warn({}, message);
+    logger.warn(message);
   }
 
   if (!BACKEND_CONFIG.supabase.url || !BACKEND_CONFIG.supabase.anonKey) {
-    logger.warn({}, 'Supabase URL or ANON_KEY is missing; database calls will fail.');
+    logger.warn('Supabase URL or ANON_KEY is missing; database calls will fail.');
   }
 }
 
@@ -107,7 +107,7 @@ export function apiKeyGuard(req, res, next) {
   }
 
   if (!apiKey) {
-    logger.error({}, 'API auth enabled but API_KEY not configured');
+    logger.error('API auth enabled but API_KEY not configured');
     return res.status(500).json({
       error: 'API auth enabled but API_KEY is not configured',
       code: 'API_KEY_MISSING',

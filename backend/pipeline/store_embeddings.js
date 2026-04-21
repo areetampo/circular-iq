@@ -253,7 +253,7 @@ export async function* streamEmbeddedChunks(filePath) {
     }
   }
 
-  logger.info({}, 'Finished streaming embeddings');
+  logger.info('Finished streaming embeddings');
 }
 
 /**
@@ -265,7 +265,7 @@ export async function* streamEmbeddedChunks(filePath) {
  * @throws {Error} If dimension mismatch or query fails
  */
 async function verifyEmbeddingDimension(pgPool, expectedDim) {
-  logger.info({}, 'Verifying embedding dimension in database');
+  logger.info('Verifying embedding dimension in database');
 
   const { rows } = await pgPool.query(`
     SELECT
@@ -472,7 +472,7 @@ export async function storeDocuments(chunkStream) {
       await client.query('SET transaction_read_only = off');
       await client.query('TRUNCATE TABLE documents');
 
-      logger.info({}, 'Documents table cleared');
+      logger.info('Documents table cleared');
     } catch (error) {
       logger.error({ err: error }, 'Documents table clear failed');
       throw error;
@@ -491,7 +491,7 @@ export async function storeDocuments(chunkStream) {
   // ========== RESUME: gather already stored document identifiers ==========
   let existingIdentifiers = new Set();
   if (RESUME) {
-    logger.info({}, 'Resume mode: checking already stored documents');
+    logger.info('Resume mode: checking already stored documents');
     if (DRY_RUN) {
       // Read existing JSONL file
       if (fs.existsSync(dryRunOutputPath)) {
@@ -603,12 +603,12 @@ export async function storeDocuments(chunkStream) {
  * @returns {Promise<void>}
  */
 async function validateStorage() {
-  logger.info({}, 'Validating and optimizing storage');
+  logger.info('Validating and optimizing storage');
 
   // 1. VACUUM and Count Check
   const client = await pgPool.connect();
   try {
-    logger.info({}, 'Running VACUUM ANALYZE');
+    logger.info('Running VACUUM ANALYZE');
     await client.query('VACUUM ANALYZE documents');
   } catch (vacErr) {
     logger.warn({ err: vacErr }, 'VACUUM ANALYZE failed (non-critical)');

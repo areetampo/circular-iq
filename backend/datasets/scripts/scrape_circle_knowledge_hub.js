@@ -421,7 +421,7 @@ async function rebuildFromBackup() {
         // Return the original row (without the temporary flags) plus the computed score
         return { ...row, qualityScore };
       } catch (err) {
-        logger.warn('Skipping invalid row:', err.message);
+        logger.warn({ error: err.message }, 'Skipping invalid row');
         return null;
       }
     })
@@ -608,7 +608,7 @@ async function scrape() {
     // Sort by quality score and take top MAX_ROWS
     const topRows = validRows.sort((a, b) => b._qualityScore - a._qualityScore).slice(0, MAX_ROWS);
 
-    logger.info({}, 'After scoring/filtering');
+    logger.info('After scoring/filtering');
     logger.info({ valid: validRows.length }, 'Valid rows with score > 20');
     logger.info({ maxRows: MAX_ROWS }, 'Keeping top highest quality');
     logger.info({ bestScore: topRows[0]?._qualityScore || 0 }, 'Best score');
@@ -646,7 +646,7 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    logger.info({}, 'Scraping complete');
+    logger.info('Scraping complete');
     logger.info({ count: writeResult.writtenCount }, 'Final rows kept');
     logger.info({ outputPath: OUTPUT_PATH, duplicates: writeResult.duplicateCount }, 'Output saved');
 
@@ -664,7 +664,7 @@ async function scrape() {
     );
     await appendLogs(DATASET_KEY, `   Last:  ${lastRow.ID} | ${lastRow.title.substring(0, 50)}...`);
   } catch (error) {
-    logger.error('✕ Fatal error:', error);
+    logger.error({ error }, '✕ Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {
@@ -684,7 +684,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

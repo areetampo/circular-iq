@@ -561,7 +561,7 @@ export function getDocumentsStats(/*supabase*/) {
 export function getGlobalStats(serviceSupabase) {
   return async (req, res) => {
     if (!serviceSupabase) {
-      logger.error({}, 'Service client not available');
+      logger.error('Service client not available');
       return res.status(503).json({
         error: 'Service client not available',
         code: 'SERVICE_UNAVAILABLE',

@@ -111,13 +111,18 @@ async function main() {
   // 6. Write output (helper creates directory, handles locking)
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, processed);
   logger.info(
-    `✓ Successfully wrote ${writeResult.writtenCount} records to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    {
+      writtenCount: writeResult.writtenCount,
+      outputPath: OUTPUT_PATH,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Successfully wrote records to output path'
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '✕ Fatal error');
     process.exit(1);
   });
 }

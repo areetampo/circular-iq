@@ -198,16 +198,22 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `✓ Extraction Complete. Processed ${allScoredRows.length} total, saved top ${finalRows.length} high-quality rows.`,
+    { totalProcessed: allScoredRows.length, highQualityRows: finalRows.length },
+    'Extraction complete'
   );
   logger.info(
-    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    {
+      outputPath: OUTPUT_PATH,
+      writtenCount: writeResult.writtenCount,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Saved to output path'
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('Error during extraction:', err);
+    logger.error({ error: err }, 'Error during extraction');
     process.exit(1);
   });
 }

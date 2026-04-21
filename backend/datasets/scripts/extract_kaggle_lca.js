@@ -32,13 +32,13 @@ import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 
 import {
-  cleanText,
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-  getDatasetProcessedCsvPath,
-  getDatasetRawDir,
-  verifyPathsExist,
-  writeCsv,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -249,7 +249,7 @@ async function main() {
 
   for (const file of files) {
     if (!file.name) {
-      logger.warn({}, 'Skipping undefined file');
+      logger.warn('Skipping undefined file');
       continue;
     }
     const filePath = path.join(rawDir, file.name);
@@ -274,7 +274,7 @@ async function main() {
   logger.info({ total: allRows.length }, 'Total rows collected');
 
   if (allRows.length === 0) {
-    logger.info('✕ No data processed. Exiting.');
+    logger.info({ status: 'No data processed' }, '✕ No data processed. Exiting.');
     return;
   }
 
@@ -295,7 +295,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Error in main execution:', err.message, err.stack);
+    logger.error({ error: err.message, stack: err.stack }, '\n✕ Error in main execution');
     process.exit(1);
   });
 }

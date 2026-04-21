@@ -450,7 +450,7 @@ async function main() {
       logger.info({ file, country }, 'Parsed report');
     }
   } else {
-    logger.info({}, 'Reports folder not found, skipping report extraction');
+    logger.info('Reports folder not found, skipping report extraction');
   }
 
   // Build report lookup by country
@@ -483,7 +483,12 @@ async function main() {
 
     if (!solution.endsWith('.') && !solution.endsWith('"') && solution.length > 0) {
       logger.warn(
-        `‼ Solution for ${proj.id} (${proj.project_name}) may be truncated: ends with "${solution.slice(-20)}"`,
+        {
+          projectId: proj.id,
+          projectName: proj.project_name,
+          endingChars: solution.slice(-20)
+        },
+        'Solution may be truncated'
       );
     }
 
@@ -577,7 +582,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

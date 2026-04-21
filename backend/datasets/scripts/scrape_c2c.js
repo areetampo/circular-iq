@@ -27,23 +27,23 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import {
-  appendLogs,
-  cleanText,
-  clearLogs,
-  createBackupHelper,
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-  getBrowserLaunchOptions,
-  getDatasetProcessedCsvPath,
-  getDatasetScrapeLogsPath,
-  getExtraHttpHeaders,
-  getUserAgentOptions,
-  getViewportOptions,
-  hasAppendBackupFlag,
-  hasAppendProcessedFlag,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  writeCsv,
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -90,7 +90,7 @@ function scoreProductQuality(certifications) {
  * Used when --use-backup flag is passed.
  */
 async function rebuildFromBackup() {
-  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
+  logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -157,7 +157,7 @@ async function rebuildFromBackup() {
     );
 
     if (productDetails.length === 0) {
-      logger.warn({}, 'No valid product details could be reconstructed from backup');
+      logger.warn('No valid product details could be reconstructed from backup');
       await appendLogs(DATASET_KEY, `‼ No valid products – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -225,7 +225,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error('✕ Error rebuilding from backup:', error.message);
+    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -649,7 +649,12 @@ async function scrape_c2c() {
       await backup.flush();
 
       logger.info(
-        `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+        {
+          outputPath: OUTPUT_PATH,
+          writtenCount: writeResult.writtenCount,
+          duplicateCount: writeResult.duplicateCount
+        },
+        'Saved to output path'
       );
 
       const firstRow = finalRows[0];
@@ -673,7 +678,7 @@ async function scrape_c2c() {
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     }
   } catch (error) {
-    logger.error('✕ Fatal error in scrape_c2c:', error);
+    logger.error({ error }, '✕ Fatal error in scrape_c2c');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
@@ -693,7 +698,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

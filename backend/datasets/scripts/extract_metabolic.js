@@ -475,7 +475,7 @@ async function main() {
     }
     logger.info({ count: metadataMap.size }, 'Loaded source URLs from metadata.json');
   } else {
-    logger.warn({}, 'metadata.json not found – source_url will be empty');
+    logger.warn('metadata.json not found – source_url will be empty');
   }
 
   if (!fs.existsSync(RAW_DIR)) {
@@ -495,7 +495,7 @@ async function main() {
     logger.info({ file }, 'Processing file');
 
     if (!isValidPdf(filePath)) {
-      logger.info({}, 'Invalid PDF header – skipping');
+      logger.info('Invalid PDF header – skipping');
       continue;
     }
 
@@ -556,13 +556,18 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `✓ Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    {
+      writtenCount: writeResult.writtenCount,
+      outputPath: OUTPUT_PATH,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Wrote rows to output path (duplicate rows removed)'
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('✕ Fatal error:', err.message);
+    logger.error({ err: err.message }, 'Fatal error');
     process.exit(1);
   });
 }

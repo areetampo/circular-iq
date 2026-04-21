@@ -26,13 +26,13 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import {
-  cleanText,
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-  DATASETS_PROCESSED_DIR,
-  getDatasetRawDir,
-  verifyPathsExist,
-  writeCsv,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    DATASETS_PROCESSED_DIR,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -321,7 +321,7 @@ async function main() {
   walkDir(RAW_DIR);
 
   if (pdfFiles.length === 0) {
-    logger.warn('No PDF files found in', RAW_DIR);
+    logger.warn({ directory: RAW_DIR }, 'No PDF files found in directory');
     return;
   }
   logger.info({ count: pdfFiles.length }, 'Found PDFs');
@@ -402,7 +402,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('Fatal error:', err);
+    logger.error({ error: err }, 'Fatal error');
     process.exit(1);
   });
 }

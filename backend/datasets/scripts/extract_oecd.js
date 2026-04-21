@@ -357,7 +357,12 @@ async function writeCombined(rows) {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `\n✓ Combined output written to ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    {
+      outputPath: OUTPUT_PATH,
+      writtenCount: writeResult.writtenCount,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Combined output written (duplicate rows removed)'
   );
 }
 
@@ -374,7 +379,11 @@ async function main() {
     if (datasets[key]) datasetsToProcess = [key];
     else {
       logger.error(
-        `Unknown dataset: ${key}. Available: ${Object.keys(datasets).join(', ')} or 'all'`,
+        {
+          unknownKey: key,
+          availableDatasets: Object.keys(datasets).join(', ')
+        },
+        'Unknown dataset. Available options listed'
       );
       process.exit(1);
     }
@@ -391,7 +400,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ err: err.message }, 'Fatal error');
     process.exit(1);
   });
 }

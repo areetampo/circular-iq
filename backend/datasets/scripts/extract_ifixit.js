@@ -277,18 +277,29 @@ async function main() {
   const topRows = allRows.slice(0, MAX_ROWS).map((item) => item.row);
 
   logger.info(
-    `Keeping top ${topRows.length} rows (score range: ${allRows[0].score.toFixed(2)} – ${allRows[MAX_ROWS - 1]?.score.toFixed(2)})`,
+    {
+      topRowsCount: topRows.length,
+      minScore: allRows[0].score.toFixed(2),
+      maxScore: allRows[MAX_ROWS - 1]?.score.toFixed(2)
+    },
+    'Keeping top rows (score range)'
   );
 
   const writeResult = await writeCsv(DATASET_KEY, outputPath, topRows);
   logger.info(
-    `✓ Written ${writeResult.writtenCount} rows to ${outputPath} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    {
+      writtenCount: writeResult.writtenCount,
+      outputPath,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Written rows to output path (duplicate rows removed)'
   );
+
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('Error processing iFixit dataset:', err);
+    logger.error({ err }, 'Error processing iFixit dataset');
     process.exit(1);
   });
 }

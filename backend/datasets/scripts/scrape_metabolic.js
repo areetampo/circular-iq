@@ -32,18 +32,18 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 
 import {
-  appendLogs,
-  clearLogs,
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-  getBrowserLaunchOptions,
-  getDatasetRawDir,
-  getDatasetScrapeLogsPath,
-  getExtraHttpHeaders,
-  getUserAgentOptions,
-  getViewportOptions,
-  isBackupRecoveryMode,
-  randomDelay,
+    appendLogs,
+    clearLogs,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getBrowserLaunchOptions,
+    getDatasetRawDir,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    isBackupRecoveryMode,
+    randomDelay,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -106,7 +106,7 @@ async function scrape() {
       let downloaded = false;
 
       if (fs.existsSync(localPath)) {
-        logger.info({}, 'File already exists, skipping');
+        logger.info('File already exists, skipping');
         await appendLogs(DATASET_KEY, `  Already exists: ${filename}`);
         // Still record metadata for existing file
         metadataList.push({ filename, detailUrl, pdfUrl: '' });
@@ -140,7 +140,8 @@ async function scrape() {
             break;
           } catch (e) {
             logger.info(
-              `  Iframe not found, attempt (error: ${e.message}). Retrying ${attempt + 1}/5 ...`,
+              { attempt: attempt + 1, error: e.message },
+              'Iframe not found, retrying'
             );
             await randomDelay(3000, 5000);
           }
@@ -263,7 +264,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

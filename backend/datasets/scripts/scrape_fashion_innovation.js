@@ -573,7 +573,7 @@ async function scrape() {
             pageRows.push(result.backupRow);
             logger.info({ problem: result.item.problem.substring(0, 60) }, 'Extracted data');
           } else {
-            logger.info({}, 'No data extracted');
+            logger.info('No data extracted');
           }
         } catch (err) {
           logger.warn({ error: err.message }, 'Error on detail page');
@@ -645,11 +645,9 @@ async function scrape() {
           { timeout: 15000 },
           oldTileHrefs,
         );
-        logger.info('  New tiles loaded successfully');
+        logger.info({ message: 'New tiles loaded successfully' });
       } catch (err) {
-        logger.warn(
-          `  ‼ Timed out waiting for new tiles, but continuing..., Error: ${err.message}`,
-        );
+        logger.warn({ error: err.message, message: 'Timed out waiting for new tiles, but continuing' });
       }
 
       await sleep(2000);
@@ -659,7 +657,8 @@ async function scrape() {
     // Check if we stopped due to MAX_PAGES_TO_FETCH
     if (hasNextPage && currentPage > FINAL_FETCH_PAGE) {
       logger.warn(
-        `‼ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
+        { maxPages: MAX_PAGES_TO_FETCH, stoppedAtPage: currentPage - 1 },
+        'Reached MAX_PAGES_TO_FETCH limit, stopping'
       );
       await appendLogs(
         DATASET_KEY,
@@ -711,7 +710,7 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    logger.info({}, 'Scraping complete');
+    logger.info('Scraping complete');
     logger.info({ count: finalRows.length }, 'Final rows kept');
     logger.info(
       { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
@@ -734,7 +733,7 @@ async function scrape() {
     );
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
   } catch (err) {
-    logger.error('✕ Fatal error:', err);
+    logger.error({ error: err }, '✕ Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
@@ -752,7 +751,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

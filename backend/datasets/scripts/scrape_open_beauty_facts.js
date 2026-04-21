@@ -311,15 +311,13 @@ async function fetchAllForKeyWord({
     try {
       await backup.add(transformed);
     } catch (e) {
-      const errMsg = `‼ Backup add failed for ${keyword} page ${page}: ${e.message}`;
-      logger.warn(errMsg);
-      await appendLogs(DATASET_KEY, errMsg);
+      logger.warn({keyword, page, error: e.message}, "Backup add failed");
+      await appendLogs(DATASET_KEY, `‼ Backup add failed for ${keyword} page ${page}: ${e.message}`);
     }
 
     if (page === keywordFallback) {
-      const limitMsg = `‼ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`;
-      logger.warn(limitMsg);
-      await appendLogs(DATASET_KEY, limitMsg);
+      logger.warn({DATASET_KEY, keywordFallbackMaxPages: keywordFallback, keyword}, "Reached fallback max pages - stopping");
+      await appendLogs(DATASET_KEY, `‼ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`);
     }
 
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -328,7 +326,7 @@ async function fetchAllForKeyWord({
 }
 
 async function rebuildFromBackup() {
-  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
+  logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -349,7 +347,7 @@ async function rebuildFromBackup() {
     let filtered = backupRows.filter((row) => row.problem && (row.materials || row.category));
 
     if (filtered.length === 0) {
-      logger.warn({}, 'No valid rows after filtering');
+      logger.warn('No valid rows after filtering');
       await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -403,7 +401,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error('✕ Error rebuilding from backup:', error.message);
+    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -481,13 +479,12 @@ async function main() {
   });
   await backup.flush();
 
-  const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages/Keywords processed: ${pagesProcessed.join(', ')}.`;
-  logger.info(summary);
-
   const firstRow = finalRows[0];
   const lastRow = finalRows[finalRows.length - 1];
 
-  await appendLogs(DATASET_KEY, summary);
+  logger.info({DATASET_KEY, outputFile, rowsWritten: writeResult.writtenCount, duplicateRowsRemoved: writeResult.duplicateCount, pagesProcessed: pagesProcessed.join(', ')}, "Scrape complete");
+
+  await appendLogs(DATASET_KEY, `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages/Keywords processed: ${pagesProcessed.join(', ')}.`);
   await appendLogs(
     DATASET_KEY,
     `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
@@ -498,7 +495,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

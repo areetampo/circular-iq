@@ -252,7 +252,8 @@ async function rebuildFromBackup() {
     append: APPEND_PROCESSED,
   });
   logger.info(
-    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicateRows: writeResult.duplicateCount },
+    'Saved to output file'
   );
 }
 
@@ -311,7 +312,8 @@ async function fetchAndTransform() {
   });
   logger.info({ count: rowsWithoutIds.length }, 'Successfully transformed unique solutions');
   logger.info(
-    `📁 Saved to: ${OUTPUT_PATH} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+    { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicateRows: writeResult.duplicateCount },
+    'Saved to output file'
   );
 
   await appendLogs(
@@ -327,7 +329,7 @@ async function main() {
   await clearLogs(DATASET_KEY);
 
   if (isBackupRecoveryMode()) {
-    logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
+    logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
     await rebuildFromBackup();
     return;
   }
@@ -337,7 +339,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ err: err.message }, 'Fatal error');
     process.exit(1);
   });
 }

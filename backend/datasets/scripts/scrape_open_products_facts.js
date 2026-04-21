@@ -328,9 +328,8 @@ async function fetchAllForKeyWord(config) {
   }
 
   if (currentPage > maxPage) {
-    const limitMsg = `‼ Reached max pages (${MAX_PAGES_TO_FETCH}) for keyword "${searchTerm}" – stopping.`;
-    logger.warn(limitMsg);
-    await appendLogs(DATASET_KEY, limitMsg);
+    logger.warn({MAX_PAGES_TO_FETCH, searchTerm}, "reached max pages to fetch for searchTerm, stopping");
+    await appendLogs(DATASET_KEY, `! Reached max pages (${MAX_PAGES_TO_FETCH}) for keyword "${searchTerm}" – stopping.`);
   }
 
   return allRows;
@@ -398,7 +397,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = '‼ No backup content found. Cannot rebuild output.';
+      const msg = '! No backup content found. Cannot rebuild output.';
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(
@@ -468,7 +467,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error('✕ Error rebuilding from backup:', error.message);
+    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -493,13 +492,20 @@ async function main() {
     `🚀 Scrape started. API_BASE: ${API_BASE}, TARGET_ROWS: ${TARGET_ROWS}, BACKUP_INTERVAL: ${BACKUP_INTERVAL}`,
   );
 
-  logger.info({}, 'Fetching per keyword config with individual parameters...');
+  logger.info('Fetching per keyword config with individual parameters...');
   const productMap = new Map();
 
   for (const config of KEYWORD_CONFIG) {
     const display = config.keywords.join(', ');
     const maxPage = Math.min(config.END_PAGE, config.START_PAGE + config.MAX_PAGES_TO_FETCH - 1);
-    logger.info({}, `Processing keyword group: ${display}, startPage: ${config.START_PAGE}, endPage: ${maxPage}`);
+    logger.info(
+    {
+      keywordGroup: display,
+      startPage: config.START_PAGE,
+      endPage: maxPage
+    },
+    'Processing keyword group'
+  );
 
     const rows = await fetchAllForKeyWord(config);
     for (const row of rows) {
@@ -514,7 +520,7 @@ async function main() {
   await backup.flush();
 
   if (productMap.size === 0) {
-    logger.info({}, 'No products fetched. Exiting');
+    logger.info('No products fetched. Exiting.');
     await appendLogs(DATASET_KEY, `‼ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
@@ -565,7 +571,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

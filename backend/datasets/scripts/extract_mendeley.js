@@ -357,8 +357,9 @@ function processSWARA() {
       }),
     });
     logger.info(
-      `✓ Extracted top challenge: ${bestChallenge} (geo mean = ${bestGeoMean.toFixed(4)})`,
-    );
+    { challengeCode: bestChallenge, geoMean: bestGeoMean.toFixed(4) },
+    'Extracted top challenge'
+  );
   } else {
     logger.warn('‼ ️  No valid challenge data found.');
   }
@@ -445,12 +446,13 @@ function processNetworkCentrality() {
 
 function processSustainableBusinessModel() {
   logger.info(
-    `📄 Processing Sustainable Business Model CSV (sampling ${SBM_SAMPLE_SIZE} rows) ...`,
+    { sampleSize: SBM_SAMPLE_SIZE },
+    'Processing Sustainable Business Model CSV'
   );
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.business_model);
   if (!filePath || !fs.existsSync(filePath)) {
-    logger.warn('‼ ️  Sustainable Business Model CSV file not found, skipping.');
+    logger.warn({ filePath }, 'Sustainable Business Model CSV file not found, skipping.');
     return rows;
   }
 
@@ -516,7 +518,7 @@ async function main() {
 
   let allRows = [...maskRows, ...smeRows, ...swaraRows, ...networkRows, ...sbmRows];
 
-  logger.info({}, 'Summary');
+  logger.info('Summary');
   logger.info({ mask: maskRows.length }, 'Mask LCA rows');
   logger.info({ sme: smeRows.length }, 'SME Survey rows');
   logger.info({ swara: swaraRows.length }, 'SWARA rows');
@@ -582,13 +584,18 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalRows);
   logger.info(
-    `\n✓ Successfully wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    {
+      writtenCount: writeResult.writtenCount,
+      outputPath: OUTPUT_PATH,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Successfully wrote rows to output path (duplicate rows removed)'
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ err: err.message }, 'Fatal error');
     process.exit(1);
   });
 }

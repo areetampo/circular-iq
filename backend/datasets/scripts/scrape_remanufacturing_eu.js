@@ -78,7 +78,8 @@ async function scrape() {
   await clearLogs(DATASET_KEY);
   await appendLogs(DATASET_KEY, `🚀 Scrape started...`);
   logger.info(
-    `Scraping Remanufacturing EU case studies. Logs: ${getDatasetScrapeLogsPath(DATASET_KEY)}`,
+    { logsPath: getDatasetScrapeLogsPath(DATASET_KEY) },
+    'Scraping Remanufacturing EU case studies'
   );
 
   await fs.promises.mkdir(RAW_DIR, { recursive: true });
@@ -234,7 +235,7 @@ async function scrape() {
           await appendLogs(DATASET_KEY, `  Download error for ${item.filename}: ${err.message}`);
         }
       } else {
-        logger.info({}, 'File already exists, skipping download');
+        logger.info('File already exists, skipping download');
         backupRow.downloaded = 'yes';
       }
 
@@ -274,7 +275,7 @@ async function scrape() {
     logger.info({ rawDir: RAW_DIR }, 'Scrape completed');
     await appendLogs(DATASET_KEY, `Scrape completed. Total PDFs: ${totalPdfCollected}`);
   } catch (error) {
-    logger.error('✕ Fatal error:', error);
+    logger.error({ err: error }, 'Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
   } finally {
     await browser.close();
@@ -295,7 +296,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ err: err.message }, 'Fatal error');
     process.exit(1);
   });
 }

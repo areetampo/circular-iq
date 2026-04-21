@@ -138,7 +138,7 @@ function sampleRecordsByDataset(records) {
         'TAKE_ALL is enabled. Ignoring limits and extracting all rows from all datasets',
       );
 
-    logger.info({}, `Reading ${INPUT_FILE}`);
+    logger.info({ INPUT_FILE }, 'Reading input file');
     const fileContent = fs.readFileSync(INPUT_FILE, 'utf-8');
 
     const records = parse(fileContent, {

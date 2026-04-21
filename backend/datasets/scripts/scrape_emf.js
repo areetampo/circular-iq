@@ -370,7 +370,7 @@ async function extractMultipleFromOverview(text) {
  * Used when --use-backup flag is passed to script.
  */
 async function rebuildFromBackup() {
-  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup content');
+  logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
 
   try {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
@@ -417,7 +417,7 @@ async function rebuildFromBackup() {
       .filter((item) => item !== null);
 
     if (items.length === 0) {
-      logger.warn({}, 'No valid items could be reconstructed from backup');
+      logger.warn('No valid items could be reconstructed from backup.');
       await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
@@ -451,7 +451,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error('✕ Error rebuilding from backup:', error.message);
+    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -654,7 +654,7 @@ async function scrape_emf() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
   } catch (error) {
-    logger.error('✕ Fatal error in scrape_emf:', error);
+    logger.error({ error }, '✕ Fatal error in scrape_emf');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Run aborted ---\n`);
     throw error;
@@ -1080,7 +1080,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

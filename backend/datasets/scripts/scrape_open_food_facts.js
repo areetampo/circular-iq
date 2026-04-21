@@ -246,7 +246,7 @@ function transformProduct(product) {
  * Rebuild final CSV from backup content (recovery mode).
  */
 async function rebuildFromBackup() {
-  logger.info({}, 'BACKUP RECOVERY MODE: Building final CSV from saved backup');
+  logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup');
   await appendLogs(DATASET_KEY, `♻️ Recovery mode started.`);
 
   try {
@@ -267,7 +267,7 @@ async function rebuildFromBackup() {
     });
 
     if (transformed.length === 0) {
-      logger.warn({}, 'No rows passed the filter');
+      logger.warn('No rows passed filter');
       await appendLogs(DATASET_KEY, `‼ No rows passed the filter.`);
       return;
     }
@@ -293,7 +293,8 @@ async function rebuildFromBackup() {
       append: APPEND_PROCESSED,
     });
     logger.info(
-      `📁 Saved to: ${outputFile} (${writeResult.writtenCount} written, ${writeResult.duplicateCount} duplicate rows removed)`,
+      { outputPath: outputFile, written: writeResult.writtenCount, duplicateRows: writeResult.duplicateCount },
+      'Saved to output file'
     );
     await appendLogs(
       DATASET_KEY,
@@ -301,7 +302,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error('✕ Error rebuilding from backup:', error.message);
+    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     throw error;
   }
@@ -350,9 +351,8 @@ async function main() {
       pagesScraped.push(page);
 
       if (page === FINAL_FETCH_PAGE) {
-        const limitMsg = `‼ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
-        logger.warn(limitMsg);
-        await appendLogs(DATASET_KEY, limitMsg);
+        logger.warn({FINAL_FETCH_PAGE}, "reached final fetch page - stopping");
+        await appendLogs(DATASET_KEY, `! Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`);
         break;
       }
 
@@ -402,13 +402,12 @@ async function main() {
   });
   await backup.flush(); // ensure any remaining buffer is written
 
-  const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`;
-  logger.info(summary);
+  logger.info({writtenRows: writeResult.writtenCount, duplicateRowsRemoved: writeResult.duplicateCount, pagesScraped});
 
   if (finalRows.length > 0) {
     const firstRow = finalRows[0];
     const lastRow = finalRows[finalRows.length - 1];
-    await appendLogs(DATASET_KEY, summary);
+    await appendLogs(DATASET_KEY, `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}). Pages scraped: ${pagesScraped.join(', ')}.`);
     await appendLogs(
       DATASET_KEY,
       `   First: ${firstRow.ID} | ${firstRow.problem.substring(0, 50)}...`,
@@ -423,7 +422,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

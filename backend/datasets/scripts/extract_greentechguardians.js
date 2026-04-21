@@ -192,9 +192,7 @@ async function main() {
   const sortedRows = finalRowsWithScore.sort((a, b) => b.score - a.score);
   const topRows = sortedRows.slice(0, MAX_ROWS).map((item) => item.row);
 
-  logger.info(
-    `Selected ${topRows.length} highest‑quality rows (out of ${finalRowsWithScore.length})`,
-  );
+  logger.info({ selected: topRows.length, total: finalRowsWithScore.length }, 'Selected highest-quality rows');
 
   // Map to final CSV format
   const finalMapped = topRows.map((r) => ({
@@ -210,13 +208,19 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, finalMapped);
   logger.info(
-    `✓ Written ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
+    {
+      writtenCount: writeResult.writtenCount,
+      outputPath: OUTPUT_PATH,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Written rows to output path (duplicate rows removed)'
   );
+
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('✕ Fatal error:', err.message);
+    logger.error({ err: err.message }, 'Fatal error');
     process.exit(1);
   });
 }

@@ -333,13 +333,18 @@ async function main() {
 
   const writeResult = await writeCsv(DATASET_KEY, OUTPUT_PATH, allRows);
   logger.info(
-    `✓ Written ${writeResult.writtenCount} curated rows to ${OUTPUT_PATH} (${writeResult.duplicateCount} duplicate rows removed)`,
+    {
+      writtenCount: writeResult.writtenCount,
+      outputPath: OUTPUT_PATH,
+      duplicateCount: writeResult.duplicateCount
+    },
+    'Written curated rows to output path'
   );
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

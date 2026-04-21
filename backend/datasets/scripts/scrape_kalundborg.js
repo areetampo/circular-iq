@@ -28,21 +28,21 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import {
-    appendLogs,
-    cleanText,
-    clearLogs,
-    createBackupHelper,
-    getBrowserLaunchOptions,
-    getDatasetProcessedCsvPath,
-    getDatasetScrapeLogsPath,
-    getExtraHttpHeaders,
-    getUserAgentOptions,
-    getViewportOptions,
-    hasAppendBackupFlag,
-    hasAppendProcessedFlag,
-    isBackupRecoveryMode,
-    readBackupCsv,
-    writeCsv,
+  appendLogs,
+  cleanText,
+  clearLogs,
+  createBackupHelper,
+  getBrowserLaunchOptions,
+  getDatasetProcessedCsvPath,
+  getDatasetScrapeLogsPath,
+  getExtraHttpHeaders,
+  getUserAgentOptions,
+  getViewportOptions,
+  hasAppendBackupFlag,
+  hasAppendProcessedFlag,
+  isBackupRecoveryMode,
+  readBackupCsv,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -273,7 +273,12 @@ async function extractCaseData(page, url, title) {
 
     // Log a preview of what we got
     logger.info(
-      `    Extracted ${content.length} chars, ${paragraphs.length} paragraphs, ${materials.length} materials`,
+      {
+        contentLength: content.length,
+        paragraphsCount: paragraphs.length,
+        materialsCount: materials.length
+      },
+      'Extracted content with materials'
     );
     await appendLogs(
       DATASET_KEY,
@@ -442,7 +447,7 @@ async function scrape() {
       append: APPEND_PROCESSED,
     });
 
-    logger.info({}, 'Scraping complete');
+    logger.info('Scraping complete');
     logger.info({ maxRows: MAX_ROWS, kept: finalRows.length }, 'Kept top rows');
     logger.info(
       { outputPath: OUTPUT_PATH, written: writeResult.writtenCount, duplicates: writeResult.duplicateCount },
@@ -465,7 +470,7 @@ async function scrape() {
       `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
     );
   } catch (error) {
-    logger.error('✕ Fatal error:', error);
+    logger.error({ error }, '✕ Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
     throw error;
   } finally {
@@ -484,7 +489,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

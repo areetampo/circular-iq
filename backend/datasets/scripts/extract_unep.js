@@ -251,7 +251,7 @@ async function main() {
   ].filter((fh) => fh.name); // only include defined files
 
   if (fileHandlers.length === 0) {
-    logger.error('✕ No file handlers defined – check dataset.raw_folder_contents');
+    logger.error({ error: 'No file handlers defined' }, '✕ No file handlers defined – check dataset.raw_folder_contents');
     process.exit(1);
   }
 
@@ -275,7 +275,7 @@ async function main() {
   }
 
   if (allResults.length === 0) {
-    logger.info('✕ No data extracted.');
+    logger.info({ status: 'No data extracted' }, '✕ No data extracted.');
     return;
   }
 
@@ -303,7 +303,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

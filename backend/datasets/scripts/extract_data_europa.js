@@ -32,12 +32,12 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 
 import {
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-  getDatasetProcessedCsvPath,
-  getDatasetRawDir,
-  verifyPathsExist,
-  writeCsv,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -482,7 +482,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\nFatal Error during extraction:', err.message);
+    logger.error({ error: err.message }, '\nFatal Error during extraction');
     process.exit(1);
   });
 }

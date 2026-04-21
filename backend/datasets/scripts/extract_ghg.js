@@ -114,7 +114,7 @@ async function main() {
     logger.info({ total: records.length }, 'Total records');
 
     if (records.length === 0) {
-      logger.warn({}, 'File is empty, skipping');
+      logger.warn('File is empty, skipping');
       continue;
     }
 
@@ -132,7 +132,7 @@ async function main() {
 
     // Quick check: if these columns are missing, skip
     if (!records[0][countryCol] || !records[0][sectorCol] || !records[0][fossilBioCol]) {
-      logger.warn({}, 'Required columns not found, skipping file');
+      logger.warn('Required columns not found, skipping file');
       continue;
     }
 
@@ -240,7 +240,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Error in main execution:', err.message);
+    logger.error({ error: err.message }, '\n✕ Error in main execution');
     process.exit(1);
   });
 }

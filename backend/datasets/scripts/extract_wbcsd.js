@@ -27,13 +27,13 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import {
-  cleanText,
-  DATASET_KEYS,
-  DATASET_LOOKUP,
-  getDatasetProcessedCsvPath,
-  getDatasetRawDir,
-  verifyPathsExist,
-  writeCsv,
+    cleanText,
+    DATASET_KEYS,
+    DATASET_LOOKUP,
+    getDatasetProcessedCsvPath,
+    getDatasetRawDir,
+    verifyPathsExist,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -677,7 +677,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

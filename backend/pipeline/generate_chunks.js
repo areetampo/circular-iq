@@ -266,7 +266,7 @@ export async function createChunks(records) {
         logger.info({ enrichedCount, totalRecords: records.length }, 'Enrichment progress');
       }
     }
-    logger.info({}, 'Score enrichment complete');
+    logger.info('Score enrichment complete');
   }
 
   for (let i = 0; i < records.length; i++) {
@@ -573,7 +573,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const records = loadDataset(datasetPath);
       const chunks = await createChunks(records);
       await saveChunksToFile(chunks, outputPath);
-      logger.info({}, 'Chunking complete');
+      logger.info('Chunking complete');
       process.exit(0);
     } catch (error) {
       logger.error({ err: error }, 'Fatal error during chunking');

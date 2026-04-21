@@ -276,7 +276,7 @@ async function main() {
     inputRows = parseInputCSV(inputPath);
     logger.info({ count: inputRows.length }, 'Found relevant granular indicator records');
   } else {
-    logger.warn({}, 'Granular file not found, skipping');
+    logger.warn('Granular file not found, skipping');
   }
 
   // ---- 3. PDF insights ----
@@ -284,7 +284,7 @@ async function main() {
   const pdfPath = path.join(rawDir, pdfFile);
   let pdfInsights = [];
   if (fs.existsSync(pdfPath)) {
-    logger.info({}, 'Extracting insights from PDF');
+    logger.info('Extracting insights from PDF');
     try {
       pdfInsights = await extractPDFInsights(pdfPath);
       logger.info({ count: pdfInsights.length }, 'Found PDF insights');
@@ -292,7 +292,7 @@ async function main() {
       logger.error({ error: err.message }, 'Error extracting PDF');
     }
   } else {
-    logger.warn({}, 'PDF file not found, skipping');
+    logger.warn('PDF file not found, skipping');
   }
 
   // ---- 4. Build output rows (without custom IDs) ----
@@ -421,7 +421,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error('\n✕ Fatal error:', err.message);
+    logger.error({ error: err.message }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -474,7 +474,7 @@ async function processResource(browser, url, category) {
 // ========== BACKUP RECOVERY ==========
 
 async function rebuildFromBackup() {
-  logger.info({}, 'BACKUP RECOVERY MODE: Rebuilding case studies from backup');
+  logger.info('BACKUP RECOVERY MODE: Rebuilding case studies from backup');
   await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding case studies from backup.`);
 
   const backupRows = await readBackupCsv(DATASET_KEY);
@@ -523,7 +523,7 @@ async function rebuildFromBackup() {
     `✓ Case studies recovered. Wrote ${writeResult.writtenCount} rows to ${OUTPUT_PATH} (duplicate rows removed: ${writeResult.duplicateCount})`,
   );
 
-  logger.info({}, 'NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js');
+  logger.info('NOTE: For PDF extraction from guides and reports, run: node extract_wrap.js');
   await appendLogs(
     DATASET_KEY,
     `📝 For PDF extraction from guides/reports, run: node extract_wrap.js`,
@@ -628,7 +628,7 @@ async function scrapeCategory(browser, category) {
           );
           await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
           if (resourceRetries === 0) {
-            logger.warn({}, 'Skipping resource after 2 failed attempts');
+            logger.warn('Skipping resource after 2 failed attempts');
             await appendLogs(DATASET_KEY, `Skipping resource ${link} after 2 failed attempts.`);
           } else {
             await sleep(3000);
@@ -743,7 +743,7 @@ async function scrape_wrap() {
         );
       }
     } else {
-      logger.info({}, 'No case study rows scraped');
+      logger.info('No case study rows scraped');
     }
 
     if (totalPdfs > 0) {
@@ -756,7 +756,7 @@ async function scrape_wrap() {
       );
     }
   } catch (err) {
-    logger.error('✕ Fatal error:', err);
+    logger.error({ err }, 'Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
@@ -779,7 +779,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       await appendLogs(DATASET_KEY, '✓ Run completed successfully.');
     })
     .catch(async (err) => {
-      logger.error('✕ Fatal error:', err.message);
+      logger.error({ err: err.message }, 'Fatal error');
       await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
       process.exit(1);
     });
