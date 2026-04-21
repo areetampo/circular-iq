@@ -258,7 +258,7 @@ BEGIN
     c.impact,
     c.source_url,
     c.metadata_json,
-    ts_rank(c.search_vector, plainto_tsquery('english', keyword))::FLOAT AS relevance
+    ts_rank(c.search_vector, plainto_tsquery('english', keyword), 1)::FLOAT AS relevance
   FROM ce_cases c
   WHERE c.search_vector @@ plainto_tsquery('english', keyword)
   ORDER BY relevance DESC
@@ -341,8 +341,8 @@ BEGIN
         c.impact,
         c.source_url,
         c.metadata_json,
-        (1 - (c.embedding <=> query_embedding))                           AS vec_score,
-        ts_rank(c.search_vector, plainto_tsquery('english', keyword))     AS kw_score
+        (1 - (c.embedding <=> query_embedding)) AS vec_score,
+        ts_rank(c.search_vector, plainto_tsquery('english', keyword), 1) AS kw_score
       FROM ce_cases c
       WHERE c.embedding IS NOT NULL
     )
