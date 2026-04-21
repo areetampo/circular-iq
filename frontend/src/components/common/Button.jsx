@@ -3,32 +3,8 @@ import PropTypes from 'prop-types';
 import { forwardRef, useRef } from 'react';
 import { mergeProps, useButton } from 'react-aria';
 
+import { Spinner } from '@/components/common';
 import { cn } from '@/utils/cn';
-
-const Spinner = ({ size = 'md' }) => {
-  const spinnerSize = {
-    xs: 'w-3 h-3',
-    sm: 'w-3.5 h-3.5',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5',
-  }[size];
-
-  return (
-    <svg
-      className={cn('animate-spin', spinnerSize)}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
-};
 
 const variantStyles = {
   primary:
@@ -59,6 +35,30 @@ const sizeStyles = {
   md: 'px-4 py-2 text-sm',
   lg: 'px-5 py-2.5 text-base',
 };
+
+const spinnerColorMap = {
+  primary: '#ffffff',
+  secondary: '#4B5563',
+  ghost: '#4B5563',
+  ghastly: '#4B5563',
+  danger: '#ffffff',
+  teal: '#ffffff',
+  'dialog-primary': '#ffffff',
+  'dialog-secondary': '#4B5563',
+  'results-action': '#4B5563',
+  'eco-soft': '#4B5563',
+  'neutral-soft': '#4B5563',
+};
+
+const spinnerSizeMap = {
+  xs: 12,
+  sm: 14,
+  md: 16, // default
+  lg: 20,
+};
+
+const getSpinnerColor = (variant) => spinnerColorMap[variant] || '#ffffff';
+const getSpinnerSize = (size) => spinnerSizeMap[size] || 16;
 
 export const Button = forwardRef(function Button(
   {
@@ -127,6 +127,9 @@ export const Button = forwardRef(function Button(
     className,
   );
 
+  const spinnerColor = getSpinnerColor(variant);
+  const spinnerSize = getSpinnerSize(size);
+
   // ✅ Content rendering: original content always keeps its layout (icon + text side by side)
   // The wrapper span always has the same classes – only its visibility changes.
   // Spinner is absolutely positioned over the same area, does not affect button size.
@@ -145,7 +148,7 @@ export const Button = forwardRef(function Button(
       {/* Spinner – absolute, centered, only shown when loading */}
       {isLoading && (
         <span className="absolute inset-0 flex items-center justify-center">
-          <Spinner size={size} />
+          <Spinner color={spinnerColor} size={spinnerSize} />
         </span>
       )}
     </span>

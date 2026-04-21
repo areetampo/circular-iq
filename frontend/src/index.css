@@ -382,7 +382,7 @@
   --color-drawer-close-icon: var(--theme-drawer-close-icon);
   --color-drawer-close-hover-bg: var(--theme-drawer-close-hover-bg);
   --color-drawer-close-hover-text: var(--theme-text-primary);
-  --color-app-bg: var(--theme-bg-primary);
+  --color-app-bg: #f0eadf;
   --color-scrollbar-thumb: var(--theme-scrollbar-thumb);
   --color-scrollbar-track: var(--theme-bg-primary);
   --color-scrollbar-thumb-hover: var(--theme-accent);
@@ -891,7 +891,7 @@
 }
 
 .app__bg::before {
-  @apply pointer-events-none fixed inset-0 -z-10 bg-[url('/app-bg.svg')] opacity-20 filter-[contrast(100%)_brightness(150%)_grayscale(1)] content-[''];
+  @apply pointer-events-none fixed inset-0 -z-10 bg-[url('/app-bg.svg')] opacity-30 filter-[contrast(100%)_brightness(150%)_grayscale(1)] content-[''];
 }
 
 .app__content {

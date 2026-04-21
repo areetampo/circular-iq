@@ -41,7 +41,7 @@ export default function NotFoundPage() {
           </div>
           <Button variant="ghost" as={Link} to="/">
             <Home size={15} />
-            Return Home
+            Home
           </Button>
         </div>
 

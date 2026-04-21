@@ -18,7 +18,7 @@
  *
  * Usage:
  *   import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
- *   // Add <DriftingShapesBackground /> inside your .app-bg container before content.
+ *   Add <DriftingShapesBackground /> inside your .app-bg container before content.
  */
 import { useEffect, useRef } from 'react';
 
@@ -29,14 +29,14 @@ class MovingGrid {
 
     // ========== CONFIGURATION – ADJUST THESE FOR DIFFERENT LOOKS ==========
     this.config = {
-      cellSize: 30, // grid spacing
+      cellSize: 70, // grid spacing
       lineWidth: 0.8,
       strokeStyle: 'var(--color-bg-grid)',
-      globalAlpha: 0.1, // line color opacity
+      globalAlpha: 0.175, // line color opacity
       speedX: -0.25,
       speedY: -0.25,
       segmentGap: 4,
-      rotation: 0,
+      rotation: 45,
     };
     // =====================================================================
 

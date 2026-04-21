@@ -84,13 +84,13 @@ export default function Navbar() {
                   to={item.path}
                   className={`relative cursor-pointer text-sm transition-colors duration-300 ${
                     isActive
-                      ? 'font-medium text-(--color-accent)/90'
+                      ? 'font-medium text-(--color-checkbox)'
                       : `text-(--color-text-secondary)/75 hover:text-(--color-text-primary)`
                   }`}
                 >
                   {item.name}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 h-0.5 w-1/4 -translate-x-1/2 rounded-full bg-(--color-accent)/90" />
+                    <span className="absolute -bottom-1 left-1/2 h-0.5 w-1/4 -translate-x-1/2 rounded-full bg-(--color-checkbox)/80" />
                   )}
                 </Link>
               );

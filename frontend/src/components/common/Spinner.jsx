@@ -29,7 +29,9 @@ import PropTypes from 'prop-types';
   </Checkbox.Content>
 </Checkbox> */
 
-export default function Spinner({ size = 16, className }) {
+//* check components/common/button for another usage example
+
+export default function Spinner({ size = 16, color = 'var(--color-checkbox)', className }) {
   return (
     //* custom
     // <div className="flex items-center justify-center">
@@ -46,12 +48,13 @@ export default function Spinner({ size = 16, className }) {
     //* from ldrs
     //? removing div since it makes the icon shift position
     // <div className={cn('bg-red-200 ', className)}>
-    <Ring2 size={size} stroke="2" speed="0.8" color="var(--color-checkbox)" />
+    <Ring2 size={size} stroke="2" speed="0.8" color={color} />
     // </div>
   );
 }
 
 Spinner.propTypes = {
   size: PropTypes.number,
+  color: PropTypes.string,
   className: PropTypes.string,
 };
