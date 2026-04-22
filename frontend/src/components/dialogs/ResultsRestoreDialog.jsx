@@ -1,4 +1,4 @@
-import { AlertDialog, Checkbox } from '@heroui/react';
+import { AlertDialog, Checkbox, Label } from '@heroui/react';
 import { ExternalLink, FileCheck, RefreshCw } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -198,37 +198,48 @@ function ResultsRestoreDialogContent() {
               {/* Checkboxes section */}
               <div className="mt-4 flex flex-col gap-3">
                 <Checkbox
+                  id="results_restore_dialog_clear_results"
                   isSelected={clearResults}
                   onChange={setClearResults}
-                  className="group/checkbox text-xs"
                 >
-                  <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                  <Checkbox.Control>
                     <Checkbox.Indicator />
                   </Checkbox.Control>
-                  <Checkbox.Content>Clear calculated results</Checkbox.Content>
+                  <Checkbox.Content>
+                    <Label
+                      className="text-xs/3.5 font-normal text-(--color-text-secondary)"
+                      htmlFor="results_restore_dialog_clear_results"
+                    >
+                      Clear calculated results
+                    </Label>
+                  </Checkbox.Content>
                 </Checkbox>
 
                 <div className="relative pb-4.5">
                   <Checkbox
-                    isSelected={muteDialog}
+                    id="results_restore_dialog_mute_dialog"
+                    isSelected={muteDialog && !clearResults}
                     onChange={setMuteDialog}
-                    className="group/checkbox text-xs"
+                    isDisabled={clearResults}
                   >
-                    <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+                    <Checkbox.Control>
                       <Checkbox.Indicator />
                     </Checkbox.Control>
                     <Checkbox.Content>
-                      <div className="text-default-600 leading-3.5">
+                      <Label
+                        className="text-xs/3.5 font-normal text-(--color-text-secondary)"
+                        htmlFor="results_restore_dialog_mute_dialog"
+                      >
                         Don&apos;t show this again for 10 minutes - your results will remain
                         accessible via the navigation menu at{' '}
-                      </div>
+                      </Label>
                     </Checkbox.Content>
                   </Checkbox>
                   <Link
                     className={cn(
                       'absolute top-6.5 left-7 flex items-center whitespace-nowrap',
                       clearResults
-                        ? 'pointer-events-none cursor-not-allowed opacity-60'
+                        ? 'pointer-events-none cursor-not-allowed opacity-50'
                         : 'underline',
                     )}
                     to={clearResults ? '#' : resultsPageUrl}

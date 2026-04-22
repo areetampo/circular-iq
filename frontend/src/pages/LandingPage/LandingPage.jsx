@@ -1,19 +1,12 @@
 import { Accordion, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
-import {
-  BadgeInfo,
-  ChevronDown,
-  CircleX,
-  ClipboardList,
-  MonitorCog,
-  SlidersHorizontal,
-} from 'lucide-react';
+import { BadgeInfo, ChevronDown, ClipboardList, MonitorCog, SlidersHorizontal } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { ButtonStages } from '@/components/common';
+import { ButtonStages, DetailsBadge } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
@@ -697,10 +690,7 @@ export default function LandingPage() {
 
                   {/* Error Display */}
                   {error && (
-                    <div className="flex w-fit animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
-                      <CircleX size={16} strokeWidth={2.5} />
-                      {error}, please try again.
-                    </div>
+                    <DetailsBadge variant="error" message={`${error}, please try again.`} />
                   )}
                 </div>
 

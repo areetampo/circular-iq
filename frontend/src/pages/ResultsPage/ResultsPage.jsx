@@ -863,13 +863,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 }
                 onChange={handleTogglePublic}
                 isDisabled={isUpdatingPublic}
-                className="group/checkbox w-fit"
               >
                 <Checkbox.Content className="-mr-1.5">
-                  <Label
-                    htmlFor={`assessment-public-toggle-${currentData.id}`}
-                    className="cursor-pointer transition-colors group-hover/checkbox:text-(--color-text-primary)"
-                  >
+                  <Label htmlFor={`assessment-public-toggle-${currentData.id}`}>
                     <p className="text-[0.8125rem] font-medium opacity-80">
                       Public assessment{' '}
                       <span className="ml-0.5 text-[0.7rem] opacity-70">
@@ -889,11 +885,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 {isUpdatingPublic ? (
                   <Spinner />
                 ) : (
-                  <Checkbox.Control
-                    className={cn(
-                      'group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)',
-                    )}
-                  >
+                  <Checkbox.Control>
                     <Checkbox.Indicator />
                   </Checkbox.Control>
                 )}

@@ -83,6 +83,9 @@ export function usableBar(data, key = 'count') {
  * @returns {Array} - Chart data array
  */
 export function transformScoreDistribution(scoreDistribution) {
+  if (!scoreDistribution || typeof scoreDistribution !== 'object') {
+    return [];
+  }
   return Object.entries(scoreDistribution)
     .map(([name, count]) => ({ name, value: Number(count) }))
     .filter((d) => d.value > 0);
@@ -94,6 +97,9 @@ export function transformScoreDistribution(scoreDistribution) {
  * @returns {Array} - Chart data array
  */
 export function transformTierDistribution(tierDistribution) {
+  if (!tierDistribution || typeof tierDistribution !== 'object') {
+    return [];
+  }
   return Object.entries(tierDistribution)
     .filter(([t]) => t && t !== 'Unknown')
     .map(([tier, count]) => ({ name: tier, value: Number(count) }))
@@ -106,6 +112,9 @@ export function transformTierDistribution(tierDistribution) {
  * @returns {Array} - Chart data array
  */
 export function transformRiskDistribution(riskDistribution) {
+  if (!riskDistribution || typeof riskDistribution !== 'object') {
+    return [];
+  }
   return Object.entries(riskDistribution)
     .filter(([r]) => r && r !== 'unknown')
     .map(([risk, count]) => ({
@@ -120,6 +129,9 @@ export function transformRiskDistribution(riskDistribution) {
  * @returns {Array} - Chart data array
  */
 export function transformWeeklyTrend(weeklyTrend) {
+  if (!Array.isArray(weeklyTrend)) {
+    return [];
+  }
   return weeklyTrend.map((w) => ({
     period: w.week,
     count: Number(w.count),
@@ -134,6 +146,9 @@ export function transformWeeklyTrend(weeklyTrend) {
  * @returns {Array} - Chart data array
  */
 export function transformIndustryDistribution(industryDistribution, limit = 10) {
+  if (!Array.isArray(industryDistribution)) {
+    return [];
+  }
   return industryDistribution
     .filter((d) => d.industry && d.industry !== 'other' && d.industry !== 'general')
     .slice(0, limit)

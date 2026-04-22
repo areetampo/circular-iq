@@ -154,33 +154,37 @@ function BusinessContextContainer({
           name="businessContext.has_existing_partnerships"
           control={control}
           render={({ field }) => (
-            <div
-              className="group/checkbox flex cursor-pointer items-center justify-between rounded-xl border-2 border-(--color-border-ui)/75 px-4 py-3 transition-colors duration-150"
+            <Checkbox
+              id="businessContext-has_existing_partnerships"
+              className="flex w-full! items-center justify-between rounded-xl border-2 border-(--color-border-ui)/75 px-4 py-3"
+              isSelected={field.value === true}
               onClick={() => !loading && field.onChange(!field.value)}
+              onChange={(checked) => field.onChange(checked)}
+              isDisabled={loading}
             >
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1 font-mono">
-                  <h4 className="text-sm font-medium text-foreground">Partnerships</h4>
-                  <p className="font-mono text-xs text-muted">
+              <Checkbox.Content className="flex items-center gap-3">
+                <Label
+                  htmlFor="businessContext-has_existing_partnerships"
+                  className="flex flex-col gap-1 *:font-mono"
+                >
+                  <p className="text-sm font-medium text-foreground">Partnerships</p>
+                  <p className="text-xs text-muted">
                     Do you already have partners for collection, processing, or distribution?
                   </p>
-                </div>
-              </div>
-              <Checkbox
-                isSelected={field.value === true}
-                onChange={(checked) => field.onChange(checked)}
-                isDisabled={loading}
-                className="group/checkbox scale-125"
-              >
-                {loading ? (
-                  <Spinner />
-                ) : (
-                  <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                )}
-              </Checkbox>
-            </div>
+                </Label>
+              </Checkbox.Content>
+              {loading ? (
+                <Spinner size={23} />
+              ) : (
+                <Checkbox.Control className="size-6">
+                  <Checkbox.Indicator>
+                    {({ isSelected }) =>
+                      isSelected ? <div className="checkbox__default-indicator--plus" /> : null
+                    }
+                  </Checkbox.Indicator>
+                </Checkbox.Control>
+              )}
+            </Checkbox>
           )}
         />
       </>

@@ -6,6 +6,42 @@ import { Link } from 'react-router-dom';
 import { Button, CopyButton } from '@/components/common';
 import { cn } from '@/utils/cn';
 
+// Variant-specific styling
+const variants = {
+  error: {
+    iconBg: '--color-error-soft-ui',
+    borderColor: '--color-error-soft-ui',
+    iconColor: '--color-error',
+    titleColor: '--color-error',
+    messageColor: '--color-text-secondary',
+    defaultIcon: XCircle,
+  },
+  warning: {
+    iconBg: '--color-warning-soft-ui',
+    borderColor: '--color-warning-soft-ui',
+    iconColor: '--color-warning',
+    titleColor: '--color-warning',
+    messageColor: '--color-text-secondary',
+    defaultIcon: AlertTriangle,
+  },
+  info: {
+    iconBg: '--color-info-soft-ui',
+    borderColor: '--color-info-soft-ui',
+    iconColor: '--color-info',
+    titleColor: '--color-info',
+    messageColor: '--color-text-secondary',
+    defaultIcon: Info,
+  },
+  404: {
+    iconBg: '--color-accent-soft-ui',
+    borderColor: '--color-accent-soft-ui',
+    iconColor: '--color-accent',
+    titleColor: '--color-text-primary',
+    messageColor: '--color-text-secondary',
+    defaultIcon: ServerOff,
+  },
+};
+
 /**
  * Reusable error display component with beautiful, consistent styling
  * Used across error boundaries, error states, and error pages
@@ -28,42 +64,6 @@ export default function ErrorDisplay({
   errorDetails = null,
   className,
 }) {
-  // Variant-specific styling
-  const variants = {
-    error: {
-      iconBg: '--color-error-soft-ui',
-      borderColor: '--color-error-soft-ui',
-      iconColor: '--color-error',
-      titleColor: '--color-error',
-      messageColor: '--color-text-secondary',
-      defaultIcon: XCircle,
-    },
-    warning: {
-      iconBg: '--color-warning-soft-ui',
-      borderColor: '--color-warning-soft-ui',
-      iconColor: '--color-warning',
-      titleColor: '--color-warning',
-      messageColor: '--color-text-secondary',
-      defaultIcon: AlertTriangle,
-    },
-    info: {
-      iconBg: '--color-info-soft-ui',
-      borderColor: '--color-info-soft-ui',
-      iconColor: '--color-info',
-      titleColor: '--color-info',
-      messageColor: '--color-text-secondary',
-      defaultIcon: Info,
-    },
-    404: {
-      iconBg: '--color-accent-soft-ui',
-      borderColor: '--color-accent-soft-ui',
-      iconColor: '--color-accent',
-      titleColor: '--color-text-primary',
-      messageColor: '--color-text-secondary',
-      defaultIcon: ServerOff,
-    },
-  };
-
   const style = variants[variant] || variants.error;
   const Icon = CustomIcon || style.defaultIcon;
 

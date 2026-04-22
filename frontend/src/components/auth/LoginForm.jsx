@@ -1,12 +1,12 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CircleX, Eye, EyeOff, KeyRound, Minus, User } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Minus, User } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, CopyButton } from '@/components/common';
+import { Button, CopyButton, DetailsBadge } from '@/components/common';
 import { TEST_CREDENTIALS } from '@/constants/testCredentials';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
@@ -163,14 +163,15 @@ export function LoginForm({ onSwitchToSignup }) {
       <div className="relative mt-4 flex min-h-10 items-center justify-center">
         {/* Error display */}
         {submitError && (
-          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
-            <CircleX size={16} strokeWidth={2.5} />
-            {submitError}
-          </div>
+          <DetailsBadge
+            variant="error"
+            message={submitError}
+            className="absolute inset-x-0 w-full"
+          />
         )}
 
         {/* test login credentials */}
-        <div className="absolute inset-x-0 top-12 flex animate-in flex-col items-center justify-center gap-1 rounded-xl bg-(--color-info-soft-ui) px-3 py-2 text-sm font-medium text-(--color-info)">
+        <div className="absolute inset-x-0 top-16 flex animate-in flex-col items-center justify-center gap-1 rounded-xl bg-(--color-info-soft-ui) px-3 py-2 text-sm font-medium text-(--color-info)">
           <div className="flex items-center gap-1 uppercase">
             <Minus size={16} strokeWidth={2.5} />
             <span>Test login credentials</span>

@@ -57,7 +57,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       <div className="flex items-start gap-3">
         {/* Title and metadata section */}
         <div className="min-w-0 flex-1">
-          <h3 className="mb-1 w-fit truncate font-sniglet text-2xl/tight font-medium text-(--color-text-primary)">
+          <h3 className="mb-1 w-fit truncate font-sans text-2xl/tight font-[450] text-(--color-text-primary)">
             <Link to={assessmentLink}>{assessment.title || 'Untitled Assessment'}</Link>
           </h3>
           <p className="mb-2 text-[0.75rem] text-(--color-text-muted)">{formattedDate}</p>
@@ -183,15 +183,19 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             id={`select-to-compare-${assessment.id}`}
             isSelected={isSelected}
             onChange={() => onToggleSelect(assessment.id)}
-            className="group/checkbox"
           >
-            <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
-              <Checkbox.Indicator />
+            <Checkbox.Control>
+              <Checkbox.Indicator>
+                {({ isSelected }) =>
+                  isSelected ? <div className="checkbox__default-indicator--plus" /> : null
+                }
+              </Checkbox.Indicator>
             </Checkbox.Control>
             <Checkbox.Content className="-ml-1.5">
               <Label
                 htmlFor={`select-to-compare-${assessment.id}`}
-                className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
+                className="checkbox-label-hover text-[0.75rem] font-normal text-(--color-text-muted) transition-colors"
+                style={{ '--checkbox-label-hover-color': 'var(--text-color-primary)' }}
               >
                 Select to compare
               </Label>
@@ -204,19 +208,19 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             isSelected={assessment.is_public}
             onChange={() => handleTogglePublic(assessment.id)}
             isDisabled={togglingPublic === assessment.id}
-            className="group/checkbox"
           >
             {togglingPublic === assessment.id ? (
               <Spinner />
             ) : (
-              <Checkbox.Control className="group-hover/checkbox:border-(--color-checkbox-hover) group-hover/checkbox:bg-(--color-checkbox-hover-bg)">
+              <Checkbox.Control>
                 <Checkbox.Indicator />
               </Checkbox.Control>
             )}
             <Checkbox.Content className="-ml-1.5">
               <Label
                 htmlFor={`public-toggle-${assessment.id}`}
-                className="cursor-pointer text-[0.75rem] font-normal text-(--color-text-muted) transition-colors group-hover/checkbox:text-(--color-text-primary)"
+                className="checkbox-label-hover text-[0.75rem] font-normal text-(--color-text-muted) transition-colors"
+                style={{ '--checkbox-label-hover-color': 'var(--text-color-primary)' }}
               >
                 Public
               </Label>

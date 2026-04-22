@@ -89,7 +89,7 @@ export default function Footer() {
                     key={link.name}
                     to={link.href}
                     className={cn(
-                      `block text-sm text-(--color-text-muted) hover:text-(--color-accent)`,
+                      `block w-fit text-sm text-(--color-text-muted) hover:text-(--color-accent)`,
                       'text-left transition-all duration-200',
                       `transform cursor-pointer hover:translate-x-1`,
                     )}

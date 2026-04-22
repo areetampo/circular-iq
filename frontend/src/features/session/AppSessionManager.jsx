@@ -97,7 +97,7 @@ export function AppSessionManager() {
     if (location.pathname === '/' && sessionData?.inputs && !hasShownInputsToast.current) {
       // delay until after render/paint
       setTimeout(() => {
-        toast.info('Previous inputs restored.', { timeout: 3000 });
+        toast.info('Previous inputs restored.', { timeout: 2500 });
       }, 0);
       hasShownInputsToast.current = true;
     }
@@ -158,7 +158,7 @@ export function AppSessionManager() {
 
     if (sessionData?.inputs) {
       setTimeout(() => {
-        toast.info('Previous inputs restored.', { timeout: 3000 });
+        toast.info('Previous inputs restored.', { timeout: 2500 });
       }, 0);
       hasShownInputsToast.current = true;
     }

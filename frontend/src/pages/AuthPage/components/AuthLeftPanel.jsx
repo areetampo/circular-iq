@@ -1,4 +1,4 @@
-import { BarChart3, CheckCircle2, Leaf, MoveRight, TextSearch, Zap } from 'lucide-react';
+import { BarChart3, CheckCircle2, Leaf, MoveRight, Telescope, TextSearch, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
@@ -42,10 +42,16 @@ export default function AuthLeftPanel() {
           <MoveRight size={16} strokeWidth={2} />
           <span>Start an Assessment</span>
         </Button>
-        <Button variant="teal" as={Link} to="/guide">
-          <TextSearch size={16} strokeWidth={2} />
-          <span>View Guide</span>
-        </Button>
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="teal" as={Link} to="/guide">
+            <TextSearch size={16} strokeWidth={2} />
+            <span>View Guide</span>
+          </Button>
+          <Button variant="teal" as={Link} to="/dashboard?activeTab=search">
+            <Telescope size={16} strokeWidth={2} />
+            <span>Explore Solutions</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -6,8 +6,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { SITE_FULL_NAME } from '@/components/common';
-import Button from '@/components/common/Button';
+import { Button, DetailsBadge, SITE_FULL_NAME } from '@/components/common';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
 import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
 import { cn } from '@/utils/cn';
@@ -364,10 +363,11 @@ export function SignupForm({ onSwitchToLogin }) {
       {/* Error display */}
       <div className="relative mt-4 flex min-h-10 items-center justify-center">
         {submitError && (
-          <div className="absolute inset-x-0 flex animate-in items-center justify-center gap-2 rounded-xl bg-(--color-error-soft-ui) px-3 py-2 text-sm font-medium text-(--color-error) duration-200 zoom-in-95 fade-in">
-            <CircleX size={16} strokeWidth={2.5} />
-            {submitError}
-          </div>
+          <DetailsBadge
+            variant="error"
+            message={submitError}
+            className="absolute inset-x-0 w-full"
+          />
         )}
       </div>
     </div>
