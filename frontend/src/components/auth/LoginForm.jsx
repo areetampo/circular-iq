@@ -7,11 +7,12 @@ import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, CopyButton, DetailsBadge } from '@/components/common';
-import { TEST_CREDENTIALS } from '@/constants/testCredentials';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 
 export function LoginForm({ onSwitchToSignup }) {
+  console.log(FRONTEND_CONFIG.testCredentials);
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -179,22 +180,22 @@ export function LoginForm({ onSwitchToSignup }) {
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <User size={12} strokeWidth={2.5} />
-            <span>Username: {TEST_CREDENTIALS.username}</span>
+            <span>Username: {FRONTEND_CONFIG.testCredentials.username}</span>
             <CopyButton
               strokeWidth={2.5}
               className="ml-0.5"
               size={12}
-              value={TEST_CREDENTIALS.username}
+              value={FRONTEND_CONFIG.testCredentials.username}
             />
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <KeyRound size={12} strokeWidth={2.5} />
-            <span>Password: {TEST_CREDENTIALS.password}</span>
+            <span>Password: {FRONTEND_CONFIG.testCredentials.password}</span>
             <CopyButton
               strokeWidth={2.5}
               className="ml-0.5"
               size={12}
-              value={TEST_CREDENTIALS.password}
+              value={FRONTEND_CONFIG.testCredentials.password}
             />
           </div>
         </div>

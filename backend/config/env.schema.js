@@ -26,6 +26,10 @@ export const baseEnvSchema = z.object({
   APP_URL: z.string().trim().url('A valid APP_URL is required for CORS and Auth'),
   API_URL: z.string().trim().url('A valid API_URL is required for CORS and Auth'),
 
+  TEST_USER_NAME: z.string().trim().min(1, 'TEST_USER_NAME is required').optional(),
+  TEST_USER_NAME_EXT: z.string().trim().min(1, 'TEST_USER_NAME_EXT is required').optional(),
+  TEST_USER_PASSWORD: z.string().trim().min(1, 'TEST_USER_PASSWORD is required').optional(),
+
   ALLOWED_ORIGINS: commaSeparatedStringArraySchema,
   PUBLIC_ROUTES: commaSeparatedStringArraySchema,
 

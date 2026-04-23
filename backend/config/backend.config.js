@@ -194,6 +194,12 @@ export const BACKEND_CONFIG = deepFreeze({
   nodeEnv: env.NODE_ENV,
   isProduction: env.NODE_ENV === 'production',
 
+  testCredentials: {
+    username: env.TEST_USER_NAME,
+    usernameExt: env.TEST_USER_NAME_EXT,
+    password: env.TEST_USER_PASSWORD,
+  },
+
   api: [
     // Health & Root
     { method: 'GET', endpoint: '/health', description: 'Basic Health Check (Load Balancer)' },

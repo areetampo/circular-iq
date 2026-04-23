@@ -5,6 +5,12 @@ const rawEnv = {
 
   VITE_API_URL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:3000',
 
+  VITE_TEST_USER_NAME: import.meta.env.VITE_TEST_USER_NAME || process.env.VITE_TEST_USER_NAME,
+  VITE_TEST_USER_NAME_EXT:
+    import.meta.env.VITE_TEST_USER_NAME_EXT || process.env.VITE_TEST_USER_NAME_EXT,
+  VITE_TEST_USER_PASSWORD:
+    import.meta.env.VITE_TEST_USER_PASSWORD || process.env.VITE_TEST_USER_PASSWORD,
+
   VITE_SUPABASE_URL:
     import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'http://localhost:54321',
   VITE_SUPABASE_ANON_KEY:
@@ -35,10 +41,18 @@ if (isTest) {
   validatedConfig = {
     appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
     apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
+
+    testCredentials: {
+      username: import.meta.env.VITE_TEST_USER_NAME,
+      usernameExt: import.meta.env.VITE_TEST_USER_NAME_EXT,
+      password: import.meta.env.VITE_TEST_USER_PASSWORD,
+    },
+
     supabase: {
       url: import.meta.env.VITE_SUPABASE_URL ?? 'https://test.supabase.co',
       anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'test-anon-key',
     },
+
     isProd: false,
     mode: 'test',
   };
@@ -66,10 +80,18 @@ if (isTest) {
     validatedConfig = {
       appUrl: env.VITE_APP_URL,
       apiBaseUrl: env.VITE_API_URL,
+
+      testCredentials: {
+        username: env.VITE_TEST_USER_NAME,
+        usernameExt: env.VITE_TEST_USER_NAME_EXT,
+        password: env.VITE_TEST_USER_PASSWORD,
+      },
+
       supabase: {
         url: env.VITE_SUPABASE_URL,
         anonKey: env.VITE_SUPABASE_ANON_KEY,
       },
+
       isProd: env.PROD,
       mode: env.MODE,
     };

@@ -6,8 +6,19 @@ const booleanSchema = z.preprocess((val) => val === 'true' || val === true, z.bo
 export const frontendSchema = z
   .object({
     VITE_APP_URL: z.string().trim().url('VITE_APP_URL must be a valid URL'),
-
     VITE_API_URL: z.string().trim().url('VITE_API_URL must be a valid URL'),
+
+    VITE_TEST_USER_NAME: z.string().trim().min(1, 'VITE_TEST_USER_NAME is required').optional(),
+    VITE_TEST_USER_NAME_EXT: z
+      .string()
+      .trim()
+      .min(1, 'VITE_TEST_USER_NAME_EXT is required')
+      .optional(),
+    VITE_TEST_USER_PASSWORD: z
+      .string()
+      .trim()
+      .min(1, 'VITE_TEST_USER_PASSWORD is required')
+      .optional(),
 
     VITE_SUPABASE_URL: z.string().trim().url('VITE_SUPABASE_URL must be a valid URL'),
     VITE_SUPABASE_ANON_KEY: z.string().trim().min(1, 'Supabase Anon Key is required'),
