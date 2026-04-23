@@ -83,7 +83,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
           );
         } catch (authErr) {
           // If Supabase call fails, log and continue as anonymous (do not block here)
-          logger.warn({ err: authErr }, 'Supabase auth.getUser failed when verifying token');
+          logger.warn({ authErr }, 'Supabase auth.getUser failed when verifying token');
         }
       }
     }
@@ -146,7 +146,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 5. Handle database errors — FAIL CLOSED: block if tracking is unavailable
     if (error) {
-      logger.error({ err: error }, 'Error in atomic usage check');
+      logger.error({ error }, 'Error in atomic usage check');
       return {
         blocked: true,
         status: 503,
@@ -202,7 +202,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     logger.info({ currentCount: current_count, limit: MAX_FREE_TRIES }, 'Anonymous user allowed');
     return null;
   } catch (e) {
-    logger.error({ err: e }, 'Anonymous usage check failed');
+    logger.error({ e }, 'Anonymous usage check failed');
     // Fail-closed on unexpected exceptions related to tracking
     return {
       blocked: true,
@@ -380,7 +380,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
           'Metadata extracted',
         );
       } catch (error) {
-        logger.warn({ requestId, err: error }, 'Metadata extraction warning');
+        logger.warn({ requestId, error }, 'Metadata extraction warning');
         metadata = null;
       }
 
@@ -428,10 +428,16 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
         industryResults.status === 'fulfilled' ? industryResults.value || [] : [];
 
       if (searchResults.status === 'rejected') {
-        logger.error({ requestId, err: searchResults.reason }, 'Hybrid search failed');
+        logger.error(
+          { requestId, searchResultsError: searchResults.reason },
+          'Hybrid search failed',
+        );
       }
       if (industryResults.status === 'rejected') {
-        logger.error({ requestId, err: industryResults.reason }, 'Industry search failed');
+        logger.error(
+          { requestId, industryResultsError: industryResults.reason },
+          'Industry search failed',
+        );
       }
 
       // Combine and deduplicate using weighted multi-vector approach
@@ -478,7 +484,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
               )
                 multiplier += 0.06;
             } catch (e) {
-              logger.warn({ requestId, err: e }, 'Similar case metadata parsing warning');
+              logger.warn({ requestId, e }, 'Similar case metadata parsing warning');
             }
             return { ...c, similarity: (c.similarity || 0) * multiplier };
           });
@@ -558,7 +564,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       timings.vectorSearch = Date.now() - stepStart;
       stepStart = Date.now();
     } catch (error) {
-      logger.error({ requestId, err: error }, 'Vector search error');
+      logger.error({ requestId, error }, 'Vector search error');
       timings.vectorSearch = Date.now() - stepStart;
       stepStart = Date.now();
       // Continue without database context - don't fail the request
@@ -835,7 +841,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       .insert(logData)
       .then(({ error }) => {
         if (error) {
-          logger.error({ requestId, err: error }, 'Database error during result logging');
+          logger.error({ requestId, error }, 'Database error during result logging');
         } else {
           logger.info({ requestId }, 'Result logged successfully to database');
         }
@@ -848,7 +854,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
     logOperation('performScoring', 'success', Date.now() - startTime);
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
-    logger.error({ requestId, err: error }, 'Scoring request error');
+    logger.error({ requestId, error }, 'Scoring request error');
     logOperation('performScoring', 'error', Date.now() - startTime);
     throw error;
   }
@@ -1029,7 +1035,7 @@ export async function performScoringWithStream(
           'Metadata extracted',
         );
       } catch (error) {
-        logger.warn({ requestId, err: error }, 'Metadata extraction warning');
+        logger.warn({ requestId, error }, 'Metadata extraction warning');
         metadata = null;
       }
 
@@ -1077,10 +1083,16 @@ export async function performScoringWithStream(
         industryResults.status === 'fulfilled' ? industryResults.value || [] : [];
 
       if (searchResults.status === 'rejected') {
-        logger.error({ requestId, err: searchResults.reason }, 'Hybrid search failed');
+        logger.error(
+          { requestId, searchResultsError: searchResults.reason },
+          'Hybrid search failed',
+        );
       }
       if (industryResults.status === 'rejected') {
-        logger.error({ requestId, err: industryResults.reason }, 'Industry search failed');
+        logger.error(
+          { requestId, industryResultsError: industryResults.reason },
+          'Industry search failed',
+        );
       }
 
       // Combine and deduplicate using weighted multi-vector approach
@@ -1127,7 +1139,7 @@ export async function performScoringWithStream(
               )
                 multiplier += 0.06;
             } catch (e) {
-              logger.warn({ requestId, err: e }, 'Similar case metadata parsing warning');
+              logger.warn({ requestId, e }, 'Similar case metadata parsing warning');
             }
             return { ...c, similarity: (c.similarity || 0) * multiplier };
           });
@@ -1207,7 +1219,7 @@ export async function performScoringWithStream(
       timings.vectorSearch = Date.now() - stepStart;
       stepStart = Date.now();
     } catch (error) {
-      logger.error({ requestId, err: error }, 'Vector search error');
+      logger.error({ requestId, error }, 'Vector search error');
       timings.vectorSearch = Date.now() - stepStart;
       stepStart = Date.now();
       // Continue without database context - don't fail the request
@@ -1488,7 +1500,7 @@ export async function performScoringWithStream(
       .insert(logData)
       .then(({ error }) => {
         if (error) {
-          logger.error({ requestId, err: error }, 'Database error during result logging');
+          logger.error({ requestId, error }, 'Database error during result logging');
         } else {
           logger.info({ requestId }, 'Result logged successfully to database');
         }
@@ -1504,7 +1516,7 @@ export async function performScoringWithStream(
     logOperation('performScoringWithStream', 'success', Date.now() - startTime);
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
-    logger.error({ requestId, err: error }, 'Scoring request error (stream)');
+    logger.error({ requestId, error }, 'Scoring request error (stream)');
     logOperation('performScoringWithStream', 'error', Date.now() - startTime);
     throw error;
   }

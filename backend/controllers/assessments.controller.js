@@ -177,7 +177,7 @@ export async function fetchUserAssessments(supabase, user, token, query) {
       .range(from, to);
 
     if (error) {
-      logger.error({ err: error }, 'User assessments query error');
+      logger.error({ error }, 'User assessments query error');
       throw error;
     }
 
@@ -207,7 +207,7 @@ export async function getAssessmentStats(supabase, user, token) {
     });
 
     if (error) {
-      logger.error({ err: error }, 'RPC error in get_assessment_statistics');
+      logger.error({ error }, 'RPC error in get_assessment_statistics');
       throw error;
     }
 
@@ -409,7 +409,7 @@ export async function deleteAssessment(supabase, user, token, id) {
       .single();
 
     if (getError || !assessment) {
-      logger.info({ id, userId, err: getError }, 'Assessment not found for deletion');
+      logger.info({ id, userId, getError }, 'Assessment not found for deletion');
       const notFoundError = new Error(
         'Assessment not found or you do not have permission to delete it',
       );
@@ -424,7 +424,7 @@ export async function deleteAssessment(supabase, user, token, id) {
       .eq('user_id', userId);
 
     if (deleteError) {
-      logger.error({ id, userId, err: deleteError }, 'Error deleting assessment');
+      logger.error({ id, userId, deleteError }, 'Error deleting assessment');
       throw new Error(`Deletion failed: ${deleteError.message}`);
     }
 
@@ -433,7 +433,7 @@ export async function deleteAssessment(supabase, user, token, id) {
 
     return { message: 'Assessment deleted successfully', id };
   } catch (error) {
-    logger.error({ err: error }, 'Error during deleteAssessment operation');
+    logger.error({ error }, 'Error during deleteAssessment operation');
     logOperation('deleteAssessment', 'error', Date.now() - startTime);
     throw error;
   }

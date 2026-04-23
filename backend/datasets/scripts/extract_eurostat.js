@@ -280,7 +280,7 @@ async function main() {
     try {
       rows = parseEurostatCSV(filePath);
     } catch (err) {
-      logger.error({ file: ds.file, error: err.message }, 'Error parsing file');
+      logger.error({ file: ds.file, err }, 'Error parsing file');
       continue;
     }
 
@@ -344,7 +344,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

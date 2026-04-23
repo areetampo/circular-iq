@@ -29,8 +29,8 @@ router.get('/', async (req, res) => {
     // Set appropriate HTTP status based on health
     const statusCode = healthData.status === 'ok' ? 200 : 503;
     res.status(statusCode).json(healthData);
-  } catch (error) {
-    logger.error({ err: error }, 'Health check failed');
+  } catch (err) {
+    logger.error({ err }, 'Health check failed');
     res.status(503).json({
       status: 'error',
       error: 'Health check failed',
@@ -58,8 +58,8 @@ router.get('/detailed', async (req, res) => {
       healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 200 : 503;
 
     res.status(statusCode).json(healthData);
-  } catch (error) {
-    logger.error({ err: error }, 'Detailed health check failed');
+  } catch (err) {
+    logger.error({ err }, 'Detailed health check failed');
     res.status(503).json({
       status: 'error',
       error: 'Detailed health check failed',

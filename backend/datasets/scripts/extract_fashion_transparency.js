@@ -107,7 +107,7 @@ function parseCSVFile(filePath, expectedColumns, options = {}) {
     });
     return records.filter((row) => expectedColumns.every((col) => col in row));
   } catch (err) {
-    logger.warn({ filePath, error: err.message }, 'Warning: Could not parse file');
+    logger.warn({ filePath, err }, 'Warning: Could not parse file');
     return [];
   }
 }
@@ -289,7 +289,7 @@ async function main() {
       pdfInsights = await extractPDFInsights(pdfPath);
       logger.info({ count: pdfInsights.length }, 'Found PDF insights');
     } catch (err) {
-      logger.error({ error: err.message }, 'Error extracting PDF');
+      logger.error({ err }, 'Error extracting PDF');
     }
   } else {
     logger.warn('PDF file not found, skipping');
@@ -421,7 +421,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

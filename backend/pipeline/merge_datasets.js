@@ -88,8 +88,8 @@ async function mergeCsvFiles() {
       .map((f) => path.join(INPUT_MANUAL_ENTRIES_DIR, f));
 
     csvFiles = [...processedFiles, ...manualFiles];
-  } catch (error) {
-    logger.error({ err: error }, 'Failed to list CSV files');
+  } catch (err) {
+    logger.error({ err }, 'Failed to list CSV files');
     process.exit(1);
   }
 
@@ -130,8 +130,8 @@ async function mergeCsvFiles() {
       totalRecords += fileRecordCount;
 
       logger.info({ fileName, recordCount: fileRecordCount }, 'Added records from file');
-    } catch (error) {
-      logger.error({ err: error, fileName }, 'Error processing file');
+    } catch (err) {
+      logger.error({ fileName, err }, 'Error processing file');
       process.exit(1);
     }
   }
@@ -209,8 +209,8 @@ async function mergeCsvFiles() {
       // ignore chmod errors on some platforms
     }
     logger.info({ file: path.relative(process.cwd(), OUTPUT_FILE) }, 'Merged file created');
-  } catch (error) {
-    logger.error({ err: error }, 'Failed to write output');
+  } catch (err) {
+    logger.error({ err }, 'Failed to write output');
     process.exit(1);
   }
 
@@ -226,8 +226,8 @@ async function mergeCsvFiles() {
     }
 
     logger.info({ totalLines: lines.length }, 'Validation complete');
-  } catch (error) {
-    logger.warn({ err: error }, 'Validation error');
+  } catch (err) {
+    logger.warn({ err }, 'Validation error');
   }
 
   // Summary
@@ -239,8 +239,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   (async () => {
     try {
       await mergeCsvFiles();
-    } catch (error) {
-      logger.error({ err: error }, 'Fatal error');
+    } catch (err) {
+      logger.error({ err }, 'Fatal error');
       process.exit(1);
     }
   })();

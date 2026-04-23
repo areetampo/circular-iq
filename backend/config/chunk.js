@@ -208,7 +208,7 @@ export function formatMetadataFromJson(metadataJson, datasetKey) {
 
     return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
   } catch (e) {
-    logger.warn({ err: e }, 'Could not parse metadata_json');
+    logger.warn({ e }, 'Could not parse metadata_json');
     return '';
   }
 }

@@ -136,7 +136,7 @@ export function searchCeCases(supabase) {
         try {
           queryEmbedding = await createEmbedding(query);
         } catch (embedError) {
-          logger.error({ err: embedError, query }, 'Failed to create query embedding');
+          logger.error({ embedError, query }, 'Failed to create query embedding');
           return res.status(503).json({
             error: 'Embedding service temporarily unavailable. Try mode=keyword instead.',
             code: 'EMBEDDING_FAILED',
@@ -172,7 +172,7 @@ export function searchCeCases(supabase) {
       });
     } catch (error) {
       const processingMs = Date.now() - startTime;
-      logger.error({ err: error, query: req.query.q }, 'CE cases search error');
+      logger.error({ error, query: req.query.q }, 'CE cases search error');
       logOperation('searchCeCases', 'error', processingMs);
 
       return res.status(500).json({

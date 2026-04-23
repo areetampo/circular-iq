@@ -140,7 +140,7 @@ async function scrape() {
             break;
           } catch (e) {
             logger.info(
-              { attempt: attempt + 1, error: e.message },
+              { attempt: attempt + 1, err: e },
               'Iframe not found, retrying'
             );
             await randomDelay(3000, 5000);
@@ -228,7 +228,7 @@ async function scrape() {
         downloaded = true;
         await appendLogs(DATASET_KEY, `  Downloaded: ${filename}`);
       } catch (err) {
-        logger.error({ error: err.message }, 'Error');
+        logger.error({ err }, 'Error');
         await appendLogs(DATASET_KEY, `  ERROR: ${detailUrl} - ${err.message}`);
       }
 
@@ -264,7 +264,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

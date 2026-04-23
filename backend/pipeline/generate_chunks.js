@@ -202,8 +202,8 @@ Return ONLY a JSON object with keys exactly as above and values between 0 and 10
       }
     }
     return scores;
-  } catch (error) {
-    logger.warn({ err: error }, 'Failed to enrich scores');
+  } catch (err) {
+    logger.warn({ err }, 'Failed to enrich scores');
     return null;
   }
 }
@@ -575,8 +575,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       await saveChunksToFile(chunks, outputPath);
       logger.info('Chunking complete');
       process.exit(0);
-    } catch (error) {
-      logger.error({ err: error }, 'Fatal error during chunking');
+    } catch (err) {
+      logger.error({ err }, 'Fatal error during chunking');
       process.exit(1);
     }
   })().catch((err) => {

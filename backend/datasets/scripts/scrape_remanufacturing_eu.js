@@ -230,7 +230,7 @@ async function scrape() {
             backupRow.downloaded = 'yes';
           }
         } catch (err) {
-          logger.error({ error: err.message }, 'Error downloading');
+          logger.error({ err }, 'Error downloading');
           backupRow.downloaded = `failed (${err.message})`;
           await appendLogs(DATASET_KEY, `  Download error for ${item.filename}: ${err.message}`);
         }
@@ -274,9 +274,9 @@ async function scrape() {
 
     logger.info({ rawDir: RAW_DIR }, 'Scrape completed');
     await appendLogs(DATASET_KEY, `Scrape completed. Total PDFs: ${totalPdfCollected}`);
-  } catch (error) {
-    logger.error({ err: error }, 'Fatal error');
-    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
+  } catch (err) {
+    logger.error({ err }, 'Fatal error');
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
   } finally {
     await browser.close();
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
@@ -296,7 +296,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ err: err.message }, 'Fatal error');
+    logger.error({ err }, 'Fatal error');
     process.exit(1);
   });
 }

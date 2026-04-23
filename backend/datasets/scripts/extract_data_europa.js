@@ -196,7 +196,7 @@ async function translateBatchFrenchToEnglish(texts) {
     logger.info({ count: translated.length }, 'Translated texts from French to English');
     return translated;
   } catch (err) {
-    logger.warn({ error: err.message }, 'Batch translation failed');
+    logger.warn({ err }, 'Batch translation failed');
     return texts; // fallback to original
   }
 }
@@ -482,7 +482,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\nFatal Error during extraction');
+    logger.error({ err }, '\nFatal Error during extraction');
     process.exit(1);
   });
 }

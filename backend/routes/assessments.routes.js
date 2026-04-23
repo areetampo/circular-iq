@@ -52,12 +52,12 @@ export default function createAssessmentsRouter(serviceSupabase) {
       );
       logRequest('POST', '/assessments', 201, Date.now() - startTime);
       res.status(201).json(result);
-    } catch (error) {
-      logger.error({ err: error }, 'Error saving assessment');
+    } catch (err) {
+      logger.error({ err }, 'Error saving assessment');
       logRequest('POST', '/assessments', 500, Date.now() - startTime);
       res.status(500).json({
-        error: error.message || 'Failed to save assessment',
-        code: error.code || 'INTERNAL_ERROR',
+        error: err.message || 'Failed to save assessment',
+        code: err.code || 'INTERNAL_ERROR',
         timestamp: new Date().toISOString(),
       });
     }
@@ -79,12 +79,12 @@ export default function createAssessmentsRouter(serviceSupabase) {
       );
       logRequest('GET', '/assessments', 200, Date.now() - startTime);
       res.json(result);
-    } catch (error) {
-      logger.error({ err: error }, 'Error fetching assessments');
+    } catch (err) {
+      logger.error({ err }, 'Error fetching assessments');
       logRequest('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json({
-        error: error.message || 'Failed to fetch assessments',
-        code: error.code || 'INTERNAL_ERROR',
+        error: err.message || 'Failed to fetch assessments',
+        code: err.code || 'INTERNAL_ERROR',
         timestamp: new Date().toISOString(),
       });
     }
@@ -105,12 +105,12 @@ export default function createAssessmentsRouter(serviceSupabase) {
       );
       logRequest('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
-    } catch (error) {
-      logger.error({ err: error }, 'Error fetching assessment stats');
+    } catch (err) {
+      logger.error({ err }, 'Error fetching assessment stats');
       logRequest('GET', '/assessments/stats', 500, Date.now() - startTime);
       res.status(500).json({
-        error: error.message || 'Failed to fetch assessment statistics',
-        code: error.code || 'INTERNAL_ERROR',
+        error: err.message || 'Failed to fetch assessment statistics',
+        code: err.code || 'INTERNAL_ERROR',
         timestamp: new Date().toISOString(),
       });
     }

@@ -240,7 +240,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Error in main execution');
+    logger.error({ err }, '\n✕ Error in main execution');
     process.exit(1);
   });
 }

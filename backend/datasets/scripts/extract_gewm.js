@@ -142,7 +142,7 @@ async function runPythonExtraction() {
     logger.info({ stdout }, 'Python stdout');
     logger.info('✓ Python extraction completed.');
   } catch (error) {
-    logger.error({ error: error.message }, '✕ Error running Python script');
+    logger.error({ error }, '✕ Error running Python script');
     throw error;
   }
 }
@@ -296,6 +296,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  logger.error({ error: err }, 'Unhandled error');
+  logger.error({ err }, 'Unhandled error');
   process.exit(1);
 });

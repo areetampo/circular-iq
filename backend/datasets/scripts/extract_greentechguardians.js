@@ -121,7 +121,7 @@ async function main() {
           records.set(key, { record: data, priority: PRIORITY[file] || 0 });
         }
       } catch (e) {
-        logger.warn({ file, error: e.message }, 'Skipping invalid JSON');
+        logger.warn({ file, e }, 'Skipping invalid JSON');
       }
     }
   }
@@ -220,7 +220,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ err: err.message }, 'Fatal error');
+    logger.error({ err }, 'Fatal error');
     process.exit(1);
   });
 }

@@ -122,7 +122,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '✕ Fatal error');
+    logger.error({ err }, '✕ Fatal error');
     process.exit(1);
   });
 }

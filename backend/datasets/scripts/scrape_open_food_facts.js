@@ -302,7 +302,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
+    logger.error({ error }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     throw error;
   }
@@ -422,7 +422,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

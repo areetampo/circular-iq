@@ -161,7 +161,7 @@ function sampleRecordsByDataset(records) {
       { datasetCounters, outputFile: OUTPUT_FILE, rowCount: sampledRecords.length },
       'Sample extraction complete',
     );
-  } catch (error) {
-    logger.error({ err: error }, 'Error during sample extraction');
+  } catch (err) {
+    logger.error({ err }, 'Error during sample extraction');
   }
 })();

@@ -467,7 +467,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
+    logger.error({ error }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -555,7 +555,10 @@ async function main() {
   });
 
   const summary = `✓ Scrape complete. Wrote ${writeResult.writtenCount} rows to ${outputFile} (duplicate rows removed: ${writeResult.duplicateCount}).`;
-  logger.info(summary);
+  logger.info(
+    { writtenCount: writeResult.writtenCount, outputFile, duplicateCount: writeResult.duplicateCount },
+    '✓ Scrape complete. Wrote rows to outputFile (duplicate rows removed).'
+  );
 
   const firstRow = finalRows[0];
   const lastRow = finalRows[finalRows.length - 1];
@@ -571,7 +574,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

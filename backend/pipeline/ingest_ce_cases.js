@@ -1,4 +1,5 @@
 // backend/pipeline/ingest_ce_cases.js
+
 import fs from 'fs';
 
 import { parse } from 'csv-parse';
@@ -36,8 +37,8 @@ async function ingestCSV() {
     if (row.metadata_json) {
       try {
         metadata = JSON.parse(row.metadata_json);
-      } catch (e) {
-        logger.warn({ id: row.ID, error: e.message }, 'Failed to parse metadata_json');
+      } catch (err) {
+        logger.warn({ id: row.ID, err }, 'Failed to parse metadata_json');
       }
     }
 
@@ -64,7 +65,7 @@ async function ingestCSV() {
     const { error } = await supabase.from('ce_cases').upsert(batch, { onConflict: 'id' });
 
     if (error) {
-      logger.error({ batchIndex: i, error: error.message }, 'Upsert failed');
+      logger.error({ batchIndex: i, error }, 'Upsert failed');
       throw error;
     }
 
@@ -78,4 +79,4 @@ async function ingestCSV() {
   logger.info({ inserted }, 'Ingestion complete');
 }
 
-ingestCSV().catch((error) => logger.error({ error }, 'Ingestion failed'));
+ingestCSV().catch((err) => logger.error({ err }, 'Ingestion failed'));

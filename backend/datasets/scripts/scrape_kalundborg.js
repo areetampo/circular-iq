@@ -28,21 +28,21 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import {
-  appendLogs,
-  cleanText,
-  clearLogs,
-  createBackupHelper,
-  getBrowserLaunchOptions,
-  getDatasetProcessedCsvPath,
-  getDatasetScrapeLogsPath,
-  getExtraHttpHeaders,
-  getUserAgentOptions,
-  getViewportOptions,
-  hasAppendBackupFlag,
-  hasAppendProcessedFlag,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  writeCsv,
+    appendLogs,
+    cleanText,
+    clearLogs,
+    createBackupHelper,
+    getBrowserLaunchOptions,
+    getDatasetProcessedCsvPath,
+    getDatasetScrapeLogsPath,
+    getExtraHttpHeaders,
+    getUserAgentOptions,
+    getViewportOptions,
+    hasAppendBackupFlag,
+    hasAppendProcessedFlag,
+    isBackupRecoveryMode,
+    readBackupCsv,
+    writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -121,7 +121,7 @@ async function extractCaseData(page, url, title) {
           break;
         }
       } catch (err) {
-        logger.error({ selector, error: err.message }, 'Error while waiting for selector');
+        logger.error({ selector, err }, 'Error while waiting for selector');
         // selector not found or empty, try next
       }
     }
@@ -286,9 +286,9 @@ async function extractCaseData(page, url, title) {
     );
 
     return rowData;
-  } catch (error) {
-    logger.error({ url, error: error.message }, 'Error extracting');
-    await appendLogs(DATASET_KEY, `ERROR: ${url} - ${error.message}`);
+  } catch (err) {
+    logger.error({ url, err }, 'Error extracting');
+    await appendLogs(DATASET_KEY, `ERROR: ${url} - ${err.message}`);
     return null;
   }
 }
@@ -325,7 +325,7 @@ async function rebuildFromBackup() {
           qualityScore,
         };
       } catch (e) {
-        logger.error({ error: e.message }, 'Error parsing backup row');
+        logger.error({ e }, 'Error parsing backup row');
         return null;
       }
     })
@@ -469,10 +469,10 @@ async function scrape() {
       DATASET_KEY,
       `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
     );
-  } catch (error) {
-    logger.error({ error }, '✕ Fatal error');
-    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
-    throw error;
+  } catch (err) {
+    logger.error({ err }, '✕ Fatal error');
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
+    throw err;
   } finally {
     await browser.close();
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
@@ -489,7 +489,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -270,7 +270,7 @@ async function main() {
       logger.info({ count: results.length }, 'Extracted records');
       allResults.push(...results);
     } catch (err) {
-      logger.error({ fileName: fh.name, error: err.message }, 'Error processing file');
+      logger.error({ fileName: fh.name, err }, 'Error processing file');
     }
   }
 
@@ -303,7 +303,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -158,8 +158,8 @@ app.get('/health', async (req, res) => {
       const statusCode = healthData.status === 'ok' ? 200 : 503;
       res.status(statusCode).json(healthData);
     }
-  } catch (error) {
-    logger.error({ err: error }, 'Health check failed');
+  } catch (err) {
+    logger.error({ err }, 'Health check failed');
     res.status(503).json({
       status: 'error',
       error: 'Health check failed',
@@ -243,8 +243,8 @@ app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
       created_at: data.created_at,
       updated_at: data.updated_at,
     });
-  } catch (error) {
-    logger.error({ err: error }, 'Failed to fetch profile');
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch profile');
     res.status(500).json({
       error: 'Failed to fetch profile',
       code: 'INTERNAL_ERROR',

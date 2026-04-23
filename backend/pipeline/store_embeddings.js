@@ -215,9 +215,9 @@ export async function createInsertAdapter() {
 
       logger.info({ inserted: docsToInsert.length, total: docs.length, skipped }, 'Docs inserted');
       return docsToInsert.length;
-    } catch (error) {
-      logger.error({ err: error }, 'insertAdapter error');
-      throw error;
+    } catch (err) {
+      logger.error({ err }, 'insertAdapter error');
+      throw err;
     } finally {
       client.release();
     }
@@ -440,10 +440,11 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
   } catch (error) {
     logger.error(
       {
-        err: error,
+        error,
         batchNum,
         documents: documentsToInsert.map((d) => ({
-          id: `${d.metadata.chunk_id}:${d.metadata.field_name}`,
+          chunkId: d.metadata.chunk_id,
+          fieldName: d.metadata.field_name,
           content_preview: d.content.substring(0, 50),
         })),
       },
@@ -473,9 +474,9 @@ export async function storeDocuments(chunkStream) {
       await client.query('TRUNCATE TABLE documents');
 
       logger.info('Documents table cleared');
-    } catch (error) {
-      logger.error({ err: error }, 'Documents table clear failed');
-      throw error;
+    } catch (err) {
+      logger.error({ err }, 'Documents table clear failed');
+      throw err;
     } finally {
       client.release();
     }
@@ -611,7 +612,7 @@ async function validateStorage() {
     logger.info('Running VACUUM ANALYZE');
     await client.query('VACUUM ANALYZE documents');
   } catch (vacErr) {
-    logger.warn({ err: vacErr }, 'VACUUM ANALYZE failed (non-critical)');
+    logger.warn({ vacErr }, 'VACUUM ANALYZE failed (non-critical)');
   } finally {
     client.release();
   }
@@ -622,7 +623,7 @@ async function validateStorage() {
     const count = parseInt(rows[0].count, 10);
     logger.info({ destination: dbDest, count }, 'Document count');
   } catch (countErr) {
-    logger.error({ err: countErr }, 'Failed to count documents');
+    logger.error({ countErr }, 'Failed to count documents');
   }
 
   // 3. Test vector search function with a dummy embedding
@@ -652,7 +653,7 @@ async function validateStorage() {
 
     logger.info({ rowCount: rows.length, topResults }, 'Test vector search executed successfully');
   } catch (searchErr) {
-    logger.error({ err: searchErr }, 'Failed to test vector search');
+    logger.error({ searchErr }, 'Failed to test vector search');
   }
 }
 
@@ -693,8 +694,8 @@ export async function main() {
 
     // Success summary
     logger.info({ storedCount, destination: storageDest }, 'Embedding storage complete');
-  } catch (error) {
-    logger.error({ err: error }, 'STORAGE FAILED');
+  } catch (err) {
+    logger.error({ err }, 'STORAGE FAILED');
     process.exit(1);
   }
 }

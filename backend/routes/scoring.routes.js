@@ -226,7 +226,7 @@ export default function createScoringRouter(openai, supabase) {
             })}\n\n`,
           );
         } catch (writeErr) {
-          logger.warn({ err: writeErr }, 'Failed to write error to SSE stream');
+          logger.warn({ writeErr }, 'Failed to write error to SSE stream');
         }
         res.end();
       }

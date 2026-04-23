@@ -214,7 +214,7 @@ async function downloadFile(url, destPath, retries = 5) {
     } catch (err) {
       clearTimeout(timeout);
       if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-      logger.warn({ attempt: i + 1, url, error: err.message }, 'Download attempt failed');
+      logger.warn({ attempt: i + 1, url, err }, 'Download attempt failed');
       if (i === retries - 1)
         throw new Error(`Failed to download after ${retries} attempts: ${err.message}`);
       const delay = 2000 * Math.pow(2, i) + Math.random() * 1000;
@@ -415,7 +415,7 @@ async function downloadReportOrGuide(page, url, outputDir) {
     );
     return { pdfUrl, localPath: destPath };
   } catch (err) {
-    logger.error({ filename, error: err.message }, 'Failed to download PDF');
+    logger.error({ filename, err }, 'Failed to download PDF');
     return null;
   }
 }
@@ -571,7 +571,7 @@ async function scrapeCategory(browser, category) {
         success = true;
       } catch (err) {
         retries--;
-        logger.warn({ pageNum, retries, error: err.message }, 'Page error');
+        logger.warn({ pageNum, retries, err }, 'Page error');
         await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${err.message}`);
         if (retries === 0) {
           logger.warn({ pageNum }, 'Skipping page after 3 failed attempts');
@@ -623,7 +623,7 @@ async function scrapeCategory(browser, category) {
         } catch (err) {
           resourceRetries--;
           logger.warn(
-            { resourceRetries, error: err.message },
+            { resourceRetries, err },
             'Resource error'
           );
           await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
@@ -646,7 +646,7 @@ async function scrapeCategory(browser, category) {
           `Page ${pageNum}: backed up ${pageRows.length} case study rows.`,
         );
       } catch (e) {
-        logger.warn({ error: e.message }, 'Backup add failed');
+        logger.warn({ e }, 'Backup add failed');
         await appendLogs(DATASET_KEY, `  ‼ Backup add failed: ${e.message}`);
       }
     } else if (name !== 'case-studies') {
@@ -779,7 +779,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       await appendLogs(DATASET_KEY, '✓ Run completed successfully.');
     })
     .catch(async (err) => {
-      logger.error({ err: err.message }, 'Fatal error');
+      logger.error({ err }, 'Fatal error');
       await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
       process.exit(1);
     });

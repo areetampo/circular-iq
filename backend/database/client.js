@@ -125,7 +125,7 @@ export async function closeAllPools() {
   if (_aivenPgPool) {
     promises.push(
       _aivenPgPool.end().catch((err) => {
-        logger.error('Error closing Aiven pool:', err);
+        logger.error({ err }, 'Error closing Aiven pool');
         return null; // Don't fail the cleanup
       }),
     );
@@ -135,7 +135,7 @@ export async function closeAllPools() {
   if (_supabasePgPool) {
     promises.push(
       _supabasePgPool.end().catch((err) => {
-        logger.error('Error closing Supabase pool:', err);
+        logger.error({ err }, 'Error closing Supabase pool');
         return null; // Don't fail the cleanup
       }),
     );
@@ -156,7 +156,7 @@ export async function closeAllPools() {
       ]);
       logger.log('✅ Database connections closed');
     } catch (err) {
-      logger.warn('⚠️ Database close timeout/error:', err.message);
+      logger.warn({ err }, '⚠️ Database close timeout/error');
     }
   } else {
     logger.log('✅ No database connections to close');

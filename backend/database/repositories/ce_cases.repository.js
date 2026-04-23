@@ -30,7 +30,7 @@ export async function searchKeyword(supabase, keyword, limit = 20) {
   });
 
   if (error) {
-    logger.error({ err: error, keyword }, 'search_ce_cases_keyword RPC failed');
+    logger.error({ error, keyword }, 'search_ce_cases_keyword RPC failed');
     throw error;
   }
 
@@ -66,7 +66,7 @@ export async function searchHybrid(
   });
 
   if (error) {
-    logger.error({ err: error, keyword }, 'search_ce_cases_hybrid RPC failed');
+    logger.error({ error, keyword }, 'search_ce_cases_hybrid RPC failed');
     throw error;
   }
 

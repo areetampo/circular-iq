@@ -267,7 +267,7 @@ async function main() {
       }
       logger.info({ count: rows.length }, 'High-quality rows processed');
     } catch (err) {
-      logger.error({ fileName: file.name, error: err }, 'Error processing file');
+      logger.error({ fileName: file.name, err }, 'Error processing file');
     }
   }
 
@@ -295,7 +295,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message, stack: err.stack }, '\n✕ Error in main execution');
+    logger.error({ err }, '\n✕ Error in main execution');
     process.exit(1);
   });
 }

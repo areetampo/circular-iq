@@ -81,7 +81,7 @@ async function extractTextFromPdf(filePath) {
   try {
     pdfDocument = await loadingTask.promise;
   } catch (err) {
-    logger.error({ error: err.message }, 'PDF parse error');
+    logger.error({ err }, 'PDF parse error');
     return null;
   }
 
@@ -567,7 +567,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ err: err.message }, 'Fatal error');
+    logger.error({ err }, 'Fatal error');
     process.exit(1);
   });
 }

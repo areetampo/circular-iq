@@ -269,7 +269,7 @@ async function main() {
     try {
       text = await extractPagesText(RAW_PDF, range.start, range.end);
     } catch (err) {
-      logger.error({ caseId: range.id, error: err.message }, 'Failed to extract pages for case');
+      logger.error({ caseId: range.id, err }, 'Failed to extract pages for case');
       continue; // skip this case study and move to next
     }
 
@@ -321,7 +321,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

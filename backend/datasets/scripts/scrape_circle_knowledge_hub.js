@@ -372,7 +372,7 @@ async function extractCaseData(page, url, title, type) {
     rowData._qualityScore = scoreCaseQuality(rowData);
     return rowData;
   } catch (error) {
-    logger.error({ url, error: error.message }, 'Error extracting');
+    logger.error({ url, error }, 'Error extracting');
     await appendLogs(DATASET_KEY, `ERROR: ${url} - ${error.message}`);
     return null;
   }
@@ -421,7 +421,7 @@ async function rebuildFromBackup() {
         // Return the original row (without the temporary flags) plus the computed score
         return { ...row, qualityScore };
       } catch (err) {
-        logger.warn({ error: err.message }, 'Skipping invalid row');
+        logger.warn({ err }, 'Skipping invalid row');
         return null;
       }
     })
@@ -684,7 +684,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -213,7 +213,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err }, 'Error during extraction');
+    logger.error({ err }, 'Error during extraction');
     process.exit(1);
   });
 }

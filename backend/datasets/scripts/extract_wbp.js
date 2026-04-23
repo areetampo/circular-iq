@@ -168,7 +168,7 @@ async function parseTaxonomyPDF(filePath) {
     logger.info({ codes: sectorMap.size }, 'Sector taxonomy loaded from PDF');
     return sectorMap;
   } catch (err) {
-    logger.warn({ error: err.message }, 'Error parsing taxonomy PDF, using hard-coded mapping');
+    logger.warn({ err }, 'Error parsing taxonomy PDF, using hard-coded mapping');
     return FALLBACK_SECTOR_MAP;
   }
 }
@@ -582,7 +582,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

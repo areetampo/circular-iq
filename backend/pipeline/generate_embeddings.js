@@ -433,8 +433,8 @@ export async function main() {
       { outputPath: path.relative(process.cwd(), outputPath) },
       'Embedding generation complete',
     );
-  } catch (error) {
-    logger.error({ err: error }, 'Embedding generation failed');
+  } catch (err) {
+    logger.error({ err }, 'Embedding generation failed');
     process.exit(1);
   }
 }

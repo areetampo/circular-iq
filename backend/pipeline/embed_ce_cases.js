@@ -1,4 +1,5 @@
 // backend/pipeline/embed_ce_cases.js
+
 import fs from 'fs/promises';
 
 import OpenAI from 'openai';
@@ -143,7 +144,7 @@ async function loadCache() {
     if (error.message.includes('not found')) {
       logger.info('Cache file does not exist, starting with empty cache');
     } else {
-      logger.warn({ error: error.message }, 'Could not load cache file, starting with empty cache');
+      logger.warn({ error }, 'Could not load cache file, starting with empty cache');
     }
     return new Map();
   }
@@ -441,4 +442,4 @@ async function main() {
   logger.info({ count }, 'Supabase rows with NULL embedding (should be 0)');
 }
 
-main().catch((error) => logger.error({ error }, 'Main failed'));
+main().catch((err) => logger.error({ err }, 'Main failed'));

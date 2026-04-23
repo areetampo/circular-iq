@@ -34,24 +34,24 @@ import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import {
-    appendLogs,
-    cleanText,
-    clearLogs,
-    createBackupHelper,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getBrowserLaunchOptions,
-    getDatasetBackupFolderPath,
-    getDatasetProcessedCsvPath,
-    getDatasetScrapeLogsPath,
-    getExtraHttpHeaders,
-    getUserAgentOptions,
-    getViewportOptions,
-    hasAppendBackupFlag,
-    hasAppendProcessedFlag,
-    isBackupRecoveryMode,
-    readBackupCsv,
-    writeCsv,
+  appendLogs,
+  cleanText,
+  clearLogs,
+  createBackupHelper,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getBrowserLaunchOptions,
+  getDatasetBackupFolderPath,
+  getDatasetProcessedCsvPath,
+  getDatasetScrapeLogsPath,
+  getExtraHttpHeaders,
+  getUserAgentOptions,
+  getViewportOptions,
+  hasAppendBackupFlag,
+  hasAppendProcessedFlag,
+  isBackupRecoveryMode,
+  readBackupCsv,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -409,7 +409,7 @@ async function extractInnovatorData(page, url) {
 
     return { item, backupRow };
   } catch (err) {
-    logger.warn({ url, error: err.message }, 'Error extracting');
+    logger.warn({ url, err }, 'Error extracting');
     await appendLogs(DATASET_KEY, `ERROR: ${url} – ${err.message}`);
     return null;
   }
@@ -528,7 +528,7 @@ async function scrape() {
       await page.screenshot({ path: screenshotPath });
       const html = await page.content();
       fs.writeFileSync(htmlPath, html);
-      logger.error({ error: err.message }, 'Error');
+      logger.error({ err }, 'Error');
       logger.error({ screenshotPath }, 'Tile selector not found, screenshot saved');
       logger.error({ htmlPath }, 'HTML saved');
       await appendLogs(DATASET_KEY, `✕ Fatal: Tile selector not found. Debug files saved.`);
@@ -576,7 +576,7 @@ async function scrape() {
             logger.info('No data extracted');
           }
         } catch (err) {
-          logger.warn({ error: err.message }, 'Error on detail page');
+          logger.warn({ err }, 'Error on detail page');
           await appendLogs(DATASET_KEY, `      ERROR: ${link} – ${err.message}`);
         } finally {
           await detailPage.close();
@@ -647,7 +647,7 @@ async function scrape() {
         );
         logger.info({ message: 'New tiles loaded successfully' });
       } catch (err) {
-        logger.warn({ error: err.message, message: 'Timed out waiting for new tiles, but continuing' });
+        logger.warn({ err},'Timed out waiting for new tiles, but continuing');
       }
 
       await sleep(2000);
@@ -733,7 +733,7 @@ async function scrape() {
     );
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
   } catch (err) {
-    logger.error({ error: err }, '✕ Fatal error');
+    logger.error({ err }, '✕ Fatal error');
     await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
     throw err;
   } finally {
@@ -751,7 +751,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

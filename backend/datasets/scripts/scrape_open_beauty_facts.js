@@ -311,7 +311,7 @@ async function fetchAllForKeyWord({
     try {
       await backup.add(transformed);
     } catch (e) {
-      logger.warn({keyword, page, error: e.message}, "Backup add failed");
+      logger.warn({keyword, page, e}, "Backup add failed");
       await appendLogs(DATASET_KEY, `‼ Backup add failed for ${keyword} page ${page}: ${e.message}`);
     }
 
@@ -401,7 +401,7 @@ async function rebuildFromBackup() {
     );
     await appendLogs(DATASET_KEY, `\n--- End of recovery run ---\n`);
   } catch (error) {
-    logger.error({ error: error.message }, '✕ Error rebuilding from backup');
+    logger.error({ error }, '✕ Error rebuilding from backup');
     await appendLogs(DATASET_KEY, `✕ Recovery failed: ${error.message}`);
     await appendLogs(DATASET_KEY, `\n--- Recovery aborted ---\n`);
     throw error;
@@ -495,7 +495,7 @@ async function main() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch((err) => {
-    logger.error({ error: err.message }, '\n✕ Fatal error');
+    logger.error({ err }, '\n✕ Fatal error');
     process.exit(1);
   });
 }
