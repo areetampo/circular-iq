@@ -23,7 +23,9 @@ export const baseEnvSchema = z.object({
 
   PORT: z.coerce.number().int().positive(),
 
-  FRONTEND_URL: z.string().trim().url('A valid FRONTEND_URL is required for CORS and Auth'),
+  APP_URL: z.string().trim().url('A valid APP_URL is required for CORS and Auth'),
+  API_URL: z.string().trim().url('A valid API_URL is required for CORS and Auth'),
+
   ALLOWED_ORIGINS: commaSeparatedStringArraySchema,
   PUBLIC_ROUTES: commaSeparatedStringArraySchema,
 

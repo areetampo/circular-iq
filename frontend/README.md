@@ -310,8 +310,8 @@ VITE_API_URL=http://localhost:8000
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyxxxxxxxxxxxxx
 
-# Frontend URL (used for share links)
-VITE_FRONTEND_URL=http://localhost:5173
+# App URL (used for share links)
+VITE_APP_URL=http://localhost:5173
 
 # Optional feature flags
 VITE_LOG_LEVEL=debug
@@ -334,7 +334,7 @@ import { FRONTEND_CONFIG } from '@/config';
 FRONTEND_CONFIG.apiBaseUrl; // Backend URL
 FRONTEND_CONFIG.supabaseUrl; // Supabase URL
 FRONTEND_CONFIG.supabaseAnonKey; // Anon key
-FRONTEND_CONFIG.frontendUrl; // Frontend URL
+FRONTEND_CONFIG.appUrl; // Frontend URL
 ```
 
 ## Development
@@ -686,7 +686,7 @@ git push origin main
 #    VITE_API_URL=https://your-backend.render.com
 #    VITE_SUPABASE_URL=https://your-project.supabase.co
 #    VITE_SUPABASE_ANON_KEY=your-anon-key
-#    VITE_FRONTEND_URL=https://your-app.vercel.app
+#    VITE_APP_URL=https://your-app.vercel.app
 #    INTERNAL_BACKEND_API_KEY=your-secret-backend-key  ← server-only, never VITE_ prefixed
 
 # 4. Deploy (automatic on every git push to main)

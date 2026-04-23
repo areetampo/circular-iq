@@ -1,8 +1,7 @@
 import { frontendSchema } from './env.schema';
 
 const rawEnv = {
-  VITE_FRONTEND_URL:
-    import.meta.env.VITE_FRONTEND_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+  VITE_APP_URL: import.meta.env.VITE_APP_URL || process.env.VITE_APP_URL || 'http://localhost:5173',
 
   VITE_API_URL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:3000',
 
@@ -34,7 +33,7 @@ let validatedConfig;
 const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
 if (isTest) {
   validatedConfig = {
-    frontendUrl: import.meta.env.VITE_FRONTEND_URL ?? 'http://localhost:5173',
+    appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
     apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
     supabase: {
       url: import.meta.env.VITE_SUPABASE_URL ?? 'https://test.supabase.co',
@@ -58,14 +57,14 @@ if (isTest) {
     // 2. Handle Success Logic
     const env = result.data;
     // Only reject localhost FRONTEND URL and API URL in production builds
-    if (env.PROD && env.VITE_FRONTEND_URL && env.VITE_FRONTEND_URL.includes('localhost')) {
-      throw new Error('Production build cannot use localhost FRONTEND URL');
+    if (env.PROD && env.VITE_APP_URL && env.VITE_APP_URL.includes('localhost')) {
+      throw new Error('Production build cannot use localhost APP URL');
     }
     if (env.PROD && env.VITE_API_URL && env.VITE_API_URL.includes('localhost')) {
       throw new Error('Production build cannot use localhost API URL');
     }
     validatedConfig = {
-      frontendUrl: env.VITE_FRONTEND_URL,
+      appUrl: env.VITE_APP_URL,
       apiBaseUrl: env.VITE_API_URL,
       supabase: {
         url: env.VITE_SUPABASE_URL,

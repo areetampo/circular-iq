@@ -101,7 +101,7 @@ const parseAllowedOrigins = () => {
       : [];
 
   const origins = env.ALLOWED_ORIGINS ?? [];
-  const frontend = env.FRONTEND_URL ? [env.FRONTEND_URL] : [];
+  const frontend = env.APP_URL ? [env.APP_URL] : [];
 
   return [...new Set([...defaults, ...origins, ...frontend])];
 };
@@ -314,7 +314,8 @@ export const BACKEND_CONFIG = deepFreeze({
   useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
 
   app: {
-    frontendUrl: env.FRONTEND_URL,
+    appUrl: env.APP_URL,
+    apiUrl: env.API_URL,
     allowedOrigins: parseAllowedOrigins(),
     publicRoutes: publicRoutesSet,
     routeMatchers: createRouteMatchers(publicRoutesSet),

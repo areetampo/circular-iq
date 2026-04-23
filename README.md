@@ -272,7 +272,7 @@ AIVEN_CONNECTION_LIMIT=20
 VITE_API_URL=http://localhost:8000
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
-VITE_FRONTEND_URL=http://localhost:5173
+VITE_APP_URL=http://localhost:5173
 VITE_LOG_LEVEL=debug          # optional
 VITE_ENABLE_ANALYTICS=true    # optional
 ```

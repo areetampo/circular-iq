@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     if (!backendApiUrl) {
       return res.status(500).json({
         error: 'Backend URL not configured',
-        code: 'BACKEND_URL_MISSING',
+        code: 'API_URL_MISSING',
       });
     }
 
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     const headers = {
       'Content-Type': 'application/json',
       'x-api-key': internalApiKey,
-      Origin: req.headers.origin || process.env.VITE_FRONTEND_URL || '*', // Forward the original Origin header or use frontend URL
+      Origin: req.headers.origin || process.env.VITE_APP_URL || '*', // Forward the original Origin header or use frontend URL
     };
 
     // Forward Authorization header if present (for Supabase auth tokens)
