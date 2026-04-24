@@ -14,8 +14,10 @@ export function useGlobalStats({ enabled = true } = {}) {
     queryKey: ['global-stats'],
     queryFn: getGlobalStats,
     enabled,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 2 * 60 * 1000, // 2 min - reduced to allow manual refresh
     gcTime: 30 * 60 * 1000, // 30 min
+    refetchOnMount: false, // Don't auto-refetch on mount, only when explicitly requested
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   const logStats = data?.log_stats ?? null;

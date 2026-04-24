@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
-import { formatTimestamp } from '@/lib/formatting';
+import { formatRelativeTime } from '@/lib/formatting';
 
 import { GlobalActivity, SolutionsSearch } from './components';
 
@@ -35,6 +35,17 @@ export default function DashboardPage() {
   // ── Global data ─────────────────────────────────────────────────────────────
   const { isLoading: globalLoading, refetch: refetchGlobal } = useGlobalStats();
 
+  // Handle refresh button click
+  const handleRefresh = async () => {
+    try {
+      await refetchGlobal({ throwOnError: true, refetchPage: false });
+      setUpdatedAt(new Date()); // Update timestamp immediately after refetch
+    } catch (error) {
+      // Error is handled by React Query's global error handling
+      console.error('Error during refetch:', error);
+    }
+  };
+
   // Update timestamp when data finishes loading
   useEffect(() => {
     // Update timestamp when all data has finished loading
@@ -60,12 +71,12 @@ export default function DashboardPage() {
 
         {/* Refresh button + updated at timestamp */}
         <div className="flex flex-col items-end justify-center gap-2">
-          <Button onClick={refetchGlobal} disabled={globalLoading} variant="teal">
+          <Button onClick={handleRefresh} disabled={globalLoading} variant="teal">
             <RotateCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
             Refresh
           </Button>
           <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
-            Updated at {formatTimestamp(updatedAt)}
+            updated {formatRelativeTime(updatedAt)}
           </p>
         </div>
       </div>
@@ -94,7 +105,7 @@ export default function DashboardPage() {
         </Tabs.Panel>
 
         <Tabs.Panel id="global">
-          <GlobalActivity />
+          <GlobalActivity refetchGlobal={refetchGlobal} />
         </Tabs.Panel>
       </Tabs>
     </div>

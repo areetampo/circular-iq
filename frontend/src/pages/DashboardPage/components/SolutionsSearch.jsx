@@ -1,12 +1,16 @@
-import { Checkbox, Label, SearchField, Skeleton } from '@heroui/react';
+import { Checkbox, Input, Label, Pagination, SearchField, Skeleton } from '@heroui/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Building2, ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { Building2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chip, DetailsBadge, Spinner } from '@/components/common';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/tailgrids/core/resizable';
 import { searchCeCases } from '@/features/search/searchApi';
 import { useDebounce } from '@/hooks/useDebounce';
-import { formatProcessingTime } from '@/lib/formatting';
 
 function ProblemText({ text }) {
   const [expanded, setExpanded] = useState(false);
@@ -14,7 +18,7 @@ function ProblemText({ text }) {
   const isLong = text.length > LIMIT;
   return (
     <div>
-      <p className="text-sm/relaxed text-(--color-text-secondary)">
+      <p className="text-[0.8125rem]/relaxed text-(--color-text-secondary)">
         {expanded || !isLong ? text : text.slice(0, LIMIT) + '…'}
       </p>
       {isLong && (
@@ -35,7 +39,28 @@ function SolutionText({ text }) {
   const isLong = text.length > LIMIT;
   return (
     <div>
-      <p className="text-sm/relaxed text-(--color-text-secondary)">
+      <p className="text-[0.8125rem]/relaxed text-(--color-text-secondary)">
+        {expanded || !isLong ? text : text.slice(0, LIMIT) + '…'}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-xs text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ImpactText({ text }) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 120;
+  const isLong = text.length > LIMIT;
+  return (
+    <div className="overflow-hidden">
+      <p className="overflow-hidden text-xs/relaxed wrap-break-word text-(--color-text-secondary)">
         {expanded || !isLong ? text : text.slice(0, LIMIT) + '…'}
       </p>
       {isLong && (
@@ -73,10 +98,10 @@ function ResultCard({ result, isHybridMode }) {
     (problem ? problem.slice(0, 90) + (problem.length > 90 ? '…' : '') : 'Untitled');
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-(--color-border-card) bg-(--color-bg-card) p-5 transition-colors duration-200 hover:bg-(--color-bg-card-hover)">
+    <div className="flex flex-col gap-3 rounded-xl border border-(--color-border-subtle) bg-(--color-bg-card) p-4 shadow-sm transition-colors duration-200 hover:bg-(--color-bg-card-hover)">
       {/* ① HEADER: title + score badge */}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="flex-1 text-sm/snug font-semibold text-(--color-text-primary)">
+        <h3 className="flex-1 text-sm/snug leading-snug font-semibold text-(--color-text-primary)">
           {displayTitle}
         </h3>
         {isHybridMode && score != null && (
@@ -101,12 +126,12 @@ function ResultCard({ result, isHybridMode }) {
           )}
           {category && (
             <Chip variant="tag" size="sm">
-              {category.length > 45 ? category.slice(0, 45) + '…' : category}
+              {category.length > 40 ? category.slice(0, 40) + '…' : category}
             </Chip>
           )}
           {materials && (
             <Chip variant="materials" size="sm">
-              {materials.length > 45 ? materials.slice(0, 45) + '…' : materials}
+              {materials.length > 40 ? materials.slice(0, 40) + '…' : materials}
             </Chip>
           )}
         </div>
@@ -118,7 +143,7 @@ function ResultCard({ result, isHybridMode }) {
       {/* ④ SOLUTION or SUMMARY */}
       {solution && (
         <div className="border-t border-(--color-border-faint) pt-3">
-          <p className="mb-1.5 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+          <p className="mt-0.5 mb-1.5 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
             Solution
           </p>
           <SolutionText text={solution} />
@@ -129,17 +154,17 @@ function ResultCard({ result, isHybridMode }) {
           <p className="mb-1.5 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
             Summary
           </p>
-          <p className="text-sm/relaxed text-(--color-text-secondary)">{summary}</p>
+          <p className="text-[0.8125rem]/relaxed text-(--color-text-secondary)">{summary}</p>
         </div>
       )}
 
       {/* ⑤ IMPACT */}
       {impact && (
         <div className="border-t border-(--color-border-faint) pt-3">
-          <p className="mb-1 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+          <p className="mt-0.5 mb-1 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
             Impact
           </p>
-          <p className="text-xs/relaxed text-(--color-text-secondary)">{impact}</p>
+          <ImpactText text={impact} />
         </div>
       )}
 
@@ -182,10 +207,10 @@ function IdleState() {
   );
 }
 
-function SkeletonGrid() {
+function SkeletonList() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {Array.from({ length: 4 }).map((_, index) => (
+    <div className="flex flex-col gap-3">
+      {Array.from({ length: 3 }).map((_, index) => (
         <div
           key={index}
           className="rounded-xl border border-(--color-border-card) bg-(--color-bg-card) p-5"
@@ -224,7 +249,7 @@ function EmptyState({ query }) {
 
 function ResultsGrid({ results, isHybridMode }) {
   return (
-    <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
+    <div className="flex flex-col gap-3">
       {results.map((result) => (
         <ResultCard key={result.id} result={result} isHybridMode={isHybridMode} />
       ))}
@@ -232,10 +257,219 @@ function ResultsGrid({ results, isHybridMode }) {
   );
 }
 
+// Inline helper for formatting time
+const formatMs = (ms) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`);
+
+function FilterSidebar({
+  results,
+  activeStrategies,
+  setActiveStrategies,
+  activeCategories,
+  setActiveCategories,
+  activeSources,
+  setActiveSources,
+}) {
+  // Extract unique filter values from results
+  const { strategies, categories, sources } = useMemo(() => {
+    if (!results.length) {
+      return { strategies: [], categories: [], sources: [] };
+    }
+
+    const strategySet = new Set();
+    const categorySet = new Set();
+    const sourceSet = new Set();
+
+    results.forEach((result) => {
+      // Extract strategies (split comma-separated)
+      if (result.circular_strategy) {
+        const resultStrategies = result.circular_strategy
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        resultStrategies.forEach((s) => strategySet.add(s));
+      }
+
+      // Extract categories
+      if (result.category) {
+        categorySet.add(result.category);
+      }
+
+      // Extract sources
+      if (result.source_display) {
+        sourceSet.add(result.source_display);
+      }
+    });
+
+    return {
+      strategies: Array.from(strategySet),
+      categories: Array.from(categorySet),
+      sources: Array.from(sourceSet),
+    };
+  }, [results]);
+
+  const handleStrategyToggle = (strategy) => {
+    setActiveStrategies((prev) => {
+      const next = new Set(prev);
+      if (next.has(strategy)) {
+        next.delete(strategy);
+      } else {
+        next.add(strategy);
+      }
+      const result = Array.from(next);
+      return result.length === 0 ? [] : result;
+    });
+  };
+
+  const handleCategoryToggle = (category) => {
+    setActiveCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      const result = Array.from(next);
+      return result.length === 0 ? [] : result;
+    });
+  };
+
+  const handleSourceToggle = (source) => {
+    setActiveSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) {
+        next.delete(source);
+      } else {
+        next.add(source);
+      }
+      const result = Array.from(next);
+      return result.length === 0 ? [] : result;
+    });
+  };
+
+  if (results.length === 0) {
+    return <p className="text-xs text-(--color-text-muted)">Filters appear after searching</p>;
+  }
+
+  return (
+    <div className="space-y-5 pr-4">
+      {/* Strategy Filter */}
+      {strategies.length >= 2 && (
+        <div>
+          <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+            Strategy
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip
+              variant="filter"
+              active={activeStrategies.length === 0}
+              onClick={() => setActiveStrategies([])}
+            >
+              All
+            </Chip>
+            {strategies.map((strategy) => (
+              <Chip
+                key={strategy}
+                variant="filter"
+                active={activeStrategies.includes(strategy)}
+                onClick={() => handleStrategyToggle(strategy)}
+              >
+                {strategy}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Category Filter */}
+      {categories.length >= 2 && (
+        <div>
+          <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+            Category
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip
+              variant="filter"
+              active={activeCategories.length === 0}
+              onClick={() => setActiveCategories([])}
+            >
+              All
+            </Chip>
+            {categories.map((category) => {
+              const displayLabel = category.length > 35 ? category.slice(0, 35) + '…' : category;
+              return (
+                <Chip
+                  key={category}
+                  variant="filter"
+                  active={activeCategories.includes(category)}
+                  onClick={() => handleCategoryToggle(category)}
+                >
+                  {displayLabel}
+                </Chip>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Source Filter */}
+      {sources.length >= 2 && (
+        <div>
+          <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+            Source
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip
+              variant="filter"
+              active={activeSources.length === 0}
+              onClick={() => setActiveSources([])}
+            >
+              All
+            </Chip>
+            {sources.map((source) => (
+              <Chip
+                key={source}
+                variant="filter"
+                active={activeSources.includes(source)}
+                onClick={() => handleSourceToggle(source)}
+              >
+                {source.length > 28 ? source.slice(0, 28) + '…' : source}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FilterEmptyState({ onClear }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16">
+      <p className="mb-4 text-sm text-(--color-text-muted)">
+        No results match the selected filters
+      </p>
+      <button
+        onClick={onClear}
+        className="text-sm text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
+      >
+        Clear filters
+      </button>
+    </div>
+  );
+}
+
 export function SolutionsSearch() {
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState('keyword'); // 'keyword' | 'hybrid'
+  const [mode, setMode] = useState('hybrid'); // 'keyword' | 'hybrid'
+  const [page, setPage] = useState(1);
+  const [activeStrategies, setActiveStrategies] = useState([]);
+  const [activeCategories, setActiveCategories] = useState([]);
+  const [activeSources, setActiveSources] = useState([]);
+  const [pageJumpValue, setPageJumpValue] = useState(null);
+  const [isJumpInputFocused, setIsJumpInputFocused] = useState(false);
+
   const debouncedQuery = useDebounce(query, 400);
+  const ITEMS_PER_PAGE = 10;
 
   const shouldSearch = debouncedQuery.trim().length >= 2;
   const isHybridMode = mode === 'hybrid';
@@ -258,17 +492,235 @@ export function SolutionsSearch() {
   const results = searchResults?.results || [];
   const isBackgroundFetching = isFetching && !isLoading;
 
+  // Reset filters when query changes
+  useEffect(() => {
+    setActiveStrategies([]);
+    setActiveCategories([]);
+    setActiveSources([]);
+    setPage(1);
+  }, [debouncedQuery]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [activeStrategies, activeCategories, activeSources]);
+
+  // Apply filters client-side
+  const filteredResults = useMemo(() => {
+    if (!results.length) return results;
+    return results.filter((r) => {
+      // Strategy filter — match if any of the result's strategies are in activeStrategies
+      if (activeStrategies.length > 0) {
+        const resultStrategies = (r.circular_strategy || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (!resultStrategies.some((s) => activeStrategies.includes(s))) return false;
+      }
+      // Category filter
+      if (activeCategories.length > 0 && !activeCategories.includes(r.category)) return false;
+      // Source filter
+      if (activeSources.length > 0 && !activeSources.includes(r.source_display)) return false;
+      return true;
+    });
+  }, [results, activeStrategies, activeCategories, activeSources]);
+
+  // Pagination
+  const paginatedResults = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredResults.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredResults, page, ITEMS_PER_PAGE]);
+
+  const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
+
+  // Helper function to generate page numbers with ellipses
+  const getPageNumbers = useCallback(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages = [];
+
+    // Always show first page
+    pages.push(1);
+
+    // Show ellipsis if current page is far from start
+    if (page > 3) {
+      pages.push('ellipsis');
+    }
+
+    // Show pages around current page
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // Show ellipsis if current page is far from end
+    if (page < totalPages - 2) {
+      pages.push('ellipsis');
+    }
+
+    // Always show last page
+    pages.push(totalPages);
+
+    return pages;
+  }, [page, totalPages]);
+
+  const clearAllFilters = () => {
+    setActiveStrategies([]);
+    setActiveCategories([]);
+    setActiveSources([]);
+  };
+
+  const handlePageJump = useCallback(() => {
+    const pageNumber = Number(pageJumpValue);
+    if (pageNumber && pageNumber >= 1 && pageNumber <= totalPages && !Number.isNaN(pageNumber)) {
+      setPage(pageNumber);
+      setPageJumpValue(null);
+      setIsJumpInputFocused(false);
+    } else {
+      // Don't show toast for invalid range, just silently handle it
+      if (pageNumber && pageNumber > totalPages) {
+        // If user entered a page beyond total, jump to last page
+        setPage(totalPages);
+        setPageJumpValue(null);
+        setIsJumpInputFocused(false);
+      }
+    }
+  }, [pageJumpValue, totalPages]);
+
   const handleModeChange = (isSelected) => {
     setMode(isSelected ? 'hybrid' : 'keyword');
   };
 
-  // Render content based on state
-  function renderContent() {
+  // Check if we should show the two-panel layout
+  const hasResults = !isLoading && !error && results.length > 0 && shouldSearch;
+
+  // Render full-width states (idle, loading, error, empty)
+  function renderFullWidthState() {
     if (!shouldSearch) return <IdleState />;
-    if (isLoading) return <SkeletonGrid />;
+    if (isLoading) return <SkeletonList />;
     if (error) return <ErrorState error={error} />;
     if (results.length === 0) return <EmptyState query={debouncedQuery} />;
-    return <ResultsGrid results={results} isHybridMode={isHybridMode} />;
+    return null;
+  }
+
+  // Render right panel content (pagination + results)
+  function renderRightPanel() {
+    return (
+      <div className="space-y-4">
+        {/* Result count */}
+        <div className="text-xs text-(--color-text-muted)">
+          {filteredResults.length < results.length
+            ? `${filteredResults.length} of ${results.length} results (filtered) · `
+            : `${results.length} results · `}
+          {isHybridMode ? 'semantic' : 'keyword'}
+          {searchResults?.processing_info?.processing_time_ms
+            ? ` · ${formatMs(searchResults.processing_info.processing_time_ms)}`
+            : ''}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex flex-col items-center gap-3">
+            <Pagination className="justify-center">
+              <Pagination.Content>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={page === 1}
+                    onPress={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    <Pagination.PreviousIcon />
+                    <span>Previous</span>
+                  </Pagination.Previous>
+                </Pagination.Item>
+                {getPageNumbers().map((p, i) =>
+                  p === 'ellipsis' ? (
+                    <Pagination.Item key={`ellipsis-${i}`}>
+                      <Pagination.Ellipsis />
+                    </Pagination.Item>
+                  ) : (
+                    <Pagination.Item key={p}>
+                      <Pagination.Link isActive={p === page} onPress={() => setPage(p)}>
+                        {p}
+                      </Pagination.Link>
+                    </Pagination.Item>
+                  ),
+                )}
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={page === totalPages}
+                    onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    <span>Next</span>
+                    <Pagination.NextIcon />
+                  </Pagination.Next>
+                </Pagination.Item>
+              </Pagination.Content>
+            </Pagination>
+
+            {totalPages > 7 && (
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="dashboard-solutions-search-page-pagination-jump-to"
+                  className="text-sm font-normal whitespace-nowrap text-(--color-text-muted)"
+                >
+                  Jump to:
+                </Label>
+                <div className="relative flex items-center">
+                  <Input
+                    id="dashboard-solutions-search-page-pagination-jump-to"
+                    className="number-input-field w-16"
+                    type="number"
+                    min="1"
+                    max={totalPages}
+                    value={isJumpInputFocused ? pageJumpValue : pageJumpValue || page}
+                    onChange={(e) => setPageJumpValue(e.target.value)}
+                    onFocus={() => setIsJumpInputFocused(true)}
+                    onBlur={() => {
+                      setIsJumpInputFocused(false);
+                      if (pageJumpValue === '') setPageJumpValue(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handlePageJump();
+                    }}
+                  />
+                  <div className="number-input-steppers">
+                    <button
+                      tabIndex={-1}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setPageJumpValue((v) => Math.min(Number(v || page) + 1, totalPages));
+                      }}
+                    >
+                      <ChevronUp size={16} strokeWidth={2} />
+                    </button>
+                    <button
+                      tabIndex={-1}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setPageJumpValue((v) => Math.max(Number(v || page) - 1, 1));
+                      }}
+                    >
+                      <ChevronDown size={16} strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cards */}
+        {filteredResults.length === 0 && results.length > 0 ? (
+          <FilterEmptyState onClear={clearAllFilters} />
+        ) : (
+          <ResultsGrid results={paginatedResults} isHybridMode={isHybridMode} />
+        )}
+      </div>
+    );
   }
 
   return (
@@ -300,14 +752,9 @@ export function SolutionsSearch() {
                 <Checkbox.Indicator />
               </Checkbox.Control>
               <Checkbox.Content>
-                <Label
-                  htmlFor="keyword-hybrid-search-toggle"
-                  className="-ml-0.5 flex items-center justify-center gap-2.5"
-                >
-                  <p className="line-clamp-4 text-sm/relaxed text-(--color-text-secondary)">
-                    Semantic search
-                  </p>
-                  <span className="flex items-center gap-1 text-xs text-(--color-text-muted)">
+                <p className="-ml-0.5 line-clamp-4 text-sm/relaxed text-(--color-text-secondary)">
+                  Semantic search
+                  <span className="ml-2.5 flex items-center gap-1 text-xs text-(--color-text-muted)">
                     [
                     {isHybridMode ? (
                       <span>AI-powered semantic search</span>
@@ -316,28 +763,45 @@ export function SolutionsSearch() {
                     )}
                     ]
                   </span>
-                </Label>
+                </p>
               </Checkbox.Content>
             </Checkbox>
 
             {/* Background fetching spinner */}
             {isBackgroundFetching && shouldSearch && <Spinner size="sm" />}
           </div>
-
-          {/* Results count */}
-          {searchResults?.count !== undefined && (
-            <div className="py-1 pl-1 text-xs text-(--color-text-muted)">
-              Showing {results.length} results · {isHybridMode ? 'semantic' : 'keyword'} ·{' '}
-              {searchResults.processing_info?.processing_time_ms
-                ? formatProcessingTime(searchResults.processing_info.processing_time_ms)
-                : ''}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Content rendering based on state */}
-      {renderContent()}
+      {/* Conditional layout */}
+      {hasResults ? (
+        /* RESIZABLE TWO-PANEL */
+        <ResizablePanelGroup direction="horizontal" className="min-h-150">
+          <ResizablePanel defaultSize={33} minSize={25} maxSize={75}>
+            <div
+              className="sticky top-4 overflow-y-auto pr-4"
+              style={{ position: 'sticky', top: '1rem', maxHeight: 'calc(100vh - 140px)' }}
+            >
+              <FilterSidebar
+                results={results}
+                activeStrategies={activeStrategies}
+                setActiveStrategies={setActiveStrategies}
+                activeCategories={activeCategories}
+                setActiveCategories={setActiveCategories}
+                activeSources={activeSources}
+                setActiveSources={setActiveSources}
+              />
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={67} minSize={25} maxSize={75}>
+            <div className="pl-4">{renderRightPanel()}</div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        /* FULL WIDTH CENTERED STATES */
+        <div className="flex min-h-75 items-center justify-center">{renderFullWidthState()}</div>
+      )}
     </div>
   );
 }

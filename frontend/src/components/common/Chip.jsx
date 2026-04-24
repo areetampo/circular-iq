@@ -17,7 +17,7 @@ import { cn } from '@/utils/cn';
 const variantStyles = {
   // Industry filter chips - used in MyAssessmentsPage filter bar
   filter: [
-    'rounded-full border font-medium',
+    'rounded-full border font-medium whitespace-normal',
     'border-[1.5px] border-(--color-border-ui) bg-transparent text-black/60',
     'transition-all duration-150 ease-in-out cursor-pointer',
     'hover:border-(--color-accent)/50 hover:text-black',
@@ -271,7 +271,7 @@ export const Chip = forwardRef(function Chip(
   const resolvedSize = sizeStyles[size] ?? sizeStyles.sm;
 
   const baseClasses =
-    'inline-flex items-center justify-center gap-1 outline-none rounded-full whitespace-nowrap max-w-50 font-sans tracking-[0.01em]';
+    'inline-flex items-center justify-center gap-1 outline-none rounded-full font-sans tracking-[0.01em]';
 
   const variantClasses = variantStyles[variant] || variantStyles.info;
   const colorOverrides = getColorOverrides(variant, color, active);
@@ -305,7 +305,7 @@ export const Chip = forwardRef(function Chip(
       style={variant === 'access-type' ? accessTypeStyles : {}}
       {...props}
     >
-      <span className="flex items-center justify-center truncate">{children}</span>
+      <span className="flex items-center justify-center">{children}</span>
     </HeroChip>
   );
 });

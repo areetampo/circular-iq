@@ -1,4 +1,5 @@
 import { Table } from '@heroui/react';
+import PropTypes from 'prop-types';
 import { useEffect, useMemo, useState } from 'react';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
@@ -46,7 +47,7 @@ const getMaterialColors = () => [
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────────────
-export default function GlobalActivity() {
+export default function GlobalActivity({ refetchGlobal }) {
   const { user } = useAuth();
   // Timestamp for "Updated at" display
   const [updatedAt, setUpdatedAt] = useState(new Date());
@@ -97,8 +98,9 @@ export default function GlobalActivity() {
     junkRate,
     marketDataByIndustry,
     isLoading: globalLoading,
-    refetch: refetchGlobal,
   } = useGlobalStats();
+
+  const SHOW_YOUR_ASSESSMENTS_SECTION = false;
 
   // Update timestamp when data finishes loading
   useEffect(() => {
@@ -425,104 +427,110 @@ export default function GlobalActivity() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          SECTION 3 — YOUR ASSESSMENTS
+          SECTION 3 — YOUR ASSESSMENTS - DISABLED SECTION
           ══════════════════════════════════════════════════════════════════════ */}
-      <section>
-        <DashboardSectionHeading label="YOUR ASSESSMENTS" />
+      {SHOW_YOUR_ASSESSMENTS_SECTION && (
+        <section>
+          <DashboardSectionHeading label="YOUR ASSESSMENTS" />
 
-        {user ? (
-          <>
-            {/* Your stats row */}
-            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard
-                title="Total Assessments"
-                value={userTotal?.toLocaleString()}
-                loading={userStatsLoading}
-              />
-              <StatCard
-                title="Average Score"
-                value={userAvg ? `${userAvg}%` : null}
-                loading={userStatsLoading}
-              />
-              <StatCard
-                title="Median Score"
-                value={userMedian ? `${userMedian}%` : null}
-                loading={userStatsLoading}
-              />
-              <StatCard
-                title="Score Range"
-                value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
-                loading={userStatsLoading}
-              />
-            </div>
+          {user ? (
+            <>
+              {/* Your stats row */}
+              <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                  title="Total Assessments"
+                  value={userTotal?.toLocaleString()}
+                  loading={userStatsLoading}
+                />
+                <StatCard
+                  title="Average Score"
+                  value={userAvg ? `${userAvg}%` : null}
+                  loading={userStatsLoading}
+                />
+                <StatCard
+                  title="Median Score"
+                  value={userMedian ? `${userMedian}%` : null}
+                  loading={userStatsLoading}
+                />
+                <StatCard
+                  title="Score Range"
+                  value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
+                  loading={userStatsLoading}
+                />
+              </div>
 
+              <div className="space-y-8">
+                {/* Your charts — each full width */}
+                <ChartPanel
+                  title="Your Assessments by Industry"
+                  isLoading={userStatsLoading}
+                  chartHeight="250px"
+                  className="mb-4"
+                >
+                  {userIndustryData.length > 0 ? (
+                    <BarChart
+                      data={userIndustryData}
+                      xAxisKey="name"
+                      barConfigs={[
+                        { dataKey: 'count', fill: getChartTheme().colors[2], name: 'Count' },
+                      ]}
+                      height={250}
+                      showGrid
+                    />
+                  ) : (
+                    <EmptyChart />
+                  )}
+                </ChartPanel>
+
+                <ChartPanel
+                  title="Your Assessments by Risk"
+                  isLoading={userStatsLoading}
+                  chartHeight="250px"
+                >
+                  {userRiskData.length > 0 ? (
+                    <PieChart
+                      data={userRiskData}
+                      dataKey="value"
+                      nameKey="name"
+                      height={250}
+                      showLegend={true}
+                      innerRadius={0}
+                      colors={getRiskColors()}
+                      label={false}
+                      labelLine={false}
+                    />
+                  ) : (
+                    <EmptyChart />
+                  )}
+                </ChartPanel>
+              </div>
+            </>
+          ) : (
             <div className="space-y-8">
-              {/* Your charts — each full width */}
-              <ChartPanel
-                title="Your Assessments by Industry"
-                isLoading={userStatsLoading}
-                chartHeight="250px"
-                className="mb-4"
-              >
-                {userIndustryData.length > 0 ? (
-                  <BarChart
-                    data={userIndustryData}
-                    xAxisKey="name"
-                    barConfigs={[
-                      { dataKey: 'count', fill: getChartTheme().colors[2], name: 'Count' },
-                    ]}
-                    height={250}
-                    showGrid
-                  />
-                ) : (
-                  <EmptyChart />
-                )}
-              </ChartPanel>
-
-              <ChartPanel
-                title="Your Assessments by Risk"
-                isLoading={userStatsLoading}
-                chartHeight="250px"
-              >
-                {userRiskData.length > 0 ? (
-                  <PieChart
-                    data={userRiskData}
-                    dataKey="value"
-                    nameKey="name"
-                    height={250}
-                    showLegend={true}
-                    innerRadius={0}
-                    colors={getRiskColors()}
-                    label={false}
-                    labelLine={false}
-                  />
-                ) : (
-                  <EmptyChart />
-                )}
+              {/* Sample charts for non-logged-in users */}
+              <ChartPanel title="Your Assessments by Risk" isLoading={false} chartHeight="250px">
+                <PieChart
+                  data={[
+                    { name: 'Low Risk', value: 42 },
+                    { name: 'Medium Risk', value: 38 },
+                    { name: 'High Risk', value: 20 },
+                  ]}
+                  dataKey="value"
+                  nameKey="name"
+                  height={250}
+                  showLegend={true}
+                  innerRadius={0}
+                  colors={getRiskColors()}
+                />
               </ChartPanel>
             </div>
-          </>
-        ) : (
-          <div className="space-y-8">
-            {/* Sample charts for non-logged-in users */}
-            <ChartPanel title="Your Assessments by Risk" isLoading={false} chartHeight="250px">
-              <PieChart
-                data={[
-                  { name: 'Low Risk', value: 42 },
-                  { name: 'Medium Risk', value: 38 },
-                  { name: 'High Risk', value: 20 },
-                ]}
-                dataKey="value"
-                nameKey="name"
-                height={250}
-                showLegend={true}
-                innerRadius={0}
-                colors={getRiskColors()}
-              />
-            </ChartPanel>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      )}
     </div>
   );
 }
+
+GlobalActivity.propTypes = {
+  refetchGlobal: PropTypes.func.isRequired,
+};
