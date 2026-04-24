@@ -1,22 +1,19 @@
-# ---------------------------------------------------------
-# WINDsurf / CODEIUM IGNORE
-# ---------------------------------------------------------
+# Specific heavy data folders
+**/backend/datasets/
+!**/backend/datasets/scripts/
 
-node_modules/
-dist/
-build/
+# Standard build/dependency folders
+**/node_modules/
+**/dist/
+**/build/
 .next/
 .vite/
+
+# Version control and config
 .git/
 .vscode/
 
-**/backend/datasets/archives/
-**/backend/datasets/for_search/
-**/backend/datasets/manual_entries/
-**/backend/datasets/out/
-**/backend/datasets/processed/
-**/backend/datasets/raw/
-
+# Large or non-code file types
 *.csv
 *.jsonl
 *.pdf
@@ -24,6 +21,7 @@ build/
 *.tmp
 *.tsbuildinfo
 
+# Secrets (Simplified)
 .env
-.env.*
-env/.env.*
+.env*
+**/env/.env*

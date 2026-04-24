@@ -3,16 +3,22 @@
     "**/.husky/**": true,
     "**/.scratch/**": true,
     "**/backend/database/migrations/**": true,
-    "**/backend/datasets/{archives,for_search,manual_entries,out,processed,raw}/**": true,
+    "**/backend/datasets/{archives,for_search,manual_entries,out,processed,raw,test_inputs}/**": true,
     "**/*.{csv,jsonl,pdf,sql}": true
   },
 
   "files.exclude": {
-    "**/backend/datasets/archives/*.{json,jsonl}": false,
-    "**/backend/datasets/out/*.{json,jsonl}": false,
     "**/*.{pdf,csv}": false,
+    "**/backend/datasets/archives/scrape_backup/**": false,
+    "**/backend/datasets/archives/**.{json,jsonl}": false,
     "**/backend/datasets/archives/{chunks.json,embedded_chunks.jsonl,stored_documents.jsonl}": true,
-    "**/backend/datasets/out/{chunks.json,embedded_chunks.jsonl,stored_documents.jsonl}": true
+    "**/backend/datasets/for_search/**": false,
+    "**/backend/datasets/manual_entries/**": false,
+    "**/backend/datasets/out/**.{json,jsonl}": false,
+    "**/backend/datasets/out/{chunks.json,embedded_chunks.jsonl,stored_documents.jsonl}": true,
+    "**/backend/datasets/processed/**": false,
+    "**/backend/datasets/raw/**": false,
+    "**/backend/datasets/test_inputs/**": false
   },
 
   "files.watcherExclude": {

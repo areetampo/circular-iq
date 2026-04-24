@@ -135,6 +135,21 @@ export const DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON = path.joi
   'ce_cases_embeddings_cache.json',
 );
 
+//* datasets/test_inputs for storing sample inputs (pipeline/generate_test_inputs) + running them through scoring and saving their results (pipeline/run_test_assessments)
+export const DATASETS_TEST_INPUTS_DIR = path.join(DATASETS_DIR, 'test_inputs');
+export const DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON = path.join(
+  DATASETS_TEST_INPUTS_DIR,
+  'generated_inputs.json',
+);
+export const DATASETS_TEST_INPUTS_CHECKPOINT_FILE_JSON = path.join(
+  DATASETS_TEST_INPUTS_DIR,
+  'run_checkpoint.json',
+);
+export const DATASETS_TEST_INPUTS_POKEMON_NAMES_JSON = path.join(
+  DATASETS_TEST_INPUTS_DIR,
+  'pokemon_names.json',
+);
+
 // =============================================================================
 // DATASET REGISTRY
 // =============================================================================
