@@ -240,7 +240,7 @@ export default function LandingPage() {
     } finally {
       skipAutosaveRef.current = false;
     }
-  }, [sessionData, location.state, reset, methods]);
+  }, [sessionData, location.state?.formData, reset, methods]);
 
   // Watch subscription useEffect
   useEffect(() => {
@@ -375,7 +375,10 @@ export default function LandingPage() {
       const { businessProblem, businessSolution, evaluation_parameters, businessContext } =
         location.state.formData;
 
-      // Mark that re-evaluate data is being applied
+      logger.info('LandingPage: Received re-evaluate data:', location.state.formData);
+      logger.info('LandingPage: Extracted businessContext:', businessContext);
+
+      // Mark that re-evaluate data is being applied BEFORE any other processing
       reevaluateDataAppliedRef.current = true;
 
       const newFormData = {
@@ -385,16 +388,26 @@ export default function LandingPage() {
         businessContext: businessContext || {},
       };
 
+      logger.info('LandingPage: Form data to reset:', newFormData);
+
       reset(newFormData);
       window.history.replaceState({}, document.title);
 
       // Immediately save the re-evaluate data to prevent false unsaved changes alert
       persistInputs(newFormData);
 
+      // Scroll to form when re-evaluating
+      setTimeout(() => {
+        const formElement = document.getElementById('ce-assessment-form');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+
       // Show toast notification
       toast.success('Form filled with assessment data', { timeout: 3000 });
     }
-  }, [location.state?.formData, persistInputs]);
+  }, [location.state?.formData, persistInputs, reset]);
 
   const { user } = useAuth();
 

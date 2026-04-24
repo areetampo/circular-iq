@@ -51,15 +51,15 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
     const trimmed = value.trim();
 
     if (!trimmed) {
-      return 'Assessment name is required';
+      return 'assessment name is required';
     }
 
     if (trimmed.length < 3) {
-      return 'Assessment name must be at least 3 characters';
+      return 'must be at least 3 characters';
     }
 
     if (trimmed.length > 100) {
-      return 'Assessment name must be less than 100 characters';
+      return 'must be less than 100 characters';
     }
 
     return null;

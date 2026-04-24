@@ -82,6 +82,8 @@ export function FilterBar({
               variant="results-action"
               as={selectedIds.size === 2 ? Link : 'button'}
               to={selectedIds.size === 2 ? compareUrl : undefined}
+              target="_blank"
+              rel="noopener noreferrer"
               isDisabled={selectedIds.size !== 2}
             >
               <GitCompare size={14} strokeWidth={2} />

@@ -15,6 +15,10 @@ import { DrawerProvider } from '@/contexts/DrawerContext';
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
+      // Filter out pagination-related errors that we handle silently
+      if (error?.message?.includes('Requested range not satisfiable')) {
+        return; // Don't show toast for pagination errors
+      }
       const errorMessage = error?.message || 'An error occurred while fetching data';
       toast.danger(errorMessage);
     },

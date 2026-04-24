@@ -87,14 +87,35 @@ export function useAssessmentHandlers() {
       return;
     }
 
+    // Extract business context with proper field mapping and value normalization
+    const rawBusinessContext = assessment.business_context || assessment.businessContext || {};
+
+    // Normalize values to match form validation expectations
+    const businessContextData = {
+      ...rawBusinessContext,
+      // Normalize annual_volume_estimate values (replace spaces with hyphens)
+      annual_volume_estimate:
+        rawBusinessContext.annual_volume_estimate?.replace(/\s+/g, '-') ||
+        rawBusinessContext.annual_volume_estimate,
+      // Normalize business_model_type values (replace underscores with hyphens)
+      business_model_type:
+        rawBusinessContext.business_model_type?.replace(/_/g, '-') ||
+        rawBusinessContext.business_model_type,
+    };
+
+    logger.info('Raw businessContext:', rawBusinessContext);
+    logger.info('Normalized businessContext:', businessContextData);
+
     // Extract form data from assessment for re-evaluation
     const formData = {
       businessProblem: assessment.business_problem || assessment.businessProblem || '',
       businessSolution: assessment.business_solution || assessment.businessSolution || '',
       evaluation_parameters:
         assessment.evaluation_parameters || assessment.evaluationParameters || {},
-      businessContext: assessment.business_context || assessment.businessContext || {},
+      businessContext: businessContextData,
     };
+
+    logger.info('Final formData for re-evaluate:', formData);
 
     // Use navigate if available, otherwise use window.location
     if (navigate) {

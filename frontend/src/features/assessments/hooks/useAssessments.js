@@ -40,6 +40,8 @@ export function useAssessments({
     cacheTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
+    retry: false, // Don't retry on error to prevent repeated toasts for pagination errors
+    throwOnError: false, // Don't throw errors globally to prevent toast notifications
   });
 
   // Use mutation for deleting assessments

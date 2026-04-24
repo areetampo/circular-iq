@@ -34,7 +34,13 @@ import {
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { cleanUrl, formatTimestamp, toTitleCase, truncate } from '@/lib/formatting';
+import {
+  cleanUrl,
+  formatRelativeTime,
+  formatTimestamp,
+  toTitleCase,
+  truncate,
+} from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
@@ -846,6 +852,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           navigationResult={navigationResult}
           openSaveAssessmentDialog={openSaveAssessmentDialog}
         />
+
+        {/* created_at for saved assessments (/assessments/:id) and processing_info?.timestamp for unsaved calculated results */}
+        <div className="mb-1 w-full pr-2 text-right text-[0.68rem] text-(--color-text-secondary)/60">
+          {currentData.created_at && <>saved {formatRelativeTime(currentData.created_at)}</>}
+          {currentData.processing_info?.timestamp && (
+            <>calculated {formatRelativeTime(currentData.processing_info.timestamp)}</>
+          )}
+        </div>
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (

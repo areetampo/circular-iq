@@ -111,6 +111,14 @@ export async function getAssessments(params = {}) {
     }
   });
 
+  // Validate page parameter - ensure it's at least 1
+  if (cleanParams.page) {
+    const pageNum = Number(cleanParams.page);
+    if (Number.isNaN(pageNum) || pageNum < 1) {
+      cleanParams.page = '1'; // Default to page 1 for invalid page numbers
+    }
+  }
+
   const query = new URLSearchParams(cleanParams);
   const path = query.toString() ? `/api/assessments?${query}` : '/api/assessments';
   const data = await requestJson(path);

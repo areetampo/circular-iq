@@ -143,8 +143,11 @@ export default function AssessmentComparisonPage() {
           </Link>
         </Tooltip.Trigger>
         <Tooltip.Content showArrow>
-          <p>
-            View<span className="mx-1 text-sm font-medium">{assessment.title}</span>
+          <p className="wrap-break-word">
+            View
+            <span className="mx-1 font-medium whitespace-nowrap underline decoration-1 underline-offset-4">
+              {assessment.title}djhasjdsajdhajshdjkasfdsfsffsfsfdsfs
+            </span>
             separately
           </p>
         </Tooltip.Content>

@@ -1,11 +1,12 @@
 import { Checkbox, Label, Skeleton } from '@heroui/react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Download, Eye, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button, Chip, CopyIcon, Spinner } from '@/components/common';
-import { formatTimestamp, toTitleCase } from '@/lib/formatting';
+import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
+import { formatTimestamp, formatRelativeTime, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 const scoreColor = (s) =>
@@ -22,10 +23,19 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   onTogglePublic,
 }) {
   const assessmentLink = `/assessments/${assessment.public_id}`;
-  const formattedDate = formatTimestamp(assessment.created_at);
+  const formattedDate = formatRelativeTime(assessment.created_at);
 
   const [copiedPublicId, setCopiedPublicId] = useState(null);
   const [togglingPublic, setTogglingPublic] = useState(null);
+
+  // Use centralized assessment handlers
+  const {
+    handleDownloadPDFWithErrorHandling,
+    handleDownloadCSVWithErrorHandling,
+    handleReevaluate: handleReevaluateInternal,
+    isExportingPDF,
+    isExportingCSV,
+  } = useAssessmentHandlers();
 
   const handleCopy = (publicId, value) => {
     navigator.clipboard.writeText(value);
@@ -42,6 +52,87 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
     }
   };
 
+  // Handle re-evaluate using centralized handler
+  const handleReevaluateClick = () => {
+    if (assessment) {
+      handleReevaluateInternal(assessment);
+    }
+  };
+
+  // Handle PDF download using centralized handler
+  const handlePDFDownload = () => {
+    if (assessment) {
+      // For AssessmentListItem, we use the assessment itself as both assessment and result
+      // The handler will extract the necessary data
+      handleDownloadPDFWithErrorHandling(assessment, assessment);
+    }
+  };
+
+  // Handle CSV download using centralized handler
+  const handleCSVDownload = () => {
+    if (assessment) {
+      // For AssessmentListItem, we use the assessment itself as both assessment and result
+      // The handler will extract the necessary data
+      handleDownloadCSVWithErrorHandling(assessment, assessment);
+    }
+  };
+
+  const actionButtons = [
+    { icon: Eye, label: 'View', onClick: () => onView(assessment.public_id), link: assessmentLink },
+    { icon: Pencil, label: 'Rename', onClick: () => onRename(assessment.id) },
+    { icon: Trash2, label: 'Delete', onClick: () => onDelete(assessment.id) },
+    { icon: RefreshCw, label: 'Re-evaluate', onClick: handleReevaluateClick },
+    {
+      icon: CopyIcon,
+      label: 'ID',
+      onClick: () => handleCopy(assessment.public_id, assessment.public_id),
+    },
+    {
+      icon: Download,
+      label: 'PDF',
+      onClick: handlePDFDownload,
+      isLoading: isExportingPDF,
+      isDisabled: isExportingPDF,
+    },
+    {
+      icon: Download,
+      label: 'CSV',
+      onClick: handleCSVDownload,
+      isLoading: isExportingCSV,
+      isDisabled: isExportingCSV,
+    },
+  ];
+
+  const renderBtn = (btn, idx) => {
+    const buttonProps = btn.link ? { as: Link, to: btn.link } : {};
+    return (
+      <Button
+        key={idx}
+        variant="ghastly"
+        size="xs"
+        onClick={(e) => {
+          e.stopPropagation();
+          btn.onClick();
+        }}
+        label={btn.label}
+        isDisabled={btn.isDisabled}
+        isLoading={btn.isLoading}
+        className="flex items-center gap-1"
+        {...buttonProps}
+      >
+        <btn.icon
+          size={11}
+          strokeWidth={2.5}
+          {...(btn.label === 'ID' && {
+            hasCopied: copiedPublicId === assessment.public_id,
+            copyIconClassname: 'pr-3',
+          })}
+        />
+        <span>{btn.label}</span>
+      </Button>
+    );
+  };
+
   return (
     <div
       className={cn(
@@ -54,11 +145,18 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       onMouseEnter={() => onPrefetch(assessment.public_id)}
     >
       {/* Main content row */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start justify-between gap-3">
         {/* Title and metadata section */}
-        <div className="min-w-0 flex-1">
-          <h3 className="mb-1 w-fit truncate font-sans text-2xl/tight font-[450] text-(--color-text-primary)">
-            <Link to={assessmentLink}>{assessment.title || 'Untitled Assessment'}</Link>
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <h3 className="mb-1 truncate font-sans text-2xl/tight font-[450] text-(--color-text-primary)">
+            <Link to={assessmentLink} className="block truncate">
+              {assessment.title ||
+                formatTimestamp(assessment.created_at, {
+                  showSeconds: true,
+                  showMilliseconds: true,
+                }) ||
+                'Untitled Assessment'}
+            </Link>
           </h3>
           <p className="mb-2 text-[0.75rem] text-(--color-text-muted)">{formattedDate}</p>
 
@@ -67,96 +165,45 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             {assessment.industry && (
               <Chip variant="factor">{toTitleCase(assessment.industry)}</Chip>
             )}
-            {/* <Chip variant="access-type" color={assessment.is_public ? 'public' : 'private'}>
-              {assessment.is_public ? 'Public' : 'Private'}
-            </Chip> */}
           </div>
         </div>
 
-        {/* Score section */}
-        <div className="min-w-20 shrink-0 text-right">
-          {assessment.overall_score ? (
-            <span
-              className={`text-(${scoreColor(assessment.overall_score)}) font-mono text-[1.35rem] leading-none tracking-[-0.04em]`}
-            >
-              {assessment.overall_score}
-              <span className="mx-1.5">/</span>
-              100
-            </span>
-          ) : (
-            <span className="text-[0.6875rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
-              UNRATED
-            </span>
-          )}
-          <p className="mt-0.5 text-[0.75rem] text-(--color-text-muted)">
-            {assessment.confidence_level || 0}% conf.
-          </p>
-        </div>
+        {/* Right side: score + buttons, always right-aligned */}
+        <div className="ml-auto flex shrink-0 items-start gap-3">
+          {/* Score section */}
+          <div className="text-right">
+            {assessment.overall_score ? (
+              <span
+                className={`text-(${scoreColor(assessment.overall_score)}) font-mono text-[1.35rem] leading-none tracking-[-0.04em]`}
+              >
+                {assessment.overall_score}
+                <span className="mx-1.5">/</span>
+                100
+              </span>
+            ) : (
+              <span className="text-[0.6875rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
+                UNRATED
+              </span>
+            )}
+            <p className="mt-0.5 text-[0.75rem] text-(--color-text-muted)">
+              {assessment.confidence_level || 0}% conf.
+            </p>
+          </div>
 
-        {/* Action buttons */}
-        <div className="grid shrink-0 grid-cols-[auto_auto_auto] grid-rows-2 items-start gap-x-1 gap-y-0.5 opacity-100 transition-opacity duration-300">
-          {[
-            {
-              icon: Eye,
-              label: 'View',
-              onClick: (e) => {
-                e.stopPropagation();
-                onView(assessment.public_id);
-              },
-            },
-            {
-              icon: Pencil,
-              label: 'Rename',
-              onClick: (e) => {
-                e.stopPropagation();
-                onRename(assessment.id);
-              },
-            },
-            {
-              icon: Trash2,
-              label: 'Delete',
-              onClick: (e) => {
-                e.stopPropagation();
-                onDelete(assessment.id);
-              },
-            },
-            {
-              icon: CopyIcon,
-              label: 'ID',
-              onClick: (e) => {
-                e.stopPropagation();
-                handleCopy(assessment.public_id, assessment.public_id);
-              },
-            },
-          ].map(({ icon: Icon, onClick, label }, index) => (
-            <Button
-              variant="ghastly"
-              size="xs"
-              key={label}
-              onClick={onClick}
-              label={label}
-              as={label === 'View' ? Link : undefined}
-              to={label === 'View' ? assessmentLink : undefined}
-              className={cn(
-                'flex items-center gap-1',
-                index < 2 && 'row-span-2',
-                index === 2 && 'col-start-3 row-start-1',
-                index === 3 && 'col-start-3 row-start-2',
-              )}
-            >
-              <Icon
-                size={11}
-                strokeWidth={2.5}
-                {...(label === 'ID'
-                  ? {
-                      hasCopied: copiedPublicId === assessment.public_id,
-                      copyIconClassname: 'pr-3',
-                    }
-                  : {})}
-              />
-              <span>{label}</span>
-            </Button>
-          ))}
+          {/* Action buttons – background only around buttons */}
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-end gap-1">
+              {[
+                [0, 3],
+                [3, 5],
+                [5, 7],
+              ].map(([start, end], rowIdx) => (
+                <div key={rowIdx} className="flex gap-1">
+                  {actionButtons.slice(start, end).map((btn, idx) => renderBtn(btn, start + idx))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -182,7 +229,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           <Checkbox
             id={`select-to-compare-${assessment.id}`}
             isSelected={isSelected}
-            onChange={() => onToggleSelect(assessment.id)}
+            onChange={() => onToggleSelect(assessment.id, assessment.public_id)}
           >
             <Checkbox.Control>
               <Checkbox.Indicator>
@@ -258,16 +305,16 @@ AssessmentListItem.propTypes = {
 
 // Skeleton Components
 export const AssessmentCardSkeleton = () => (
-  <div className="group relative mb-2 cursor-pointer rounded-xl border-2 border-(--color-drawer-border) bg-(--color-bg-card-faint) p-4 transition-all duration-200">
+  <div className="group relative cursor-pointer rounded-xl border-2 border-(--color-drawer-border) bg-(--color-bg-card-faint) p-4 transition-all duration-200">
     {/* Main content row */}
     <div className="flex items-start gap-3">
       {/* Title and metadata section */}
       <div className="min-w-0 flex-1">
         {/* Title skeleton */}
-        <Skeleton animationType="shimmer" className="mb-2 h-6 w-3/4" />
+        <Skeleton animationType="shimmer" className="mb-3 h-6 w-3/4" />
 
         {/* Date skeleton */}
-        <Skeleton animationType="shimmer" className="mb-2 h-3 w-32" />
+        <Skeleton animationType="shimmer" className="mb-3 h-3 w-32" />
 
         {/* Tags row skeleton */}
         <div className="flex flex-wrap items-center gap-2">
@@ -287,20 +334,17 @@ export const AssessmentCardSkeleton = () => (
       </div>
 
       {/* Action buttons skeleton */}
-      <div className="grid shrink-0 grid-cols-[auto_auto_auto] grid-rows-2 items-start gap-x-1 gap-y-0.5">
-        {/* View, rename, delete, copy id buttons skeleton */}
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className={cn(
-              'flex items-center gap-1 px-2 py-1',
-              i < 2 && 'row-span-2',
-              i === 2 && 'col-start-3 row-start-1',
-              i === 3 && 'col-start-3 row-start-2',
-            )}
-          >
-            <Skeleton animationType="shimmer" className="size-2.5" />
-            <Skeleton animationType="shimmer" className="h-2.5 w-8" />
+      <div className="flex flex-col items-end gap-2">
+        {[[3], [2], [2]].map(([count], rowIdx) => (
+          <div key={rowIdx} className="flex gap-1">
+            {Array(count)
+              .fill(0)
+              .map((_, idx) => (
+                <div key={idx} className="flex items-center gap-1 px-2 py-1">
+                  <Skeleton animationType="shimmer" className="size-2.5" />
+                  <Skeleton animationType="shimmer" className="h-2.5 w-8" />
+                </div>
+              ))}
           </div>
         ))}
       </div>
@@ -333,7 +377,15 @@ export const AssessmentCardSkeleton = () => (
 );
 
 export const AssessmentListSkeleton = () => (
-  <div className="space-y-0">
+  <div className="mt-8 space-y-2">
+    <div className="mb-4 flex flex-col items-center justify-center gap-3">
+      <Skeleton animationType="shimmer" className="h-5 w-60" />
+      <div className="flex items-center justify-center gap-6">
+        <Skeleton animationType="shimmer" className="h-7 w-100" />
+        <Skeleton animationType="shimmer" className="h-7 w-30" />
+        <Skeleton animationType="shimmer" className="h-7 w-30" />
+      </div>
+    </div>
     {Array(3)
       .fill(0)
       .map((_, i) => (
@@ -343,10 +395,16 @@ export const AssessmentListSkeleton = () => (
 );
 
 // Assessment List Component (wrapper for list items)
-export const AssessmentList = ({ assessments, ...props }) => (
+export const AssessmentList = ({ assessments, selectedIds, ...props }) => (
   <div className="space-y-0">
     {assessments.map((assessment) => (
-      <AssessmentListItem key={assessment.id} assessment={assessment} {...props} />
+      <AssessmentListItem
+        key={assessment.id}
+        assessment={assessment}
+        isSelected={selectedIds.has(assessment.id)}
+        selectedIds={selectedIds}
+        {...props}
+      />
     ))}
   </div>
 );

@@ -361,6 +361,8 @@
   --color-drawer-body-border: var(--theme-drawer-body-border);
 
   /* UI Component Colors */
+  --color-resizable-default: #e5dbcc;
+  --color-resizable-focus: #af9774;
   --color-checkbox: var(--theme-checkbox);
   --color-checkbox-bg: var(--theme-checkbox-bg);
   --color-checkbox-hover: var(--theme-checkbox-hover);
@@ -765,11 +767,6 @@
   [role='tab']:focus,
   [role='menuitem']:focus {
     @apply shadow-none! outline-none!;
-  }
-
-  /* Remove HeroUI's internal focus rings completely */
-  [class*='ring-'] {
-    --tw-ring-shadow: none !important;
   }
 
   /* Ensure no element shows browser default blue focus box */
@@ -1679,7 +1676,7 @@
   }
 
   /* ============================================= */
-  /*  INPUT                                      */
+  /*  INPUT(S)                                     */
   /* ============================================= */
 
   input:not([type='checkbox']):not([type='radio']) {
@@ -1689,11 +1686,54 @@
     @apply border-(--accent)! shadow-[0_0_0_3px_var(--color-accent-light)]! outline-none!;
   }
 
+  /* <Input />  wrapped in div with className="number-input-field" -> used in MyAssessmentsPage and SolutionsSearch */
+  .number-input-field {
+    @apply flex! h-9! min-h-9! transform-none! items-center! rounded-xl! border-[1.5px]! border-(--color-border-strong)! bg-(--color-select-bg)! pr-6! pl-3! text-[0.813rem]! text-(--color-text-primary)! shadow-none! transition-[border-color]! duration-75! ease-in-out!;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      appearance: none;
+      margin: 0;
+    }
+
+    -moz-appearance: textfield;
+    appearance: textfield;
+
+    &:hover,
+    &[data-hovered='true'] {
+      @apply translate-y-0! border-(--color-accent)! bg-(--color-select-bg-hover)! shadow-none!;
+    }
+
+    &:focus-visible,
+    &[data-focus-visible='true'],
+    &[data-focused='true'] {
+      @apply border-(--color-accent)! shadow-none! outline-none!;
+    }
+
+    &:disabled,
+    &[data-disabled='true'] {
+      @apply cursor-not-allowed! opacity-50!;
+    }
+
+    &[data-invalid='true'] {
+      @apply border-(--color-danger)!;
+    }
+  }
+
+  .number-input-steppers {
+    @apply pointer-events-none absolute right-1.5 flex flex-col items-center justify-center gap-0;
+
+    button {
+      @apply pointer-events-auto -m-0.5 mr-0.5 flex cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0 text-(--color-text-secondary) opacity-60 transition-opacity duration-75 hover:opacity-100;
+    }
+  }
+
   /* ============================================= */
   /*  SELECT                                      */
   /* ============================================= */
   .select__trigger {
-    @apply flex! h-9 min-h-9 transform-none! items-center! rounded-xl border-[1.5px] border-(--color-border-strong) bg-(--color-select-bg) px-3 font-sans! text-[13px] text-(--color-text-primary) shadow-none! transition-[border-color]! duration-75! ease-in-out!;
+    @apply flex! h-9 min-h-9 transform-none! items-center! rounded-xl border-[1.5px] border-(--color-border-strong) bg-(--color-select-bg) px-3 text-[0.813rem] text-(--color-text-primary) shadow-none! transition-[border-color]! duration-75! ease-in-out!;
   }
   .select__trigger:hover,
   .select__trigger[data-hovered='true'] {
@@ -1946,7 +1986,7 @@
   /*  TOOLTIP                                     */
   /* ============================================= */
   .tooltip {
-    @apply rounded-md border border-(--color-border-faint) bg-(--color-tooltip-bg) px-2 py-1 text-center text-xs font-medium text-(--color-text-primary) shadow-sm backdrop-blur-sm;
+    @apply min-w-fit rounded-md border border-(--color-border-faint) bg-(--color-tooltip-bg) px-2 py-1 text-center text-xs font-medium text-(--color-text-primary) shadow-md backdrop-blur-sm;
   }
 
   .tooltip[data-placement='bottom'] {

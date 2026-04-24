@@ -61,17 +61,17 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
   const handleSubmit = useCallback(
     async (close) => {
       if (!name.trim()) {
-        setError('Please enter an assessment name');
+        setError('please enter an assessment name');
         return;
       }
 
       if (name.trim().length < 3) {
-        setError('Assessment name must be at least 3 characters');
+        setError('must be at least 3 characters');
         return;
       }
 
       if (name.trim().length > 100) {
-        setError('Assessment name must be less than 100 characters');
+        setError('must be less than 100 characters');
         return;
       }
 

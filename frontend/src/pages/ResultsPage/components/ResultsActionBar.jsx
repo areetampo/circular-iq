@@ -57,7 +57,7 @@ export function ResultsActionBar({
   };
 
   return (
-    <div className="mb-3 flex flex-col justify-center gap-1">
+    <div className="mb-2 flex flex-col justify-center gap-1">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left group - navigation */}
         <div className="flex items-center gap-3">

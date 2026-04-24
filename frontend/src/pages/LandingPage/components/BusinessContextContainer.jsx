@@ -1,5 +1,6 @@
 import { Checkbox, Label, ListBox, Select } from '@heroui/react';
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Spinner } from '@/components/common';
@@ -57,7 +58,13 @@ function BusinessContextContainer({
   businessContextExpandedKeys,
   setBusinessContextExpandedKeys,
 }) {
-  const { control } = useFormContext();
+  const { control, getValues } = useFormContext();
+
+  // Debug: Log current form values
+  useEffect(() => {
+    const currentValues = getValues();
+    logger.info('BusinessContextContainer: Current form values:', currentValues.businessContext);
+  }, [getValues]);
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
@@ -74,37 +81,44 @@ function BusinessContextContainer({
       <Controller
         name={`businessContext.${name}`}
         control={control}
-        render={({ field }) => (
-          <Select
-            value={field.value === null ? '__LEAVE_EMPTY__' : (field.value ?? undefined)}
-            onChange={(val) => field.onChange(val === '__LEAVE_EMPTY__' ? null : val)}
-            isDisabled={loading}
-            placeholder="Select (optional)"
-            className="w-full"
-            variant="secondary"
-          >
-            {/* NO classNames prop — rely on global CSS */}
-            <Label className="sr-only">{label}</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {options.map((item) => (
-                  <ListBox.Item
-                    key={item.value === null ? '__LEAVE_EMPTY__' : item.value}
-                    id={item.value === null ? '__LEAVE_EMPTY__' : item.value}
-                    textValue={item.label}
-                  >
-                    {item.label}
-                    <ListBox.ItemIndicator />
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        )}
+        render={({ field }) => {
+          // Debug: Log field value for each business context field
+          useEffect(() => {
+            logger.info(`BusinessContext field ${name}:`, field.value);
+          }, [field.value, name]);
+
+          return (
+            <Select
+              value={field.value === null ? '__LEAVE_EMPTY__' : (field.value ?? undefined)}
+              onChange={(val) => field.onChange(val === '__LEAVE_EMPTY__' ? null : val)}
+              isDisabled={loading}
+              placeholder="Select (optional)"
+              className="w-full"
+              variant="secondary"
+            >
+              {/* NO classNames prop — rely on global CSS */}
+              <Label className="sr-only">{label}</Label>
+              <Select.Trigger>
+                <Select.Value />
+                <Select.Indicator />
+              </Select.Trigger>
+              <Select.Popover>
+                <ListBox>
+                  {options.map((item) => (
+                    <ListBox.Item
+                      key={item.value === null ? '__LEAVE_EMPTY__' : item.value}
+                      id={item.value === null ? '__LEAVE_EMPTY__' : item.value}
+                      textValue={item.label}
+                    >
+                      {item.label}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              </Select.Popover>
+            </Select>
+          );
+        }}
       />
     </div>
   );

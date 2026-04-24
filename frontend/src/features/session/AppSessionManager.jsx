@@ -94,7 +94,13 @@ export function AppSessionManager() {
     }
 
     // ALWAYS show input-restore toast when appropriate on home path
-    if (location.pathname === '/' && sessionData?.inputs && !hasShownInputsToast.current) {
+    // Skip if user is coming from re-evaluate (has formData in location.state)
+    if (
+      location.pathname === '/' &&
+      sessionData?.inputs &&
+      !hasShownInputsToast.current &&
+      !location.state?.formData
+    ) {
       // delay until after render/paint
       setTimeout(() => {
         toast.info('Previous inputs restored.', { timeout: 2500 });

@@ -12,7 +12,6 @@ import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 
 export function LoginForm({ onSwitchToSignup }) {
-  console.log(FRONTEND_CONFIG.testCredentials);
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);

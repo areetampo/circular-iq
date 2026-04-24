@@ -217,7 +217,7 @@ frontend/src/
 ├── lib/
 │   ├── apiClient.js         # buildApiUrl() — routes through Vercel proxy in production
 │   ├── supabase.js          # Supabase client singleton
-│   ├── formatting.js        # formatTimestamp(), getCurrentTimestampFormatted(), toTitleCase()
+│   ├── formatting.js        # formatTimestamp(), getCurrentTimestampFormatted(), formatRelativeTime(), toTitleCase()
 │   ├── metadata.js          # getIndustry(), getCategory() — prefers structured columns over JSONB
 │   ├── scoring.js           # getScoreClass(), getScoreLabel(), formatFactorName(), getSimilarityPercent()
 │   ├── storage.js           # localStorage wrapper with JSON serialisation + error handling

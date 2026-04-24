@@ -91,7 +91,19 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       .insert([assessmentData])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      // Handle duplicate name errors gracefully
+      if (
+        error.message?.includes('duplicate key') ||
+        error.message?.includes('unique constraint') ||
+        error.message?.includes('unique_user_title')
+      ) {
+        const duplicateError = new Error('name already exists');
+        duplicateError.code = 'DUPLICATE_NAME';
+        throw duplicateError;
+      }
+      throw error;
+    }
 
     logOperation('saveAssessment', 'success', Date.now() - startTime);
 
@@ -374,7 +386,19 @@ export async function updateAssessment(supabase, user, token, id, updates) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Handle duplicate name errors gracefully
+      if (
+        error.message?.includes('duplicate key') ||
+        error.message?.includes('unique constraint') ||
+        error.message?.includes('unique_user_title')
+      ) {
+        const duplicateError = new Error('name already exists');
+        duplicateError.code = 'DUPLICATE_NAME';
+        throw duplicateError;
+      }
+      throw error;
+    }
 
     if (!data) {
       const notFoundError = new Error('Assessment not found or unauthorized');

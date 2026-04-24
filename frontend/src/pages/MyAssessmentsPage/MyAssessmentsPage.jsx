@@ -1,6 +1,6 @@
-import { ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
+import { Input, Label, ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Ghost, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Ghost, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
@@ -23,13 +23,15 @@ export default function MyAssessmentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionId = useMemo(() => getSessionId(), []);
-  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectedIds, setSelectedIds] = useState(new Map()); // Store id -> public_id mapping
   const [sortBy, setSortBy] = useState('created_at_desc');
   const [selectedIndustries, setSelectedIndustries] = useState(['all']);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [pageJumpValue, setPageJumpValue] = useState(null);
+  const [isJumpInputFocused, setIsJumpInputFocused] = useState(false);
   const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
   // Available page size options
@@ -224,6 +226,7 @@ export default function MyAssessmentsPage() {
         queryKey: ['assessments', queryParams],
         queryFn: () => getAssessments(queryParams),
         staleTime: 30 * 1000,
+        retry: false, // Don't retry on error to prevent repeated toasts
       });
     },
     [
@@ -237,13 +240,13 @@ export default function MyAssessmentsPage() {
     ],
   );
 
-  const handleToggleSelect = useCallback((id) => {
+  const handleToggleSelect = useCallback((id, publicId) => {
     setSelectedIds((prev) => {
-      const newSelected = new Set(prev);
+      const newSelected = new Map(prev);
       if (newSelected.has(id)) {
         newSelected.delete(id);
       } else {
-        newSelected.add(id);
+        newSelected.set(id, publicId);
       }
       return newSelected;
     });
@@ -253,19 +256,48 @@ export default function MyAssessmentsPage() {
   const compareUrl = useMemo(() => {
     if (selectedIds.size !== 2) return null;
 
-    const selectedIdArray = Array.from(selectedIds);
-    const publicIds = selectedIdArray
-      .map((id) => {
-        const assessment = assessments.find((a) => a.id === id);
-        return assessment?.public_id;
-      })
-      .filter(Boolean);
+    const publicIds = Array.from(selectedIds.values());
 
     if (publicIds.length !== 2) return null;
     return `/assessments/compare?id1=${publicIds[0]}&id2=${publicIds[1]}`;
-  }, [selectedIds, assessments]);
+  }, [selectedIds]);
 
   const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
+
+  // Helper function to generate page numbers with ellipses
+  const getPageNumbers = useCallback(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages = [];
+
+    // Always show first page
+    pages.push(1);
+
+    // Show ellipsis if current page is far from start
+    if (page > 3) {
+      pages.push('ellipsis');
+    }
+
+    // Show pages around current page
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // Show ellipsis if current page is far from end
+    if (page < totalPages - 2) {
+      pages.push('ellipsis');
+    }
+
+    // Always show last page
+    pages.push(totalPages);
+
+    return pages;
+  }, [page, totalPages]);
 
   // Prefetch adjacent pages for better UX
   useEffect(() => {
@@ -290,7 +322,7 @@ export default function MyAssessmentsPage() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5"
+              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5 pb-10"
             >
               <Skeleton animationType="shimmer" className="mb-3 h-3 w-20" />
               <Skeleton animationType="shimmer" className="mb-2 h-8 w-16" />
@@ -300,7 +332,7 @@ export default function MyAssessmentsPage() {
         </div>
 
         {/* FilterBar Skeleton */}
-        <div className="mb-6 space-y-3">
+        <div className="my-6 mt-8 space-y-3">
           {/* Search input skeleton */}
           <div className="relative">
             <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
@@ -330,7 +362,7 @@ export default function MyAssessmentsPage() {
           </div>
 
           {/* Industry filter chips skeleton */}
-          <div className="flex flex-wrap gap-2">
+          <div className="my-1.5 flex flex-wrap gap-2">
             {Array(12)
               .fill(0)
               .map((_, i) => (
@@ -362,7 +394,7 @@ export default function MyAssessmentsPage() {
         const result = await removeAssessmentAsync(id);
 
         setSelectedIds((prev) => {
-          const next = new Set(prev);
+          const next = new Map(prev);
           next.delete(id);
           return next;
         });
@@ -383,79 +415,109 @@ export default function MyAssessmentsPage() {
     [removeAssessmentAsync, queryClient],
   );
 
-  const handleConfirmRename = useCallback(
-    async (assessmentId, newTitle) => {
-      if (!assessmentId) {
-        toast.danger('No assessment selected for rename', { timeout: 4000 });
-        throw new Error('No assessment selected for rename');
-      }
-
-      // Duplicate name check among user's assessments
-      if (
-        assessments.some(
-          (a) =>
-            a.id !== assessmentId &&
-            a.title &&
-            a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
-        )
-      ) {
-        const msg = 'Name already exists';
-        // toast.danger(msg, { timeout: 4000 });
-        // msg is shown in rename dialog so no need of toast
-        throw new Error(msg);
-      }
-
-      const detailCacheKey = ['assessment', assessmentId];
-      const previousAssessments = queryClient.getQueriesData({ queryKey: ['assessments'] });
-      const previousAssessment = queryClient.getQueryData(detailCacheKey);
-
-      queryClient.setQueriesData({ queryKey: ['assessments'] }, (old) => {
-        if (!old || !old.assessments) return old;
-        return {
-          ...old,
-          assessments: old.assessments.map((assessment) =>
-            assessment.id === assessmentId ? { ...assessment, title: newTitle } : assessment,
-          ),
-        };
-      });
-
-      queryClient.setQueryData(detailCacheKey, (old) => {
-        if (!old) return old;
-        const detail = old.assessment ? old.assessment : old;
-        const updated = { ...detail, title: newTitle };
-        return old.assessment ? { ...old, assessment: updated } : updated;
-      });
-
-      try {
-        setIsRenaming(true);
-        const result = await updateAssessment(assessmentId, { title: newTitle });
-        toast.success('Assessment renamed successfully', { timeout: 3000 });
-        return result;
-      } catch (err) {
-        previousAssessments.forEach(([key, data]) => {
-          queryClient.setQueryData(key, data);
-        });
-        queryClient.setQueryData(detailCacheKey, previousAssessment);
-        const errorMsg = err?.message || 'Please try again.';
-        toast.danger(`Rename failed: ${errorMsg}`, { timeout: 4000 });
-        throw err;
-      } finally {
-        setIsRenaming(false);
-      }
-    },
-    [assessments, queryClient],
-  );
-
   const handleRenameAssessment = useCallback(
     (id) => {
       const assessment = assessments.find((a) => a.id === id);
+
+      // Create a handler specific to this assessment that captures the id
+      const handleRenameForThisAssessment = async (newTitle) => {
+        logger.log('handleRenameForThisAssessment called:', { id, newTitle });
+
+        if (!id) {
+          toast.danger('No assessment selected for rename', { timeout: 3500 });
+          throw new Error('No assessment selected for rename');
+        }
+
+        setIsRenaming(true);
+        try {
+          // Prevent duplicate names with proactive check like ResultsPage
+          try {
+            logger.log('Checking for duplicates:', { newTitle, id });
+            const existing = await getAssessments({ search: newTitle, pageSize: 100 });
+            logger.log('Existing assessments found:', existing?.assessments?.length || 0);
+
+            const dup = Array.isArray(existing?.assessments)
+              ? existing.assessments.find(
+                  (a) =>
+                    a.id !== id &&
+                    a.title &&
+                    a.title.trim().toLowerCase() === String(newTitle).trim().toLowerCase(),
+                )
+              : null;
+
+            logger.log('Duplicate found:', dup ? { id: dup.id, title: dup.title } : null);
+
+            if (dup) {
+              logger.log('Throwing duplicate error');
+              throw new Error('Name already exists');
+            }
+          } catch (checkErr) {
+            if (checkErr.message === 'Name already exists') {
+              logger.log('Re-throwing duplicate error');
+              throw checkErr;
+            }
+            // If duplicate check fails, log warning but continue with rename
+            console.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
+          }
+
+          const detailCacheKey = ['assessment', id];
+          const previousAssessments = queryClient.getQueriesData({ queryKey: ['assessments'] });
+          const previousAssessment = queryClient.getQueryData(detailCacheKey);
+
+          queryClient.setQueriesData({ queryKey: ['assessments'] }, (old) => {
+            if (!old || !old.assessments) return old;
+            return {
+              ...old,
+              assessments: old.assessments.map((assessment) =>
+                assessment.id === id ? { ...assessment, title: newTitle } : assessment,
+              ),
+            };
+          });
+
+          queryClient.setQueryData(detailCacheKey, (old) => {
+            if (!old) return old;
+            const detail = old.assessment ? old.assessment : old;
+            const updated = { ...detail, title: newTitle };
+            return old.assessment ? { ...old, assessment: updated } : updated;
+          });
+
+          const result = await updateAssessment(id, { title: newTitle });
+          toast.success('Assessment renamed successfully', { timeout: 3000 });
+          return result;
+        } catch (err) {
+          // Revert optimistic updates on any error
+          const previousAssessments = queryClient.getQueriesData({ queryKey: ['assessments'] });
+          const detailCacheKey = ['assessment', id];
+          const previousAssessment = queryClient.getQueryData(detailCacheKey);
+
+          previousAssessments.forEach(([key, data]) => {
+            queryClient.setQueryData(key, data);
+          });
+          queryClient.setQueryData(detailCacheKey, previousAssessment);
+
+          // Only show toast for non-duplicate errors
+          const isDuplicateError =
+            err.message === 'Name already exists' ||
+            err.message === 'name already exists' ||
+            err.message.includes('name already exists');
+
+          if (!isDuplicateError) {
+            const errorMsg = err?.message || 'Please try again.';
+            toast.danger(`Rename failed: ${errorMsg}`, { timeout: 4000 });
+          }
+          throw err;
+        } finally {
+          setIsRenaming(false);
+        }
+      };
+
       openRenameAssessmentDialog({
         defaultName: assessment?.title || '',
-        onRename: (newTitle) => handleConfirmRename(id, newTitle),
+        onRename: handleRenameForThisAssessment,
         isLoading: isRenaming,
       });
     },
-    [assessments, openRenameAssessmentDialog, handleConfirmRename, isRenaming],
+    [assessments, openRenameAssessmentDialog, isRenaming, queryClient],
   );
 
   const handleDeleteAssessment = useCallback(
@@ -523,6 +585,43 @@ export default function MyAssessmentsPage() {
     },
     [assessments, queryClient],
   );
+
+  const handlePageJump = useCallback(() => {
+    const pageNumber = Number(pageJumpValue);
+    if (pageNumber && pageNumber >= 1 && pageNumber <= totalPages && !Number.isNaN(pageNumber)) {
+      prefetchAssessmentsPage(pageNumber);
+      setPage(pageNumber);
+      setPageJumpValue(null);
+      setIsJumpInputFocused(false);
+    } else {
+      // Don't show toast for invalid range, just silently handle it
+      if (pageNumber && pageNumber > totalPages) {
+        // If user entered a page beyond total, jump to last page
+        prefetchAssessmentsPage(totalPages);
+        setPage(totalPages);
+        setPageJumpValue(null);
+        setIsJumpInputFocused(false);
+      } else {
+        toast.danger(`Please enter a valid page number between 1 and ${totalPages}`, {
+          timeout: 3000,
+        });
+      }
+    }
+  }, [pageJumpValue, totalPages, prefetchAssessmentsPage]);
+
+  // Use debounced page jump value for automatic fetching
+  const debouncedPageJumpValue = useDebounce(pageJumpValue, 500);
+
+  // Auto-jump when debounced value changes
+  useEffect(() => {
+    if (debouncedPageJumpValue && isJumpInputFocused) {
+      const pageNumber = Number(debouncedPageJumpValue);
+      if (pageNumber >= 1 && pageNumber <= totalPages && !Number.isNaN(pageNumber)) {
+        prefetchAssessmentsPage(pageNumber);
+        setPage(pageNumber);
+      }
+    }
+  }, [debouncedPageJumpValue, isJumpInputFocused, totalPages, prefetchAssessmentsPage]);
 
   // Prefetch adjacent pages for better UX
   useEffect(() => {
@@ -622,23 +721,14 @@ export default function MyAssessmentsPage() {
     // Normal case: show list and pagination
     return (
       <>
-        <AssessmentList
-          assessments={assessments}
-          selectedIds={selectedIds}
-          onToggleSelect={handleToggleSelect}
-          onView={handleViewDetail}
-          onRename={handleRenameAssessment}
-          onDelete={handleDeleteAssessment}
-          onPrefetch={prefetchAssessment}
-          onTogglePublic={handleTogglePublic}
-        />
-
         {/* PAGINATION */}
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 p-0">
+        <div className="my-3 flex flex-col items-center justify-center gap-1">
           <p className="text-sm text-(--color-text-muted)">
             Showing{' '}
             <span className="inline-block text-center font-medium text-(--color-text-primary)">
-              {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)}
+              {(page - 1) * pageSize + 1}
+              <span className="mx-0.5">-</span>
+              {Math.min(page * pageSize, total)}
             </span>{' '}
             of{' '}
             <span className="inline-block text-center font-medium text-(--color-text-primary)">
@@ -647,19 +737,12 @@ export default function MyAssessmentsPage() {
             results
           </p>
 
-          <div className="mt-1 flex flex-col items-center justify-center gap-4 sm:mt-0 sm:flex-row sm:gap-6">
+          <div className="-mr-2 flex items-center justify-center gap-6">
             <Pagination
               total={totalPages}
               page={page}
               onChange={setPage}
               className="justify-center"
-              classnames={{
-                wrapper: 'gap-0',
-                item: 'font-mono text-sm',
-                cursor: 'bg-(--color-accent) text-white border-(--color-accent)',
-                prev: 'font-mono text-sm',
-                next: 'font-mono text-sm',
-              }}
             >
               <Pagination.Content>
                 <Pagination.Item>
@@ -676,19 +759,25 @@ export default function MyAssessmentsPage() {
                     Previous
                   </Pagination.Previous>
                 </Pagination.Item>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <Pagination.Item key={p}>
-                    <Pagination.Link
-                      isActive={p === page}
-                      onPress={() => {
-                        prefetchAssessmentsPage(p);
-                        setPage(p);
-                      }}
-                    >
-                      {p}
-                    </Pagination.Link>
-                  </Pagination.Item>
-                ))}
+                {getPageNumbers().map((p, i) =>
+                  p === 'ellipsis' ? (
+                    <Pagination.Item key={`ellipsis-${i}`}>
+                      <Pagination.Ellipsis />
+                    </Pagination.Item>
+                  ) : (
+                    <Pagination.Item key={p}>
+                      <Pagination.Link
+                        isActive={p === page}
+                        onPress={() => {
+                          prefetchAssessmentsPage(p);
+                          setPage(p);
+                        }}
+                      >
+                        {p}
+                      </Pagination.Link>
+                    </Pagination.Item>
+                  ),
+                )}
                 <Pagination.Item>
                   <Pagination.Next
                     isDisabled={page === totalPages}
@@ -706,11 +795,82 @@ export default function MyAssessmentsPage() {
               </Pagination.Content>
             </Pagination>
 
+            {totalPages > 7 && (
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="assessments-page-pagination-jump-to"
+                  className="text-sm font-normal whitespace-nowrap text-(--color-text-muted)"
+                >
+                  Jump to:
+                </Label>
+                <div className="relative flex items-center">
+                  <Input
+                    id="assessments-page-pagination-jump-to"
+                    className="number-input-field w-16"
+                    type="number"
+                    min="1"
+                    max={totalPages}
+                    value={isJumpInputFocused ? pageJumpValue : pageJumpValue || page}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setPageJumpValue(newValue);
+                    }}
+                    onFocus={() => setIsJumpInputFocused(true)}
+                    onBlur={() => {
+                      setIsJumpInputFocused(false);
+                      if (pageJumpValue === '') setPageJumpValue(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handlePageJump();
+                    }}
+                  />
+                  <div className="number-input-steppers">
+                    <button
+                      tabIndex={-1}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        const newValue = Math.min(Number(pageJumpValue || page) + 1, totalPages);
+                        setPageJumpValue(newValue);
+
+                        // Automatically fetch the displayed page
+                        if (newValue >= 1 && newValue <= totalPages) {
+                          prefetchAssessmentsPage(newValue);
+                          setPage(newValue);
+                        }
+                      }}
+                    >
+                      <ChevronUp size={16} strokeWidth={2} />
+                    </button>
+                    <button
+                      tabIndex={-1}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        const newValue = Math.max(Number(pageJumpValue || page) - 1, 1);
+                        setPageJumpValue(newValue);
+
+                        // Automatically fetch the displayed page
+                        if (newValue >= 1 && newValue <= totalPages) {
+                          prefetchAssessmentsPage(newValue);
+                          setPage(newValue);
+                        }
+                      }}
+                    >
+                      <ChevronDown size={16} strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
-              <label className="text-sm whitespace-nowrap text-(--color-text-muted)">
+              <Label
+                htmlFor="assessments-page-pagination-total-assessments-display-per-page"
+                className="text-sm font-normal whitespace-nowrap text-(--color-text-muted)"
+              >
                 Per page:
-              </label>
+              </Label>
               <Select
+                id="assessments-page-pagination-total-assessments-display-per-page"
                 className="w-20"
                 value={String(pageSize)}
                 onChange={(value) => {
@@ -744,6 +904,17 @@ export default function MyAssessmentsPage() {
             </div>
           </div>
         </div>
+
+        <AssessmentList
+          assessments={assessments}
+          selectedIds={selectedIds}
+          onToggleSelect={handleToggleSelect}
+          onView={handleViewDetail}
+          onRename={handleRenameAssessment}
+          onDelete={handleDeleteAssessment}
+          onPrefetch={prefetchAssessment}
+          onTogglePublic={handleTogglePublic}
+        />
       </>
     );
   };
@@ -790,13 +961,13 @@ export default function MyAssessmentsPage() {
   return (
     <div className="mx-auto mt-6 max-w-4xl space-y-6">
       {/* Section heading */}
-      {stats_totalAssessments > 0 && (
+      {/* {stats_totalAssessments > 0 && (
         <div className="flex items-center justify-between">
           <h2 className="pl-2 font-display text-xl font-semibold text-(--color-text-primary)">
             My Assessments
           </h2>
         </div>
-      )}
+      )} */}
 
       {/* Stats grid — only if totalAssessments > 0 */}
       {stats_totalAssessments > 0 && (
