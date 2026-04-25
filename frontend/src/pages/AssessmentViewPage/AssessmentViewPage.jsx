@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
 import { reconstructScoringResult } from '@/features/assessments/utils';
@@ -46,7 +46,7 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
 
   if (error) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="error"
         title="Failed to Load Assessment"
         message={error || 'Unable to retrieve the assessment details. Please try again.'}
@@ -72,7 +72,7 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
 
   if (!scoringResult) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="warning"
         title="Assessment Not Found"
         message="The requested assessment could not be found. It may have been deleted or you might not have access to it."

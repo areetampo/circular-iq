@@ -3,7 +3,7 @@ import { Download, ExternalLink, FingerprintPattern, MoveLeft } from 'lucide-rea
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
@@ -27,7 +27,7 @@ export default function AssessmentComparisonPage() {
 
   if (!publicId1 || !publicId2) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="warning"
         title="Unable to Compare"
         message="Please select two assessments to compare. Missing required assessment IDs."
@@ -56,7 +56,7 @@ export default function AssessmentComparisonPage() {
 
   if (isError) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="error"
         title="Cannot Compare Assessments"
         message={error || 'One or more ids incorrect'}
@@ -83,7 +83,7 @@ export default function AssessmentComparisonPage() {
 
   if (!assessment1 || !assessment2) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="warning"
         title="Assessment Not Found"
         message="One or both of the selected assessments could not be found. They may have been deleted or you may not have permission to access them."

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import DetailsDisplay from '@/components/common/DetailsDisplay';
 
 /**
  * Error Boundary for ResultsPage
@@ -28,7 +28,7 @@ class ResultsErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <ErrorDisplay
+        <DetailsDisplay
           variant="error"
           title="Unable to Display Results"
           message="There was an error displaying this assessment. Please try refreshing the page or return to your assessments."

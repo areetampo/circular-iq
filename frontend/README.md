@@ -120,7 +120,7 @@ frontend/src/
 │   │
 │   ├── common/
 │   │   ├── Button.jsx, Brand.jsx, Switch.jsx
-│   │   ├── ErrorDisplay.jsx, LoaderComponent.jsx, LoaderIcon.jsx
+│   │   ├── DetailsDisplay.jsx, LoaderComponent.jsx, LoaderIcon.jsx
 │   │   ├── GlobalLoadingBar.jsx, ScrollToTop.jsx
 │   │   ├── ChartWrapper.jsx
 │   │   └── index.js
@@ -1159,7 +1159,7 @@ const label = EVALUATION_PARAMETERS.resource_efficiency.label;
 
 ### Available Components
 
-- **Common**: Button, Brand, Switch, ErrorDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, ChartWrapper
+- **Common**: Button, Brand, Switch, DetailsDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, ChartWrapper
 - **Charts**: BarChart, LineChart, PieChart, RadarChart
 - **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, ResultsRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
 - **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases

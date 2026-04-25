@@ -1,13 +1,22 @@
 import { ScrollShadow } from '@heroui/react';
-import { AlertTriangle, Home, Info, RotateCw, ServerOff, XCircle } from 'lucide-react';
+import { AlertTriangle, Ghost, Home, Info, RotateCw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
 
 import { Button, CopyButton } from '@/components/common';
 import { cn } from '@/utils/cn';
 
 // Variant-specific styling
 const variants = {
+  neutral: {
+    iconBg: '',
+    borderColor: '--color-border-ui',
+    iconColor: '--color-text-muted',
+    titleColor: '--color-text-primary',
+    messageColor: '--color-text-muted',
+    defaultIcon: Ghost,
+  },
   error: {
     iconBg: '--color-error-soft-ui',
     borderColor: '--color-error-soft-ui',
@@ -52,7 +61,7 @@ const variants = {
  * - info: Blue theme for informational messages
  * - 404: Special theme for not found pages
  */
-export default function ErrorDisplay({
+export default function DetailsDisplay({
   variant = 'error',
   icon: CustomIcon,
   title = 'An Error Occurred',
@@ -163,14 +172,21 @@ export default function ErrorDisplay({
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {allActions.map((action, index) => {
               const ActionIcon = action.icon;
+
+              // Determine which component to use as the base
+              // Use HashLink if smooth is present, otherwise standard Link, otherwise 'button'
+              const Component =
+                action.smooth !== undefined ? HashLink : action.to ? Link : 'button';
+
               return (
                 <Button
                   key={index}
+                  as={Component} // Pass the component type here
+                  to={action.to}
+                  smooth={action.smooth} // HashLink will use this, standard Link will ignore it
                   onPress={action.onPress || action.onClick}
                   variant={action.variant || 'ghost'}
-                  size={action.size || 'md'}
                   className={cn('gap-2', action.className)}
-                  {...(action.to && { as: Link, to: action.to })}
                 >
                   {ActionIcon && <ActionIcon size={15} />}
                   {action.label}
@@ -184,9 +200,9 @@ export default function ErrorDisplay({
   );
 }
 
-ErrorDisplay.propTypes = {
-  /** Visual variant: 'error', 'warning', 'info', '404' */
-  variant: PropTypes.oneOf(['error', 'warning', 'info', '404']),
+DetailsDisplay.propTypes = {
+  /** Visual variant: 'neutral', 'error', 'warning', 'info', '404' */
+  variant: PropTypes.oneOf(['neutral', 'error', 'warning', 'info', '404']),
   /** Custom icon component (Lucide icon) */
   icon: PropTypes.elementType,
   /** Main heading/title */

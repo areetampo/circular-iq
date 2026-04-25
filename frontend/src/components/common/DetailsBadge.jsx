@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { cn } from '@/utils/cn';
 
 const VARIANT_STYLES = {
+  neutral: 'text-(--color-accent) bg-(--color-accent-soft-ui)',
   info: 'text-(--color-info) bg-(--color-info-soft-ui)',
   success: 'text-(--color-success) bg-(--color-success-soft-ui)',
   warning: 'text-(--color-warning) bg-(--color-warning-soft-ui)',
@@ -11,17 +12,18 @@ const VARIANT_STYLES = {
 };
 
 const ICONS = {
+  neutral: Info,
   info: Info,
   success: CircleCheck,
   warning: TriangleAlert,
   error: CircleX,
 };
 
-export default function DetailsBadge({ variant = 'info', message, className }) {
+export default function DetailsBadge({ variant = 'info', message, className, icon: CustomIcon }) {
   if (!message.trim()) return null;
 
   const colors = VARIANT_STYLES[variant] || VARIANT_STYLES.info;
-  const Icon = ICONS[variant] || ICONS.info;
+  const Icon = CustomIcon || ICONS[variant] || ICONS.info;
 
   return (
     <div
@@ -33,14 +35,16 @@ export default function DetailsBadge({ variant = 'info', message, className }) {
         className,
       )}
     >
-      <Icon size={16} strokeWidth={2.5} />
+      {/* passing components/common/spinner works - it will accept size and color correctly but not strokeWidth */}
+      <Icon size={16} strokeWidth={2.5} color="currentColor" />
       <span>{message}</span>
     </div>
   );
 }
 
 DetailsBadge.propTypes = {
-  variant: PropTypes.oneOf(['info', 'success', 'warning', 'error']),
+  variant: PropTypes.oneOf(['neutral', 'info', 'success', 'warning', 'error']),
   message: PropTypes.string,
   className: PropTypes.string,
+  icon: PropTypes.elementType,
 };

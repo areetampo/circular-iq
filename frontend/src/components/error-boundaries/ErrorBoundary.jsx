@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { Component } from 'react';
 
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import DetailsDisplay from '@/components/common/DetailsDisplay';
 
 /**
  * App-level Error Boundary - Last resort catch-all for catastrophic errors
@@ -23,7 +23,7 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <ErrorDisplay
+        <DetailsDisplay
           variant="error"
           title="Something went wrong"
           message="An unexpected error occurred. Please try refreshing the page."

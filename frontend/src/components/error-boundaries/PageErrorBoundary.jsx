@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import DetailsDisplay from '@/components/common/DetailsDisplay';
 
 /**
  * Error Boundary for individual pages (Results, Comparison, etc.)
@@ -30,7 +30,7 @@ class PageErrorBoundary extends React.Component {
       const { pageName = 'page' } = this.props;
 
       return (
-        <ErrorDisplay
+        <DetailsDisplay
           variant="error"
           title={`Unable to Display ${pageName}`}
           message={`An unexpected error occurred while rendering this ${pageName.toLowerCase()}. This could be due to data processing or visualization issues.`}

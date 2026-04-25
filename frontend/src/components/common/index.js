@@ -6,7 +6,7 @@ export { default as Chip } from './Chip';
 export { default as CopyButton } from './CopyButton';
 export { default as CopyIcon } from './CopyIcon';
 export { default as DetailsBadge } from './DetailsBadge';
-export { default as ErrorDisplay } from './ErrorDisplay';
+export { default as DetailsDisplay } from './DetailsDisplay';
 export { default as LoaderComponent } from './LoaderComponent';
 export { default as LoaderIcon } from './LoaderIcon';
 export { default as SectionHeading } from './SectionHeading';

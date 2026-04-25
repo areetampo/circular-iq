@@ -1,11 +1,11 @@
 import { Input, Label, ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Ghost, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
-import { Button, ErrorDisplay } from '@/components/common';
+import { Button, DetailsDisplay } from '@/components/common';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { getAssessments, updateAssessment } from '@/features/assessments/api/assessmentApi';
@@ -645,7 +645,7 @@ export default function MyAssessmentsPage() {
 
     if (isAssessmentsError) {
       return (
-        <ErrorDisplay
+        <DetailsDisplay
           variant="error"
           title="Error Loading Assessments"
           message={
@@ -675,46 +675,47 @@ export default function MyAssessmentsPage() {
     // No assessments at all (stats_totalAssessments === 0)
     if (stats_totalAssessments === 0) {
       return (
-        <div className="mt-16 rounded-2xl border-4 border-dashed border-(--color-border-ui) bg-(--color-bg-card-light) p-12 text-center">
-          <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
-          <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
-            No assessments yet
-          </h3>
-          <p className="mx-auto mb-6 max-w-sm text-sm/relaxed text-(--color-text-muted)">
-            Start your first assessment to track your circular economy progress and get personalized
-            recommendations.
-          </p>
-          <Button as={HashLink} to="/#ce-assessment-form" variant="primary" smooth>
-            <Plus size={16} /> Start Your First Assessment
-          </Button>
-        </div>
+        <DetailsDisplay
+          variant="neutral"
+          title="No assessments yet"
+          message="Start your first assessment to track your circular economy progress and get personalized recommendations."
+          showDefaultActions={false}
+          actions={[
+            {
+              label: 'Start Your First Assessment',
+              icon: Plus,
+              as: HashLink,
+              to: '/#ce-assessment-form',
+              variant: 'teal',
+              smooth: true,
+            },
+          ]}
+        />
       );
     }
 
     // Filtered results returned empty
     if (assessments.length === 0) {
       return (
-        <div className="mt-10 rounded-2xl border-4 border-dashed border-(--color-border-ui) bg-(--color-bg-card-light) p-12 text-center">
-          <Ghost strokeWidth={1.2} size={44} className="mx-auto mb-5 text-(--color-text-muted)" />
-          <h3 className="mb-2 font-display text-xl font-semibold text-(--color-text-primary)">
-            No assessments found
-          </h3>
-          <p className="mx-auto mb-6 max-w-sm text-sm/relaxed text-(--color-text-muted)">
-            Your current filters didn&apos;t match any assessments. Try selecting a different
-            industry or adjusting your search.
-          </p>
-          <Button
-            variant="ghost"
-            onPress={() => {
-              setSearchTerm('');
-              setSelectedIndustries(['all']);
-              setSortBy('created_at_desc');
-              setPage(1);
-            }}
-          >
-            Clear Filters
-          </Button>
-        </div>
+        <DetailsDisplay
+          variant="neutral"
+          title="No assessments found"
+          message="Your current filters didn't match any assessments. Try selecting a different
+            industry or adjusting your search."
+          showDefaultActions={false}
+          actions={[
+            {
+              label: 'Clear Filters',
+              variant: 'ghost',
+              onPress: () => {
+                setSearchTerm('');
+                setSelectedIndustries(['all']);
+                setSortBy('created_at_desc');
+                setPage(1);
+              },
+            },
+          ]}
+        />
       );
     }
 
@@ -929,7 +930,7 @@ export default function MyAssessmentsPage() {
   if (isAssessmentStatsError) {
     return (
       <div className="space-y-6">
-        <ErrorDisplay
+        <DetailsDisplay
           variant="error"
           title="Error Loading Assessments"
           message={

@@ -18,7 +18,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SectionHeading, Spinner } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
@@ -715,7 +715,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   if (isViewFromMyAssessments && detailError) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="error"
         title="Failed to Load Assessment"
         message={detailError || 'Unable to retrieve the assessment details. Please try again.'}
@@ -740,7 +740,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   if (isViewFromMyAssessments && !currentData) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="warning"
         title="Assessment Not Found"
         message="The requested assessment could not be found. It may have been deleted or you might not have access to it."
@@ -767,7 +767,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   // If no assessment data found in any source, show error
   if (!currentData) {
     return (
-      <ErrorDisplay
+      <DetailsDisplay
         variant="info"
         title="No Assessment Data"
         message="No assessment results are available. Please complete an assessment to see results."

@@ -122,87 +122,79 @@ export function getCurrentTimestampFormatted() {
 }
 
 /**
- * Formats a timestamp into a relative human-readable string with specific rounding rules.
- * @param {number|string|Date} timestamp - The value to compare against the current time.
- * @returns {string} A relative time string (e.g., "1 w 2 days ago", "1 mo 4 days ago").
+ * Formats a timestamp into a relative human-readable string with calendar accuracy.
+ * @param {number|string|Date} timestamp - The value to compare against now.
+ * @returns {string}
  */
 export function formatRelativeTime(timestamp) {
   if (!timestamp) return '[Unknown time]';
   const past = new Date(timestamp);
   const now = new Date();
-
   if (isNaN(past.getTime())) return '[Invalid timestamp]';
 
   const diffMs = now - past;
-  if (diffMs < 0) return 'in the future'; // Basic safety check
+  if (diffMs < 0) return 'in the future';
 
   const diffSecs = Math.floor(diffMs / 1000);
   const diffMins = Math.floor(diffSecs / 60);
   const diffHrs = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+
+  // Helper to handle pluralization
+  const p = (count, unit) => `${count} ${unit}${count === 1 ? '' : 's'}`;
 
   // 1. Under 1 minute
-  if (diffMins < 1) {
-    return 'few seconds ago';
-  }
+  if (diffMins < 1) return 'few seconds ago';
 
-  // 2. Over 1 min but under 1 hour
-  if (diffHrs < 1) {
-    return `${diffMins} mins ago`;
-  }
+  // 2. Under 1 hour
+  if (diffHrs < 1) return `${p(diffMins, 'min')} ago`;
 
   // 3. Under 24 hours
   if (diffHrs < 24) {
-    const remainingMins = diffMins % 60;
-    return `${diffHrs} hrs and ${remainingMins} mins ago`;
+    const m = diffMins % 60;
+    return `${p(diffHrs, 'hr')} and ${p(m, 'min')} ago`;
   }
 
-  // 4. Over 24 hours but under 1 week (7 days)
-  const diffDays = Math.floor(diffHrs / 24);
+  // 4. Under 7 days
   if (diffDays < 7) {
-    const remainingHrs = diffHrs % 24;
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} and ${remainingHrs} hrs ago`;
+    const h = diffHrs % 24;
+    return `${p(diffDays, 'day')} and ${p(h, 'hr')} ago`;
   }
 
-  // 5. Over 1 week but under 1 month
-  // Requirement: Use "w" and "days" (no hrs)
-  const diffWeeks = Math.floor(diffDays / 7);
-  const remainingDaysAfterWeeks = diffDays % 7;
-
-  // Logical check: If it's less than a month, we use the week format
-  // To be precise with months, we check if adding 1 month exceeds "now"
+  // 5. Under 1 month (Calendar precise)
   const oneMonthLater = new Date(past);
   oneMonthLater.setMonth(past.getMonth() + 1);
 
   if (now < oneMonthLater) {
-    return `${diffWeeks} week ${remainingDaysAfterWeeks} days ago`;
+    const weeks = Math.floor(diffDays / 7);
+    const d = diffDays % 7;
+    // Requirement: "1 w 2 days"
+    return `${weeks} w ${p(d, 'day')} ago`;
   }
 
-  // 6. & 7. Months and Years (Calendar Accurate)
+  // 6 & 7. Months and Years
   let years = now.getFullYear() - past.getFullYear();
   let months = now.getMonth() - past.getMonth();
   let days = now.getDate() - past.getDate();
 
-  // Adjust for negative days (e.g., 24th March vs 20th Feb)
   if (days < 0) {
     months -= 1;
-    // To find remaining days, we find the date 1 month after the "adjusted" past
     const tempDate = new Date(past);
     tempDate.setFullYear(past.getFullYear() + years);
     tempDate.setMonth(past.getMonth() + months);
     days = Math.floor((now - tempDate) / (1000 * 60 * 60 * 24));
   }
 
-  // Adjust for negative months
   if (months < 0) {
     years -= 1;
     months += 12;
   }
 
   if (years >= 1) {
-    return `${years} yr and ${months} months ago`;
+    return `${p(years, 'yr')} and ${p(months, 'month')} ago`;
   }
 
-  return `${months} mo ${days} days ago`;
+  return `${p(months, 'mo')} ${p(days, 'day')} ago`;
 }
 
 /**
