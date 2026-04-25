@@ -1,8 +1,9 @@
-import { Chip as HeroChip } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { forwardRef } from 'react';
 
 import { cn } from '@/utils/cn';
+
+import TruncatedTextTooltip from './TruncatedTextTooltip';
 
 /**
  * Variant styles for the luxury minimal chip system
@@ -17,10 +18,9 @@ import { cn } from '@/utils/cn';
 const variantStyles = {
   // Industry filter chips - used in MyAssessmentsPage filter bar
   filter: [
-    'rounded-full border font-medium whitespace-normal',
+    'rounded-full border font-medium whitespace-nowrap',
     'border-[1.5px] border-(--color-border-ui) bg-transparent text-black/60',
     'transition-all duration-150 ease-in-out cursor-pointer',
-    'hover:border-(--color-accent)/50 hover:text-black',
   ].join(' '),
 
   // Tag chips — compact label chips
@@ -103,9 +103,10 @@ const variantStyles = {
   severity: ['rounded-full font-bold', 'border transition-all duration-150 ease-in-out'].join(' '),
 
   // Score pills - for sample test case score displays
-  'score-pill': ['rounded-full border font-medium', 'transition-all duration-150 ease-in-out'].join(
-    ' ',
-  ),
+  'score-pill': [
+    'rounded-full border font-medium font-mono font-semibold',
+    'transition-all duration-150 ease-in-out',
+  ].join(' '),
 };
 
 /**
@@ -119,20 +120,13 @@ const sizeStyles = {
 };
 
 /**
- * Color overrides for specific variants.
- *
- * Where index.css and chip.jsx disagreed on a token, the index.css value wins
- * (it used !important and was therefore the effective style in production):
- *
- *  - filter active:  bg-(--color-accent-light-mid) + font-semibold  [was --color-accent-light, no semibold]
- *  - info colors:    --color-*-chip-bg tokens  [were --color-*-soft-ui]
- *  - status default: --color-chip-bg-faint / --color-border-faint  [were factor tokens]
+ * Color overrides for specific variants depending on state
  */
 const getColorOverrides = (variant, color, active) => {
   if (variant === 'filter') {
     return active
-      ? 'border-(--color-accent)/50 text-black bg-(--color-accent-light-mid)'
-      : 'border-(--color-border-strong) text-(--color-text-secondary) bg-transparent';
+      ? 'border-(--color-accent)/60 bg-(--color-accent-soft-ui)'
+      : 'border-(--color-border-ui) hover:bg-(--color-accent-soft-ui) text-(--color-text-secondary) bg-transparent cursor-pointer';
   }
 
   if (variant === 'access-type') {
@@ -176,15 +170,18 @@ const getColorOverrides = (variant, color, active) => {
   }
 
   if (variant === 'match') {
+    // utils/content - getMatchStrength() returns excellent/strong/...
     switch (color) {
+      case 'excellent':
+        return 'bg-(--color-success-soft-ui) text-(--color-success) border-(--color-success-border)';
       case 'strong':
-        return 'bg-(--color-match-strong-bg) text-(--color-match-strong-text) border-(--color-match-strong-border)';
+        return 'bg-(--color-accent-soft-ui) text-(--color-accent) border-(--color-accent-border)';
       case 'decent':
-        return 'bg-(--color-match-decent-bg) text-(--color-match-decent-text) border-(--color-match-decent-border)';
-      case 'weak':
-        return 'bg-(--color-match-weak-bg) text-(--color-match-weak-text) border-(--color-match-weak-border)';
+        return 'bg-(--color-warning-soft-ui) text-(--color-warning) border-(--color-warning-border)';
+      case 'poor':
+        return 'bg-(--color-error-soft-ui) text-(--color-error) border-(--color-error-border)';
       default:
-        return 'bg-(--color-match-default-bg) text-(--color-match-default-text) border-(--color-match-default-border)';
+        return 'bg-(--color-danger-soft-ui) text-(--color-text-secondary)';
     }
   }
 
@@ -247,7 +244,7 @@ const getColorOverrides = (variant, color, active) => {
 
 /**
  * Custom Chip component with luxury minimal variant system
- * Overrides HeroUI Chip component with consistent styling
+ * Pure custom implementation without HeroUI dependencies
  *
  * All CSS that was previously in index.css under the CHIP section is
  * now co-located here — that block can be safely removed from index.css.
@@ -256,7 +253,7 @@ const getColorOverrides = (variant, color, active) => {
  * @param {string} props.variant - Chip variant:
  *   filter | tag | access-type | source | match | strategy |
  *   materials | factor | status | info | case | severity | score-pill
- * @param {string} props.size - Chip size (xs | sm | md | lg) — ignored for self-sized variants
+ * @param {string} props.size - Chip size (xs | sm | md | lg)
  * @param {string} props.color - Color override:
  *   default | accent | success | warning | danger | error |
  *   strong | decent | weak | high | medium | low | public | private
@@ -265,16 +262,39 @@ const getColorOverrides = (variant, color, active) => {
  * @param {ReactNode} props.children - Chip content
  */
 export const Chip = forwardRef(function Chip(
-  { className, variant = 'info', size = 'sm', color, active = false, children, onClick, ...props },
+  {
+    className,
+    variant = 'info',
+    size = 'sm',
+    color,
+    active = false,
+    limit = 30,
+    children,
+    onClick,
+    style,
+    ...props
+  },
   ref,
 ) {
   const resolvedSize = sizeStyles[size] ?? sizeStyles.sm;
 
   const baseClasses =
-    'inline-flex items-center justify-center gap-1 outline-none rounded-full font-sans tracking-[0.01em]';
+    'inline-flex items-center justify-center gap-1 outline-none rounded-full font-sans tracking-[0.01em] whitespace-nowrap overflow-hidden';
 
   const variantClasses = variantStyles[variant] || variantStyles.info;
   const colorOverrides = getColorOverrides(variant, color, active);
+
+  // Handle icon + text combinations vs plain text
+  let iconContent = null;
+  let textContent = children;
+
+  if (Array.isArray(children)) {
+    // Handle array of children (icon + text)
+    const textChild = children.find((child) => typeof child === 'string');
+    const iconChild = children.find((child) => typeof child !== 'string');
+    if (textChild) textContent = textChild;
+    if (iconChild) iconContent = iconChild;
+  }
 
   // For access-type variant, color overrides are inline styles (object), not class strings
   const accessTypeStyles =
@@ -290,23 +310,32 @@ export const Chip = forwardRef(function Chip(
       : {};
 
   return (
-    <HeroChip
+    <span
       ref={ref}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') onClick(e);
+            }
+          : undefined
+      }
+      style={variant === 'access-type' ? accessTypeStyles : style}
       className={cn(
         baseClasses,
         variantClasses,
         resolvedSize,
+        onClick && 'transition-colors duration-150 select-none',
         variant === 'access-type' ? '' : colorOverrides,
         className,
       )}
-      variant="flat"
-      size={undefined}
-      onClick={onClick}
-      style={variant === 'access-type' ? accessTypeStyles : {}}
       {...props}
     >
-      <span className="flex items-center justify-center">{children}</span>
-    </HeroChip>
+      {iconContent && iconContent}
+      <TruncatedTextTooltip limit={limit}>{textContent}</TruncatedTextTooltip>
+    </span>
   );
 });
 
@@ -336,9 +365,10 @@ Chip.propTypes = {
     'warning',
     'danger',
     'error',
+    'excellent',
     'strong',
     'decent',
-    'weak',
+    'poor',
     'high',
     'medium',
     'low',
@@ -346,10 +376,12 @@ Chip.propTypes = {
     'private',
   ]),
   active: PropTypes.bool,
+  limit: PropTypes.number,
   score: PropTypes.number,
   className: PropTypes.string,
   children: PropTypes.node,
   onClick: PropTypes.func,
+  style: PropTypes.object,
 };
 
 export default Chip;

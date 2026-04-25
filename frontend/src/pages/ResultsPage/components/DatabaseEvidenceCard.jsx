@@ -39,17 +39,12 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
         {actualResult.similar_cases && actualResult.similar_cases.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {actualResult.similar_cases.map((caseItem, index) => {
-              const matchPercentage = Math.round((caseItem.similarity || 0) * 100);
-              const sourceCaseId = caseItem.id || `case-${index}`;
+              // const sourceCaseId = caseItem.id || `case-${index}`;
               const caseTitle =
                 caseItem.title || casesSummaries[index] || `Related Case ${index + 1}`;
-              const { label: matchStrengthLabel, color: matchColor } = getMatchStrength(
-                caseItem.similarity || 0,
-              );
+              const matchPercentage = Math.round((caseItem.similarity || 0) * 100).toFixed(1);
+              const matchStrength = getMatchStrength(caseItem.similarity || 0);
 
-              {
-                /* Case content */
-              }
               return (
                 <div
                   key={index}
@@ -71,21 +66,15 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                       )}
                       {caseItem.category && <Chip variant="source">{caseItem.category}</Chip>}
                       {caseItem.circular_strategy && (
-                        <Chip variant="strategy">
-                          <span>{caseItem.circular_strategy}</span>
-                        </Chip>
+                        <Chip variant="strategy">{caseItem.circular_strategy}</Chip>
                       )}
-                      {caseItem.materials && (
-                        <Chip variant="materials">
-                          <span>{caseItem.materials}</span>
-                        </Chip>
-                      )}
+                      {caseItem.materials && <Chip variant="materials">{caseItem.materials}</Chip>}
                     </div>
 
                     <div className="flex gap-4">
                       <div className="flex items-center gap-3">
-                        <Chip variant="match" color={matchColor}>
-                          <span>{matchPercentage}% match</span>
+                        <Chip variant="match" color={matchStrength}>
+                          {matchPercentage}% match
                         </Chip>
                       </div>
 

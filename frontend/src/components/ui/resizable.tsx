@@ -35,7 +35,7 @@ function ResizableHandle({
       {...props}
     >
       {withHandle && (
-        <div className="z-10 flex h-8 w-1.5 shrink-0 rounded-full bg-(--color-resizable-default) transition-colors duration-200 group-focus-visible/handle:bg-(--color-resizable-focus) hover:bg-(--color-resizable-focus)" />
+        <div className="z-10 flex h-8 w-1.5 shrink-0 rounded-full bg-(--color-resizable-default) transition-colors duration-200 group-hover/handle:bg-(--color-resizable-focus) group-focus-visible/handle:bg-(--color-resizable-focus) hover:bg-(--color-resizable-focus)" />
       )}
     </ResizablePrimitive.Separator>
   );

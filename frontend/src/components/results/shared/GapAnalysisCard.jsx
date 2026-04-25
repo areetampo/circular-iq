@@ -40,8 +40,8 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
               <div className="flex flex-wrap gap-2">
                 {opportunities.map((text) => (
                   <Chip key={text} variant="status" color="warning">
-                    <MoveUp size={14} />
-                    <span>{text}</span>
+                    <MoveUp size={12} strokeWidth={3} />
+                    {text}
                   </Chip>
                 ))}
               </div>
@@ -54,8 +54,8 @@ export function GapAnalysisCard({ result, variant = 'default' }) {
               <div className="flex flex-wrap gap-2">
                 {strengths.map((text) => (
                   <Chip key={text} variant="status" color="success">
-                    <MoveDown size={14} />
-                    <span>{text}</span>
+                    <MoveDown size={12} strokeWidth={3} />
+                    {text}
                   </Chip>
                 ))}
               </div>

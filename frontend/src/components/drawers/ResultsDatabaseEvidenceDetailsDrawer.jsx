@@ -19,6 +19,7 @@ import { Chip } from '@/components/common';
 import DRAWERS from '@/components/drawers/drawerTypes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { getMatchStrength } from '@/utils/content';
 
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
   const { drawer, onClose } = useGlobalDrawer();
@@ -41,6 +42,9 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
       </div>
     );
   };
+
+  const matchPercentage = Math.round((data.similarity || 0) * 100).toFixed(1);
+  const matchStrength = getMatchStrength(data.similarity || 0);
 
   if (!data) return null;
 
@@ -98,17 +102,8 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                     <p className="mb-1 text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Similarity
                     </p>
-                    <Chip
-                      variant="match"
-                      color={
-                        data.similarity >= 0.75
-                          ? 'strong'
-                          : data.similarity >= 0.5
-                            ? 'decent'
-                            : 'weak'
-                      }
-                    >
-                      <span>{(data.similarity * 100).toFixed(1)}%</span>
+                    <Chip variant="match" color={matchStrength}>
+                      <span>{matchPercentage}%</span>
                     </Chip>
                   </div>
                 )}

@@ -65,7 +65,9 @@ export default function DetailsDisplay({
   variant = 'error',
   icon: CustomIcon,
   title = 'An Error Occurred',
+  showTitle = true,
   message = 'Something went wrong. Please try again later.',
+  showMessage = true,
   children,
   actions = [],
   showDefaultActions = true,
@@ -130,9 +132,11 @@ export default function DetailsDisplay({
             </div>
           </div>
 
-          <h1 className={cn('font-sniglet text-2xl', `text-(${style.titleColor})`)}>{title}</h1>
+          {showTitle && (
+            <h1 className={cn('font-sniglet text-2xl', `text-(${style.titleColor})`)}>{title}</h1>
+          )}
 
-          {message && (
+          {showMessage && (
             <p
               className={cn(
                 'mx-auto mt-2 max-w-md text-sm/relaxed',
@@ -207,8 +211,12 @@ DetailsDisplay.propTypes = {
   icon: PropTypes.elementType,
   /** Main heading/title */
   title: PropTypes.string.isRequired,
+  /** to show the title or not */
+  showTitle: PropTypes.bool,
   /** Descriptive message */
   message: PropTypes.string,
+  /** to show the message or not */
+  showMessage: PropTypes.bool,
   /** Additional custom content */
   children: PropTypes.node,
   /** Array of action buttons: [{ label, icon, onClick, variant, size, className }] */

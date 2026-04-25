@@ -153,14 +153,14 @@ export function extractCaseInfo(caseItem, index) {
 /**
  * Get match strength label and color based on similarity percentage
  * @param {number} similarity - Similarity score (0-1)
- * @returns {Object} {label, color}
+ * @returns {string} matchStrength
  */
 export function getMatchStrength(similarity) {
   const percentage = similarity * 100;
-  if (percentage >= 80) return { label: 'Excellent Match', color: 'text-green-600' };
-  if (percentage >= 60) return { label: 'Strong Match', color: 'text-blue-600' };
-  if (percentage >= 40) return { label: 'Decent Match', color: 'text-yellow-600' };
-  return { label: 'Poor Match', color: 'text-red-600' };
+  if (percentage >= 80) return 'excellent';
+  if (percentage >= 60) return 'strong';
+  if (percentage >= 40) return 'decent';
+  return 'poor';
 }
 
 /**
