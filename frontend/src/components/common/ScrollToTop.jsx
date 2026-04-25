@@ -196,9 +196,20 @@ export default function ScrollToTop() {
         isRestored: state?.isRestored,
       });
 
-      // SIMPLIFIED LOGIC: Force scroll to top for all results page navigation with result data
-      if (pathname.startsWith('/results') && state?.result && !state?.isRestored) {
-        logger.info('ScrollToTop: SIMPLIFIED - Forcing scroll to top for results with result data');
+      // SIMPLIFIED LOGIC: Force scroll to top for all results and assessments page navigation
+      const isAssessmentRoute = pathname.startsWith('/assessments/');
+      const hasResultData = state?.result;
+      const isNotRestored = !state?.isRestored;
+
+      if (
+        (pathname.startsWith('/results') || isAssessmentRoute) &&
+        (hasResultData || isAssessmentRoute) &&
+        isNotRestored
+      ) {
+        logger.info('ScrollToTop: SIMPLIFIED - Forcing scroll to top for results/assessments', {
+          hasResultData,
+          isAssessmentRoute,
+        });
 
         // Multiple attempts to scroll to top
         const scrollToTopMultiple = () => {
@@ -312,9 +323,9 @@ export default function ScrollToTop() {
       return { action: 'noScroll' };
     }
 
-    // For results page, scroll to top for new evaluations only
-    if (currentPath.startsWith('/results')) {
-      logger.info('ScrollToTop: Processing results page navigation');
+    // For results and assessments page, scroll to top for new evaluations only
+    if (currentPath.startsWith('/results') || currentPath.startsWith('/assessments/')) {
+      logger.info('ScrollToTop: Processing results/assessments page navigation');
       const result = locationState?.result;
       const resultId = getResultId(result);
       const isRestored = locationState?.isRestored;
@@ -325,6 +336,30 @@ export default function ScrollToTop() {
         isRestored,
         lastResultId: lastResultIdRef.current,
       });
+
+      // Special handling for assessment routes that don't have navigation state
+      const isAssessmentDetailRoute =
+        currentPath.startsWith('/assessments/') &&
+        !currentPath.includes('/share') &&
+        !currentPath.includes('/compare') &&
+        currentPath.split('/').length === 3; // /assessments/:id format
+
+      const isAssessmentShareRoute = currentPath.startsWith('/assessments/share');
+      const isAssessmentCompareRoute = currentPath.startsWith('/assessments/compare');
+
+      // Force scroll to top for assessment routes when not restored from navigation
+      if (
+        (isAssessmentDetailRoute || isAssessmentShareRoute || isAssessmentCompareRoute) &&
+        !isRestored &&
+        !result
+      ) {
+        logger.info('ScrollToTop: ASSESSMENT ROUTE - No navigation state, forcing scroll to top', {
+          isAssessmentDetailRoute,
+          isAssessmentShareRoute,
+          isAssessmentCompareRoute,
+        });
+        return { action: 'scrollToTop' };
+      }
 
       // If we have a result and it's different from the last one, scroll to top
       if (result && resultId) {
@@ -371,13 +406,22 @@ export default function ScrollToTop() {
     return { action: 'scrollToTop' };
   };
 
-  // Add immediate scroll check for results page with different approach
+  // Add immediate scroll check for results and assessments page with different approach
   useEffect(() => {
     logger.info('ScrollToTop: DIRECT CHECK - pathname:', pathname, 'has result:', !!state?.result);
 
-    if (pathname.startsWith('/results') && state?.result && !state?.isRestored) {
+    const isAssessmentRoute = pathname.startsWith('/assessments/');
+    const hasResultData = state?.result;
+    const isNotRestored = !state?.isRestored;
+
+    if (
+      (pathname.startsWith('/results') || isAssessmentRoute) &&
+      (hasResultData || isAssessmentRoute) &&
+      isNotRestored
+    ) {
       logger.info(
-        'ScrollToTop: DIRECT CHECK - Results page with result detected, using multiple methods',
+        'ScrollToTop: DIRECT CHECK - Results/Assessments page detected, using multiple methods',
+        { hasResultData, isAssessmentRoute },
       );
 
       // Method 1: Direct DOM manipulation

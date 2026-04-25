@@ -89,8 +89,7 @@ function ResultsRestoreDialogContent() {
         localStorage.setItem('results_restore_dialog_muted_expiration', expirationTime.toString());
       }
 
-      // Stay on the same page when canceling
-      navigate(location.pathname);
+      // Stay on the same page when canceling (no navigation needed)
       isClosingRef.current = true;
       onClose();
     } catch (error) {

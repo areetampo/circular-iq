@@ -367,7 +367,8 @@
   --color-checkbox-bg: var(--theme-checkbox-bg);
   --color-checkbox-hover: var(--theme-checkbox-hover);
   --color-checkbox-hover-bg: var(--theme-checkbox-hover-bg);
-  --color-pagination-active: var(--theme-checkbox);
+  --color-pagination-active: #8b6f47cc;
+  --color-pagination-hover: #8b6f4722;
   --color-textarea-focus-ring: var(--theme-textarea-focus-ring);
   --color-input-focus-ring: var(--theme-input-focus-ring);
   --color-toast-bg: var(--theme-bg-secondary);
@@ -1449,7 +1450,7 @@
   }
 
   .pagination__link:hover:not([data-active='true']):not([aria-disabled='true']) {
-    @apply border-none! bg-(--color-accent-soft-ui)! text-(--color-accent)!;
+    @apply rounded-full! border-none! bg-(--color-pagination-hover)!;
   }
 
   .pagination__link--nav {
@@ -1457,7 +1458,7 @@
   }
 
   .pagination__link--nav:hover:not([aria-disabled='true']) {
-    @apply border-none! bg-(--color-accent-ghost)! text-(--color-accent)!;
+    @apply border-none! bg-(--color-pagination-hover)!;
   }
 
   .pagination__link--nav[aria-disabled='true'],

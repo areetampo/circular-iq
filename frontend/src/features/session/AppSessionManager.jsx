@@ -144,8 +144,8 @@ export function AppSessionManager() {
     openResultsRestoreDialog({
       sessionData: sessionData,
       onDismiss: () => {
-        // User dismissed - stay on the same page
-        navigate(location.pathname);
+        // User dismissed - stay on the same page (no navigation needed)
+        // The dialog will close automatically, no need to navigate
       },
     });
   }, []); // Empty deps = run once on mount only
@@ -154,6 +154,9 @@ export function AppSessionManager() {
   useEffect(() => {
     if (hasShownInputsToast.current) return;
     if (location.pathname !== '/') return;
+
+    // Skip if user is coming from re-evaluate (has formData in location.state)
+    if (location.state?.formData) return;
 
     let sessionData = null;
     try {
@@ -168,7 +171,7 @@ export function AppSessionManager() {
       }, 0);
       hasShownInputsToast.current = true;
     }
-  }, [location.pathname]);
+  }, [location.pathname, location.state]);
 
   // Monitor session ID changes when authentication state changes
   useEffect(() => {

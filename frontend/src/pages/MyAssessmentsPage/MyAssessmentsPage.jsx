@@ -32,6 +32,12 @@ export default function MyAssessmentsPage() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [pageJumpValue, setPageJumpValue] = useState(null);
   const [isJumpInputFocused, setIsJumpInputFocused] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [previousFilterValues, setPreviousFilterValues] = useState({
+    debouncedSearchTerm: '',
+    selectedIndustryKey: 'all',
+    debouncedSortBy: 'created_at_desc',
+  });
   const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
   // Available page size options
@@ -41,40 +47,85 @@ export default function MyAssessmentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
+    console.log('INIT URL READING DEBUG: Reading URL parameters');
     const industries = searchParams.get('industry');
+    console.log('INIT URL READING DEBUG: industries from URL:', industries);
     if (industries) setSelectedIndustries(industries.split(',').filter(Boolean));
     const p = Number(searchParams.get('page') || 1);
+    console.log('INIT URL READING DEBUG: page from URL:', p);
     if (!Number.isNaN(p) && p > 0) setPage(p);
     const ps = Number(searchParams.get('pageSize') || 10);
+    console.log('INIT URL READING DEBUG: pageSize from URL:', ps);
     if (!Number.isNaN(ps) && ps > 0 && pageSizeOptions.includes(ps)) setPageSize(ps);
     else if (!Number.isNaN(ps) && ps > 0) setPageSize(10); // Default to 10 for invalid sizes
     const s = searchParams.get('search');
+    console.log('INIT URL READING DEBUG: search from URL:', s);
     if (s) setSearchTerm(s);
     const sb = searchParams.get('sortBy');
+    console.log('INIT URL READING DEBUG: sortBy from URL:', sb);
     if (sb) setSortBy(sb);
+
+    // Mark as initialized after reading URL parameters
+    console.log('INIT URL READING DEBUG: Setting isInitialized to true');
+    setIsInitialized(true);
+
+    // Initialize previous filter values with current values to prevent false positives
+    setPreviousFilterValues({
+      debouncedSearchTerm: s || '',
+      selectedIndustryKey: industries
+        ? industries.split(',').filter(Boolean).sort().join('|')
+        : 'all',
+      debouncedSortBy: sb || 'created_at_desc',
+    });
   }, []);
 
-  // sync params when debounced values change
+  // sync params when debounced values change (only after initialization)
   useEffect(() => {
-    const params = Object.fromEntries([...searchParams.entries()]);
+    // Don't sync URL parameters during initialization to prevent overriding initial values
+    if (!isInitialized) {
+      console.log('URL SYNC DEBUG: Skipping - not initialized');
+      return;
+    }
+
+    console.log('URL SYNC DEBUG: Syncing URL params', {
+      selectedIndustries,
+      page,
+      pageSize,
+      searchTerm,
+      sortBy,
+    });
+
+    const params = new URLSearchParams(searchParams);
+
+    // Handle industry parameter
     if (
       !selectedIndustries ||
       (selectedIndustries.length === 1 && selectedIndustries[0] === 'all')
     ) {
-      delete params.industry;
+      params.delete('industry');
     } else {
-      params.industry = selectedIndustries.join(',');
+      params.set('industry', selectedIndustries.join(','));
     }
-    if (page && page !== 1) params.page = String(page);
-    else delete params.page;
-    if (pageSize && pageSize !== 10) params.pageSize = String(pageSize);
-    else delete params.pageSize;
-    if (searchTerm) params.search = searchTerm;
-    else delete params.search;
-    if (sortBy && sortBy !== 'created_at_desc') params.sortBy = sortBy;
-    else delete params.sortBy;
+
+    // Always set page parameter (even if it's 1)
+    if (page) params.set('page', String(page));
+    else params.delete('page');
+
+    // Handle pageSize parameter
+    if (pageSize && pageSize !== 10) params.set('pageSize', String(pageSize));
+    else params.delete('pageSize');
+
+    // Handle search parameter
+    if (searchTerm) params.set('search', searchTerm);
+    else params.delete('search');
+
+    // Handle sortBy parameter
+    if (sortBy && sortBy !== 'created_at_desc') params.set('sortBy', sortBy);
+    else params.delete('sortBy');
+
+    console.log('URL SYNC DEBUG: Setting URL params:', params.toString());
     setSearchParams(params, { replace: true });
-  }, [selectedIndustries, page, pageSize, searchTerm, sortBy]);
+  }, [selectedIndustries, page, pageSize, searchTerm, sortBy, isInitialized]);
 
   // Debounce search and sort to prevent constant reloading
   const debouncedSearchTerm = useDebounce(searchTerm, 350);
@@ -140,8 +191,47 @@ export default function MyAssessmentsPage() {
     : [];
 
   useEffect(() => {
-    setPage(1);
-  }, [debouncedSearchTerm, selectedIndustryKey, debouncedSortBy]);
+    console.log('PAGE RESET DEBUG:', {
+      isInitialized,
+      page,
+      debouncedSearchTerm,
+      selectedIndustryKey,
+      debouncedSortBy,
+      previousFilterValues,
+    });
+
+    if (!isInitialized) {
+      console.log('PAGE RESET DEBUG: Skipping - not initialized');
+      return;
+    }
+
+    // Check if filters actually changed from previous values
+    const filtersChanged =
+      previousFilterValues.debouncedSearchTerm !== debouncedSearchTerm ||
+      previousFilterValues.selectedIndustryKey !== selectedIndustryKey ||
+      previousFilterValues.debouncedSortBy !== debouncedSortBy;
+
+    console.log('PAGE RESET DEBUG: Filters changed?', filtersChanged);
+
+    if (filtersChanged && page > 1) {
+      console.log('PAGE RESET DEBUG: Resetting page from', page, 'to 1');
+      setPage(1);
+      // Update previous values after reset
+      setPreviousFilterValues({
+        debouncedSearchTerm,
+        selectedIndustryKey,
+        debouncedSortBy,
+      });
+    } else {
+      console.log('PAGE RESET DEBUG: Not resetting - filters unchanged or page is', page);
+      // Still update previous values to track current state
+      setPreviousFilterValues({
+        debouncedSearchTerm,
+        selectedIndustryKey,
+        debouncedSortBy,
+      });
+    }
+  }, [debouncedSearchTerm, selectedIndustryKey, debouncedSortBy, isInitialized]);
 
   // Refetch assessment stats when component mounts or when user navigates back
   useEffect(() => {
