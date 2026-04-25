@@ -68,7 +68,7 @@ export default function Footer() {
                   </a>
                 ))}
                 <p className="max-w-xs text-xs/relaxed text-(--color-text-secondary) italic">
-                  ~ Made by Areeb and Mahit <Citrus className="ml-0.75 inline" size={12} /> ~
+                  ~ Made by Areeb and Mahit <Citrus className="mb-0.5 ml-0.75 inline" size={12} /> ~
                 </p>
               </div>
             </motion.div>
