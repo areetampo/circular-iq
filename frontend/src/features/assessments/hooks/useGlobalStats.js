@@ -16,7 +16,7 @@ export function useGlobalStats({ enabled = true } = {}) {
     enabled,
     staleTime: 2 * 60 * 1000, // 2 min - reduced to allow manual refresh
     gcTime: 30 * 60 * 1000, // 30 min
-    refetchOnMount: false, // Don't auto-refetch on mount, only when explicitly requested
+    refetchOnMount: 'stale', // Refetch stale data on mount (after 2 minutes)
     refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
@@ -53,7 +53,12 @@ export function useGlobalStats({ enabled = true } = {}) {
     weeklyTrend: logStats?.weekly_trend ?? [],
 
     // market data (contributed assessments)
-    marketDataByIndustry: marketData,
+    marketDataByIndustry: marketData.map((m) => ({
+      industry: m.industry,
+      count: Number(m.count ?? m.assessment_count ?? 0),
+      avgScore: m.avg_score ?? m.avgScore ?? m.average_score ?? null,
+      marketShare: m.market_share ?? m.marketShare ?? m.share ?? m.percentage ?? null,
+    })),
 
     // saved assessment stats (global)
     totalSavedAssessments: assessStats?.total_assessments ?? 0,
