@@ -216,30 +216,46 @@ export const BACKEND_CONFIG = deepFreeze({
     // User Profile
     { method: 'GET', endpoint: '/api/profile', description: 'User Profile Data (Auth Required)' },
 
+    // Search
+    {
+      method: 'GET',
+      endpoint: '/api/search/ce-cases',
+      description: 'Search Circular Economy Cases Knowledge Base',
+    },
+
     // Scoring/RAG
     {
       method: 'POST',
       endpoint: '/api/score',
       description: 'RAG Analysis & Scoring (Rate Limited)',
     },
-
-    // Analytics
-    { method: 'GET', endpoint: '/api/analytics', description: 'Analytics Summary' },
-    { method: 'GET', endpoint: '/api/analytics/enhanced', description: 'Enhanced Analytics' },
     {
-      method: 'GET',
-      endpoint: '/api/analytics/featured-solutions',
-      description: 'Featured Solutions',
+      method: 'POST',
+      endpoint: '/api/score/stream',
+      description: 'RAG Analysis & Scoring with SSE Streaming (Rate Limited)',
     },
     {
       method: 'GET',
-      endpoint: '/api/analytics/global-stats',
-      description: 'Global System Statistics',
+      endpoint: '/api/score/test-anonymous-limit-tracking',
+      description: 'Test Anonymous Usage Limit Tracking',
+    },
+
+    // Analytics
+    { method: 'GET', endpoint: '/api/analytics', description: 'Analytics Summary' },
+    {
+      method: 'GET',
+      endpoint: '/api/analytics/enhanced',
+      description: 'Enhanced Analytics with Time Series',
     },
     {
       method: 'POST',
       endpoint: '/api/analytics/embeddings/reindex',
-      description: 'Reindex Embeddings',
+      description: 'Reindex Embeddings (Maintenance)',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/analytics/global-stats',
+      description: 'Global Dashboard Statistics',
     },
 
     // Assessments
@@ -260,8 +276,8 @@ export const BACKEND_CONFIG = deepFreeze({
     },
     {
       method: 'GET',
-      endpoint: '/api/assessments/:publicId',
-      description: 'Get Assessment by ID (Auth Required)',
+      endpoint: '/api/assessments/compare',
+      description: 'Compare Two Assessments (Auth Required)',
     },
     {
       method: 'GET',
@@ -272,6 +288,11 @@ export const BACKEND_CONFIG = deepFreeze({
       method: 'GET',
       endpoint: '/api/assessments/validate/:publicId',
       description: 'Validate Public Assessment ID',
+    },
+    {
+      method: 'GET',
+      endpoint: '/api/assessments/:publicId',
+      description: 'Get Assessment by Public ID (Auth Required)',
     },
     {
       method: 'PATCH',

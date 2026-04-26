@@ -81,13 +81,17 @@ frontend/src/
 │   │       └── DatabaseEvidenceTab.jsx         # Side-by-side similar cases with score grids
 │   │
 │   ├── DashboardPage/
-│   │   ├── DashboardPage.jsx                   # Global Intelligence Dashboard
+│   │   ├── DashboardPage.jsx                   # Tab shell — URL-driven tab state (no useState for selectedKey),
+│   │   │ # handleTabChange strips search params on global tab switch
 │   │   └── components/
-│   │       ├── StatCard.jsx                    # Metric display card with icon + label + value
-│   │       ├── ChartPanel.jsx                  # Chart container with title, icon, loading skeleton
-│   │       ├── SingleValueChart.jsx            # Fallback for single-data-point pie chart scenarios
-│   │       ├── EmptyChart.jsx                  # Empty state placeholder for charts
-│   │       └── SolutionCard.jsx                # Featured solution card with preview + drawer trigger
+│   │       ├── GlobalActivity.jsx              # Global Activity tab — all charts, tables, callout cards
+│   │       ├── SolutionsSearch.jsx             # Search Solutions tab — URL-as-state search + filters + pagination
+│   │       ├── StatCard.jsx                    # Metric card with loading skeleton
+│   │       ├── ChartPanel.jsx                  # Chart wrapper with title, loading state, error state
+│   │       ├── SingleValueChart.jsx            # Fallback for single-data-point distributions
+│   │       ├── EmptyChart.jsx                  # Empty state placeholder
+│   │       ├── DashboardSectionHeading.jsx    # Section heading with separator and optional count
+│   │       └── index.js                        # Barrel exports
 │   │
 │   ├── MyAssessmentsPage/
 │   │   ├── MyAssessmentsPage.jsx
@@ -112,8 +116,13 @@ frontend/src/
 │   │   └── DriftingShapesBackground.jsx        # Animated background component
 │   │
 │   ├── charts/
-│   │   ├── BarChart.jsx      # Props: barConfigs, xAxisKey, height, showGrid, showLegend
-│   │   ├── LineChart.jsx     # Props: lines, xAxisKey, height, showGrid
+│   │   ├── BarChart.jsx      # Props: barConfigs, xAxisKey, height, showGrid, showLegend,
+│   │   │ # tickAngle (number, default 0 — rotates x-axis labels, auto-increases bottom margin),
+│   │   │ # tickAnchor (string, default 'end' — textAnchor when rotated)
+│   │   ├── LineChart.jsx     # Props: lines (each with optional yAxisId: 'left'|'right'),
+│   │   │ # xAxisKey, height, showLegend,
+│   │   │ # yAxisRight ({ tickFormatter, domain, label? }) — renders right Y-axis
+│   │   │ # when provided; backward-compatible (all existing uses default to left axis)
 │   │   ├── PieChart.jsx      # Props: dataKey, nameKey, colors, innerRadius, showLegend
 │   │   ├── RadarChart.jsx
 │   │   └── index.js
@@ -181,7 +190,15 @@ frontend/src/
 │   │   │   ├── useAssessmentComparison.js # Fetch and compare two assessments
 │   │   │   ├── useAssessmentStats.js      # User aggregate stats (totalAssessments, avgScore, etc.)
 │   │   │   ├── useFeaturedSolutions.js    # Featured solutions with optional semantic search
-│   │   │   └── useGlobalStats.js          # Global dashboard stats from /api/analytics/global-stats
+│   │   │   └── useGlobalStats.js          # Global dashboard stats — staleTime 2 min, refetchOnMount: 'stale',
+│   │   │ │ # exposes: totalScoringCalls, avgScore, avgConfidence, avgTechFeas,
+│   │   │ │ # avgEconViab, avgCircPot, avgParamConsistency, avgRAlignment,
+│   │   │ │ # scoreDistribution, tierDistribution, riskDistribution,
+│   │   │ │ # industryDistribution, strategyDistribution, materialDistribution,
+│   │   │ │ # geoDistribution, scaleDistribution, junkRate, weeklyTrend,
+│   │   │ │ # marketDataByIndustry, totalSavedAssessments,
+│   │   │ │ # assessmentsByTier, assessmentsByRisk, assessmentsByScale,
+│   │   │ │ # assessmentsByIndustry
 │   │   │
 │   │   ├── utils.js        # reconstructScoringResult(), getAverageScore(), sort helpers
 │   │   ├── utils.test.js
@@ -1172,6 +1189,137 @@ const label = EVALUATION_PARAMETERS.resource_efficiency.label;
 
 See [src/components/dialogs/README.md](./src/components/dialogs/README.md) for comprehensive documentation on the reusable dialog system, including how to add new dialog types and use the `DialogContext`.
 
+## Frontend Routes
+
+The application uses React Router v6 with lazy-loaded components. All routes are defined in `src/app/AppRoutes.jsx`.
+
+### Public Routes (No Authentication Required)
+
+| Path                 | Description                                      | Query Parameters                          |
+| -------------------- | ------------------------------------------------ | ----------------------------------------- |
+| `/`                  | Main landing page with app overview              | None                                      |
+| `/auth`              | Login and signup page                            | None                                      |
+| `/guide`             | Comprehensive user guide and documentation       | None                                      |
+| `/results`           | Assessment results from session/navigation state | None (uses React Router state)            |
+| `/share/:publicId`   | Legacy share URL redirect                        | None (redirects to `/assessments/share`)  |
+| `/assessments/share` | Public assessment share gateway                  | `id` - Assessment public ID (UUID format) |
+
+### Protected Routes (Authentication Required)
+
+#### `/dashboard` - Global Intelligence Dashboard
+
+Two-tab dashboard with search solutions and global activity.
+
+**Query Parameters:**
+
+- `activeTab` (string, default: `search`) - Tab selection: `search` or `global`
+- `searchQuery` (string) - Search query for solutions (min 2 characters)
+- `mode` (string, default: `hybrid`) - Search mode: `keyword` or `hybrid`
+- `page` (number, default: `1`) - Pagination page number (min 1)
+- `strategies` (string) - Comma-separated circular strategy filters
+- `categories` (string) - Comma-separated category filters
+- `sources` (string) - Comma-separated source filters
+
+**Behavior:**
+
+- Switching to global tab strips all search-specific parameters
+- Invalid parameters are validated against actual results and dropped
+- Orphan parameters cleaned up on mount when no searchQuery
+
+#### `/assessments` - My Assessments
+
+User assessment management with filtering and pagination.
+
+**Query Parameters:**
+
+- `industry` (string, default: `all`) - Comma-separated industry filters or `all`
+- `page` (number, default: `1`) - Pagination page number
+- `pageSize` (number, default: `10`) - Items per page: `5|10|20|50|100`
+- `search` (string) - Search term for filtering assessments
+- `sortBy` (string, default: `created_at_desc`) - Sort field and order (e.g., `title_asc`)
+
+**Behavior:**
+
+- All filter parameters persist in URL for shareable filtered lists
+- Invalid pageSize defaults to 10
+- URL parameters are read on component mount
+
+#### `/assessments/compare` - Compare Assessments
+
+Assessment comparison tool or selection form.
+
+**Query Parameters:**
+
+- `id1` (string) - First assessment public ID (UUID format)
+- `id2` (string) - Second assessment public ID (UUID format)
+
+**Behavior:**
+
+- If both `id1` and `id2` are present, shows comparison page
+- Otherwise shows selection form
+
+#### `/assessments/:publicId` - Assessment Details
+
+View detailed assessment results (owned by user).
+
+**Path Parameters:**
+
+- `publicId` - Assessment public ID
+
+### Route Behavior Patterns
+
+#### Protected Routes
+
+- Unauthenticated users are redirected to `/auth`
+- Shows loading spinner during authentication check
+
+#### URL State Management
+
+- **Dashboard**: URL is single source of truth for all search state
+- **Assessments**: Filter parameters persist in URL for shareability
+- Invalid parameters are validated and cleaned up
+
+#### Navigation State
+
+- React Router state can pass: `result`, `formData`, `isRestored`
+- Legacy `/share/:publicId` redirects to `/assessments/share`
+
+#### Code Splitting
+
+All routes use lazy loading for optimal performance:
+
+```javascript
+const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
+```
+
+## URL State Management (SolutionsSearch)
+
+`SolutionsSearch` uses URL as the single source of truth — no `useState` for any search-derived value. All state is derived from `searchParams` on every render:
+
+```javascript
+const query = searchParams.get('searchQuery') || '';
+const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
+  ? searchParams.get('mode')
+  : 'hybrid';
+const page = parseInt(searchParams.get('page') || '1', 10);
+const activeStrategies = parseMultiParam(searchParams.get('strategies'));
+// ...
+```
+
+URL params and their defaults:
+
+| Param         | Default  | Notes                                                              |
+| ------------- | -------- | ------------------------------------------------------------------ |
+| `activeTab`   | `search` | `search` or `global`; normalised on mount                          |
+| `searchQuery` | (none)   | Absence = empty search; all other search params stripped if absent |
+| `mode`        | `hybrid` | `keyword` or `hybrid`; invalid values fall back to `hybrid`        |
+| `page`        | `1`      | Omitted when page is 1; clamped to valid range after results load  |
+| `strategies`  | (none)   | Comma-separated; validated against actual result values            |
+| `categories`  | (none)   | Comma-separated; validated against actual result values            |
+| `sources`     | (none)   | Comma-separated; validated against actual result values            |
+
+Three validation effects run after results load: page clamp, filter value validation (drops params not present in current results), and orphan param cleanup on mount.
+
 ## Performance Optimisation
 
 ### Code Splitting
@@ -1202,20 +1350,31 @@ npm run build -- --analyze
 Configure React Query stale times appropriately:
 
 ```javascript
-// Dashboard global stats — cache for 5 minutes
+// Global dashboard stats — stale after 2 minutes, refetch on mount if stale
 useQuery({
   queryKey: ['global-stats'],
   queryFn: getGlobalStats,
-  staleTime: 5 * 60 * 1000,
-  gcTime: 30 * 60 * 1000,
+  staleTime: 2 * 60 * 1000, // 2 min
+  gcTime: 30 * 60 * 1000, // 30 min — keep in memory after unmount
+  refetchOnMount: 'stale', // refetch on mount only when stale (not always)
+  refetchOnWindowFocus: false,
 });
 
-// User assessments — always fetch fresh
+// CE cases search — keyword 10 min stale, hybrid 5 min stale; keepPreviousData while typing
 useQuery({
-  queryKey: ['assessments'],
+  queryKey: ['ce-cases-search', debouncedQuery, mode],
+  queryFn: () => searchCeCases({ q: debouncedQuery, mode }),
+  staleTime: mode === 'keyword' ? 10 * 60 * 1000 : 5 * 60 * 1000,
+  gcTime: 30 * 60 * 1000,
+  placeholderData: keepPreviousData, // avoids flicker between queries
+});
+
+// User assessments — always fetch fresh (refetchOnMount: 'always')
+useQuery({
+  queryKey: ['assessments', { ...params }],
   queryFn: getAssessments,
-  staleTime: 0,
-  gcTime: 0,
+  staleTime: 30 * 1000, // 30 seconds
+  refetchOnMount: 'always',
 });
 ```
 
@@ -1243,5 +1402,5 @@ For issues or questions:
 
 ---
 
-**Last Updated:** 23 March 2026
+**Last Updated:** 26 April 2026
 **Frontend Version:** React 19 / Vite 7 / HeroUI v3 / Tailwind v4

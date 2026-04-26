@@ -39,6 +39,7 @@ The platform guides users through a structured assessment and returns a complete
 │  API Layer (Express.js — ESM)                                       │
 │  ├─ /api/score — full scoring + enrichment pipeline                 │
 │  ├─ /api/analytics — global stats, doc stats    │
+│  ├─ /api/search — ce_cases knowledge base search (keyword + hybrid)  │
 │  └─ /api/assessments — assessment CRUD + comparison                 │
 │                                                                     │
 │  Business Logic Layer (Services)                                    │
@@ -128,14 +129,38 @@ These inputs improve LLM calibration and enable stage-appropriate scoring.
 
 ### Global Intelligence Dashboard
 
-Live analytics from the `scoring_results_log` table (all scoring calls — authenticated and anonymous):
+Two-tab interface at `/dashboard` with full URL state synchronisation:
 
-- Top-line metrics: total scored, avg score, input quality rate
-- Derived metric averages: confidence, technical feasibility, economic viability, circularity, consistency, R-alignment
-- Distributions: score bands, CE tier, risk level, R-strategy, primary material, geographic focus, company scale
-- Weekly volume trend (12-week rolling window)
-- Industry benchmark table from `get_market_data()` RPC (opted-in contributions only)
-- Knowledge base statistics
+**Search Solutions tab** (`?activeTab=search`)
+
+- Semantic search across 6,000+ real circular economy case studies from the `ce_cases` knowledge base
+- Two search modes: **Keyword** (BM25 full-text, < 50ms) and **Semantic** (AI-powered hybrid vector + keyword, < 500ms)
+- URL-as-state architecture: every search query, mode, active filters, and page number are reflected in the URL — shareable, refreshable, back-navigable
+- Three client-side filter groups (Strategy, Category, Source) with per-group "All" clear, automatic validation of filter params against actual results
+- Resizable two-panel layout: filter sidebar + paginated result cards (5 per page)
+- Background fetch indicators, stale data refresh button, and prefetch-on-hover for hybrid mode
+- Result cards display: title, match score %, circular strategy chip, category chip, materials chip, full expandable problem / solution / summary / impact, company name, source link
+
+**Global Activity tab** (`?activeTab=global`)
+
+- **Section 1 — Global Activity**: Live aggregates from `scoring_results_log` (all non-junk scoring calls, authenticated + anonymous)
+  - Top-line stats: total scored, avg score, saved assessments (community), input quality rate with junk count
+  - Derived metric averages: confidence, technical feasibility, economic viability, circularity potential, parameter consistency, strategy alignment
+  - Score Distribution bar chart (4 bands: 0–25, 26–50, 51–75, 76–100)
+  - CE Tier and Risk Distribution pie charts with single-value fallbacks
+  - Geographic Focus bar chart (rotated labels, top 8 regions)
+  - Primary Material and Company Scale pie charts (side-by-side)
+  - Weekly Volume trend (12-week rolling window) — dual Y-axis line chart: assessment count (left axis, volume + 3-week rolling average lines) and avg score % (right axis); week-over-week % growth shown in chart title
+  - Most Used R-Strategy callout card (name + total count)
+  - R-Strategy Distribution bar chart (top 8, rotated labels)
+  - Assessment Volume by Industry bar chart (top 10, rotated labels, excluding uncategorized)
+- **Section 2 — Industry Intelligence**: Benchmark data from both log_stats and saved assessments
+  - Top Performing Industry callout card (highest avg score from all scoring sessions)
+  - Avg Score by Industry bar chart (from `scoring_results_log` — all sessions)
+  - Industry table: volume, avg score, share of assessments (from `scoring_results_log`)
+  - Saved Assessments by Tier and by Risk pie charts (from `get_assessment_statistics()` RPC — opted-in saved assessments only)
+
+URL behaviour: switching to Global tab strips all search-specific params; invalid tab params default to search; manual refresh button with "updated N minutes ago" timestamp.
 
 ### Assessment Management
 
@@ -735,6 +760,6 @@ For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERE
 
 UNLICENSED — proprietary software.
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 23 March 2026
+**Last Updated:** 26 April 2026
 
 ---

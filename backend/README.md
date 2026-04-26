@@ -254,6 +254,12 @@ CREATE INDEX idx_documents_embedding ON documents
 CREATE INDEX idx_documents_created_at ON documents(created_at);
 ```
 
+### `ce_cases`
+
+Vector-searchable circular economy case study knowledge base (separate from the `documents` scoring knowledge base). Key columns: `id`, `problem`, `solution`, `materials`, `circular_strategy`, `category`, `impact`, `source_url`, `embedding` (vector 1536), `metadata_json` (JSONB: title, company, summary, and other scraped fields).
+
+Indexed via HNSW for approximate nearest-neighbour similarity search.
+
 ### RPC Functions
 
 #### `search_documents_hybrid_filtered()`
@@ -282,6 +288,14 @@ Per-industry/scale/strategy benchmark averages from opted-in public assessments.
 #### `get_assessment_statistics(user_uuid)`
 
 Aggregate stats for a specific user. Omit `user_uuid` for global stats.
+
+#### `search_ce_cases_keyword(query, limit)`
+
+BM25 full-text search against `ce_cases`. Returns rows ordered by `relevance` score. Used by `GET /api/search/ce-cases?mode=keyword`.
+
+#### `search_ce_cases_hybrid(query_embedding, keyword_query, limit, vector_weight)`
+
+Hybrid search combining pgvector cosine similarity and BM25, combined via Reciprocal Rank Fusion. Returns rows ordered by `similarity` score. Used by `GET /api/search/ce-cases?mode=hybrid`.
 
 ## ID Format and Generation
 
@@ -356,19 +370,74 @@ Returns aggregated statistics across all documents.
 
 Detailed analytics with time series, industry metrics, score distributions, and strategy breakdowns. Supports `industry`, `timeRange` query parameters.
 
-#### GET `/api/analytics/featured-solutions`
+#### POST `/api/analytics/embeddings/reindex`
 
-Returns curated solutions from the knowledge base. Supports semantic search (`q` query param) or falls back to recent documents. Supports `industry`, `category`, `source`, `limit` parameters.
+Maintenance endpoint to reindex embeddings. Requires admin access. Used for data pipeline maintenance.
 
 #### GET `/api/analytics/global-stats`
 
 See the full response shape documented above in the [GET /api/analytics/global-stats](#get-apianalyticsglobal-stats) section.
 
-### Scoring Endpoint
+### Search
+
+| Method | Endpoint               | Auth | Description                                         |
+| ------ | ---------------------- | ---- | --------------------------------------------------- |
+| `GET`  | `/api/search/ce-cases` | None | Search circular economy case studies knowledge base |
+
+#### `GET /api/search/ce-cases`
+
+Query parameters:
+
+| Param           | Type   | Default   | Description                                                                                         |
+| --------------- | ------ | --------- | --------------------------------------------------------------------------------------------------- |
+| `q`             | string | —         | **Required.** Search query (max 500 chars)                                                          |
+| `mode`          | string | `keyword` | `keyword` (BM25 full-text, < 50ms) or `hybrid` (semantic vector + keyword, calls OpenAI embeddings) |
+| `limit`         | number | 20        | Max results (capped at 50)                                                                          |
+| `vector_weight` | number | 0.7       | Hybrid mode only. Weight given to vector vs keyword (0.0–1.0)                                       |
+
+Response shape:
+
+```json
+{
+  "query": "plastic bottle recycling",
+  "mode": "hybrid",
+  "count": 20,
+  "results": [
+    {
+      "id": "...",
+      "problem": "...",
+      "solution": "...",
+      "materials": "...",
+      "circular_strategy": "...",
+      "category": "...",
+      "impact": "...",
+      "source_url": "...",
+      "title": "...",
+      "company": "...",
+      "summary": "...",
+      "source_display": "example.com",
+      "score": 0.87
+    }
+  ],
+  "processing_info": { "processing_time_ms": 210 }
+}
+```
+
+Hybrid mode embeds the query via `embedding.service.js` then calls `search_ce_cases_hybrid()` RPC (vector + BM25 + RRF). Keyword mode calls `search_ce_cases_keyword()` RPC directly (no OpenAI call).
+
+### Scoring Endpoints
 
 #### POST `/api/score`
 
-See the full request/response shape documented above in the [POST /api/score](#post-apiscore) section.
+Full scoring pipeline. Returns complete result object. Rate limited to 10 requests per minute per IP.
+
+#### POST `/api/score/stream`
+
+Server-Sent Events (SSE) streaming version of the scoring pipeline. Returns real-time progress updates during scoring. Same rate limiting as `/api/score`.
+
+#### GET `/api/score/test-anonymous-limit-tracking`
+
+Test endpoint for anonymous usage limit tracking. Returns current usage status for debugging rate limiting.
 
 ### Assessment Endpoints
 
@@ -418,6 +487,23 @@ Validate that a `publicId` exists and is publicly accessible. Returns `{ valid: 
 
 Compare two assessments. Query params: `id1`, `id2`. Returns both assessments plus computed `factorDiffs`, `comparisonData`, and `overallDiff`.
 
+### Profile Endpoint
+
+#### GET `/api/profile`
+
+Get the authenticated user's profile information. Requires authentication.
+
+**Response:**
+
+```json
+{
+  "id": "user-uuid",
+  "username": "john_doe",
+  "created_at": "2026-01-15T10:30:00.000Z",
+  "updated_at": "2026-01-20T14:22:00.000Z"
+}
+```
+
 ## API Endpoints
 
 ### POST `/api/score`
@@ -453,7 +539,13 @@ Full scoring pipeline. Returns complete result object.
 
 ### GET `/api/analytics/global-stats`
 
-Aggregates from `scoring_results_log` (service-role) + `get_market_data()` + `get_assessment_statistics()`. Used by the Dashboard. No auth required.
+Aggregates from three sources in parallel: (1) `scoring_results_log` (service-role, all non-junk scoring calls — all users and sessions), (2) `get_market_data()` RPC (opted-in saved assessments only), (3) `get_assessment_statistics()` RPC (global saved assessment counts). No auth required.
+
+Response structure:
+
+- `log_stats` — total_scoring_calls, avg_score, avg_metrics (6 derived metrics), score_distribution (4 bands), tier_distribution, risk_distribution, industry_distribution (top 12 with avg_score per industry), strategy_distribution, material_distribution, geo_distribution, scale_distribution, junk_rate, weekly_trend (12 ISO weeks with count and avg_score)
+- `market_data` — per-industry rows from `get_market_data()` RPC
+- `assessment_stats` — total_assessments, assessments_by_tier, assessments_by_risk, assessments_by_scale, assessments_by_industry from `get_assessment_statistics()` RPC
 
 **Response shape:**
 
@@ -887,6 +979,15 @@ See [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md) for the complete inventory.
 - Keyword search alone misses semantic similarity
 - Combined weighted approach (70% vector + 30% BM25) is more robust for real-world retrieval quality
 
+#### CE Cases Search (Solutions Search tab)
+
+Separate from the scoring pipeline's knowledge base search. The `ce_cases` table contains structured case study records (problem, solution, materials, circular_strategy, category, impact, source metadata). Two search modes:
+
+- **Keyword mode** — BM25 via `search_ce_cases_keyword()` RPC; no external API call; latency < 50ms
+- **Hybrid mode** — embeds query via `createEmbedding()` (OpenAI text-embedding-3-small), then calls `search_ce_cases_hybrid()` RPC with RRF combination; latency < 500ms including embedding call
+
+The `vector_weight` parameter (default 0.7) controls the blend: 1.0 = pure vector, 0.0 = pure keyword.
+
 ### Structured Filtering
 
 - `industry` and `category` are first-class indexed columns — fast B-tree lookups
@@ -965,4 +1066,4 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 **Author:** Areeb Ahmed Zahoori
 **License:** UNLICENSED — proprietary software
 **Status:** Production Ready
-**Last Updated:** 23 March 2026
+**Last Updated:** 26 April 2026
