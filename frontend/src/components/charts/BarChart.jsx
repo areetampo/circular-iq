@@ -34,6 +34,8 @@ export default function BarChart({
   isLoading = false,
   className,
   colors,
+  tickAngle = 0,
+  tickAnchor = 'end',
 }) {
   if (isLoading) {
     return (
@@ -80,15 +82,22 @@ export default function BarChart({
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart
           data={data}
-          margin={{ top: 16, right: 16, bottom: xAxisLabel ? 40 : 24, left: 8 }}
+          margin={{
+            top: 16,
+            right: 16,
+            bottom: xAxisLabel ? 40 : tickAngle !== 0 ? 70 : 24,
+            left: 8,
+          }}
           barCategoryGap="20%"
         >
           <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
           <XAxis
             dataKey={xAxisKey}
-            tick={TICK_STYLE}
+            tick={{ ...TICK_STYLE, textAnchor: tickAngle !== 0 ? tickAnchor : 'middle' }}
             tickLine={false}
             axisLine={{ stroke: 'var(--color-chart-axis)' }}
+            angle={tickAngle}
+            interval={0}
             label={
               xAxisLabel
                 ? { value: xAxisLabel, position: 'insideBottom', offset: -8, style: TICK_STYLE }
@@ -158,4 +167,6 @@ BarChart.propTypes = {
   isLoading: PropTypes.bool,
   className: PropTypes.string,
   colors: PropTypes.arrayOf(PropTypes.string),
+  tickAngle: PropTypes.number,
+  tickAnchor: PropTypes.string,
 };
