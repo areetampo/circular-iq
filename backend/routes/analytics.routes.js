@@ -7,6 +7,7 @@ import express from 'express';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as analyticsController from '#controllers/analytics.controller.js';
+import { logger } from '#utils/logger.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 
