@@ -1,6 +1,6 @@
 import { Tabs } from '@heroui/react';
 import { Globe, RotateCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
@@ -15,22 +15,39 @@ export default function DashboardPage() {
   // Timestamp for "Updated at" display
   const [updatedAt, setUpdatedAt] = useState(new Date());
 
-  // Get active tab from URL query param, default to 'search'
-  const [selectedKey, setSelectedKey] = useState(() => {
-    const activeTab = searchParams.get('activeTab');
-    return activeTab === 'global' ? 'global' : 'search';
-  });
+  // ── State ──────────────────────────────────────────────────────────────────
+  // Derive selectedKey directly from the URL — single source of truth.
+  // Never let local state drift from the URL.
+  const activeTabParam = searchParams.get('activeTab');
+  const selectedKey = activeTabParam === 'global' ? 'global' : 'search';
 
-  // Update URL query param when tab changes
+  // ── Effect: enforce activeTab param on first render / missing param ─────────
   useEffect(() => {
-    const newParams = new URLSearchParams(searchParams);
-    if (selectedKey === 'global') {
-      newParams.set('activeTab', 'global');
-    } else {
-      newParams.set('activeTab', 'search');
+    const tab = searchParams.get('activeTab');
+    if (tab !== 'search' && tab !== 'global') {
+      const next = new URLSearchParams(searchParams);
+      next.set('activeTab', 'search');
+      setSearchParams(next, { replace: true });
     }
-    setSearchParams(newParams);
-  }, [selectedKey, setSearchParams, searchParams]);
+  }, []); // intentional: only runs once on mount to normalise the URL
+
+  // ── Handler: user clicks a tab ─────────────────────────────────────────────
+  const handleTabChange = useCallback(
+    (key) => {
+      const next = new URLSearchParams(searchParams);
+      next.set('activeTab', key);
+
+      if (key === 'global') {
+        // Strip search-specific params — global tab doesn't use them
+        ['searchQuery', 'page', 'mode', 'strategies', 'categories', 'sources'].forEach((p) =>
+          next.delete(p),
+        );
+      }
+
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   // ── Global data ─────────────────────────────────────────────────────────────
   const { isLoading: globalLoading, refetch: refetchGlobal } = useGlobalStats();
@@ -38,21 +55,13 @@ export default function DashboardPage() {
   // Handle refresh button click
   const handleRefresh = async () => {
     try {
-      await refetchGlobal({ throwOnError: true, refetchPage: false });
+      await refetchGlobal({ throwOnError: true });
       setUpdatedAt(new Date()); // Update timestamp immediately after refetch
     } catch (error) {
       // Error is handled by React Query's global error handling
       console.error('Error during refetch:', error);
     }
   };
-
-  // Update timestamp when data finishes loading
-  useEffect(() => {
-    // Update timestamp when all data has finished loading
-    if (!globalLoading) {
-      setUpdatedAt(new Date());
-    }
-  }, [globalLoading]);
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -71,7 +80,12 @@ export default function DashboardPage() {
 
         {/* Refresh button + updated at timestamp */}
         <div className="flex flex-col items-end justify-center gap-2">
-          <Button onClick={handleRefresh} disabled={globalLoading} variant="teal">
+          <Button
+            onClick={handleRefresh}
+            disabled={globalLoading}
+            variant="teal"
+            className={globalLoading ? 'opacity-60' : ''}
+          >
             <RotateCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
             Refresh
           </Button>
@@ -83,7 +97,7 @@ export default function DashboardPage() {
 
       <Tabs
         selectedKey={selectedKey}
-        onSelectionChange={setSelectedKey}
+        onSelectionChange={handleTabChange}
         className="w-full"
         variant="secondary"
       >
@@ -105,7 +119,7 @@ export default function DashboardPage() {
         </Tabs.Panel>
 
         <Tabs.Panel id="global">
-          <GlobalActivity refetchGlobal={refetchGlobal} />
+          <GlobalActivity />
         </Tabs.Panel>
       </Tabs>
     </div>
