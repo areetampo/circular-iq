@@ -6,7 +6,7 @@ function StatCard({ title, value, subtext, loading }) {
     if (typeof val === 'string' && val.includes('%')) {
       const numValue = parseFloat(val.replace('%', ''));
       if (!isNaN(numValue)) {
-        return `${numValue.toFixed(2)}%`;
+        return `${numValue.toFixed(1)}%`;
       }
     }
     return val;

@@ -8,7 +8,7 @@ function DashboardSectionHeading({ label, count }) {
         <span className="pl-2 font-mono text-sm font-bold tracking-[0.14em] text-(--color-text-muted) uppercase">
           {label}
         </span>
-        {count != null && <span className="text-sm text-(--color-text-muted)">{count}0</span>}
+        {count != null && <span className="text-sm text-(--color-text-muted)">{count}</span>}
       </div>
       <Separator variant="secondary" />
     </div>
