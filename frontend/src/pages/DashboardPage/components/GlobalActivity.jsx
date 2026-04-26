@@ -1,6 +1,5 @@
 import { Table } from '@heroui/react';
-import PropTypes from 'prop-types';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
@@ -9,7 +8,6 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   getRiskColors,
   getScaleColors,
-  getScoreColors,
   getTierColors,
   resolveCSSVar,
   transformGeoDistribution,
@@ -20,7 +18,6 @@ import {
   transformScoreDistribution,
   transformTierDistribution,
   transformWeeklyTrend,
-  usableBar,
   usablePie,
 } from '@/utils/chartHelpers';
 import { getChartTheme } from '@/utils/chartTheme';
@@ -46,13 +43,15 @@ const getMaterialColors = () => [
   resolveCSSVar('var(--chart-6)', '#9a8f82'), // text muted
 ];
 
-// ─── Main ─────────────────────────────────────────────────────────────────────────────
-export default function GlobalActivity({ refetchGlobal }) {
-  const { user } = useAuth();
-  // Timestamp for "Updated at" display
-  const [updatedAt, setUpdatedAt] = useState(new Date());
+// Helper function outside component to avoid re-creation
+const formatIndustry = (s) => (s ?? '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-  // ── User data ────────────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────────────
+export default function GlobalActivity() {
+  const SHOW_YOUR_ASSESSMENTS_SECTION = false;
+
+  // Only fetch user data if the section is shown
+  const { user } = useAuth();
   const {
     totalAssessments: userTotal,
     averageScore: userAvg,
@@ -66,7 +65,7 @@ export default function GlobalActivity({ refetchGlobal }) {
     assessmentsByIndustry: userByIndustry,
     assessmentsByRisk: userByRisk,
     isLoading: userStatsLoading,
-  } = useAssessmentStats({ enabled: !!user });
+  } = useAssessmentStats({ enabled: SHOW_YOUR_ASSESSMENTS_SECTION && !!user });
 
   // Transform user data for charts
   const userIndustryData = useMemo(
@@ -96,18 +95,11 @@ export default function GlobalActivity({ refetchGlobal }) {
     geoDistribution,
     scaleDistribution,
     junkRate,
-    marketDataByIndustry,
+    totalSavedAssessments,
+    assessmentsByTier,
+    assessmentsByRisk,
     isLoading: globalLoading,
   } = useGlobalStats();
-
-  const SHOW_YOUR_ASSESSMENTS_SECTION = false;
-
-  // Update timestamp when data finishes loading
-  useEffect(() => {
-    if (!globalLoading) {
-      setUpdatedAt(new Date());
-    }
-  }, [globalLoading]);
 
   // ── Chart data (all memoised) ─────────────────────────────────────────────────
 
@@ -142,24 +134,85 @@ export default function GlobalActivity({ refetchGlobal }) {
 
   const weeklyData = useMemo(() => transformWeeklyTrend(weeklyTrend), [weeklyTrend]);
 
-  const marketTableRows = useMemo(
-    () => marketDataByIndustry.filter((m) => m.industry).slice(0, 15),
-    [marketDataByIndustry],
-  );
+  // Compute 3-week rolling average and add to weeklyData
+  const weeklyWithRolling = useMemo(() => {
+    return weeklyData.map((d, i, arr) => {
+      const window = arr.slice(Math.max(0, i - 2), i + 1);
+      const rollingAvg = Math.round(window.reduce((s, w) => s + w.count, 0) / window.length);
+      return { ...d, rolling: rollingAvg };
+    });
+  }, [weeklyData]);
+
+  // After weeklyData memo, add:
+  const weekOverWeekGrowth = useMemo(() => {
+    if (weeklyData.length < 2) return null;
+    const last = weeklyData[weeklyData.length - 1]?.count ?? 0;
+    const prev = weeklyData[weeklyData.length - 2]?.count ?? 0;
+    if (prev === 0) return null;
+    return (((last - prev) / prev) * 100).toFixed(1);
+  }, [weeklyData]);
+
+  const industryTableRows = useMemo(() => {
+    if (!industryBarData.length) return [];
+    const total = industryBarData.reduce((sum, r) => sum + (r.count ?? 0), 0);
+    return industryBarData
+      .filter((r) => r.count > 0)
+      .map((r) => ({
+        industry: r.name,
+        count: r.count,
+        avgScore: r.avgScore,
+        share: total > 0 ? (r.count / total) * 100 : null,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [industryBarData]);
+
+  const topStrategy = useMemo(() => {
+    const valid = strategyData.filter((s) => s.name && s.name !== 'unknown');
+    return valid.length > 0 ? valid.reduce((a, b) => (b.value > a.value ? b : a)) : null;
+  }, [strategyData]);
+
+  const topPerformer = useMemo(() => {
+    const valid = industryTableRows.filter((r) => r.avgScore != null);
+    if (!valid.length) return null;
+    return [...valid].sort((a, b) => b.avgScore - a.avgScore)[0];
+  }, [industryTableRows]);
 
   const materialData = useMemo(
     () => transformMaterialDistribution(materialDistribution, 8),
     [materialDistribution],
   );
 
-  const geoData = useMemo(() => transformGeoDistribution(geoDistribution, 8), [geoDistribution]);
-
   const scaleData = useMemo(
     () => transformScaleDistribution(scaleDistribution, 6),
     [scaleDistribution],
   );
 
+  const geoData = useMemo(() => transformGeoDistribution(geoDistribution, 8), [geoDistribution]);
+
+  // Transform for pie charts:
+  const savedTierData = useMemo(
+    () =>
+      Object.entries(assessmentsByTier || {})
+        .filter(([t, v]) => t && t !== 'Unknown' && v > 0)
+        .map(([name, value]) => ({ name, value: Number(value) }))
+        .sort((a, b) => b.value - a.value),
+    [assessmentsByTier],
+  );
+
+  const savedRiskData = useMemo(
+    () =>
+      Object.entries(assessmentsByRisk || {})
+        .filter(([r, v]) => r && r !== 'unknown' && v > 0)
+        .map(([name, value]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          value: Number(value),
+        }))
+        .sort((a, b) => b.value - a.value),
+    [assessmentsByRisk],
+  );
+
   const qualityRate = junkRate != null ? (100 - junkRate).toFixed(1) : null;
+  const junkCount = junkRate != null ? Math.round((junkRate / 100) * totalScoringCalls) : 0;
 
   // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────────────
   const renderPieOrSingle = (data, colors, emptyMsg) => {
@@ -190,8 +243,8 @@ export default function GlobalActivity({ refetchGlobal }) {
           ════════════════════════════════════════════════════════════════ */}
       <section>
         {/* <DashboardSectionHeading label="GLOBAL ACTIVITY" /> */}
-
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Change top row from 3 cards to 4 cards: max-w grid */}
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Scored"
             value={totalScoringCalls?.toLocaleString()}
@@ -200,14 +253,20 @@ export default function GlobalActivity({ refetchGlobal }) {
           />
           <StatCard
             title="Avg Score"
-            value={avgScore ? `${avgScore}%` : null}
+            value={avgScore != null ? `${Number(avgScore).toFixed(1)}%` : null}
             subtext="Across all assessments"
+            loading={globalLoading}
+          />
+          <StatCard
+            title="Saved Assessments"
+            value={totalSavedAssessments || null}
+            subtext="Community saved"
             loading={globalLoading}
           />
           <StatCard
             title="Input Quality"
             value={qualityRate ? `${qualityRate}%` : null}
-            subtext="non-junk inputs"
+            subtext={`Non-junk inputs${junkCount > 0 ? ` (${junkCount.toLocaleString()} filtered)` : ''}`}
             loading={globalLoading}
           />
         </div>
@@ -216,32 +275,34 @@ export default function GlobalActivity({ refetchGlobal }) {
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard
             title="Confidence"
-            value={avgConfidence ? `${avgConfidence}%` : null}
+            value={avgConfidence != null ? `${Number(avgConfidence).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Tech Feas."
-            value={avgTechFeas ? `${avgTechFeas}%` : null}
+            value={avgTechFeas != null ? `${Number(avgTechFeas).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Econ Viab."
-            value={avgEconViab ? `${avgEconViab}%` : null}
+            value={avgEconViab != null ? `${Number(avgEconViab).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Circularity"
-            value={avgCircPot ? `${avgCircPot}%` : null}
+            value={avgCircPot != null ? `${Number(avgCircPot).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
-            title="Consistency"
-            value={avgParamConsistency ? `${avgParamConsistency}%` : null}
+            title="Param Consistency"
+            value={
+              avgParamConsistency != null ? `${Number(avgParamConsistency).toFixed(1)}%` : null
+            }
             loading={globalLoading}
           />
           <StatCard
-            title="R-Alignment"
-            value={avgRAlignment ? `${avgRAlignment}%` : null}
+            title="Strategy Alignment"
+            value={avgRAlignment != null ? `${Number(avgRAlignment).toFixed(1)}%` : null}
             loading={globalLoading}
           />
         </div>
@@ -249,7 +310,17 @@ export default function GlobalActivity({ refetchGlobal }) {
         {/* Row A: 3 donuts with single-value fallback */}
         <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <ChartPanel title="Score Distribution" isLoading={globalLoading} chartHeight="250px">
-            {renderPieOrSingle(scoreDistData, getScoreColors(), 'Score data unavailable')}
+            {scoreDistData.length > 0 ? (
+              <BarChart
+                data={scoreDistData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'value', fill: getChartTheme().colors[0], name: 'Count' }]}
+                height={250}
+                showGrid
+              />
+            ) : (
+              <EmptyChart />
+            )}
           </ChartPanel>
           <ChartPanel title="CE Tier Breakdown" isLoading={globalLoading} chartHeight="250px">
             {renderPieOrSingle(tierDistData, getTierColors(), 'Tier data unavailable')}
@@ -258,29 +329,101 @@ export default function GlobalActivity({ refetchGlobal }) {
             {renderPieOrSingle(riskDistData, getRiskColors(), 'Risk data unavailable')}
           </ChartPanel>
         </div>
-
         <div className="space-y-8">
-          {/* Weekly trend — full width */}
+          {/* Geographic Focus — full width */}
           <ChartPanel
-            title="Weekly Volume — last 12 weeks"
+            title="Geographic Focus"
             isLoading={globalLoading}
-            chartHeight="270px"
-            className="mb-4"
+            chartHeight="250px"
+            className="mb-6"
           >
-            {weeklyData.some((d) => d.count > 0) ? (
-              <LineChart
-                data={weeklyData}
-                xAxisKey="period"
-                lines={[
-                  { dataKey: 'count', stroke: getChartTheme().colors[0], name: 'Assessments' },
-                ]}
-                height={270}
-                showLegend={false}
+            {geoData.length > 0 ? (
+              <BarChart
+                data={geoData}
+                xAxisKey="name"
+                barConfigs={[{ dataKey: 'value', fill: getChartTheme().colors[2], name: 'Count' }]}
+                height={250}
+                showGrid
+                tickAngle={-35}
               />
             ) : (
               <EmptyChart />
             )}
           </ChartPanel>
+
+          {/* Primary Material + Company Scale — 50/50 */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <ChartPanel title="Primary Material" isLoading={globalLoading} chartHeight="230px">
+              {renderPieOrSingle(materialData, getMaterialColors(), 'No material data')}
+            </ChartPanel>
+            <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="230px">
+              {renderPieOrSingle(scaleData, getScaleColors(), 'No scale data')}
+            </ChartPanel>
+          </div>
+
+          {/* Weekly trend — full width */}
+          <ChartPanel
+            title={`Weekly Volume — last 12 weeks${weekOverWeekGrowth != null ? ` · ${weekOverWeekGrowth > 0 ? '+' : ''}${weekOverWeekGrowth}% WoW` : ''}`}
+            isLoading={globalLoading}
+            chartHeight="270px"
+            className="mb-4"
+          >
+            {weeklyWithRolling.some((d) => d.count > 0) ? (
+              <LineChart
+                data={weeklyWithRolling}
+                xAxisKey="period"
+                lines={[
+                  {
+                    dataKey: 'count',
+                    stroke: getChartTheme().colors[0],
+                    name: 'Assessments',
+                    yAxisId: 'left',
+                  },
+                  {
+                    dataKey: 'rolling',
+                    stroke: getChartTheme().colors[2],
+                    name: '3-wk avg',
+                    strokeDasharray: '4 2',
+                    yAxisId: 'left',
+                  },
+                  {
+                    dataKey: 'averageScore',
+                    stroke: getChartTheme().colors[3],
+                    name: 'Avg Score',
+                    yAxisId: 'right',
+                  },
+                ]}
+                yAxisRight={{
+                  tickFormatter: (v) => `${v}%`,
+                  domain: [0, 100],
+                }}
+                height={270}
+                showLegend={true}
+              />
+            ) : (
+              <EmptyChart />
+            )}
+          </ChartPanel>
+
+          {/* Top Strategy Callout — above the R-Strategy chart */}
+          {topStrategy && !globalLoading && (
+            <div className="mb-4 flex items-center gap-4 rounded-2xl border-2 border-(--color-border-ui) bg-transparent px-5 py-4">
+              <div className="flex-1">
+                <p className="mb-0.5 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
+                  Most Used R-Strategy
+                </p>
+                <p className="font-mono text-xl font-semibold text-(--color-text-primary)">
+                  {topStrategy.name}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-3xl font-semibold text-(--color-accent)">
+                  {topStrategy.value.toLocaleString()}
+                </p>
+                <p className="text-xs text-(--color-text-muted)">uses</p>
+              </div>
+            </div>
+          )}
 
           {/* R-Strategy — full width */}
           <ChartPanel
@@ -289,13 +432,14 @@ export default function GlobalActivity({ refetchGlobal }) {
             chartHeight="270px"
             className="mb-4"
           >
-            {usableBar(strategyData, 'value') ? (
+            {strategyData.length > 0 ? (
               <BarChart
                 data={strategyData}
                 xAxisKey="name"
                 barConfigs={[{ dataKey: 'value', fill: getChartTheme().colors[0], name: 'Count' }]}
-                height={270}
+                height={300}
                 showGrid
+                tickAngle={-35}
               />
             ) : (
               <EmptyChart />
@@ -307,121 +451,166 @@ export default function GlobalActivity({ refetchGlobal }) {
             <ChartPanel
               title="Assessment Volume by Industry — top 10 (excluding uncategorized)"
               isLoading={globalLoading}
-              chartHeight="250px"
+              chartHeight="280px"
             >
-              {usableBar(industryBarData) ? (
+              {industryBarData.length > 0 ? (
                 <BarChart
                   data={industryBarData}
                   xAxisKey="name"
                   barConfigs={[
                     { dataKey: 'count', fill: getChartTheme().colors[1], name: 'Count' },
                   ]}
-                  height={250}
+                  height={280}
                   showGrid
+                  tickAngle={-35}
                 />
               ) : (
                 <EmptyChart />
               )}
             </ChartPanel>
           )}
-
-          {/* Row D: Material + Geography + Scale — each full width */}
-          <ChartPanel
-            title="Primary Material"
-            isLoading={globalLoading}
-            chartHeight="230px"
-            className="mb-4"
-          >
-            {renderPieOrSingle(materialData, getMaterialColors(), 'No material data')}
-          </ChartPanel>
-
-          <ChartPanel
-            title="Geographic Focus"
-            isLoading={globalLoading}
-            chartHeight="230px"
-            className="mb-4"
-          >
-            {geoData.length > 0 ? (
-              <BarChart
-                data={geoData}
-                xAxisKey="name"
-                barConfigs={[{ dataKey: 'value', fill: getChartTheme().colors[2], name: 'Count' }]}
-                height={230}
-                showGrid
-              />
-            ) : (
-              <EmptyChart />
-            )}
-          </ChartPanel>
-
-          <ChartPanel title="Company Scale" isLoading={globalLoading} chartHeight="230px">
-            {renderPieOrSingle(scaleData, getScaleColors(), 'No scale data')}
-          </ChartPanel>
         </div>
       </section>
 
       {/* ════════════════════════════════════════════════════════════
           SECTION 2 — BENCHMARK INTELLIGENCE
           ════════════════════════════════════════════════════════════════ */}
-      {(globalLoading || marketTableRows.length > 0) && (
+      {(globalLoading || industryTableRows.length > 0) && (
         <section>
-          <DashboardSectionHeading label="BENCHMARK INTELLIGENCE" />
+          <DashboardSectionHeading label="INDUSTRY INTELLIGENCE" />
+          <p className="-mt-4 mb-6 pl-2 text-xs text-(--color-text-muted)">
+            Based on {totalScoringCalls?.toLocaleString()} total global scoring sessions · Showing
+            top {industryTableRows.length} industries by volume
+          </p>
 
-          {marketTableRows.length > 0 ? (
-            <Table>
-              <Table.ScrollContainer>
-                <Table.Content aria-label="Market benchmark table">
-                  <Table.Header>
-                    <Table.Column
-                      isRowHeader
-                      className="px-3 py-2 text-left font-semibold text-(--color-text-muted)"
-                    >
-                      Industry
-                    </Table.Column>
-                    <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                      Count
-                    </Table.Column>
-                    <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                      Avg Score
-                    </Table.Column>
-                    <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
-                      Market Share
-                    </Table.Column>
-                  </Table.Header>
-                  <Table.Body>
-                    {marketTableRows.map((row) => (
-                      <Table.Row key={row.industry}>
-                        <Table.Cell className="px-3 py-2 font-medium text-(--color-text-primary)">
-                          {row.industry}
-                        </Table.Cell>
-                        <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
-                          {row.count?.toLocaleString() ?? 0}
-                        </Table.Cell>
-                        <Table.Cell
-                          className={cn(
-                            'px-3 py-2 text-right tabular-nums',
-                            row.avgScore >= 75
-                              ? 'text-(--color-success)'
-                              : row.avgScore >= 50
-                                ? 'text-(--color-warning)'
-                                : 'text-(--color-error)',
-                          )}
+          {/* Top Performer Callout */}
+          {topPerformer && !globalLoading && (
+            <div className="mb-6 flex items-center gap-4 rounded-2xl border-2 border-(--color-border-ui) bg-transparent px-5 py-4">
+              <div className="flex-1">
+                <p className="mb-0.5 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
+                  Top Performing Industry
+                </p>
+                <p className="font-mono text-xl font-semibold text-(--color-text-primary)">
+                  {formatIndustry(topPerformer.industry)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono text-3xl font-semibold text-(--color-success)">
+                  {topPerformer.avgScore?.toFixed(1)}%
+                </p>
+                <p className="text-xs text-(--color-text-muted)">avg score</p>
+              </div>
+            </div>
+          )}
+
+          {/* Avg Score by Industry Benchmark Chart — use industryDistribution from log_stats */}
+          {industryBarData.length > 0 && (
+            <ChartPanel
+              title="Avg Score by Industry (All Scoring Sessions)"
+              isLoading={globalLoading}
+              chartHeight="220px"
+              className="mb-6"
+            >
+              <BarChart
+                data={industryBarData.map((r) => ({
+                  name: formatIndustry(r.name),
+                  score: r.avgScore ?? 0, // ← industryBarData already has avgScore via transformIndustryDistribution
+                }))}
+                xAxisKey="name"
+                barConfigs={[
+                  { dataKey: 'score', fill: getChartTheme().colors[1], name: 'Avg Score (%)' },
+                ]}
+                height={280}
+                showGrid
+                tickAngle={-35}
+              />
+            </ChartPanel>
+          )}
+
+          {industryTableRows.length > 0 ? (
+            <div className="mt-6">
+              <Table>
+                <Table.ScrollContainer>
+                  <Table.Content aria-label="Market benchmark table">
+                    <Table.Header>
+                      <Table.Column
+                        isRowHeader
+                        className="px-3 py-2 text-left font-semibold text-(--color-text-muted)"
+                      >
+                        Industry
+                      </Table.Column>
+                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                        Count
+                      </Table.Column>
+                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                        Avg Score
+                      </Table.Column>
+                      <Table.Column className="px-3 py-2 text-right font-semibold text-(--color-text-muted)">
+                        Share of Assessments
+                      </Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                      {industryTableRows.map((row) => (
+                        <Table.Row
+                          key={row.industry}
+                          className={
+                            topPerformer?.industry === row.industry
+                              ? 'bg-(--color-success)/5 font-medium'
+                              : ''
+                          }
                         >
-                          {row.avgScore?.toFixed(1) ?? 0}%
-                        </Table.Cell>
-                        <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
-                          {row.marketShare?.toFixed(1) ?? 0}%
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Content>
-              </Table.ScrollContainer>
-            </Table>
+                          <Table.Cell className="px-3 py-2 font-medium text-(--color-text-primary)">
+                            {formatIndustry(row.industry)}
+                          </Table.Cell>
+                          <Table.Cell className="px-3 py-2 text-right text-(--color-text-muted) tabular-nums">
+                            {row.count?.toLocaleString() ?? 0}
+                          </Table.Cell>
+                          <Table.Cell
+                            className={cn(
+                              'px-3 py-2 text-right tabular-nums',
+                              row.avgScore >= 80
+                                ? 'text-(--color-success)'
+                                : row.avgScore >= 65
+                                  ? 'text-(--color-text-primary)'
+                                  : 'text-(--color-text-muted)',
+                            )}
+                          >
+                            {row.avgScore != null ? `${Number(row.avgScore).toFixed(1)}%` : '—'}
+                          </Table.Cell>
+                          <Table.Cell
+                            className={cn(
+                              'px-3 py-2 text-right tabular-nums',
+                              row.share >= 20
+                                ? 'text-(--color-success)'
+                                : row.share >= 10
+                                  ? 'text-(--color-warning)'
+                                  : 'text-(--color-text-muted)',
+                            )}
+                          >
+                            {row.share?.toFixed(1) ?? '—'}%
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table>
+            </div>
           ) : (
             <ChartPanel isLoading={globalLoading} chartHeight="300px">
               <EmptyChart />
             </ChartPanel>
+          )}
+
+          {(savedTierData.length > 0 || savedRiskData.length > 0) && (
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <ChartPanel title="Saved Assessments by Tier" isLoading={globalLoading}>
+                {renderPieOrSingle(savedTierData, getTierColors(), 'No tier data')}
+              </ChartPanel>
+              <ChartPanel title="Saved Assessments by Risk" isLoading={globalLoading}>
+                {renderPieOrSingle(savedRiskData, getRiskColors(), 'No risk data')}
+              </ChartPanel>
+            </div>
           )}
         </section>
       )}
@@ -531,6 +720,4 @@ export default function GlobalActivity({ refetchGlobal }) {
   );
 }
 
-GlobalActivity.propTypes = {
-  refetchGlobal: PropTypes.func.isRequired,
-};
+GlobalActivity.propTypes = {};
