@@ -33,6 +33,7 @@ export default function LineChart({
   isLoading = false,
   className,
   colors,
+  yAxisRight = null,
 }) {
   if (isLoading) {
     return (
@@ -90,12 +91,36 @@ export default function LineChart({
             interval="preserveStartEnd"
           />
           <YAxis
+            yAxisId="left"
             tick={TICK_STYLE}
             tickLine={false}
             axisLine={false}
             allowDecimals={false}
             width={36}
           />
+          {yAxisRight && (
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={TICK_STYLE}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+              width={40}
+              tickFormatter={yAxisRight.tickFormatter}
+              domain={yAxisRight.domain || ['auto', 'auto']}
+              label={
+                yAxisRight.label
+                  ? {
+                      value: yAxisRight.label,
+                      angle: 90,
+                      position: 'insideRight',
+                      style: TICK_STYLE,
+                    }
+                  : undefined
+              }
+            />
+          )}
           <Tooltip
             content={<ChartTooltipContent />}
             cursor={{ stroke: 'var(--color-chart-cursor-line)', strokeWidth: 1 }}
@@ -114,6 +139,7 @@ export default function LineChart({
           {lines.map((line, i) => (
             <Line
               key={line.dataKey || line.id}
+              yAxisId={line.yAxisId || 'left'}
               type={line.curve || 'monotone'}
               dataKey={line.dataKey || line.id}
               name={line.name || line.dataKey || line.id}
@@ -122,6 +148,7 @@ export default function LineChart({
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
               connectNulls={line.connectNulls || false}
+              strokeDasharray={line.strokeDasharray}
             />
           ))}
         </RechartsLineChart>
@@ -142,6 +169,7 @@ LineChart.propTypes = {
       showMark: PropTypes.bool,
       curve: PropTypes.string,
       connectNulls: PropTypes.bool,
+      yAxisId: PropTypes.string,
     }),
   ),
   height: PropTypes.number,
@@ -153,4 +181,9 @@ LineChart.propTypes = {
   colors: PropTypes.arrayOf(PropTypes.string),
   showTooltip: PropTypes.bool,
   showGrid: PropTypes.bool,
+  yAxisRight: PropTypes.shape({
+    label: PropTypes.string,
+    tickFormatter: PropTypes.func,
+    domain: PropTypes.array,
+  }),
 };
