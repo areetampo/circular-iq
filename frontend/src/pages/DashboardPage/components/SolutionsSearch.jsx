@@ -1,79 +1,30 @@
-import { Checkbox, Input, Label, Pagination, SearchField, Skeleton } from '@heroui/react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Building2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
-import { Chip, DetailsBadge, Spinner } from '@/components/common';
 import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/tailgrids/core/resizable';
+  Checkbox,
+  Label,
+  Pagination,
+  ScrollShadow,
+  SearchField,
+  Separator,
+  Tooltip,
+} from '@heroui/react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Building2, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+import {
+  Chip,
+  DetailsBadge,
+  DetailsDisplay,
+  ExpandableText,
+  Spinner,
+  TruncatedTextTooltip,
+} from '@/components/common';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { searchCeCases } from '@/features/search/searchApi';
 import { useDebounce } from '@/hooks/useDebounce';
-
-function ProblemText({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  const LIMIT = 280;
-  const isLong = text.length > LIMIT;
-  return (
-    <div>
-      <p className="text-[0.8125rem]/relaxed text-(--color-text-secondary)">
-        {expanded || !isLong ? text : text.slice(0, LIMIT) + '…'}
-      </p>
-      {isLong && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-1 text-xs text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
-        >
-          {expanded ? 'Show less' : 'Show more'}
-        </button>
-      )}
-    </div>
-  );
-}
-
-function SolutionText({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  const LIMIT = 220;
-  const isLong = text.length > LIMIT;
-  return (
-    <div>
-      <p className="text-[0.8125rem]/relaxed text-(--color-text-secondary)">
-        {expanded || !isLong ? text : text.slice(0, LIMIT) + '…'}
-      </p>
-      {isLong && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-1 text-xs text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
-        >
-          {expanded ? 'Show less' : 'Show more'}
-        </button>
-      )}
-    </div>
-  );
-}
-
-function ImpactText({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  const LIMIT = 120;
-  const isLong = text.length > LIMIT;
-  return (
-    <div className="overflow-hidden">
-      <p className="overflow-hidden text-xs/relaxed wrap-break-word text-(--color-text-secondary)">
-        {expanded || !isLong ? text : text.slice(0, LIMIT) + '…'}
-      </p>
-      {isLong && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-1 text-xs text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
-        >
-          {expanded ? 'Show less' : 'Show more'}
-        </button>
-      )}
-    </div>
-  );
-}
+import { formatProcessingTime } from '@/lib/formatting';
+import { getMatchStrength } from '@/utils/content';
 
 function ResultCard({ result, isHybridMode }) {
   const {
@@ -91,34 +42,28 @@ function ResultCard({ result, isHybridMode }) {
     company,
   } = result;
 
-  // Derive display title
-  const displayTitle =
-    title ||
-    company ||
-    (problem ? problem.slice(0, 90) + (problem.length > 90 ? '…' : '') : 'Untitled');
-
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-(--color-border-subtle) bg-(--color-bg-card) p-4 shadow-sm transition-colors duration-200 hover:bg-(--color-bg-card-hover)">
-      {/* ① HEADER: title + score badge */}
+    <div className="group relative flex flex-col gap-4 rounded-2xl border border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border) hover:shadow-md">
+      {/* 1) HEADER: title + score badge */}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="flex-1 text-sm/snug leading-snug font-semibold text-(--color-text-primary)">
-          {displayTitle}
-        </h3>
-        {isHybridMode && score != null && (
-          <Chip
-            variant="score-pill"
-            size="sm"
-            color={score >= 0.7 ? 'success' : score >= 0.4 ? 'warning' : 'error'}
-            className="shrink-0"
+        <div className="flex-1 font-sans text-[0.9375rem] leading-snug font-medium tracking-[-0.01em] text-(--color-text-primary)">
+          <ExpandableText
+            limit={80}
+            className="font-sans text-[0.9375rem] leading-snug font-medium tracking-[-0.01em] text-(--color-text-primary)"
           >
-            {Math.round(score * 100)}%
+            {title || company || 'Untitled'}
+          </ExpandableText>
+        </div>
+        {isHybridMode && score != null && (
+          <Chip variant="match" color={getMatchStrength(score)} className="shrink-0">
+            {Math.round(score * 100)}% match
           </Chip>
         )}
       </div>
 
-      {/* ② CHIPS: strategy, category, materials */}
+      {/* 2) CHIPS: strategy, category, materials */}
       {(circular_strategy || category || materials) && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex w-full flex-wrap gap-1.5">
           {circular_strategy && (
             <Chip variant="strategy" size="sm">
               {circular_strategy}
@@ -126,73 +71,117 @@ function ResultCard({ result, isHybridMode }) {
           )}
           {category && (
             <Chip variant="tag" size="sm">
-              {category.length > 40 ? category.slice(0, 40) + '…' : category}
+              {category}
             </Chip>
           )}
           {materials && (
             <Chip variant="materials" size="sm">
-              {materials.length > 40 ? materials.slice(0, 40) + '…' : materials}
+              {materials}
             </Chip>
           )}
         </div>
       )}
 
-      {/* ③ PROBLEM: show first 300 chars with expand */}
-      {problem && <ProblemText text={problem} />}
+      {/* 3) PROBLEM: show first 300 chars with expand */}
+      {problem && (
+        <ExpandableText limit={750} className="text-[0.8125rem]/relaxed">
+          {problem}
+        </ExpandableText>
+      )}
 
-      {/* ④ SOLUTION or SUMMARY */}
+      {/* 4) SOLUTION or SUMMARY */}
       {solution && (
-        <div className="border-t border-(--color-border-faint) pt-3">
-          <p className="mt-0.5 mb-1.5 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+        <div>
+          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <p className="mb-1 text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
             Solution
           </p>
-          <SolutionText text={solution} />
+          <ExpandableText limit={750} className="text-[0.8125rem]/relaxed">
+            {solution}
+          </ExpandableText>
         </div>
       )}
       {!solution && summary && (
-        <div className="border-t border-(--color-border-faint) pt-3">
-          <p className="mb-1.5 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+        <div>
+          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <p className="mb-1 text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
             Summary
           </p>
-          <p className="text-[0.8125rem]/relaxed text-(--color-text-secondary)">{summary}</p>
+          <ExpandableText
+            limit={750}
+            className="text-[0.8125rem] leading-[1.7] wrap-break-word text-(--color-text-secondary)"
+          >
+            {summary}
+          </ExpandableText>
         </div>
       )}
 
-      {/* ⑤ IMPACT */}
+      {/* 5) IMPACT */}
       {impact && (
-        <div className="border-t border-(--color-border-faint) pt-3">
-          <p className="mt-0.5 mb-1 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+        <div>
+          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <p className="mt-0.5 mb-1 text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
             Impact
           </p>
-          <ImpactText text={impact} />
+          <ExpandableText
+            limit={750}
+            className="font-mono text-xs font-medium text-(--color-text-secondary)"
+          >
+            {impact}
+          </ExpandableText>
         </div>
       )}
 
-      {/* ⑥ FOOTER: company + source */}
+      {/* 6) FOOTER: company + source */}
       {(company || source_url) && (
-        <div className="mt-auto flex items-center justify-between border-t border-(--color-border-faint) pt-2">
-          {company ? (
-            <div className="flex items-center gap-1 text-xs text-(--color-text-muted)">
-              <Building2 size={11} className="shrink-0" />
-              <span className="max-w-32 truncate">{company}</span>
-            </div>
-          ) : (
-            <span />
-          )}
-          {source_url && source_display && (
-            <a
-              href={source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
-            >
-              <span className="max-w-28 truncate">{source_display}</span>
-              <ExternalLink size={10} className="shrink-0" />
-            </a>
-          )}
+        <div className="mt-1">
+          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <div className="flex items-center justify-between gap-2">
+            {company ? (
+              <div className="flex items-center gap-1 text-xs text-(--color-text-muted)">
+                <Building2 size={11} className="shrink-0" />
+                <TruncatedTextTooltip
+                  limit={60}
+                  className="text-xs break-all text-(--color-text-muted)"
+                >
+                  {company}
+                </TruncatedTextTooltip>
+              </div>
+            ) : (
+              <span />
+            )}
+            {source_url && source_display && (
+              <a
+                href={source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
+              >
+                <TruncatedTextTooltip
+                  limit={35}
+                  className="text-xs break-all text-(--color-accent)"
+                >
+                  {source_display}
+                </TruncatedTextTooltip>
+                <ExternalLink size={10} className="shrink-0" />
+              </a>
+            )}
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ResultsGrid({ results, isHybridMode }) {
+  return (
+    <ScrollShadow style={{ height: '95vh' }} className="pb-2" size={30}>
+      <div className="flex flex-col gap-3">
+        {results.map((result) => (
+          <ResultCard key={result.id} result={result} isHybridMode={isHybridMode} />
+        ))}
+      </div>
+    </ScrollShadow>
   );
 }
 
@@ -200,33 +189,19 @@ function ResultCard({ result, isHybridMode }) {
 function IdleState() {
   return (
     <div className="flex items-center justify-center py-20">
-      <p className="text-sm tracking-wide text-(--color-text-muted)">
-        Type to search 6,000+ circular economy cases
-      </p>
+      <DetailsBadge
+        variant="info"
+        message="Type to search 6,000+ circular economy cases"
+        icon={Keyboard}
+      />
     </div>
   );
 }
 
-function SkeletonList() {
+function LoadingState() {
   return (
-    <div className="flex flex-col gap-3">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div
-          key={index}
-          className="rounded-xl border border-(--color-border-card) bg-(--color-bg-card) p-5"
-        >
-          <div className="space-y-3">
-            <Skeleton className="h-6 w-3/4 rounded-lg" />
-            <div className="flex gap-2">
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-6 w-16 rounded-full" />
-            </div>
-            <Skeleton className="h-4 w-full rounded-lg" />
-            <Skeleton className="h-4 w-5/6 rounded-lg" />
-            <Skeleton className="h-4 w-4/6 rounded-lg" />
-          </div>
-        </div>
-      ))}
+    <div className="flex items-center justify-center gap-3 py-16">
+      <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} />
     </div>
   );
 }
@@ -234,7 +209,10 @@ function SkeletonList() {
 function ErrorState({ error }) {
   return (
     <div className="flex items-center justify-center py-16">
-      <DetailsBadge variant="error" message={`Error: ${error?.message}`} />
+      <DetailsBadge
+        variant="error"
+        message={`Error: ${error?.message || 'Failed to fetch solutions'}`}
+      />
     </div>
   );
 }
@@ -242,23 +220,10 @@ function ErrorState({ error }) {
 function EmptyState({ query }) {
   return (
     <div className="flex items-center justify-center py-16">
-      <DetailsBadge variant="error" message={`No results found for '${query}'`} />
+      <DetailsBadge variant="error" message={`No results found for ' ${query} '`} />
     </div>
   );
 }
-
-function ResultsGrid({ results, isHybridMode }) {
-  return (
-    <div className="flex flex-col gap-3">
-      {results.map((result) => (
-        <ResultCard key={result.id} result={result} isHybridMode={isHybridMode} />
-      ))}
-    </div>
-  );
-}
-
-// Inline helper for formatting time
-const formatMs = (ms) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`);
 
 function FilterSidebar({
   results,
@@ -301,49 +266,31 @@ function FilterSidebar({
     });
 
     return {
-      strategies: Array.from(strategySet),
-      categories: Array.from(categorySet),
+      strategies: Array.from(strategySet).slice(0, 15),
+      categories: Array.from(categorySet).slice(0, 12),
       sources: Array.from(sourceSet),
     };
   }, [results]);
 
-  const handleStrategyToggle = (strategy) => {
-    setActiveStrategies((prev) => {
-      const next = new Set(prev);
-      if (next.has(strategy)) {
-        next.delete(strategy);
-      } else {
-        next.add(strategy);
-      }
-      const result = Array.from(next);
-      return result.length === 0 ? [] : result;
-    });
+  const handleStrategyToggleLocal = (strategy) => {
+    const currentStrategies = activeStrategies.includes(strategy)
+      ? activeStrategies.filter((s) => s !== strategy)
+      : [...activeStrategies, strategy];
+    setActiveStrategies(currentStrategies);
   };
 
-  const handleCategoryToggle = (category) => {
-    setActiveCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(category)) {
-        next.delete(category);
-      } else {
-        next.add(category);
-      }
-      const result = Array.from(next);
-      return result.length === 0 ? [] : result;
-    });
+  const handleCategoryToggleLocal = (category) => {
+    const currentCategories = activeCategories.includes(category)
+      ? activeCategories.filter((c) => c !== category)
+      : [...activeCategories, category];
+    setActiveCategories(currentCategories);
   };
 
-  const handleSourceToggle = (source) => {
-    setActiveSources((prev) => {
-      const next = new Set(prev);
-      if (next.has(source)) {
-        next.delete(source);
-      } else {
-        next.add(source);
-      }
-      const result = Array.from(next);
-      return result.length === 0 ? [] : result;
-    });
+  const handleSourceToggleLocal = (source) => {
+    const currentSources = activeSources.includes(source)
+      ? activeSources.filter((s) => s !== source)
+      : [...activeSources, source];
+    setActiveSources(currentSources);
   };
 
   if (results.length === 0) {
@@ -351,14 +298,14 @@ function FilterSidebar({
   }
 
   return (
-    <div className="space-y-5 pr-4">
+    <div className="w-full space-y-5">
       {/* Strategy Filter */}
       {strategies.length >= 2 && (
         <div>
           <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
             Strategy
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex w-full flex-wrap gap-1.5">
             <Chip
               variant="filter"
               active={activeStrategies.length === 0}
@@ -371,7 +318,8 @@ function FilterSidebar({
                 key={strategy}
                 variant="filter"
                 active={activeStrategies.includes(strategy)}
-                onClick={() => handleStrategyToggle(strategy)}
+                onClick={() => handleStrategyToggleLocal(strategy)}
+                limit={22}
               >
                 {strategy}
               </Chip>
@@ -386,7 +334,7 @@ function FilterSidebar({
           <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
             Category
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex w-full flex-wrap gap-1.5">
             <Chip
               variant="filter"
               active={activeCategories.length === 0}
@@ -394,19 +342,17 @@ function FilterSidebar({
             >
               All
             </Chip>
-            {categories.map((category) => {
-              const displayLabel = category.length > 35 ? category.slice(0, 35) + '…' : category;
-              return (
-                <Chip
-                  key={category}
-                  variant="filter"
-                  active={activeCategories.includes(category)}
-                  onClick={() => handleCategoryToggle(category)}
-                >
-                  {displayLabel}
-                </Chip>
-              );
-            })}
+            {categories.map((category) => (
+              <Chip
+                key={category}
+                variant="filter"
+                active={activeCategories.includes(category)}
+                onClick={() => handleCategoryToggleLocal(category)}
+                limit={22}
+              >
+                {category}
+              </Chip>
+            ))}
           </div>
         </div>
       )}
@@ -417,7 +363,7 @@ function FilterSidebar({
           <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
             Source
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex w-full flex-wrap gap-1.5">
             <Chip
               variant="filter"
               active={activeSources.length === 0}
@@ -430,9 +376,10 @@ function FilterSidebar({
                 key={source}
                 variant="filter"
                 active={activeSources.includes(source)}
-                onClick={() => handleSourceToggle(source)}
+                onClick={() => handleSourceToggleLocal(source)}
+                limit={25}
               >
-                {source.length > 28 ? source.slice(0, 28) + '…' : source}
+                {source}
               </Chip>
             ))}
           </div>
@@ -442,34 +389,44 @@ function FilterSidebar({
   );
 }
 
-function FilterEmptyState({ onClear }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16">
-      <p className="mb-4 text-sm text-(--color-text-muted)">
-        No results match the selected filters
-      </p>
-      <button
-        onClick={onClear}
-        className="text-sm text-(--color-accent) transition-colors hover:text-(--color-accent-hover)"
-      >
-        Clear filters
-      </button>
-    </div>
-  );
-}
-
 export function SolutionsSearch() {
-  const [query, setQuery] = useState('');
-  const [mode, setMode] = useState('hybrid'); // 'keyword' | 'hybrid'
-  const [page, setPage] = useState(1);
-  const [activeStrategies, setActiveStrategies] = useState([]);
-  const [activeCategories, setActiveCategories] = useState([]);
-  const [activeSources, setActiveSources] = useState([]);
-  const [pageJumpValue, setPageJumpValue] = useState(null);
-  const [isJumpInputFocused, setIsJumpInputFocused] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Parse multi-value parameters from URL
+  const parseMultiParam = (raw) => (raw ? raw.split(',').filter(Boolean) : []);
+
+  // ── State derived from URL (reactive) ───────────────────────────────────────────
+  // URL as the single source of truth — recalculate on every render
+  const query = searchParams.get('searchQuery') || '';
+  const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
+    ? searchParams.get('mode')
+    : 'hybrid';
+  const pageRaw = parseInt(searchParams.get('page') || '1', 10);
+  const page = Number.isNaN(pageRaw) || pageRaw < 1 ? 1 : pageRaw;
+
+  const activeStrategies = parseMultiParam(searchParams.get('strategies'));
+  const activeCategories = parseMultiParam(searchParams.get('categories'));
+  const activeSources = parseMultiParam(searchParams.get('sources'));
+
+  // Generic URL updater helper
+  const updateParams = useCallback(
+    (updates) => {
+      const next = new URLSearchParams(searchParams);
+      Object.entries(updates).forEach(([k, v]) => {
+        if (v === null || v === '' || v === undefined) {
+          next.delete(k);
+        } else {
+          next.set(k, String(v));
+        }
+      });
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   const debouncedQuery = useDebounce(query, 400);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 5;
+  const queryClient = useQueryClient();
 
   const shouldSearch = debouncedQuery.trim().length >= 2;
   const isHybridMode = mode === 'hybrid';
@@ -479,11 +436,14 @@ export function SolutionsSearch() {
     isLoading,
     isFetching,
     error,
+    isStale,
+    refetch,
   } = useQuery({
     queryKey: ['ce-cases-search', debouncedQuery, mode],
     queryFn: () => searchCeCases({ q: debouncedQuery, mode }),
     enabled: shouldSearch,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: mode === 'keyword' ? 10 * 60 * 1000 : 5 * 60 * 1000, // 10 min for keyword, 5 min for hybrid
+    gcTime: 30 * 60 * 1000, // 30 min
     refetchOnWindowFocus: false,
     retry: 1,
     placeholderData: keepPreviousData,
@@ -492,18 +452,37 @@ export function SolutionsSearch() {
   const results = searchResults?.results || [];
   const isBackgroundFetching = isFetching && !isLoading;
 
-  // Reset filters when query changes
-  useEffect(() => {
-    setActiveStrategies([]);
-    setActiveCategories([]);
-    setActiveSources([]);
-    setPage(1);
-  }, [debouncedQuery]);
+  // Handle query changes
+  const handleQueryChange = useCallback(
+    (val) => {
+      const next = new URLSearchParams(searchParams);
+      if (val) {
+        next.set('searchQuery', val);
+      } else {
+        // No query → remove all search-related params
+        ['searchQuery', 'page', 'mode', 'strategies', 'categories', 'sources'].forEach((p) =>
+          next.delete(p),
+        );
+      }
+      // Reset page when query changes
+      next.delete('page');
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [activeStrategies, activeCategories, activeSources]);
+  // Handle mode changes
+  const handleModeChange = useCallback(
+    (isSelected) => {
+      updateParams({ mode: isSelected ? 'hybrid' : 'keyword', page: null });
+    },
+    [updateParams],
+  );
+
+  const clearAllFilters = useCallback(
+    () => updateParams({ strategies: null, categories: null, sources: null, page: null }),
+    [updateParams],
+  );
 
   // Apply filters client-side
   const filteredResults = useMemo(() => {
@@ -525,13 +504,92 @@ export function SolutionsSearch() {
     });
   }, [results, activeStrategies, activeCategories, activeSources]);
 
+  const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
+
+  // Validate and clamp page to valid range after results load
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      updateParams({ page: null }); // reset to 1 (omitting page param = page 1)
+    }
+  }, [totalPages, page, updateParams]);
+
+  // Validate filters against available values (drop invalid URL params)
+  useEffect(() => {
+    if (!results.length) return;
+
+    const {
+      strategies: availStrat,
+      categories: availCat,
+      sources: availSrc,
+    } = (() => {
+      const strategySet = new Set();
+      const categorySet = new Set();
+      const sourceSet = new Set();
+
+      results.forEach((result) => {
+        if (result.circular_strategy) {
+          const resultStrategies = result.circular_strategy
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+          resultStrategies.forEach((s) => strategySet.add(s));
+        }
+        if (result.category) {
+          categorySet.add(result.category);
+        }
+        if (result.source_display) {
+          sourceSet.add(result.source_display);
+        }
+      });
+
+      return {
+        strategies: Array.from(strategySet),
+        categories: Array.from(categorySet),
+        sources: Array.from(sourceSet),
+      };
+    })();
+
+    const validStrat = activeStrategies.filter((s) => availStrat.includes(s));
+    const validCat = activeCategories.filter((c) => availCat.includes(c));
+    const validSrc = activeSources.filter((s) => availSrc.includes(s));
+
+    const changed =
+      validStrat.length !== activeStrategies.length ||
+      validCat.length !== activeCategories.length ||
+      validSrc.length !== activeSources.length;
+
+    if (changed) {
+      updateParams({
+        strategies: validStrat.length ? validStrat.join(',') : null,
+        categories: validCat.length ? validCat.join(',') : null,
+        sources: validSrc.length ? validSrc.join(',') : null,
+        page: null,
+      });
+    }
+  }, [results]); // only when results change (new search)
+
+  // Cleanup: when no searchQuery, ignore all other search params
+  useEffect(() => {
+    const tab = searchParams.get('activeTab');
+    if (tab !== 'search') return;
+    const hasQuery = !!searchParams.get('searchQuery');
+    if (!hasQuery) {
+      const hasExtra = ['page', 'mode', 'strategies', 'categories', 'sources'].some((p) =>
+        searchParams.has(p),
+      );
+      if (hasExtra) {
+        const next = new URLSearchParams(searchParams);
+        ['page', 'mode', 'strategies', 'categories', 'sources'].forEach((p) => next.delete(p));
+        setSearchParams(next, { replace: true });
+      }
+    }
+  }, []); // intentional: once on mount only
+
   // Pagination
   const paginatedResults = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filteredResults.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredResults, page, ITEMS_PER_PAGE]);
-
-  const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
 
   // Helper function to generate page numbers with ellipses
   const getPageNumbers = useCallback(() => {
@@ -568,32 +626,15 @@ export function SolutionsSearch() {
     return pages;
   }, [page, totalPages]);
 
-  const clearAllFilters = () => {
-    setActiveStrategies([]);
-    setActiveCategories([]);
-    setActiveSources([]);
-  };
-
-  const handlePageJump = useCallback(() => {
-    const pageNumber = Number(pageJumpValue);
-    if (pageNumber && pageNumber >= 1 && pageNumber <= totalPages && !Number.isNaN(pageNumber)) {
-      setPage(pageNumber);
-      setPageJumpValue(null);
-      setIsJumpInputFocused(false);
-    } else {
-      // Don't show toast for invalid range, just silently handle it
-      if (pageNumber && pageNumber > totalPages) {
-        // If user entered a page beyond total, jump to last page
-        setPage(totalPages);
-        setPageJumpValue(null);
-        setIsJumpInputFocused(false);
-      }
+  const handlePrefetchHybrid = useCallback(() => {
+    if (mode === 'keyword' && shouldSearch) {
+      queryClient.prefetchQuery({
+        queryKey: ['ce-cases-search', debouncedQuery, 'hybrid'],
+        queryFn: () => searchCeCases({ q: debouncedQuery, mode: 'hybrid' }),
+        staleTime: 5 * 60 * 1000,
+      });
     }
-  }, [pageJumpValue, totalPages]);
-
-  const handleModeChange = (isSelected) => {
-    setMode(isSelected ? 'hybrid' : 'keyword');
-  };
+  }, [mode, shouldSearch, queryClient, debouncedQuery]);
 
   // Check if we should show the two-panel layout
   const hasResults = !isLoading && !error && results.length > 0 && shouldSearch;
@@ -601,7 +642,7 @@ export function SolutionsSearch() {
   // Render full-width states (idle, loading, error, empty)
   function renderFullWidthState() {
     if (!shouldSearch) return <IdleState />;
-    if (isLoading) return <SkeletonList />;
+    if (isLoading) return <LoadingState />;
     if (error) return <ErrorState error={error} />;
     if (results.length === 0) return <EmptyState query={debouncedQuery} />;
     return null;
@@ -610,112 +651,64 @@ export function SolutionsSearch() {
   // Render right panel content (pagination + results)
   function renderRightPanel() {
     return (
-      <div className="space-y-4">
-        {/* Result count */}
-        <div className="text-xs text-(--color-text-muted)">
-          {filteredResults.length < results.length
-            ? `${filteredResults.length} of ${results.length} results (filtered) · `
-            : `${results.length} results · `}
-          {isHybridMode ? 'semantic' : 'keyword'}
-          {searchResults?.processing_info?.processing_time_ms
-            ? ` · ${formatMs(searchResults.processing_info.processing_time_ms)}`
-            : ''}
-        </div>
-
+      <div className="space-y-2">
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-col items-center gap-3">
-            <Pagination className="justify-center">
-              <Pagination.Content>
-                <Pagination.Item>
-                  <Pagination.Previous
-                    isDisabled={page === 1}
-                    onPress={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    <Pagination.PreviousIcon />
-                    <span>Previous</span>
-                  </Pagination.Previous>
-                </Pagination.Item>
-                {getPageNumbers().map((p, i) =>
-                  p === 'ellipsis' ? (
-                    <Pagination.Item key={`ellipsis-${i}`}>
-                      <Pagination.Ellipsis />
-                    </Pagination.Item>
-                  ) : (
-                    <Pagination.Item key={p}>
-                      <Pagination.Link isActive={p === page} onPress={() => setPage(p)}>
-                        {p}
-                      </Pagination.Link>
-                    </Pagination.Item>
-                  ),
-                )}
-                <Pagination.Item>
-                  <Pagination.Next
-                    isDisabled={page === totalPages}
-                    onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    <span>Next</span>
-                    <Pagination.NextIcon />
-                  </Pagination.Next>
-                </Pagination.Item>
-              </Pagination.Content>
-            </Pagination>
-
-            {totalPages > 7 && (
-              <div className="flex items-center gap-2">
-                <Label
-                  htmlFor="dashboard-solutions-search-page-pagination-jump-to"
-                  className="text-sm font-normal whitespace-nowrap text-(--color-text-muted)"
+          <Pagination className="">
+            <Pagination.Content className="">
+              <Pagination.Item>
+                <Pagination.Previous
+                  isDisabled={page === 1}
+                  onPress={() => updateParams({ page: page > 2 ? page - 1 : null })}
                 >
-                  Jump to:
-                </Label>
-                <div className="relative flex items-center">
-                  <Input
-                    id="dashboard-solutions-search-page-pagination-jump-to"
-                    className="number-input-field w-16"
-                    type="number"
-                    min="1"
-                    max={totalPages}
-                    value={isJumpInputFocused ? pageJumpValue : pageJumpValue || page}
-                    onChange={(e) => setPageJumpValue(e.target.value)}
-                    onFocus={() => setIsJumpInputFocused(true)}
-                    onBlur={() => {
-                      setIsJumpInputFocused(false);
-                      if (pageJumpValue === '') setPageJumpValue(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handlePageJump();
-                    }}
-                  />
-                  <div className="number-input-steppers">
-                    <button
-                      tabIndex={-1}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setPageJumpValue((v) => Math.min(Number(v || page) + 1, totalPages));
-                      }}
+                  <Pagination.PreviousIcon />
+                  <span>Previous</span>
+                </Pagination.Previous>
+              </Pagination.Item>
+              {getPageNumbers().map((p, i) =>
+                p === 'ellipsis' ? (
+                  <Pagination.Item key={`ellipsis-${i}`}>
+                    <Pagination.Ellipsis />
+                  </Pagination.Item>
+                ) : (
+                  <Pagination.Item key={p}>
+                    <Pagination.Link
+                      isActive={p === page}
+                      onPress={() => updateParams({ page: p > 1 ? p : null })}
                     >
-                      <ChevronUp size={16} strokeWidth={2} />
-                    </button>
-                    <button
-                      tabIndex={-1}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setPageJumpValue((v) => Math.max(Number(v || page) - 1, 1));
-                      }}
-                    >
-                      <ChevronDown size={16} strokeWidth={2} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+                      {p}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                ),
+              )}
+              <Pagination.Item>
+                <Pagination.Next
+                  isDisabled={page === totalPages}
+                  onPress={() => updateParams({ page: page < totalPages ? page + 1 : null })}
+                >
+                  <span>Next</span>
+                  <Pagination.NextIcon />
+                </Pagination.Next>
+              </Pagination.Item>
+            </Pagination.Content>
+          </Pagination>
         )}
 
         {/* Cards */}
         {filteredResults.length === 0 && results.length > 0 ? (
-          <FilterEmptyState onClear={clearAllFilters} />
+          <DetailsDisplay
+            variant="neutral"
+            title="No solutions match the selected filters"
+            showMessage={false}
+            actions={[
+              {
+                variant: 'ghost',
+                label: 'Clear all filters',
+                onPress: clearAllFilters,
+              },
+            ]}
+            showDefaultActions={false}
+          />
         ) : (
           <ResultsGrid results={paginatedResults} isHybridMode={isHybridMode} />
         )}
@@ -726,9 +719,69 @@ export function SolutionsSearch() {
   return (
     <div className="space-y-4">
       {/* Search input and mode toggle */}
-      <div className="space-y-3">
-        {/* SearchField first - primary */}
-        <SearchField name="ce-search" value={query} onChange={setQuery} className="w-full">
+      <div className="space-y-1">
+        <div className="flex items-center justify-start gap-2 pl-2">
+          {/* Mode toggle */}
+          <Checkbox
+            id="keyword-hybrid-search-toggle"
+            isSelected={isHybridMode}
+            onChange={handleModeChange}
+            onMouseEnter={handlePrefetchHybrid}
+            className="flex items-center justify-between gap-3 pl-2"
+          >
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Content>
+              <Label
+                htmlFor="keyword-hybrid-search-toggle"
+                className="-ml-0.5 flex items-center justify-center text-sm/relaxed text-(--color-text-secondary)"
+              >
+                <span>Semantic search</span>
+                <span className="ml-2.5 flex items-center gap-1 text-xs text-(--color-text-muted)">
+                  [ {isHybridMode ? 'AI-powered semantic search' : 'fast keyword match'} ]
+                </span>
+              </Label>
+            </Checkbox.Content>
+          </Checkbox>
+
+          {/* Result count */}
+          {hasResults && (
+            <div className="mt-px flex items-center gap-2 font-mono text-xs font-medium text-(--color-text-muted)">
+              {hasResults && <Minus size={16} strokeWidth={2.5} />}
+
+              <div>
+                {filteredResults && results && filteredResults.length < results.length
+                  ? `${filteredResults.length} of ${results.length} results (filtered)`
+                  : `${results.length} results`}
+                {searchResults?.processing_info?.processing_time_ms
+                  ? ` in ${formatProcessingTime(searchResults.processing_info.processing_time_ms)}`
+                  : ''}
+              </div>
+
+              {isBackgroundFetching && <Spinner color="var(--color-checkbox)" />}
+
+              {isStale && !isFetching && (
+                <Tooltip delay={0} className="inline-flex">
+                  <Tooltip.Trigger>
+                    <RefreshCw
+                      size={16}
+                      strokeWidth={2.5}
+                      aria-label="Refresh results"
+                      onClick={() => refetch()}
+                      className="cursor-pointer"
+                      color="var(--color-checkbox)"
+                    />
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>Results may be outdated — click to refresh</Tooltip.Content>
+                </Tooltip>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* SearchField */}
+        <SearchField name="ce-search" value={query} onChange={handleQueryChange} className="w-full">
           <SearchField.Group>
             <SearchField.SearchIcon />
             <SearchField.Input
@@ -738,64 +791,38 @@ export function SolutionsSearch() {
             <SearchField.ClearButton />
           </SearchField.Group>
         </SearchField>
-
-        {/* Mode toggle row - secondary */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              id="keyword-hybrid-search-toggle"
-              isSelected={isHybridMode}
-              onChange={handleModeChange}
-              className="pl-2"
-            >
-              <Checkbox.Control>
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              <Checkbox.Content>
-                <p className="-ml-0.5 line-clamp-4 text-sm/relaxed text-(--color-text-secondary)">
-                  Semantic search
-                  <span className="ml-2.5 flex items-center gap-1 text-xs text-(--color-text-muted)">
-                    [
-                    {isHybridMode ? (
-                      <span>AI-powered semantic search</span>
-                    ) : (
-                      <span>fast keyword match</span>
-                    )}
-                    ]
-                  </span>
-                </p>
-              </Checkbox.Content>
-            </Checkbox>
-
-            {/* Background fetching spinner */}
-            {isBackgroundFetching && shouldSearch && <Spinner size="sm" />}
-          </div>
-        </div>
       </div>
 
       {/* Conditional layout */}
       {hasResults ? (
         /* RESIZABLE TWO-PANEL */
-        <ResizablePanelGroup direction="horizontal" className="min-h-150">
-          <ResizablePanel defaultSize={33} minSize={25} maxSize={75}>
-            <div
-              className="sticky top-4 overflow-y-auto pr-4"
-              style={{ position: 'sticky', top: '1rem', maxHeight: 'calc(100vh - 140px)' }}
-            >
+        <ResizablePanelGroup
+          orientation="horizontal"
+          style={{ 'min-height': 'calc(100vh - 220px)' }}
+          className="w-full"
+        >
+          <ResizablePanel id="filters-panel" defaultSize="30%" minSize="20%" className="h-full">
+            <div className="h-full overflow-y-auto pr-3">
               <FilterSidebar
                 results={results}
                 activeStrategies={activeStrategies}
-                setActiveStrategies={setActiveStrategies}
+                setActiveStrategies={(arr) =>
+                  updateParams({ strategies: arr.length ? arr.join(',') : null, page: null })
+                }
                 activeCategories={activeCategories}
-                setActiveCategories={setActiveCategories}
+                setActiveCategories={(arr) =>
+                  updateParams({ categories: arr.length ? arr.join(',') : null, page: null })
+                }
                 activeSources={activeSources}
-                setActiveSources={setActiveSources}
+                setActiveSources={(arr) =>
+                  updateParams({ sources: arr.length ? arr.join(',') : null, page: null })
+                }
               />
             </div>
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={67} minSize={25} maxSize={75}>
-            <div className="pl-4">{renderRightPanel()}</div>
+          <ResizablePanel id="results-panel" defaultSize="70%" minSize="45%" className="h-full">
+            <div className="h-full overflow-y-auto pl-4">{renderRightPanel()}</div>
           </ResizablePanel>
         </ResizablePanelGroup>
       ) : (
