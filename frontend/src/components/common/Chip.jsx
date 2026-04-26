@@ -334,7 +334,9 @@ export const Chip = forwardRef(function Chip(
       {...props}
     >
       {iconContent && iconContent}
-      <TruncatedTextTooltip limit={limit}>{textContent}</TruncatedTextTooltip>
+      <TruncatedTextTooltip limit={limit} tooltipDelay={250}>
+        {textContent}
+      </TruncatedTextTooltip>
     </span>
   );
 });

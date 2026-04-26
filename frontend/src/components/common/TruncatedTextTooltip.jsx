@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
  * TruncatedTextTooltip component that truncates text and shows full text in a tooltip
  * Follows the same truncation logic as the Chip component
  */
-export default function TruncatedTextTooltip({ children, limit = 30 }) {
+export default function TruncatedTextTooltip({ children, limit = 30, tooltipDelay = 100 }) {
   // Extract text content from children
   let textContent = null;
 
@@ -38,7 +38,7 @@ export default function TruncatedTextTooltip({ children, limit = 30 }) {
   // Wrap with Tooltip only when truncated
   if (isTruncated) {
     return (
-      <Tooltip delay={100}>
+      <Tooltip delay={tooltipDelay}>
         <Tooltip.Trigger>{textElement}</Tooltip.Trigger>
         <Tooltip.Content className="max-h-48 max-w-xs overflow-y-auto">
           <p className="max-w-xs">{textContent}</p>
@@ -55,6 +55,8 @@ TruncatedTextTooltip.propTypes = {
   children: PropTypes.node.isRequired,
   /** Maximum number of characters before truncation */
   limit: PropTypes.number,
+  /** Tooltip delay in milliseconds */
+  tooltipDelay: PropTypes.number,
 };
 
 TruncatedTextTooltip.displayName = 'TruncatedTextTooltip';
