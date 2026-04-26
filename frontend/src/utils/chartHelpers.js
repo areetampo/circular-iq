@@ -152,7 +152,7 @@ export function transformIndustryDistribution(industryDistribution, limit = 10) 
   return industryDistribution
     .filter((d) => d.industry && d.industry !== 'other' && d.industry !== 'general')
     .slice(0, limit)
-    .map((d) => ({ name: d.industry, count: Number(d.count) }));
+    .map((d) => ({ name: d.industry, count: Number(d.count), avgScore: d.avg_score ?? null }));
 }
 
 /**
