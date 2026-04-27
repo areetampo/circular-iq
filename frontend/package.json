@@ -10,9 +10,8 @@
     "node": ">=24.x"
   },
   "scripts": {
-    "clean": "npx rimraf node_modules",
+    "clean": "npx rimraf node_modules package-lock.json --glob",
     "rei": "npm run clean && npm install",
-    "x": "node -e \"if (process.env.NODE_ENV !== 'production' && !process.env.CI && !process.env.VERCEL) { try { require('husky').install() } catch (e) { console.log('Skipping husky'); } }\"",
     "dev": "vite --mode frontend",
     "lint": "eslint .",
     "test:watch": "vitest --watch",
