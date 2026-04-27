@@ -11,14 +11,14 @@
     "frontend"
   ],
   "scripts": {
-    "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules",
+    "clean": "npm run clean --workspaces --if-present && npx rimraf node_modules package-lock.json --glob",
     "rei": "npm run clean && npm install",
     "dev": "concurrently -n BACKEND,FRONTEND -c \"yellow,cyan\" \"npm run backend\" \"npm run frontend\"",
     "backend": "npm run dev -w backend",
     "frontend": "npm run dev -w frontend",
-    "lint": "eslint . --cache",
+    "lint": "eslint .",
     "lint:errors": "eslint . --quiet",
-    "lint:fix": "eslint . --fix --cache",
+    "lint:fix": "eslint . --fix",
     "lint:frontend": "eslint frontend",
     "format": "prettier --write .",
     "fix-all": "npm run lint:fix && npm run format",
@@ -57,6 +57,7 @@
     "@typescript-eslint/parser": "^8.57.0",
     "concurrently": "^9.2.1",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-better-tailwindcss": "^4.3.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
@@ -77,6 +78,5 @@
     "**/*.{json,css,md}": [
       "prettier --write"
     ]
-  },
-  "dependencies": {}
+  }
 }
