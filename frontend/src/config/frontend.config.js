@@ -40,7 +40,7 @@ const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
 if (isTest) {
   validatedConfig = {
     appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
-    apiBaseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
+    apiUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
 
     testCredentials: {
       username: import.meta.env.VITE_TEST_USER_NAME,
@@ -59,10 +59,7 @@ if (isTest) {
   // Skip all validation in test mode
 } else {
   if (!result.success) {
-    console.error(
-      '[ERROR]: \u274c Frontend Environment Validation Failed:',
-      result.error.flatten().fieldErrors,
-    );
+    logger.error('Frontend Environment Validation Failed:', result.error.flatten().fieldErrors);
     if (import.meta.env.DEV) {
       alert('Environment Variable Error: Check browser console');
     }
@@ -79,7 +76,7 @@ if (isTest) {
     }
     validatedConfig = {
       appUrl: env.VITE_APP_URL,
-      apiBaseUrl: env.VITE_API_URL,
+      apiUrl: env.VITE_API_URL,
 
       testCredentials: {
         username: env.VITE_TEST_USER_NAME,

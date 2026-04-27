@@ -12,8 +12,6 @@ import { FRONTEND_CONFIG } from '@/config';
 import { clearEvaluationState, getSessionId } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 
-const API_URL = FRONTEND_CONFIG.apiBaseUrl;
-
 // Create the context
 const AuthContext = createContext(undefined);
 
@@ -30,7 +28,7 @@ async function fetchUserProfile(token, timeoutMs = 5000) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_URL}/api/profile`, {
+    const response = await fetch(`${FRONTEND_CONFIG.apiUrl}/api/profile`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
