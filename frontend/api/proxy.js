@@ -17,6 +17,8 @@
  * - All requests are authenticated server-to-server
  */
 
+import { logger } from '@/utils/logger';
+
 //! [Proxy disabled — all requests go directly to backend]
 //! frontend/src/lib/apiClient.js - buildApiUrl function
 
@@ -130,7 +132,7 @@ export default async function handler(req, res) {
     // Forward the response status and data
     res.status(backendResponse.status).json(responseData);
   } catch (error) {
-    console.error('[PROXY_ERROR]', error);
+    logger.error('[PROXY_ERROR]', error);
 
     res.status(500).json({
       error: error.message || 'Internal server error',
