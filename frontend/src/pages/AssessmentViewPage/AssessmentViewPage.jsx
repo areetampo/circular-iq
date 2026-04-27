@@ -1,6 +1,6 @@
 import { Eye, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import DetailsDisplay from '@/components/common/DetailsDisplay';
@@ -15,7 +15,6 @@ import { useSafeBack } from '@/utils/navigation';
 export default function AssessmentViewPage({ publicId: propPublicId }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Get publicId from either props (from SharePage) or query params (direct access)
   const publicId = propPublicId || searchParams.get('id');
