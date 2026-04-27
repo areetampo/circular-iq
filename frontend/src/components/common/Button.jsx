@@ -119,7 +119,7 @@ export const Button = forwardRef(function Button(
   };
 
   const baseClasses = cn(
-    'transition-colors duration-200 rounded-lg font-sans inline-flex items-center justify-center gap-2 outline-none cursor-pointer',
+    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-sans transition-colors duration-200 outline-none',
     variantStyles[variant] || variantStyles.primary,
     resolvedSize,
     isButtonDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
