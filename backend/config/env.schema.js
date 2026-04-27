@@ -30,8 +30,9 @@ export const baseEnvSchema = z.object({
   TEST_USER_NAME_EXT: z.string().trim().min(1, 'TEST_USER_NAME_EXT is required').optional(),
   TEST_USER_PASSWORD: z.string().trim().min(1, 'TEST_USER_PASSWORD is required').optional(),
 
-  ALLOWED_ORIGINS: commaSeparatedStringArraySchema,
-  PUBLIC_ROUTES: commaSeparatedStringArraySchema,
+  ALLOWED_ORIGINS: commaSeparatedStringArraySchema.optional(),
+  PUBLIC_ROUTES: commaSeparatedStringArraySchema.optional(),
+  HEALTH_ROUTES: commaSeparatedStringArraySchema.optional(),
 
   OPENAI_API_KEY: z.string().trim().min(1, 'OpenAI API Key is required'),
 

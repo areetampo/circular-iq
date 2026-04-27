@@ -24,20 +24,20 @@ const app = express();
 app.set('trust proxy', 1);
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
-const publicRoutes = BACKEND_CONFIG.app.publicRoutes;
-const routeMatchers = BACKEND_CONFIG.app.routeMatchers;
 const allowedOrigins = BACKEND_CONFIG.app.allowedOrigins;
+const authAllowList = BACKEND_CONFIG.app.authAllowList;
+const routeMatchers = BACKEND_CONFIG.app.routeMatchers;
 const { apiKey, apiAuthEnabled } = BACKEND_CONFIG.app;
 
-// Helper to check for public routes (used by apiKeyGuard)
+// Helper to check for path in authAllowList (used by apiKeyGuard)
 function isPublicRoute(path) {
-  // logger.log('Checking if path is public:', path);
-  // logger.log('Public routes:', Array.from(publicRoutes));
+  // logger.log('Checking if path is in authAllowList:', path);
+  // logger.log('All public routes:', Array.from(authAllowList));
   // logger.log('Route matchers:', routeMatchers);
 
   // Check exact match first
-  if (publicRoutes.has(path)) {
-    // logger.log('Path found in publicRoutes:', path);
+  if (authAllowList.has(path)) {
+    // logger.log('Path found in authAllowList:', path);
     return true;
   }
 
@@ -87,24 +87,7 @@ function validateConfig() {
 export function apiKeyGuard(req, res, next) {
   const isPublic = isPublicRoute(req.path);
 
-  if (apiAuthEnabled) {
-    logger.info(
-      {
-        path: req.path,
-        method: req.method,
-        isPublicRoute: isPublic,
-        hasAuthorizationHeader: !!req.headers.authorization,
-        hasXApiKey: !!req.headers['x-api-key'],
-      },
-      'API key guard incoming request',
-    );
-  }
-
-  if (!apiAuthEnabled) return next();
-  if (isPublic) {
-    logger.info({ path: req.path }, 'Public route allowed');
-    return next();
-  }
+  if (!apiAuthEnabled || isPublic) return next();
 
   if (!apiKey) {
     logger.error('API auth enabled but API_KEY not configured');
@@ -121,6 +104,12 @@ export function apiKeyGuard(req, res, next) {
 
   const isValidHeader = safeCompare(apiKeyHeader, apiKey);
   const isValidBearer = safeCompare(bearerToken, apiKey);
+
+  // if a Bearer token is present but doesn't match the API key,
+  // it's likely a Supabase JWT — let requireAuth handle it downstream
+  if (bearerToken && !isValidBearer && !isValidHeader) {
+    return next();
+  }
 
   if (isValidHeader || isValidBearer) {
     return next();

@@ -149,7 +149,7 @@ function checkConfiguration() {
     issues,
     environment: BACKEND_CONFIG.nodeEnv,
     apiAuthEnabled: BACKEND_CONFIG.app.apiAuthEnabled,
-    publicRoutes: Array.from(BACKEND_CONFIG.app.publicRoutes),
+    authAllowList: Array.from(BACKEND_CONFIG.app.authAllowList),
     timestamp: new Date().toISOString(),
   };
 }

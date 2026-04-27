@@ -93,66 +93,6 @@ const deepFreeze = (obj) => {
 /* Config Object */
 /* ------------------------------ */
 
-const parseAllowedOrigins = () => {
-  // Only include localhost if we are NOT in production
-  const defaults =
-    env.NODE_ENV !== 'production'
-      ? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
-      : [];
-
-  const origins = env.ALLOWED_ORIGINS ?? [];
-  const frontend = env.APP_URL ? [env.APP_URL] : [];
-
-  return [...new Set([...defaults, ...origins, ...frontend])];
-};
-
-const parsePublicRoutes = () => {
-  const defaults = [
-    '/health',
-    '/health/detailed',
-    '/health/database',
-    '/health/openai',
-    '/health/system',
-    '/health/config',
-    '/health/readiness',
-    '/health/liveness',
-    '/health/version',
-  ];
-  const routes = env.PUBLIC_ROUTES ?? [];
-
-  if (env.NODE_ENV === 'test') {
-    return [
-      '/health',
-      '/health/detailed',
-      '/health/database',
-      '/health/openai',
-      '/health/system',
-      '/health/config',
-      '/health/readiness',
-      '/health/liveness',
-      '/health/version',
-    ];
-  }
-
-  return [...new Set([...defaults, ...routes])];
-};
-
-// Factory function to create route matchers for dynamic routes
-// Supports patterns like /api/assessments/:id
-const createRouteMatchers = (publicRoutes) => {
-  return Array.from(publicRoutes).map((route) => {
-    // Convert Express-style route patterns to regex
-    // Simple implementation for :paramName patterns
-    const regexPattern = route
-      .replace(/:[^\s/]+/g, '[^/]+') // Replace :param with regex for non-slash chars
-      .replace(/\//g, '\\/'); // Escape forward slashes
-    return new RegExp(`^${regexPattern}$`);
-  });
-};
-
-// convert to a Set so that callers can use `.has()` for fast lookup
-const publicRoutesSet = new Set(parsePublicRoutes());
-
 /**
  * List of database function names used in the application. This centralizes the function names, making it easier to manage and refactor database interactions. The actual function names in the database are expected to match these, but if we need to change them, we can do so here without affecting the rest of the codebase.
  * @type {string[]}
@@ -188,6 +128,42 @@ export const buildDatabaseConfig = () => ({
     search_documents_hybrid_filtered: 'search_documents_hybrid',
   },
 });
+
+const parseAllowedOrigins = () => {
+  // Only include localhost if we are NOT in production
+  const defaults =
+    env.NODE_ENV !== 'production'
+      ? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
+      : [];
+
+  const origins = env.ALLOWED_ORIGINS ?? [];
+  const frontend = env.APP_URL ? [env.APP_URL] : [];
+
+  return [...new Set([...defaults, ...origins, ...frontend])];
+};
+
+const parseAuthAllowList = () => {
+  const healthRoutes = env.HEALTH_ROUTES ?? [];
+  const publicRoutes = env.PUBLIC_ROUTES ?? [];
+
+  return [...new Set([...healthRoutes, ...publicRoutes])];
+};
+
+// Factory function to create route matchers for dynamic routes
+// Supports patterns like /api/assessments/:id
+const createRouteMatchers = (publicRoutes) => {
+  return Array.from(publicRoutes).map((route) => {
+    // Convert Express-style route patterns to regex
+    // Simple implementation for :paramName patterns
+    const regexPattern = route
+      .replace(/:[^\s/]+/g, '[^/]+') // Replace :param with regex for non-slash chars
+      .replace(/\//g, '\\/'); // Escape forward slashes
+    return new RegExp(`^${regexPattern}$`);
+  });
+};
+
+// convert to a Set so that callers can use `.has()` for fast lookup
+const authAllowListSet = new Set(parseAuthAllowList());
 
 export const BACKEND_CONFIG = deepFreeze({
   port: env.PORT,
@@ -343,9 +319,12 @@ export const BACKEND_CONFIG = deepFreeze({
   app: {
     appUrl: env.APP_URL,
     apiUrl: env.API_URL,
+
     allowedOrigins: parseAllowedOrigins(),
-    publicRoutes: publicRoutesSet,
-    routeMatchers: createRouteMatchers(publicRoutesSet),
+    healthRoutes: new Set(env.HEALTH_ROUTES ?? []),
+    publicRoutesOnly: new Set(env.PUBLIC_ROUTES ?? []),
+    authAllowList: authAllowListSet,
+    routeMatchers: createRouteMatchers(authAllowListSet),
 
     maxFreeTries: env.MAX_FREE_TRIES,
 
