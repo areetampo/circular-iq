@@ -38,7 +38,7 @@ async function runTests() {
     'tests/api/assessments-routes.test.js',
     'tests/api/misc-endpoints.test.js',
     'tests/api/scoring.rpc.test.js',
-    'tests/apiKeyGuard.test.js',
+    'tests/api/apiKeyGuard.test.js',
     'tests/database/documents.repository.test.js',
     'tests/services/score-validation.test.js',
     'tests/services/scoring-logic-enrichment.test.js',
