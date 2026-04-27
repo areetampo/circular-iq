@@ -219,9 +219,9 @@ describe('chartHelpers', () => {
         { industry: 'finance', count: 12 },
       ];
       const expected = [
-        { name: 'technology', count: 25 },
-        { name: 'healthcare', count: 15 },
-        { name: 'finance', count: 12 },
+        { name: 'technology', count: 25, avgScore: null },
+        { name: 'healthcare', count: 15, avgScore: null },
+        { name: 'finance', count: 12, avgScore: null },
       ];
       expect(transformIndustryDistribution(input, 10)).toEqual(expected);
     });
