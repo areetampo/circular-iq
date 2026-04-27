@@ -47,26 +47,32 @@ export default function MyAssessmentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    console.log('INIT URL READING DEBUG: Reading URL parameters');
+    logger.info('INIT URL READING DEBUG: Reading URL parameters');
+
     const industries = searchParams.get('industry');
-    console.log('INIT URL READING DEBUG: industries from URL:', industries);
+    logger.info('INIT URL READING DEBUG: industries from URL:', industries);
     if (industries) setSelectedIndustries(industries.split(',').filter(Boolean));
+
     const p = Number(searchParams.get('page') || 1);
-    console.log('INIT URL READING DEBUG: page from URL:', p);
+    logger.info('INIT URL READING DEBUG: page from URL:', p);
     if (!Number.isNaN(p) && p > 0) setPage(p);
+
     const ps = Number(searchParams.get('pageSize') || 10);
-    console.log('INIT URL READING DEBUG: pageSize from URL:', ps);
+    logger.info('INIT URL READING DEBUG: pageSize from URL:', ps);
     if (!Number.isNaN(ps) && ps > 0 && pageSizeOptions.includes(ps)) setPageSize(ps);
     else if (!Number.isNaN(ps) && ps > 0) setPageSize(10); // Default to 10 for invalid sizes
+
     const s = searchParams.get('search');
-    console.log('INIT URL READING DEBUG: search from URL:', s);
+    logger.info('INIT URL READING DEBUG: search from URL:', s);
     if (s) setSearchTerm(s);
+
     const sb = searchParams.get('sortBy');
-    console.log('INIT URL READING DEBUG: sortBy from URL:', sb);
+    logger.info('INIT URL READING DEBUG: sortBy from URL:', sb);
     if (sb) setSortBy(sb);
 
     // Mark as initialized after reading URL parameters
-    console.log('INIT URL READING DEBUG: Setting isInitialized to true');
+    logger.info('INIT URL READING DEBUG: Setting isInitialized to true');
+
     setIsInitialized(true);
 
     // Initialize previous filter values with current values to prevent false positives
@@ -83,11 +89,11 @@ export default function MyAssessmentsPage() {
   useEffect(() => {
     // Don't sync URL parameters during initialization to prevent overriding initial values
     if (!isInitialized) {
-      console.log('URL SYNC DEBUG: Skipping - not initialized');
+      logger.info('URL SYNC DEBUG: Skipping - not initialized');
       return;
     }
 
-    console.log('URL SYNC DEBUG: Syncing URL params', {
+    logger.info('URL SYNC DEBUG: Syncing URL params', {
       selectedIndustries,
       page,
       pageSize,
@@ -123,7 +129,7 @@ export default function MyAssessmentsPage() {
     if (sortBy && sortBy !== 'created_at_desc') params.set('sortBy', sortBy);
     else params.delete('sortBy');
 
-    console.log('URL SYNC DEBUG: Setting URL params:', params.toString());
+    logger.info('URL SYNC DEBUG: Setting URL params:', params.toString());
     setSearchParams(params, { replace: true });
   }, [selectedIndustries, page, pageSize, searchTerm, sortBy, isInitialized]);
 
@@ -191,7 +197,7 @@ export default function MyAssessmentsPage() {
     : [];
 
   useEffect(() => {
-    console.log('PAGE RESET DEBUG:', {
+    logger.info('PAGE RESET DEBUG:', {
       isInitialized,
       page,
       debouncedSearchTerm,
@@ -201,7 +207,7 @@ export default function MyAssessmentsPage() {
     });
 
     if (!isInitialized) {
-      console.log('PAGE RESET DEBUG: Skipping - not initialized');
+      logger.info('PAGE RESET DEBUG: Skipping - not initialized');
       return;
     }
 
@@ -211,10 +217,10 @@ export default function MyAssessmentsPage() {
       previousFilterValues.selectedIndustryKey !== selectedIndustryKey ||
       previousFilterValues.debouncedSortBy !== debouncedSortBy;
 
-    console.log('PAGE RESET DEBUG: Filters changed?', filtersChanged);
+    logger.info('PAGE RESET DEBUG: Filters changed?', filtersChanged);
 
     if (filtersChanged && page > 1) {
-      console.log('PAGE RESET DEBUG: Resetting page from', page, 'to 1');
+      logger.info('PAGE RESET DEBUG: Resetting page from', page, 'to 1');
       setPage(1);
       // Update previous values after reset
       setPreviousFilterValues({
@@ -223,7 +229,7 @@ export default function MyAssessmentsPage() {
         debouncedSortBy,
       });
     } else {
-      console.log('PAGE RESET DEBUG: Not resetting - filters unchanged or page is', page);
+      logger.info('PAGE RESET DEBUG: Not resetting - filters unchanged or page is', page);
       // Still update previous values to track current state
       setPreviousFilterValues({
         debouncedSearchTerm,
@@ -547,7 +553,7 @@ export default function MyAssessmentsPage() {
               throw checkErr;
             }
             // If duplicate check fails, log warning but continue with rename
-            console.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
+            logger.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
           }
 
           const detailCacheKey = ['assessment', id];

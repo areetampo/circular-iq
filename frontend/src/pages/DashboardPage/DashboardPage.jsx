@@ -59,7 +59,7 @@ export default function DashboardPage() {
       setUpdatedAt(new Date()); // Update timestamp immediately after refetch
     } catch (error) {
       // Error is handled by React Query's global error handling
-      console.error('Error during refetch:', error);
+      logger.error('[Dashboard Refresh] Error during refetch:', error);
     }
   };
 
