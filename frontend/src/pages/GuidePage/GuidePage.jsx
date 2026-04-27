@@ -21,7 +21,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chip } from '@/components/common';
 import { cn } from '@/utils/cn';
 
-import { GUIDE_PAGE_CONTENT } from './content/guidePageContent.js';
+import { GUIDE_PAGE_CONTENT } from './content';
 
 // Reusable Section Heading Component
 const SectionHeading = ({ children }) => (
