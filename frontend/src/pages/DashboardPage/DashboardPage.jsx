@@ -90,7 +90,7 @@ export default function DashboardPage() {
             Refresh
           </Button>
           <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
-            updated {formatRelativeTime(updatedAt)}
+            {globalLoading ? 'updating ...' : `updated ${formatRelativeTime(updatedAt)}`}
           </p>
         </div>
       </div>
