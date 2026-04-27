@@ -2,8 +2,6 @@
 
 [![Live Site](https://img.shields.io/badge/Live%20Site-xern.vercel.app-8B7355?style=for-the-badge&logo=vercel&logoColor=white)](https://xern.vercel.app)
 
-[![Circular Economy Evaluator](frontend/public/site-logo.png)](https://xern.vercel.app)
-
 AI-powered platform for evaluating circular economy business initiatives against a knowledge base of 40,000+ real-world case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
 - **Author:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com)
