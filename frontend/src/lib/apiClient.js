@@ -1,6 +1,23 @@
 /** Builds proxied API URLs for backend requests. */
 
 import { FRONTEND_CONFIG } from '@/config';
+import { supabase } from '@/lib/supabase';
+
+/**
+ * Get authentication headers for API requests
+ * Retrieves the current Supabase session and returns Authorization header if user is authenticated
+ *
+ * @returns {Promise<Object>} Object containing Authorization header or empty object if not authenticated
+ */
+async function getAuthHeaders() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    return { Authorization: `Bearer ${session.access_token}` };
+  }
+  return {};
+}
 
 /**
  * Build the full API endpoint URL
@@ -12,22 +29,17 @@ import { FRONTEND_CONFIG } from '@/config';
  * @returns {string} Full URL for the API endpoint
  */
 export function buildApiUrl(path) {
+  const API_URL = FRONTEND_CONFIG.apiUrl;
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
   if (FRONTEND_CONFIG.isProd) {
-    // SSE streaming cannot go through Vercel serverless proxy — it buffers the whole response.
-    // Stream endpoint is protected by Supabase auth + anonymous usage limits instead.
-    if (normalizedPath === '/api/score/stream') {
-      return `${FRONTEND_CONFIG.apiBaseUrl}${normalizedPath}`;
-    }
-
-    // All other routes go through the Vercel proxy which injects INTERNAL_BACKEND_API_KEY server-side
-    const encodedPath = encodeURIComponent(normalizedPath);
-    return `/api/proxy?path=${encodedPath}`;
+    // All routes (including stream) go directly to backend via Vercel rewrite.
+    // The rewrite in vercel.json forwards /api/:path* → Render backend.
+    // frontend/api/proxy.js is kept but unused.
+    return normalizedPath; // e.g. /api/profile → caught by vercel.json rewrite
   }
 
-  // In development, call the backend directly
-  return `${FRONTEND_CONFIG.apiBaseUrl}${normalizedPath}`;
+  return `${API_URL}${normalizedPath}`;
 }
 
 /**
@@ -77,7 +89,8 @@ const defaultHeaders = {
 
 const apiClient = {
   async request(path, { method = 'GET', headers = {}, body, ...rest } = {}) {
-    const mergedHeaders = { ...defaultHeaders, ...headers };
+    const authHeaders = await getAuthHeaders();
+    const mergedHeaders = { ...defaultHeaders, ...authHeaders, ...headers };
     const res = await apiFetch(path, {
       method,
       headers: mergedHeaders,
