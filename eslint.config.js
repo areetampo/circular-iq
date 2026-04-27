@@ -9,39 +9,41 @@ import prettierConfig from 'eslint-config-prettier';
 import betterTailwind from 'eslint-plugin-better-tailwindcss';
 import importPlugin from 'eslint-plugin-import';
 import pluginReact from 'eslint-plugin-react';
-// import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
+// --- Helpers for directory paths ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const gitignorePath = path.resolve(__dirname, '.gitignore');
 
 export default [
-  // Ignores
+  /** SECTION 1: Ignores
+   * Respect .gitignore and exclude specific files
+   */
+  includeIgnoreFile(gitignorePath),
   {
-    ...includeIgnoreFile(gitignorePath),
-  },
-  {
-    ignores: [
-      // third party
-      'frontend/src/components/base/dropdown/**/*.{ts,tsx}',
-    ],
+    ignores: ['eslint.config.js'],
   },
 
-  // Base Configuration
+  /** SECTION 2: Base Configuration
+   * Applies to all JS/TS files.
+   *
+   * NOTE: Do NOT use importPlugin.flatConfigs.recommended and
+   * importPlugin.flatConfigs.typescript as separate array entries — both register
+   * `plugins: { import }` and ESLint flat config forbids registering the same
+   * plugin twice across configs that apply to the same files.
+   * Instead, register the import plugin once here and spread both sets of rules.
+   */
   {
     files: ['**/*.{js,ts,jsx,tsx,mjs,cjs}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      // Add browser and node globals to avoid "React is not defined" or "window is not defined"
       globals: {
         ...globals.browser,
         ...globals.node,
-        // React: 'writable', // This stops the "React is not defined" error
       },
-      // Use the TS parser for everything; it handles plain JS perfectly too
       parser: tsParser,
       parserOptions: {
         ecmaFeatures: { jsx: true },
@@ -50,166 +52,156 @@ export default [
     plugins: {
       'unused-imports': unusedImports,
       import: importPlugin,
-      // 'simple-import-sort': simpleImportSort,
-      '@typescript-eslint': tsPlugin, // Register TS plugin
+      '@typescript-eslint': tsPlugin,
+    },
+    settings: {
+      // Merge settings from both import flat configs
+      ...importPlugin.flatConfigs.recommended.settings,
+      ...importPlugin.flatConfigs.typescript.settings,
+      // Ensure TypeScript parser is registered for import resolution
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx', '.js', '.jsx'],
+      },
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './frontend/tsconfig.json',
+        },
+        node: true,
+      },
     },
     rules: {
+      // Recommended standards
       ...js.configs.recommended.rules,
-      // Add the TS recommended rules to avoid "Unexpected token" errors
       ...tsPlugin.configs.recommended.rules,
+
+      // Import plugin rules — spread from both flat configs instead of stacking entries
+      ...importPlugin.flatConfigs.recommended.rules,
+      ...importPlugin.flatConfigs.typescript.rules,
+
+      // Override/add specific import rules
+      'import/no-unresolved': 'error',
+      'import/named': 'error',
+      'import/default': 'off', // was 'warn'
+      'import/namespace': 'error',
+      'import/no-named-as-default': 'off',
+      'import/no-named-as-default-member': 'off',
+
+      // Code style
       'no-unused-vars': 'off',
       'no-console': 'off',
-      semi: ['error', 'always'],
+      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
 
-      'unused-imports/no-unused-imports': 'error', // This rule removes unused imports automatically
+      // Automated import management
+      'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': 'off',
-      // [
-      //   'warn',
-      //   {
-      //     vars: 'all',
-      //     // Now any variable starting with _ will be ignored
-      //     varsIgnorePattern: '^_',
-      //     args: 'after-used',
-      //     // Now any argument starting with _ will be ignored
-      //     argsIgnorePattern: '^_',
-      //   },
-      // ],
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-require-imports': 'off',
 
-      // 'simple-import-sort/imports': 'warn',
-      // 'simple-import-sort/exports': 'warn',
-
+      // Import sorting
       'import/order': [
         'warn',
         {
-          // Define the order of the groups
           groups: [
-            'builtin', // Node.js built-ins (fs, path)
-            'external', // npm packages (express, react)
-            'internal', // #aliases and @aliases
-            ['parent', 'sibling', 'index'], // Relative paths (../ , ./)
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
             'object',
             'type',
           ],
-          // Tell ESLint which patterns are "internal" aliases
           pathGroups: [
-            {
-              pattern: '{@/**,#**}',
-              group: 'internal',
-              position: 'before',
-            },
-            {
-              pattern: '**/*.css',
-              group: 'index',
-              position: 'after',
-            },
+            { pattern: '{@/**,#**}', group: 'internal', position: 'before' },
+            { pattern: '**/*.css', group: 'index', position: 'after' },
           ],
           pathGroupsExcludedImportTypes: ['builtin', 'external'],
-          'newlines-between': 'always', // Adds a blank line between groups
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-
-      // Clean up multiple blank lines
-      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
     },
   },
 
-  // Test globals (Vitest / Jest)
+  /** SECTION 3: Test Environment
+   * Configuration for Vitest/Jest files
+   */
   {
     files: ['**/*.test.{js,jsx,ts,tsx}', '**/setupTests.js'],
     languageOptions: {
       globals: {
-        ...globals.vitest, // Adds all Vitest globals at once
-        ...globals.jest, // Add Jest globals for backend tests
+        ...globals.vitest,
+        ...globals.jest,
         vi: 'readonly',
-        jest: 'readonly',
-        describe: 'readonly',
-        it: 'readonly',
-        test: 'readonly',
-        expect: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
       },
     },
     rules: {
-      // Turn off no-redeclare for tests because globals like 'describe'
-      // are often flagged by mistake in certain environments
       'no-redeclare': 'off',
-      // Disable import order warnings in test files
       'import/order': 'off',
     },
   },
 
-  // Relaxed Rules for Controllers / Backend
+  /** SECTION 4: Backend Configuration
+   * Specific globals and relaxed rules for Node.js controllers/routes
+   */
   {
-    files: ['backend/controllers/**/*.js', 'backend/routes/**/*.js', 'backend/**/*.js'],
+    files: ['backend/**/*.js'],
     languageOptions: {
       globals: {
         ...globals.node,
-        logger: 'readonly', // <--- backend logger
+        logger: 'readonly',
       },
     },
     rules: {
       'unused-imports/no-unused-vars': 'off',
-      // [
-      //   'warn',
-      //   {
-      //     argsIgnorePattern: '^(_|t|next|req|res|params|opts|children)',
-      //     varsIgnorePattern: '^(_|errorResponse|logRequest)',
-      //   },
-      // ],
     },
   },
 
-  // Frontend Specific Rules (React)
+  /** SECTION 5: Frontend Configuration
+   * React and Tailwind CSS specific logic
+   */
   {
     files: ['frontend/**/*.{js,jsx,ts,tsx,mjs,cjs}'],
-    plugins: { react: pluginReact, 'better-tailwindcss': betterTailwind },
+    plugins: {
+      react: pluginReact,
+      'better-tailwindcss': betterTailwind,
+    },
     languageOptions: {
       globals: {
-        ...globals.browser, // ensures window/document are known
-        logger: 'readonly', // <--- FIXES ERROR SQUIGGLES on accessing logger in frontend
+        ...globals.browser,
+        logger: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: { jsx: true },
-        // This helps the parser understand TSX
-        project: null,
+        extraFileExtensions: ['.js', '.cjs', '.mjs'],
       },
     },
     rules: {
       ...pluginReact.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      // 'no-undef': 'off',
+
+      // Tailwind rules
       ...betterTailwind.configs.recommended.rules,
       'better-tailwindcss/no-unknown-classes': 'off',
-      'better-tailwindcss/no-deprecated-classes': 'warn', // warning to fix later
+      'better-tailwindcss/no-deprecated-classes': 'warn',
       'better-tailwindcss/no-conflicting-classes': 'warn',
+      'better-tailwindcss/enforce-canonical-classes': 'off',
       'better-tailwindcss/enforce-consistent-class-order': 'off',
-      'better-tailwindcss/enforce-canonical-classes': 'warn',
       'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
     },
     settings: {
       react: { version: 'detect' },
       'better-tailwindcss': {
-        entryPoint: 'frontend/src/index.css',
+        entryPoint: path.resolve(__dirname, 'frontend/src/index.css'),
       },
     },
   },
 
-  // Prettier should be last to override any conflicting rules
+  /** SECTION 6: Final Overrides
+   * Prettier must be last to disable any formatting rules that conflict
+   */
   prettierConfig,
-
-  // disable the rule for that specific file only
   {
-    files: ['frontend/src/components/base/dropdown/dropdown.tsx'],
     rules: {
       '@typescript-eslint/no-empty-object-type': 'off',
     },
