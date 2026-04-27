@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { createSupabaseClient } from '#database/supabase.client.js';
+import { logger } from '#utils/logger.js';
 
 let _supabaseClient = null;
 let _supabasePgPool = null;
