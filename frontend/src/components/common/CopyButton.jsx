@@ -10,7 +10,7 @@ import CopyIcon from './CopyIcon';
  * Simple copy icon with stroke animation or box with description
  *
  * @param {string} value - Text value to copy to clipboard
- * @param {boolean} disabled - Disable the button
+ * @param {boolean} isDisabled - Disable the button
  * @param {string} className - Additional CSS classes
  * @param {string} description - Optional description text for box mode
  * @param {string} color - Color for the icons (default: 'var(--color-text-primary)')
@@ -19,7 +19,7 @@ import CopyIcon from './CopyIcon';
  */
 export default function CopyButton({
   value = '',
-  disabled = false,
+  isDisabled = false,
   className,
   copyIconClassname,
   description = '',
@@ -32,7 +32,7 @@ export default function CopyButton({
   const [hasCopied, setHasCopied] = useState(false);
 
   const handleClick = useCallback(async () => {
-    if (disabled || !value) return;
+    if (isDisabled || !value) return;
     try {
       await navigator.clipboard.writeText(value);
       setHasCopied(true);
@@ -40,7 +40,7 @@ export default function CopyButton({
     } catch {
       /* ignore */
     }
-  }, [value, disabled]);
+  }, [value, isDisabled]);
 
   // Simple icon mode (no description)
   if (!description) {
@@ -48,10 +48,11 @@ export default function CopyButton({
       <button
         onClick={handleClick}
         className={cn(
-          'flex cursor-pointer items-center justify-center rounded-md transition-all duration-200 hover:bg-(--color-accent-light-mid) disabled:cursor-not-allowed disabled:opacity-50',
+          'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-(--color-accent-light-mid)',
+          isDisabled && 'cursor-not-allowed opacity-30',
           className,
         )}
-        disabled={disabled}
+        disabled={isDisabled}
         {...props}
       >
         <CopyIcon
@@ -70,12 +71,12 @@ export default function CopyButton({
     <button
       onClick={handleClick}
       className={cn(
-        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-(--color-accent-light-mid) disabled:cursor-not-allowed disabled:opacity-50',
-        noBorder ? '' : 'border-[1.5px]',
+        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-(--color-accent-light-mid)',
+        noBorder ? '' : 'border-[1.5px] border-(--color-border-dark-20)',
+        isDisabled && 'cursor-not-allowed opacity-30',
         className,
       )}
-      style={!noBorder ? { borderColor: 'var(--color-border-dark-20)' } : {}}
-      disabled={disabled}
+      disabled={isDisabled}
       {...props}
     >
       <CopyIcon
@@ -85,7 +86,7 @@ export default function CopyButton({
         size={16}
         strokeWidth={strokeWidth}
       />
-      <span className="text-sm text-(--text-primary)" style={{ color: color }}>
+      <span className={cn('text-sm text-(--text-primary)')} style={{ color: color }}>
         {description}
       </span>
     </button>
@@ -96,7 +97,7 @@ CopyButton.propTypes = {
   /** Text value to copy to clipboard */
   value: PropTypes.string,
   /** Disable the button */
-  disabled: PropTypes.bool,
+  isDisabled: PropTypes.bool,
   /** Additional CSS classes */
   className: PropTypes.string,
   /** SPecific classname for copy icon (not copy button) */
