@@ -27,16 +27,7 @@ import {
 export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    hasEvaluationState,
-    restoreEvaluation,
-    clearEvaluation,
-    saveEvaluation,
-    hasRestorableSession,
-    sessionData,
-    saveSession,
-    clearSession,
-  } = useSession();
+  const { sessionData, saveSession, clearSession } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
   const { currentStage, startStream, reset: resetProgress } = useLoadingStages();
   const {
