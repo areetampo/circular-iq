@@ -1,4 +1,4 @@
-# Specific heavy data folders
+# Datasets
 **/backend/datasets/
 !**/backend/datasets/scripts/
 
@@ -21,7 +21,12 @@
 *.tmp
 *.tsbuildinfo
 
-# Secrets (Simplified)
+# Environment Variables
+env/.env.backend
+env/.env.frontend
+env/.env.production
+env/.env.test
 .env
-.env*
-**/env/.env*
+.env.*
+*.local
+!env/.env.example
