@@ -55,7 +55,7 @@ import {
   OUT_EMBEDDED_CHUNKS_JSONL,
   OUT_TEST_CHUNKS_JSON,
   OUT_TEST_EMBEDDED_CHUNKS_JSONL,
-} from '#pipeline/datasetsUtils.js';
+} from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 // ================= CONFIGURATION =================

@@ -25,7 +25,7 @@ import {
   OUT_TEST_COMBINED_INPUT_CSV,
   OUT_TEST_COMBINED_INPUT_FINAL_CSV,
   STRINGIFY_OPTIONS,
-} from '#pipeline/datasetsUtils.js';
+} from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 // ===== Configuration =====

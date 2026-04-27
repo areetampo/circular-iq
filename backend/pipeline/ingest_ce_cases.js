@@ -5,10 +5,7 @@ import fs from 'fs';
 import { parse } from 'csv-parse';
 
 import { supabase } from '#database/index.js';
-import {
-  DATASETS_FOR_SEARCH_COMBINED_INPUT_CSV,
-  assertFileExists,
-} from '#pipeline/datasetsUtils.js';
+import { DATASETS_FOR_SEARCH_COMBINED_INPUT_CSV, assertFileExists } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 const CSV_FILE = DATASETS_FOR_SEARCH_COMBINED_INPUT_CSV;

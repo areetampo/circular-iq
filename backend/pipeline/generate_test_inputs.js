@@ -2,13 +2,12 @@ import fs from 'fs';
 
 import OpenAI from 'openai';
 
+import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
   DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON,
   prepareWrite,
   writeJson,
-} from './datasetsUtils.js';
-
-import { BACKEND_CONFIG } from '#config/backend.config.js';
+} from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 const OUTPUT_FILE = DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON;

@@ -19,7 +19,7 @@ import {
   OUT_COMBINED_INPUT_CSV,
   OUT_TEST_COMBINED_INPUT_CSV,
   prepareWrite,
-} from '#pipeline/datasetsUtils.js';
+} from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 // merge datasets already has a combined_input.csv so --archives flag isnt present for merge_datasets.js

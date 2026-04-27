@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { assertDirExists, DATASETS_SCRIPTS_DIR } from '#pipeline/datasetsUtils.js';
+import { assertDirExists, DATASETS_SCRIPTS_DIR } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 // run_datasets_scripts.js

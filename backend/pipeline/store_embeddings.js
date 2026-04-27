@@ -57,7 +57,7 @@ import {
   OUT_TEST_STORED_DOCUMENTS_JSONL,
   prepareWrite,
   writeJsonl,
-} from '#pipeline/datasetsUtils.js';
+} from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 const useArchive = process.argv.includes('--archives');

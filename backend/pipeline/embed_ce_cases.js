@@ -16,7 +16,7 @@ import {
   DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON,
   assertFileExists,
   writeJson,
-} from '#pipeline/datasetsUtils.js';
+} from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });

@@ -2,6 +2,7 @@ import fs from 'fs';
 
 import { createClient } from '@supabase/supabase-js';
 
+import { BACKEND_CONFIG } from '#config/backend.config.js';
 import {
   assertFileExists,
   DATASETS_TEST_INPUTS_CHECKPOINT_FILE_JSON,
@@ -9,9 +10,7 @@ import {
   DATASETS_TEST_INPUTS_POKEMON_NAMES_JSON,
   prepareWrite,
   writeJson,
-} from './datasetsUtils.js';
-
-import { BACKEND_CONFIG } from '#config/backend.config.js';
+} from '#utils/datasetsUtils.js';
 import { formatTimestamp } from '#utils/formatting.js';
 import { logger } from '#utils/logger.js';
 
