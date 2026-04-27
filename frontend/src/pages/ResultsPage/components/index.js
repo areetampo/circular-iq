@@ -20,7 +20,7 @@ export * from './RecommendationsCard';
 export * from './ResultsActionBar';
 export { default as ResultsSkeleton } from './ResultsSkeleton';
 export * from './RStrategyAlignmentCard';
-export * from './ScoreCard';
+export { default as ScoreCard } from './ScoreCard';
 export * from './ScoreCategoryBreakdown';
 export * from './ScoreOverviewSection';
 export * from './StrengthsGapsCard';
