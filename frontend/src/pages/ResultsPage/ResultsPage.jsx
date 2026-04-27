@@ -919,22 +919,46 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               <div
                 className={cn(
                   `flex origin-top-left scale-90 flex-col gap-3 opacity-70 sm:flex-row`,
-                  isUpdatingPublic ? 'opacity-20' : '',
                 )}
               >
-                <div className="flex items-center gap-2 [&>span]:font-mono">
+                <div
+                  className={cn(
+                    'flex items-center gap-2 [&>span]:font-mono',
+                    isUpdatingPublic && '[&>span]:opacity-30',
+                  )}
+                >
                   <span>{displayPublicUrl}</span>
-                  <Link to={publicUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink
-                      size={18}
-                      strokeWidth={2}
-                      className="mx-1 mb-[4.5px] inline-flex text-black/75 transition-transform duration-150 hover:scale-110 hover:text-black active:scale-95"
-                    />
-                  </Link>
+                  {isUpdatingPublic ? (
+                    <div className="opacity-20">
+                      <ExternalLink
+                        size={18}
+                        strokeWidth={2}
+                        className="mx-1 mb-[4.5px] inline-flex cursor-not-allowed text-black/75"
+                      />
+                    </div>
+                  ) : (
+                    <Link to={publicUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink
+                        size={18}
+                        strokeWidth={2}
+                        className="mx-1 mb-[4.5px] inline-flex text-black/75 transition-transform duration-150 hover:scale-110 hover:text-black active:scale-95"
+                      />
+                    </Link>
+                  )}
                   <span>{'/'}</span>
-                  <CopyButton value={publicUrl} description="URL" noBorder />
+                  <CopyButton
+                    value={publicUrl}
+                    description="URL"
+                    noBorder
+                    isDisabled={isUpdatingPublic}
+                  />
                   <span>{'/'}</span>
-                  <CopyButton value={`${currentData.public_id}`} description="ID" noBorder />
+                  <CopyButton
+                    value={`${currentData.public_id}`}
+                    description="ID"
+                    noBorder
+                    isDisabled={isUpdatingPublic}
+                  />
                 </div>
               </div>
             </div>
