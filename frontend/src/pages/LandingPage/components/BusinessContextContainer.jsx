@@ -57,14 +57,17 @@ function BusinessContextContainer({
   loading = false,
   businessContextExpandedKeys,
   setBusinessContextExpandedKeys,
+  isReevaluateDataReady = false,
 }) {
-  const { control, getValues } = useFormContext();
+  const { control, getValues, watch } = useFormContext();
+
+  // Watch business context values to ensure they're available before rendering
+  const businessContextValues = watch('businessContext');
 
   // Debug: Log current form values
   useEffect(() => {
-    const currentValues = getValues();
-    logger.info('BusinessContextContainer: Current form values:', currentValues.businessContext);
-  }, [getValues]);
+    logger.info('BusinessContextContainer: Current form values:', businessContextValues);
+  }, [businessContextValues]);
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
@@ -89,7 +92,9 @@ function BusinessContextContainer({
 
           return (
             <Select
-              value={field.value === null ? '__LEAVE_EMPTY__' : (field.value ?? undefined)}
+              value={
+                field.value === null || field.value === undefined ? '__LEAVE_EMPTY__' : field.value
+              }
               onChange={(val) => field.onChange(val === '__LEAVE_EMPTY__' ? null : val)}
               isDisabled={loading}
               placeholder="Select (optional)"
@@ -208,6 +213,7 @@ function BusinessContextContainer({
 
 BusinessContextContainer.propTypes = {
   loading: PropTypes.bool,
+  isReevaluateDataReady: PropTypes.bool,
 };
 
 export default BusinessContextContainer;

@@ -53,6 +53,7 @@ export default function LandingPage() {
   const lastSavedLocalTimestampRef = useRef(null);
   const autosaveTimerRef = useRef(null);
   const reevaluateDataAppliedRef = useRef(false);
+  const [isReevaluateDataReady, setIsReevaluateDataReady] = useState(false);
   const AUTOSAVE_DEBOUNCE_MS = 150;
 
   // Accordion state management
@@ -384,8 +385,11 @@ export default function LandingPage() {
       reset(newFormData);
       window.history.replaceState({}, document.title);
 
-      // Immediately save the re-evaluate data to prevent false unsaved changes alert
-      persistInputs(newFormData);
+      // Small delay to ensure form reset completes before setting ready state
+      setTimeout(() => {
+        setIsReevaluateDataReady(true);
+        persistInputs(newFormData);
+      }, 100);
 
       // Scroll to form when re-evaluating
       setTimeout(() => {
@@ -606,7 +610,10 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="bg-transparent p-0">
-                          <BusinessContextContainer loading={loading} />
+                          <BusinessContextContainer
+                            loading={loading}
+                            isReevaluateDataReady={isReevaluateDataReady}
+                          />
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
