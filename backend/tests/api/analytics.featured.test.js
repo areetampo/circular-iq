@@ -6,7 +6,7 @@ import request from 'supertest';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
-import createAnalyticsRouter, { setOpenAIClient } from '#routes/analytics.routes.js';
+import createAnalyticsRouter from '#routes/analytics.routes.js';
 
 // Mock Supabase chains used in the featured-solutions endpoint
 // It optionally asserts that `.eq` filters are applied at the query builder level.
@@ -109,7 +109,7 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
     },
   };
 
-  setOpenAIClient(mockOpenAI);
+  // Note: setOpenAIClient removed - use direct mock of embedding service if needed
 
   // Mock Supabase RPC to return expected format
   const mockSupabase = {
