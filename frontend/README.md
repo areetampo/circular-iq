@@ -242,7 +242,7 @@ frontend/src/
 │
 ├── config/
 │   ├── env.schema.js        # Zod schema for VITE_ environment variables
-│   ├── frontend.config.js   # FRONTEND_CONFIG object (apiBaseUrl, supabaseUrl, etc.)
+│   ├── frontend.config.js   # FRONTEND_CONFIG object (apiUrl, supabaseUrl, etc.)
 │   └── index.js
 │
 ├── constants/
@@ -348,7 +348,7 @@ Access configuration via `FRONTEND_CONFIG` anywhere in the app:
 ```javascript
 import { FRONTEND_CONFIG } from '@/config';
 
-FRONTEND_CONFIG.apiBaseUrl; // Backend URL
+FRONTEND_CONFIG.apiUrl; // Backend URL
 FRONTEND_CONFIG.supabaseUrl; // Supabase URL
 FRONTEND_CONFIG.supabaseAnonKey; // Anon key
 FRONTEND_CONFIG.appUrl; // Frontend URL
@@ -786,14 +786,6 @@ if (score >= EVALUATION_PARAMETERS.resource_efficiency.threshold) { ... }
 if (score >= 75) { ... }
 ```
 
-### Code Organisation Best Practices
-
-- Page components in `pages/PageName/PageName.jsx`
-- Page-specific subcomponents in `pages/PageName/components/`
-- Shared subcomponents in `components/` (only when used by 2+ pages)
-- Business logic in `features/` hooks, never inline in page components
-- All constants in `constants/`, never hardcoded in components
-
 ## Styling
 
 ### Tailwind CSS v4
@@ -930,7 +922,7 @@ feat: add SDG alignment section to ResultsPage
 fix: resolve PieChart single data point rendering
 docs: update chart prop patterns in README
 test: add reconstructScoringResult column fallback tests
-refactor: extract SolutionCard into DashboardPage/components
+refactor: extract SolutionsSearch into DashboardPage/components
 ```
 
 ### Pull Request Process
@@ -1284,7 +1276,7 @@ View detailed assessment results (owned by user).
 - React Router state can pass: `result`, `formData`, `isRestored`
 - Legacy `/share/:publicId` redirects to `/assessments/share`
 
-#### Code Splitting
+#### Lazy Loading
 
 All routes use lazy loading for optimal performance:
 

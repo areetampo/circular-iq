@@ -4,66 +4,43 @@ Complete guide for executing the document processing pipeline that transforms CS
 
 ## Pipeline Overview
 
-> **Tip:** All pipeline and dataset scripts rely on centralized path constants
-> defined in `utils/datasetsUtils.js`. Avoid using relative paths
-> (e.g. `../../`) when editing or creating new scripts; import the required
-> constants instead.
+> **Tip:** All pipeline and dataset scripts rely on centralized path constants defined in `utils/datasetsUtils.js`. Avoid using relative paths (e.g. `../../`) when editing or creating new scripts; import the required constants instead.
 >
-> **File handling note:** When a script writes an output file it first ensures
-> the parent folder exists (creating it if necessary) and touches an empty
-> placeholder file on the first write. Generated files are marked read-only
-> after creation; scripts will temporarily unlock them when run again so that
-> re‑running a stage doesn't require manual permission changes. Stages that
-> produce multiple batches (chunking, embedding generation, dry‑run storage)
-> clear the target file on the very first write and will flush progress back to
-> disk after every batch — the helper functions take care of making the file
-> writable before each write and locking it again immediately afterwards.>
-> **Running scrapers:** the Puppeteer‑based scrapers are located under
-> `datasets/scripts/scrape_*.js`. They default to headless mode so the browser
-> does not spawn a visible window. If you need to observe the automation,
-> append the `--show` flag when invoking the node command as shown below:
+> **File handling note:** When a script writes an output file it first ensures the parent folder exists (creating it if necessary) and touches an empty placeholder file on the first write. Generated files are marked read-only after creation; scripts will temporarily unlock them when run again so that re‑running a stage doesn't require manual permission changes. Stages that produce multiple batches (chunking, embedding generation, dry‑run storage) clear the target file on the very first write and will flush progress back to disk after every batch — the helper functions take care of making the file writable before each write and locking it again immediately afterwards.
+>
+> **Running scrapers:** the Puppeteer‑based scrapers are located under `datasets/scripts/scrape_*.js`. They default to headless mode so the browser does not spawn a visible window. If you need to observe the automation, append the `--show` flag when invoking the node command as shown below:
 >
 > ```pwsh
 > node datasets/scripts/scrape_ecesp.js          # headless
 > node datasets/scripts/scrape_ecesp.js --show   # open browser window
 > ```
 >
-> **Script documentation:** Each script includes a comprehensive file-level header
-> describing its purpose, features, usage flags, input/output formats, and dependencies.
-> Open any script in your editor to see the full documentation block (JSDoc format).
-> Key functions also include type annotations and descriptions for IDE autocomplete support.
+> **Script documentation:** Each script includes a comprehensive file-level header describing its purpose, features, usage flags, input/output formats, and dependencies.
+>
+> Open any script in your editor to see the full documentation block (JSDoc format). Key functions also include type annotations and descriptions for IDE autocomplete support.
 >
 > To access detailed documentation for a specific dataset:
-
-- View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-30)
-- See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#dataset-inventory) for complete documentation
-- Check the [dataset inventory](DATASETS_REFERENCE.md#complete-dataset-inventory-34-datasets) for all 34 registered datasets
-
-> **Backup & Recovery Mode:** scraper scripts save intermediate results every N
-> pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a
-> scrape is interrupted (network timeout, user cancellation), you can rebuild
-> the final CSV from saved backup content:
+>
+> - View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-30)
+> - See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#dataset-inventory) for complete documentation
+> - Check the [dataset inventory](DATASETS_REFERENCE.md#complete-dataset-inventory-34-datasets) for all 34 registered datasets
+>
+> **Backup & Recovery Mode:** scraper scripts save intermediate results every N pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a scrape is interrupted (network timeout, user cancellation), you can rebuild the final CSV from saved backup content:
 >
 > ```pwsh
 > # Interrupted scrape? Add --use-backup flag to rebuild from backup:
 > node datasets/scripts/scrape_ecesp.js --use-backup
 > ```
 >
-> This skips web fetching and directly processes backup rows to produce the
-> final `datasets/processed/<dataset>_processed.csv`. See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md)
-> for details on backup behavior and which scrapers support this feature.
+> This skips web fetching and directly processes backup rows to produce the final `datasets/processed/<dataset>_processed.csv`. See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md) for details on backup behavior and which scrapers support this feature.
 >
-> **Running everything at once:** rather than calling each dataset script by
-> hand you can use the orchestrator in `backend/pipeline/run_datasets_scripts.js`.
-> The npm alias `npm run datasets-scripts` invokes it for you; it will execute all
-> `extract_*.js` files first followed by any `scrape_*.js` files, aborting on
-> the first error. This is handy when updating multiple sources or after
-> pulling upstream changes.
+> **Running everything at once:** rather than calling each dataset script by hand you can use the orchestrator in `backend/pipeline/run_datasets_scripts.js`.
+> The npm alias `npm run datasets-scripts` invokes it for you; it will execute all `extract_*.js` files first followed by any `scrape_*.js` files, aborting on the first error. This is handy when updating multiple sources or after pulling upstream changes.
 >
-> **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
-> **Stage 2: Chunk** - Split into semantic units → chunks.json
-> **Stage 3: Generate** - Generate embeddings → embedded_chunks.json
-> **Stage 4: Store** - Store embeddings (Supabase or Aiven) in documents table
+> - **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
+> - **Stage 2: Chunk** - Split into semantic units → chunks.json
+> - **Stage 3: Generate** - Generate embeddings → embedded_chunks.json
+> - **Stage 4: Store** - Store embeddings (Supabase or Aiven) in documents table
 
 ## Quick Start
 
@@ -156,7 +133,7 @@ to write the merged file into `datasets/archives/` instead of `out/`.
 
 ### Expected Output
 
-```
+```txt
 combined_input.csv created with:
 - Header row (unquoted)
 - Data rows (quoted properly)
@@ -175,13 +152,13 @@ Get-ChildItem datasets/manual_entries/
 
 ## Stage 2: Semantic Chunking
 
-### Command
+### Chunking command
 
 ```pwsh
 npm run chunk        # produces chunks in out/ (add -- --archives for archives output)
 ```
 
-### What It Does
+### What chunking does
 
 1. Reads `datasets/out/combined_input.csv`
 2. Creates semantic chunks from problem/solution pairs
@@ -224,7 +201,7 @@ Set environment variables in `.env.backend`:
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 ```
 
-### Command
+### Embedding command
 
 ```pwsh
 # Test locally without API calls (fake embeddings)
@@ -234,7 +211,7 @@ npm run embed -- --dry-run
 npm run embed        # write to out/ by default (add -- --archives for archives)
 ```
 
-### What It Does
+### What embedding does
 
 1. Reads `datasets/out/chunks.json`
 2. Generates embeddings using OpenAI text-embedding-3-small (1536 dimensions)
@@ -256,7 +233,7 @@ EMBEDDING_BATCH_DELAY_MS = 500;
 
 The embedding logic is implemented in `services/embedding.service.js`.
 
-### Troubleshooting
+### Embedding troubleshooting
 
 **"401 Unauthorized" from OpenAI:**
 
@@ -291,7 +268,7 @@ npm run embed -- --dry-run
 
 ## Stage 4: Embedding Storage
 
-### Prerequisites
+### storing prerequisites
 
 Set environment variables in `.env.backend`:
 
@@ -300,7 +277,7 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=sk_service_xxxxxxxxxxxxx
 ```
 
-### Command
+### storing command
 
 ```pwsh
 # Store embeddings to whichever backend is active (default=Aiven)
@@ -323,7 +300,7 @@ npm run store -- --archives --resume   # Resume Supabase storage
 npm run store -- --dry-run --resume    # Resume dry-run mode (append to JSONL)
 ```
 
-### What It Does
+### What storing does
 
 1. **Backend selection** – the script determines which database to use
    based on the presence of the `--archives` CLI flag or the
@@ -358,7 +335,7 @@ npm run store -- --dry-run --resume    # Resume dry-run mode (append to JSONL)
    document count may be executed to ensure data integrity and log
    statistics.
 
-### Troubleshooting
+### Storing troubleshooting
 
 **"401 Unauthorized" from Supabase:**
 
@@ -452,7 +429,7 @@ npm run store -- --archives
 
 When archive mode is active the `datasets/archives/` directory will contain:
 
-```
+```txt
 archives/
 ├─ combined_input.csv
 ├─ chunks.json

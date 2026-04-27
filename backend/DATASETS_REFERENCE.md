@@ -336,14 +336,14 @@ You can also run scraper scripts with `--append` to add new rows to an existing 
 
 **Console feedback during backup saves:**
 
-```
+```txt
 ✓ Backup: Saved 45 rows from page 3
 ‼ ️ Backup add failed at page 2: [error reason]
 ```
 
 **Recovery mode output:**
 
-```
+```txt
 ♻️ BACKUP RECOVERY MODE: Building final CSV from saved backup content...
 📖 Processing 135 backup rows...
 ✓ Selected 42 high-quality rows from backup
@@ -375,40 +375,40 @@ All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` arra
 
 ### Dataset Registry Table
 
-| #   | Key                    | Dataset Name                       | Type                 | Source                                                           |
-| --- | ---------------------- | ---------------------------------- | -------------------- | ---------------------------------------------------------------- |
-| 1   | `c2c`                  | Cradle-to-Cradle Registry          | Puppeteer Scrape     | https://c2ccertified.org/certified-products                      |
-| 2   | `cgr`                  | Circularity Gap Report 2025        | PDF Extract          | https://www.circularity-gap.world/2025                           |
-| 3   | `circle_knowledge_hub` | Circle Economy Knowledge Hub       | Puppeteer Scrape     | https://knowledge-hub.circle-economy.com/cases                   |
-| 4   | `dataeu`               | Data Europa                        | Mixed (CSV + PDF)    | https://data.europa.eu/                                          |
-| 5   | `ecesp`                | ECESP Good Practices               | Puppeteer Scrape     | https://circulareconomy.europa.eu/platform/en/good-practices     |
-| 6   | `eippcb`               | EIPPCB BAT Conclusions & BREFs     | PDF Extract          | https://bureau-industrial-transformation.jrc.ec.europa.eu/       |
-| 7   | `emf`                  | EMF Case Studies                   | Puppeteer Scrape     | https://www.ellenmacarthurfoundation.org/explore                 |
-| 8   | `env`                  | Environmental Sustainability       | CSV Extract          | UNDP HDR (manual download)                                       |
-| 9   | `epa`                  | EPA TRI (Toxics Release Inventory) | CSV Extract          | https://www.epa.gov/toxics-release-inventory-tri-program         |
-| 10  | `eulac`                | EULAC Case Studies                 | PDF Extract          | EU-LAC Partnership                                               |
-| 11  | `eurostat`             | Eurostat Indicators                | CSV Extract          | https://ec.europa.eu/eurostat                                    |
-| 12  | `fashion_innovation`   | Fashion for Good Innovation        | Puppeteer Scrape     | https://www.fashionforgood.com/innovation-platform-2/innovators/ |
-| 13  | `fashion_transparency` | Fashion Transparency Index         | Mixed (PDF + CSV)    | WikiRate / Apparel Coalition                                     |
-| 14  | `ghg`                  | GHG Emissions (EDGAR/IEA)          | CSV Extract          | UN Environment Programme                                         |
-| 15  | `gewm`                 | Global E-Waste Monitor 2024        | PDF Extract          | https://ewastemonitor.info/                                      |
-| 16  | `gtg`                  | Greentech Guardians                | Mixed (CSV + JSONL)  | AI EarthHack                                                     |
-| 17  | `ifixit`               | iFixit Repairability Scores        | CSV Extract          | https://www.ifixit.com/repairability                             |
-| 18  | `kaggle`               | Kaggle LCA                         | CSV Extract          | Kaggle                                                           |
-| 19  | `kalundborg`           | Kalundborg Symbiosis               | Puppeteer Scrape     | https://www.symbiosis.dk/en/category/case/                       |
-| 20  | `metabolic`            | Metabolic Open Reports             | Mixed (Scrape + PDF) | https://www.metabolic.nl/publications/                           |
-| 21  | `mnd`                  | Mendeley Data                      | Excel/CSV Extract    | Mendeley Data (institutional)                                    |
-| 22  | `oecd`                 | OECD Statistics                    | CSV Extract          | https://data-explorer.oecd.org/                                  |
-| 23  | `obf`                  | Open Beauty Facts                  | Puppeteer Scrape     | https://world.openbeautyfacts.org/                               |
-| 24  | `off`                  | Open Food Facts                    | Puppeteer Scrape     | https://world.openfoodfacts.org/                                 |
-| 25  | `opf`                  | Open Products Facts                | Puppeteer Scrape     | https://world.openproductsfacts.org/                             |
-| 26  | `refed`                | ReFED Food Waste Solutions         | API Fetch            | https://insights.refed.org/solution-database                     |
-| 27  | `rema`                 | Remanufacturing EU                 | Mixed (Scrape + PDF) | https://www.remanufacturing.eu                                   |
-| 28  | `sei`                  | SEI Construction Cases             | PDF Extract          | https://www.wbcsd.org/                                           |
-| 29  | `unep`                 | UNEP Material Flows & Waste        | CSV Extract          | https://www.unep.org/                                            |
-| 30  | `wbcsd`                | WBCSD Business Cases               | PDF Extract          | https://www.wbcsd.org/                                           |
-| 31  | `wbp`                  | World Bank Projects                | API + CSV Extract    | https://search.worldbank.org/api/v2/projects                     |
-| 32  | `wrap`                 | WRAP Resources & Cases             | Mixed (Scrape + PDF) | https://www.wrap.ngo                                             |
+| #   | Key                    | Dataset Name                       | Type                 | Source                                                                                                                               |
+| --- | ---------------------- | ---------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `c2c`                  | Cradle-to-Cradle Registry          | Puppeteer Scrape     | [https://c2ccertified.org/certified-products](https://c2ccertified.org/certified-products)                                           |
+| 2   | `cgr`                  | Circularity Gap Report 2025        | PDF Extract          | [https://www.circularity-gap.world/2025](https://www.circularity-gap.world/2025)                                                     |
+| 3   | `circle_knowledge_hub` | Circle Economy Knowledge Hub       | Puppeteer Scrape     | [https://knowledge-hub.circle-economy.com/cases](https://knowledge-hub.circle-economy.com/cases)                                     |
+| 4   | `dataeu`               | Data Europa                        | Mixed (CSV + PDF)    | [https://data.europa.eu/](https://data.europa.eu/)                                                                                   |
+| 5   | `ecesp`                | ECESP Good Practices               | Puppeteer Scrape     | [https://circulareconomy.europa.eu/platform/en/good-practices](https://circulareconomy.europa.eu/platform/en/good-practices)         |
+| 6   | `eippcb`               | EIPPCB BAT Conclusions & BREFs     | PDF Extract          | [https://bureau-industrial-transformation.jrc.ec.europa.eu/](https://bureau-industrial-transformation.jrc.ec.europa.eu/)             |
+| 7   | `emf`                  | EMF Case Studies                   | Puppeteer Scrape     | [https://www.ellenmacarthurfoundation.org/explore](https://www.ellenmacarthurfoundation.org/explore)                                 |
+| 8   | `env`                  | Environmental Sustainability       | CSV Extract          | UNDP HDR (manual download)                                                                                                           |
+| 9   | `epa`                  | EPA TRI (Toxics Release Inventory) | CSV Extract          | [https://www.epa.gov/toxics-release-inventory-tri-program](https://www.epa.gov/toxics-release-inventory-tri-program)                 |
+| 10  | `eulac`                | EULAC Case Studies                 | PDF Extract          | EU-LAC Partnership                                                                                                                   |
+| 11  | `eurostat`             | Eurostat Indicators                | CSV Extract          | [https://ec.europa.eu/eurostat](https://ec.europa.eu/eurostat)                                                                       |
+| 12  | `fashion_innovation`   | Fashion for Good Innovation        | Puppeteer Scrape     | [https://www.fashionforgood.com/innovation-platform-2/innovators/](https://www.fashionforgood.com/innovation-platform-2/innovators/) |
+| 13  | `fashion_transparency` | Fashion Transparency Index         | Mixed (PDF + CSV)    | WikiRate / Apparel Coalition                                                                                                         |
+| 14  | `ghg`                  | GHG Emissions (EDGAR/IEA)          | CSV Extract          | UN Environment Programme                                                                                                             |
+| 15  | `gewm`                 | Global E-Waste Monitor 2024        | PDF Extract          | [https://ewastemonitor.info/](https://ewastemonitor.info/)                                                                           |
+| 16  | `gtg`                  | Greentech Guardians                | Mixed (CSV + JSONL)  | AI EarthHack                                                                                                                         |
+| 17  | `ifixit`               | iFixit Repairability Scores        | CSV Extract          | [https://www.ifixit.com/repairability](https://www.ifixit.com/repairability)                                                         |
+| 18  | `kaggle`               | Kaggle LCA                         | CSV Extract          | Kaggle                                                                                                                               |
+| 19  | `kalundborg`           | Kalundborg Symbiosis               | Puppeteer Scrape     | [https://www.symbiosis.dk/en/category/case/](https://www.symbiosis.dk/en/category/case/)                                             |
+| 20  | `metabolic`            | Metabolic Open Reports             | Mixed (Scrape + PDF) | [https://www.metabolic.nl/publications/](https://www.metabolic.nl/publications/)                                                     |
+| 21  | `mnd`                  | Mendeley Data                      | Excel/CSV Extract    | Mendeley Data (institutional)                                                                                                        |
+| 22  | `oecd`                 | OECD Statistics                    | CSV Extract          | [https://data-explorer.oecd.org/](https://data-explorer.oecd.org/)                                                                   |
+| 23  | `obf`                  | Open Beauty Facts                  | Puppeteer Scrape     | [https://world.openbeautyfacts.org/](https://world.openbeautyfacts.org/)                                                             |
+| 24  | `off`                  | Open Food Facts                    | Puppeteer Scrape     | [https://world.openfoodfacts.org/](https://world.openfoodfacts.org/)                                                                 |
+| 25  | `opf`                  | Open Products Facts                | Puppeteer Scrape     | [https://world.openproductsfacts.org/](https://world.openproductsfacts.org/)                                                         |
+| 26  | `refed`                | ReFED Food Waste Solutions         | API Fetch            | [https://insights.refed.org/solution-database](https://insights.refed.org/solution-database)                                         |
+| 27  | `rema`                 | Remanufacturing EU                 | Mixed (Scrape + PDF) | [https://www.remanufacturing.eu](https://www.remanufacturing.eu)                                                                     |
+| 28  | `sei`                  | SEI Construction Cases             | PDF Extract          | [https://www.wbcsd.org/](https://www.wbcsd.org/)                                                                                     |
+| 29  | `unep`                 | UNEP Material Flows & Waste        | CSV Extract          | [https://www.unep.org/](https://www.unep.org/)                                                                                       |
+| 30  | `wbcsd`                | WBCSD Business Cases               | PDF Extract          | [https://www.wbcsd.org/](https://www.wbcsd.org/)                                                                                     |
+| 31  | `wbp`                  | World Bank Projects                | API + CSV Extract    | [https://search.worldbank.org/api/v2/projects](https://search.worldbank.org/api/v2/projects)                                         |
+| 32  | `wrap`                 | WRAP Resources & Cases             | Mixed (Scrape + PDF) | [https://www.wrap.ngo](https://www.wrap.ngo)                                                                                         |
 
 ### Summary Statistics
 
@@ -425,10 +425,8 @@ All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` arra
   - dataeu, fashion_transparency, gtg, metabolic, wrap
 
 > **New in Registry:** Expanded dataset support includes `metabolic` (with both scraping and PDF extraction), and improved documentation for all extraction scripts.
-
-> **Note:** To add a new dataset, add an entry to the `DATASETS` array in
-> `backend/utils/datasetsUtils.js` and create a corresponding extraction script.
-> The pipeline will automatically discover the processed CSV when merging.
+>
+> **Note:** To add a new dataset, add an entry to the `DATASETS` array in `backend/utils/datasetsUtils.js` and create a corresponding extraction script. The pipeline will automatically discover the processed CSV when merging.
 
 ## Data Format Standard
 
@@ -436,13 +434,13 @@ All datasets in `backend/datasets/processed/` and `backend/datasets/manual_entri
 
 **Header (unquoted):**
 
-```
+```txt
 ID,problem,solution,materials,circular_strategy,category,impact,source_url,metadata_json
 ```
 
 **Data rows (fully quoted):**
 
-```
+```txt
 "gtg_00001","problem description","solution approach","material list","R-strategy","category","impact metrics","https://source.url",""
 ```
 
@@ -452,52 +450,55 @@ ID,problem,solution,materials,circular_strategy,category,impact,source_url,metad
 
 All datasets follow this standardized processing pipeline:
 
+```text
+📁 datasets/
+├── 📄 scripts/ ─────────────────── [1] EXTRACT
+│   ├── 🛠️ scrape_*.js (Web)
+│   └── 🛠️ extract_*.js (Files)
+│
+├── 📁 raw/ ─────────────────────── [2] SOURCE
+│   └── (Original source files)
+│
+├── 📁 processed/ ───────────────── [3] STANDARDIZE
+│   └── 📄 source_name.csv (Standard columns)
+│
+├── 📁 manual_entries/ ──────────── [4] SUPPLEMENT
+│   └── 📄 manual_entries.csv
+│
+└── 📁 out/ (or 📁 archives/) ───── [5] PIPELINE OUTPUTS
+    ├── 📄 combined_input.csv  ─── (npm run merge)
+    ├── 📄 chunks.json         ─── (npm run chunk)
+    └── 📄 embedded_chunks.json ── (npm run embed)
+         │
+         └── 🚀 Supabase (documents / documents_archives)
 ```
-1. Raw Source Data (datasets/raw/*)
-   └─ Extracted/scraped via script (datasets/scripts/*.js)
-      ├─ datasets/scripts/scrape_*.js    (Puppeteer web scraping)
-      ├─ datasets/scripts/extract_*.js   (CSV/PDF/API parsing)
-      └─ [Optional scrape backup CSV written to datasets/archives/scrape_backup/]
 
-2. Processed CSV Output (datasets/processed/*)
-   └─ Standardized format with columns:
-      ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
+### **Phase A: Data Acquisition**
 
-3. Manual Entries (datasets/manual_entries/manual_entries.csv)
-   └─ User-added problem/solution pairs (same standardized format)
+- **01. Raw Source** (`datasets/raw/`)
+  -- `scripts/*.js`: The logic (Puppeteer or Parsers).
+  -- `archives/scrape_backup/`: Temporary safety nets.
+- **02. Manual Entry** (`datasets/manual_entries/`)
+  -- `manual_entries.csv`: Human-curated pairs.
 
-4. Combined Input CSV (datasets/out/combined_input.csv or datasets/archives/combined_input.csv)
-   └─ `npm run merge` – defaults to `out/`; include `-- --archives` to write the
-      same merged file into the archives folder.
-      ├─ Merges all datasets/processed/*.csv files
-      ├─ Merges datasets/manual_entries/manual_entries.csv
-      ├─ Validates headers and formatting
-      └─ Output is read-only
+### **Phase B: Processing & Standardization**
 
-5. Semantic Chunks (datasets/out/chunks.json or datasets/archives/chunks.json)
-   └─ `npm run chunk` – defaults to `out/`; include `-- --archives` to write the
-      same chunks into the archives folder.
-      ├─ Splits rows into semantic chunks (500 chars max)
-      ├─ Preserves problem/solution context
-      ├─ Extracts metadata
-      └─ Output is read-only
+- **03. Processed Data** (`datasets/processed/`)
+  -- Standardized CSVs (ID, Problem, Solution, etc.).
+- **04. Merged Output** (`datasets/out/combined_input.csv`)
+  -- `npm run merge`: The "Validator." Combines processed + manual data.
 
-6. Vector Embeddings (datasets/out/embedded_chunks.json or datasets/archives/embedded_chunks.json)
-   └─ `npm run embed` – writes to `out/` by default; pass `-- --archives` to
-      target the archives output location.
-      ├─ Generates OpenAI embeddings (text-embedding-3-small)
-      ├─ Saves embedded vectors with metadata
-      └─ Output is read-only
+### **Phase C: Vector Pipeline**
 
-7. Database Storage (Supabase)
-   └─ Storage commands
-      ├─ `npm run store` - Reads `datasets/out/embedded_chunks.json` and stores
-         embeddings into the primary `documents` table (used by production
-         queries).  To operate on the archive outputs/table either pass
-         `-- --archives` to the script or set `USE_DOCUMENTS_ARCHIVES_TABLE=true`.
-      └─ Both `documents` and `documents_archives` share the same schema and
-         indexing (see `database/sql/01_vector_infrastructure.sql`).
-```
+- **05. Semantic Chunking** (`datasets/out/chunks.json`)
+  -- `npm run chunk`: Splits data into 500-char contextual units.
+- **06. Embedding** (`datasets/out/embedded_chunks.json`)
+  -- `npm run embed`: Transforms text into `text-embedding-3-small` vectors.
+
+### **Phase D: Deployment**
+
+- **07. Storage** (Supabase)
+  -- `npm run store`: Uploads to `documents` or `documents_archives`.
 
 **Note:** The `--archives` (or `--archive`) flag only affects output location (out/ vs archives/). Both normal and archives runs merge the same source files.
 
@@ -517,42 +518,42 @@ All datasets follow this standardized processing pipeline:
 
 **C2C Registry** – `c2c` key
 
-- Source: https://c2ccertified.org/certified-products
+- Source: <https://c2ccertified.org/certified-products>
 - Method: Puppeteer page scraping
 - Scrape backup: `datasets/archives/scrape_backup/c2c_scrape_backup.csv`
 - Returns: Certified products with specifications
 
 **ECESP Good Practices** – `ecesp` key
 
-- Source: https://circulareconomy.europa.eu/platform/en/good-practices
+- Source: <https://circulareconomy.europa.eu/platform/en/good-practices>
 - Method: Puppeteer pagination scraping
 - Scrape backup: `datasets/archives/scrape_backup/ecesp_good_practices_scrape_backup.csv`
 - Returns: European circular economy best practices
 
 **EMF Case Studies** – `emf` key
 
-- Source: https://www.ellenmacarthurfoundation.org/explore?sortBy=dateDesc&contentType=CaseStudy
+- Source: <https://www.ellenmacarthurfoundation.org/explore?sortBy=dateDesc&contentType=CaseStudy>
 - Method: Puppeteer with pagination
 - Scrape backup: `datasets/archives/scrape_backup/emf_scrape_backup.csv`
 - Returns: Foundation-curated circular business models
 
 **Open Beauty Facts** – `obf` key
 
-- Source: https://world.openbeautyfacts.org/
+- Source: <https://world.openbeautyfacts.org/>
 - Method: Puppeteer product search + detail pages
 - Scrape backup: `datasets/archives/scrape_backup/obf_scrape_backup.csv`
 - Returns: Beauty product ingredients & sustainability
 
 **Open Food Facts** – `off` key
 
-- Source: https://world.openfoodfacts.org/
+- Source: <https://world.openfoodfacts.org/>
 - Method: Puppeteer product search + detail pages
 - Scrape backup: `datasets/archives/scrape_backup/off_scrape_backup.csv`
 - Returns: Food product nutrition & environmental data
 
 **Open Products Facts** – `opf` key
 
-- Source: https://world.openproductsfacts.org/
+- Source: <https://world.openproductsfacts.org/>
 - Method: Puppeteer product search + detail pages
 - Scrape backup: `datasets/archives/scrape_backup/opf_scrape_backup.csv`
 - Returns: General product sustainability information
@@ -561,35 +562,35 @@ All datasets follow this standardized processing pipeline:
 
 **CGR 2025** – `cgr` key
 
-- Source: https://www.circularity-gap.world/2025
+- Source: <https://www.circularity-gap.world/2025>
 - Input: `datasets/raw/circularity_gap_report/cgr_2025.pdf`
 - Method: PDF text extraction using pdfjs-dist
 - Returns: Global circularity metrics & country-level analysis
 
 **Data Europa** – `dataeu` key
 
-- Source: https://data.europa.eu/
+- Source: <https://data.europa.eu/>
 - Inputs: Eurostat CSVs + multiple EU policy PDFs
 - Method: Mixed (CSV parsing + PDF extraction)
 - Returns: EU statistics, projects, and policy contexts
 
 **EULAC Case Studies** – `eulac` key
 
-- Source: https://www.ellenmacarthurfoundation.org/ (partner)
+- Source: <https://www.ellenmacarthurfoundation.org/> (partner)
 - Input: `datasets/raw/eulac_case_studies/eulac_case_studies.pdf`
 - Method: PDF text extraction using pdfjs-dist
 - Returns: 7 EU-LAC circular economy initiatives
 
 **SEI Construction** – `sei` key
 
-- Source: https://www.wbcsd.org/
+- Source: <https://www.wbcsd.org/>
 - Inputs: 17 SEI construction case study PDFs
 - Method: PDF extraction using pdfjs-dist
 - Returns: Circular deconstruction & building design cases
 
 **WBCSD Cases** – `wbcsd` key
 
-- Source: https://www.wbcsd.org/
+- Source: <https://www.wbcsd.org/>
 - Inputs: 24+ industry case study PDFs
 - Method: PDF text extraction
 - Returns: Business circular strategy implementations
@@ -605,14 +606,14 @@ All datasets follow this standardized processing pipeline:
 
 **EPA TRI** – `epa` key
 
-- Source: https://www.epa.gov/toxics-release-inventory-tri-program
+- Source: <https://www.epa.gov/toxics-release-inventory-tri-program>
 - Inputs: `2024_us.csv`, `chemical_transfer.csv`
 - Method: CSV parsing + risk classification
 - Returns: Facility-level toxic release & recovery data
 
 **Eurostat** – `eurostat` key
 
-- Source: https://ec.europa.eu/eurostat
+- Source: <https://ec.europa.eu/eurostat>
 - Inputs: 5+ Eurostat circular economy indicator CSVs
 - Method: CSV parsing + aggregation
 - Returns: EU waste management & material efficiency metrics
@@ -626,14 +627,14 @@ All datasets follow this standardized processing pipeline:
 
 **OECD** – `oecd` key
 
-- Source: https://data-explorer.oecd.org/
+- Source: <https://data-explorer.oecd.org/>
 - Inputs: Municipal waste, waste streams, CAPMF CSVs
 - Method: CSV parsing + indicator mapping
 - Returns: OECD member resource efficiency metrics
 
 **UNEP** – `unep` key
 
-- Source: https://www.unep.org/resources/global-waste-management-outlook-2024
+- Source: <https://www.unep.org/resources/global-waste-management-outlook-2024>
 - Inputs: Material flows, global flows, GMWO consolidated CSVs
 - Method: CSV parsing + country aggregation
 - Returns: Global waste generation & material footprint
@@ -642,14 +643,14 @@ All datasets follow this standardized processing pipeline:
 
 **Fashion Transparency Index** – `fashion` key
 
-- Source: https://apparelcoalition.org/ + WikiRate
+- Source: <https://apparelcoalition.org/> + WikiRate
 - Inputs: PDF reports + WikiRate CSV exports
 - Method: Mixed (PDF + CSV parsing)
 - Returns: Brand transparency scores & supply chain practices
 
 **Global E-Waste Monitor 2024** – `gewm` key
 
-- Source: https://ewastemonitor.info/
+- Source: <https://ewastemonitor.info/>
 - Inputs: Embedded Python script extracts from PDF using camelot
 - Method: camelot PDF table extraction via Python subprocess
 - Returns: Country-level e-waste generation, collection, recycling
@@ -679,54 +680,10 @@ All datasets follow this standardized processing pipeline:
 
 **World Bank Projects** – `wbp` key
 
-- Source: https://search.worldbank.org/api/v2/projects
+- Source: <https://search.worldbank.org/api/v2/projects>
 - Method: REST API JSON + secondary PDF reports
 - Inputs: Basic & detailed project JSON endpoints
 - Returns: Sustainable development projects with WB sector classification
-
-## Data Flow Through the Pipeline
-
-All datasets follow this standardized processing pipeline:
-
-```
-1. Raw Source Data (datasets/raw/*)
-   └─ Extracted via script (datasets/scripts/*.js)
-      ├─ datasets/scripts/scrape_*.js    (Puppeteer web scraping)
-      ├─ datasets/scripts/extract_*.js   (CSV/PDF/API parsing)
-      └─ [Optional archive CSV written]
-
-2. Processed CSV Output (datasets/processed/*)
-   └─ Standardized columns:
-      ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
-
-3. Common Input CSV (datasets/out/combined_input.csv)
-  └─ npm run merge    # use `-- --archives` to target archives output
-      ├── Merges all datasets/processed/*.csv
-      ├── Applies dataset-specific field mappings
-      └─ Deduplicates by (problem + solution)
-
-4. Semantic Chunks (datasets/out/chunks.json)
-   └─ npm run chunk    # use `-- --archives` to target archives output
-      ├─ Splits rows into semantic chunks (500 chars max)
-      ├─ Preserves problem/solution context
-      └─ Includes source metadata
-
-5. Vector Embeddings (datasets/out/embedded_chunks.json)
-   └─ npm run embed    # use `-- --archives` to target archives output
-      ├─ Generates OpenAI embeddings
-      ├─ Saves embedded vectors with metadata
-      └─ Ready for storage in database
-
-6. Database Storage (Supabase documents table)
-   └─ npm run store    # add `-- --archives` or set USE_DOCUMENTS_ARCHIVES_TABLE=true
-      ├─ Stores embeddings + metadata in documents table
-      ├─ Indexes for semantic search
-      └─ Enables RAG retrieval
-   └─ npm run store -- --dry-run (optional)
-      ├─ Writes to datasets/out/stored_documents.jsonl instead
-      ├─ Useful for testing without Supabase
-      └─ File maintained as read-only for durability
-```
 
 ## Adding a New Dataset
 

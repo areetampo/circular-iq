@@ -182,12 +182,12 @@ URL behaviour: switching to Global tab strips all search-specific params; invali
 │   │   ├── client.js                # Dual-backend DB client factory (Supabase or Aiven)
 │   │   └── supabase.client.js       # Supabase client factory (anon + service-role)
 │   ├── middleware/                  # Auth guard (API key + JWT) + Zod validation
-│   ├── pipeline/                    # Data processing stages + datasetsUtils.js
+│   ├── pipeline/                    # Data processing stages
 │   ├── routes/                      # Express route definitions (thin HTTP wrappers)
 │   ├── server/                      # Entry point (index.js), app factory (app.js), bootstrap
 │   ├── services/                    # Business logic: scoring.service, scoring.logic, embedding, chunking
 │   ├── tests/                       # Backend test suite (api/, database/, services/)
-│   └── utils/                       # anonymousTracking.js
+│   └── utils/                       # anonymousTracking.js, datasetsUtils.js etc
 │
 ├── frontend/
 │   ├── api/proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
@@ -203,7 +203,7 @@ URL behaviour: switching to Global tab strips all search-specific params; invali
 │   │   ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
 │   │   ├── pages/
 │   │   │   ├── AssessmentComparisonPage/components/   # Tab components + ComparisonSkeleton + ChangeIndicator
-│   │   │   ├── DashboardPage/components/              # StatCard, ChartPanel, SolutionCard, etc.
+│   │   │   ├── DashboardPage/components/              # StatCard, ChartPanel, SolutionsSearch etc.
 │   │   │   ├── LandingPage/components/                # BusinessContextContainer, EvaluationParametersContainer, etc.
 │   │   │   ├── MyAssessmentsPage/components/          # AssessmentListItem, FilterBar, IndustryFilterChip
 │   │   │   └── ResultsPage/components/                # ScoreOverview, WeightedScoreCard, AuditSummary, DatabaseEvidence, etc.
@@ -620,7 +620,7 @@ Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and a
 
 1. Create extraction script in `backend/datasets/scripts/`
 2. Output standardised CSV to `backend/datasets/processed/`
-3. Register in `backend/pipeline/datasetsUtils.js` DATASETS array
+3. Register in `backend/utils/datasetsUtils.js` DATASETS array
 4. Run: `npm run populate`
 5. Update `backend/DATASETS_REFERENCE.md`
 
@@ -677,7 +677,7 @@ See [PIPELINE_ADDING_DATASETS.md](./backend/PIPELINE_ADDING_DATASETS.md) for ful
 
 ## Security & Access Control
 
-### Authentication
+### Auth
 
 - RLS policies on all Supabase tables — users can only read/write their own data
 - Service role key used only server-side for admin operations (writes to `scoring_results_log`, analytics aggregation)

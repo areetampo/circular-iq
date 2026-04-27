@@ -8,7 +8,7 @@ The Circular Economy API now includes comprehensive health monitoring endpoints 
 
 ### Basic Health Check
 
-```
+```txt
 GET /health
 ```
 
@@ -26,7 +26,7 @@ GET /health
 
 ### Detailed Health Check
 
-```
+```txt
 GET /health?detailed=true
 GET /health?detailed=true&checks=database,openai
 ```
@@ -80,7 +80,7 @@ GET /health?detailed=true&checks=database,openai
 
 ### Database Health
 
-```
+```txt
 GET /health/database
 ```
 
@@ -89,7 +89,7 @@ GET /health/database
 
 ### OpenAI API Health
 
-```
+```txt
 GET /health/openai
 ```
 
@@ -98,7 +98,7 @@ GET /health/openai
 
 ### System Resources
 
-```
+```txt
 GET /health/system
 ```
 
@@ -107,7 +107,7 @@ GET /health/system
 
 ### Configuration Health
 
-```
+```txt
 GET /health/config
 ```
 
@@ -116,7 +116,7 @@ GET /health/config
 
 ### Kubernetes Probes
 
-```
+```txt
 GET /health/readiness
 GET /health/liveness
 ```
@@ -126,7 +126,7 @@ GET /health/liveness
 
 ### Version Information
 
-```
+```txt
 GET /health/version
 ```
 

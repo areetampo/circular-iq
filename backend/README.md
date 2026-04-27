@@ -307,10 +307,10 @@ Every document across all datasets has a unique ID: `prefix_NNNNN`
 
 ### ID Generation
 
-Use the `formatId()` helper from `pipeline/datasetsUtils.js` for consistency:
+Use the `formatId()` helper from `utils/datasetsUtils.js` for consistency:
 
 ```javascript
-import { formatId, ID_DIGITS } from '#pipeline/datasetsUtils.js';
+import { formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
 
 formatId('c2c', 1); // → 'c2c_00001'
 formatId('c2c', 42); // → 'c2c_00042'
@@ -324,7 +324,7 @@ const padding = index.toString().padStart(ID_DIGITS, '0');
 
 ### Dataset Registry
 
-`pipeline/datasetsUtils.js` exports `DATASETS` — an array of metadata objects for all 34 registered datasets. Each entry includes:
+`utils/datasetsUtils.js` exports `DATASETS` — an array of metadata objects for all 34 registered datasets. Each entry includes:
 
 - `key` — unique identifier (e.g. `'c2c'`)
 - `name` — human-readable title
@@ -504,83 +504,6 @@ Get the authenticated user's profile information. Requires authentication.
 }
 ```
 
-## API Endpoints
-
-### POST `/api/score`
-
-Full scoring pipeline. Returns complete result object.
-
-**Request body:**
-
-```json
-{
-  "businessProblem": "string (200+ chars recommended)",
-  "businessSolution": "string (200+ chars recommended)",
-  "evaluationParameters": {
-    "public_participation": 75,
-    "infrastructure": 60,
-    "market_price": 45,
-    "maintenance": 80,
-    "uniqueness": 55,
-    "size_efficiency": 70,
-    "chemical_safety": 90,
-    "tech_readiness": 65
-  },
-  "businessContext": {
-    "business_model_type": "take-back program",
-    "operational_stage": "pilot",
-    "target_geography": "regional",
-    "annual_volume_estimate": "1-10 tonnes",
-    "material_complexity": "single-material",
-    "has_existing_partnerships": true
-  }
-}
-```
-
-### GET `/api/analytics/global-stats`
-
-Aggregates from three sources in parallel: (1) `scoring_results_log` (service-role, all non-junk scoring calls — all users and sessions), (2) `get_market_data()` RPC (opted-in saved assessments only), (3) `get_assessment_statistics()` RPC (global saved assessment counts). No auth required.
-
-Response structure:
-
-- `log_stats` — total_scoring_calls, avg_score, avg_metrics (6 derived metrics), score_distribution (4 bands), tier_distribution, risk_distribution, industry_distribution (top 12 with avg_score per industry), strategy_distribution, material_distribution, geo_distribution, scale_distribution, junk_rate, weekly_trend (12 ISO weeks with count and avg_score)
-- `market_data` — per-industry rows from `get_market_data()` RPC
-- `assessment_stats` — total_assessments, assessments_by_tier, assessments_by_risk, assessments_by_scale, assessments_by_industry from `get_assessment_statistics()` RPC
-
-**Response shape:**
-
-```json
-{
-  "log_stats": {
-    "total_scoring_calls": 1234,
-    "avg_score": 72.4,
-    "avg_metrics": {
-      "confidence_level": 88,
-      "technical_feasibility": 74,
-      "economic_viability": 69,
-      "circularity_potential": 77,
-      "parameter_consistency_score": 82,
-      "r_strategy_alignment_score": 71
-    },
-    "score_distribution": { "0-25": 12, "26-50": 89, "51-75": 340, "76-100": 793 },
-    "tier_distribution": { "Leader": 45, "Established": 210, "Developing": 680, "Emerging": 299 },
-    "risk_distribution": { "low": 680, "medium": 420, "high": 134 },
-    "industry_distribution": [
-      { "industry": "construction", "count": 89, "avg_score": 74.1 }
-    ],
-    "strategy_distribution": [{ "strategy": "Reuse", "count": 234 }],
-    "material_distribution": [{ "material": "metal", "count": 156 }],
-    "geo_distribution": [{ "geo": "global", "count": 445 }],
-    "scale_distribution": [{ "scale": "commercial", "count": 312 }],
-    "junk_rate": 3.2,
-    "weekly_trend": [{ "week": "2026-W10", "count": 45, "avg_score": 71.2 }]
-  },
-  "market_data": [...],
-  "assessment_stats": { "total_assessments": 890, "avg_score": 73.1, "assessments_by_tier": {...} },
-  "generated_at": "2026-03-22T12:00:00.000Z"
-}
-```
-
 ## Environment Configuration
 
 ### Required Variables (`.env.backend`)
@@ -637,7 +560,7 @@ cp env/.env.example env/.env.backend
 3. `config/embedding.js` — embedding model name and dimension constants
 4. `config/chunk.js` — chunking parameters (min length, overlap, etc.)
 5. `config/loadEnv.js` — Environment loading utilities
-6. `pipeline/datasetsUtils.js` — dataset filesystem path constants and DATASETS registry
+6. `utils/datasetsUtils.js` — dataset filesystem path constants and DATASETS registry
 
 ## Import Aliases (Canonical Paths)
 
@@ -651,7 +574,7 @@ import { documentsRepository } from '#database/index.js';
 import { performScoring } from '#services/scoring.service.js';
 import { generateWeightedScoreCard } from '#services/scoring.logic.js';
 import { anonymousTracking } from '#utils/anonymousTracking.js';
-import { DATASETS } from '#pipeline/datasetsUtils.js';
+import { DATASETS } from '#utils/datasetsUtils.js';
 
 // ✗ AVOID (relative paths break when files move)
 import { performScoring } from '../../services/scoring.service.js';
@@ -1007,7 +930,7 @@ The `vector_weight` parameter (default 0.7) controls the blend: 1.0 = pure vecto
 
 1. Create extraction script in `datasets/scripts/` following documentation standards above
 2. Output standardised CSV to `datasets/processed/`
-3. Register in `pipeline/datasetsUtils.js` DATASETS array
+3. Register in `utils/datasetsUtils.js` DATASETS array
 4. Run `npm run populate`
 5. Update `DATASETS_REFERENCE.md`
 

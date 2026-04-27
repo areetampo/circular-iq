@@ -8,20 +8,19 @@ Complete guide for sourcing, preparing, and integrating new circular economy dat
 
 New datasets follow this standard flow:
 
-```
 Source (Web/File)
-  → Extract/Transform (dataset scripts)
-  → Standardize Format (CSV with standard columns)
-  → Register in DATASETS array (utils/datasetsUtils.js)
-  → Merge into combined CSV (pipeline/merge_datasets.js)
-  → Chunk into semantic units (pipeline/generate_chunks.js)
-  → Generate embeddings (pipeline/generate_embeddings.js)
-  → Store in Supabase (pipeline/store_embeddings.js)
-```
+
+- Extract/Transform (dataset scripts)
+- Standardize Format (CSV with standard columns)
+- Register in DATASETS array (utils/datasetsUtils.js)
+- Merge into combined CSV (pipeline/merge_datasets.js)
+- Chunk into semantic units (pipeline/generate_chunks.js)
+- Generate embeddings (pipeline/generate_embeddings.js)
+- Store in Supabase (pipeline/store_embeddings.js)
 
 ### File I/O Best Practices
 
-all backend scripts use `utils/datasetsUtils.js` helpers for consistent file handling:
+All backend scripts use `utils/datasetsUtils.js` helpers for consistent file handling:
 
 - **Automatic Directory Creation:** Parent directories created if missing
 - **Path Constants:** Use exported constants (e.g., `DATASETS_PROCESSED_DIR`) instead of hardcoded strings
@@ -74,108 +73,108 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
 
 2. **Import utilities from datasetsUtils.js:**
 
-```javascript
-import puppeteer from 'puppeteer';
-import {
-  DATASET_LOOKUP,
-  getBrowserLaunchOptions,
-  getViewportOptions,
-  getUserAgentOptions,
-  getExtraHttpHeaders,
-  createBackupHelper,
-  isBackupRecoveryMode,
-  readBackupCsv,
-  writeCsv,
-  getDatasetProcessedCsvPath,
-  CSV_COLUMNS,
-  STRINGIFY_OPTIONS,
-  randomDelay,
-  cleanText,
-  formatId,
-} from '#utils/datasetsUtils.js';
+   ```javascript
+   import puppeteer from 'puppeteer';
+   import {
+     DATASET_LOOKUP,
+     getBrowserLaunchOptions,
+     getViewportOptions,
+     getUserAgentOptions,
+     getExtraHttpHeaders,
+     createBackupHelper,
+     isBackupRecoveryMode,
+     readBackupCsv,
+     writeCsv,
+     getDatasetProcessedCsvPath,
+     CSV_COLUMNS,
+     STRINGIFY_OPTIONS,
+     randomDelay,
+     cleanText,
+     formatId,
+   } from '#utils/datasetsUtils.js';
 
-const DATASET_KEY = 'my_source';
-const BACKUP_INTERVAL = 3; // flush backup every 3 pages
-```
+   const DATASET_KEY = 'my_source';
+   const BACKUP_INTERVAL = 3; // flush backup every 3 pages
+   ```
 
 3. **Use backup recovery pattern:**
 
-```javascript
-async function main() {
-  if (isBackupRecoveryMode()) {
-    console.log('♻️ BACKUP RECOVERY MODE...');
-    // Rebuild from saved backup instead of scraping
-    const backupRows = await readBackupCsv(DATASET_KEY);
-    // ... apply filtering/deduplication
-    const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
-    await writeCsv(csvPath, finalizedRows);
-    return;
-  }
+   ```javascript
+   async function main() {
+     if (isBackupRecoveryMode()) {
+       console.log('♻️ BACKUP RECOVERY MODE...');
+       // Rebuild from saved backup instead of scraping
+       const backupRows = await readBackupCsv(DATASET_KEY);
+       // ... apply filtering/deduplication
+       const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+       await writeCsv(csvPath, finalizedRows);
+       return;
+     }
 
-  // Normal scraping with periodic backups
-  const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true);
-  const browser = await puppeteer.launch(getBrowserLaunchOptions());
+     // Normal scraping with periodic backups
+     const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, true);
+     const browser = await puppeteer.launch(getBrowserLaunchOptions());
 
-  try {
-    for (const page of pages) {
-      const rows = await scrapePage(page);
-      await backup.add(rows); // Auto-flushes every 3 calls
-      console.log(`✓ Page ${page}: ${rows.length} rows`);
-    }
-    await backup.flush(); // Final flush
+     try {
+       for (const page of pages) {
+         const rows = await scrapePage(page);
+         await backup.add(rows); // Auto-flushes every 3 calls
+         console.log(`✓ Page ${page}: ${rows.length} rows`);
+       }
+       await backup.flush(); // Final flush
 
-    const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
-    await writeCsv(csvPath, allRows);
-  } finally {
-    await browser.close();
-  }
-}
+       const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+       await writeCsv(csvPath, allRows);
+     } finally {
+       await browser.close();
+     }
+   }
 
-main().catch(console.error);
-```
+   main().catch(console.error);
+   ```
 
 4. **Puppeteer helper functions:**
 
-```javascript
-// All these are imported from datasetsUtils.js
-const browser = await puppeteer.launch(getBrowserLaunchOptions());
-const page = await browser.newPage();
+   ```javascript
+   // All these are imported from datasetsUtils.js
+   const browser = await puppeteer.launch(getBrowserLaunchOptions());
+   const page = await browser.newPage();
 
-// Standard settings across all scrapers
-await page.setViewport(getViewportOptions());
-await page.setUserAgent(getUserAgentOptions());
-await page.setExtraHTTPHeaders(getExtraHttpHeaders());
+   // Standard settings across all scrapers
+   await page.setViewport(getViewportOptions());
+   await page.setUserAgent(getUserAgentOptions());
+   await page.setExtraHTTPHeaders(getExtraHttpHeaders());
 
-// Random delays between requests (prevents blocking)
-await page.goto(url);
-await page.waitForTimeout(randomDelay());
-```
+   // Random delays between requests (prevents blocking)
+   await page.goto(url);
+   await page.waitForTimeout(randomDelay());
+   ```
 
 5. **Add file-level JSDoc header:**
 
-```javascript
-/**
- * scrape_my_source.js
- *
- * Scrapes circular economy data from My Data Source.
- * Extracts product details including specs and impact metrics.
- *
- * Features:
- *   - Pagination with retry logic (max 5 attempts per page)
- *   - Per-product detail extraction
- *   - Quality filtering (excludes incomplete entries)
- *   - Backup & recovery system (--use-backup flag)
- *
- * Usage:
- *   node scrape_my_source.js                 # Normal run
- *   node scrape_my_source.js --show          # Debug with visible browser
- *   node scrape_my_source.js --use-backup    # Rebuild from backup
- *   node scrape_my_source.js --append        # Add rows to existing CSV
- *
- * Output: datasets/processed/my_source_processed.csv
- * Backup: datasets/archives/scrape_backup/my_source_scrape_backup/
- */
-```
+   ```javascript
+   /**
+    * scrape_my_source.js
+    *
+    * Scrapes circular economy data from My Data Source.
+    * Extracts product details including specs and impact metrics.
+    *
+    * Features:
+    *   - Pagination with retry logic (max 5 attempts per page)
+    *   - Per-product detail extraction
+    *   - Quality filtering (excludes incomplete entries)
+    *   - Backup & recovery system (--use-backup flag)
+    *
+    * Usage:
+    *   node scrape_my_source.js                 # Normal run
+    *   node scrape_my_source.js --show          # Debug with visible browser
+    *   node scrape_my_source.js --use-backup    # Rebuild from backup
+    *   node scrape_my_source.js --append        # Add rows to existing CSV
+    *
+    * Output: datasets/processed/my_source_processed.csv
+    * Backup: datasets/archives/scrape_backup/my_source_scrape_backup/
+    */
+   ```
 
 6. **Run the scraper:**
 
@@ -201,51 +200,51 @@ node datasets/scripts/scrape_my_source.js --append
 
 2. **Use pdf-parse and utilities:**
 
-```javascript
-import pdf from 'pdf-parse';
-import fs from 'fs';
-import {
-  getDatasetRawDir,
-  getDatasetProcessedCsvPath,
-  writeCsv,
-  cleanText,
-  formatId,
-  CSV_COLUMNS,
-  STRINGIFY_OPTIONS,
-} from '#utils/datasetsUtils.js';
+   ```javascript
+   import pdf from 'pdf-parse';
+   import fs from 'fs';
+   import {
+     getDatasetRawDir,
+     getDatasetProcessedCsvPath,
+     writeCsv,
+     cleanText,
+     formatId,
+     CSV_COLUMNS,
+     STRINGIFY_OPTIONS,
+   } from '#utils/datasetsUtils.js';
 
-const DATASET_KEY = 'my_source';
+   const DATASET_KEY = 'my_source';
 
-async function main() {
-  const rawDir = getDatasetRawDir(DATASET_KEY);
-  const pdfPath = `${rawDir}/document.pdf`;
+   async function main() {
+     const rawDir = getDatasetRawDir(DATASET_KEY);
+     const pdfPath = `${rawDir}/document.pdf`;
 
-  // Read and parse PDF
-  const pdfBuffer = fs.readFileSync(pdfPath);
-  const data = await pdf(pdfBuffer);
-  const text = data.text;
+     // Read and parse PDF
+     const pdfBuffer = fs.readFileSync(pdfPath);
+     const data = await pdf(pdfBuffer);
+     const text = data.text;
 
-  // Extract structured data (parse text into rows)
-  const rows = [];
-  // ... your extraction logic ...
+     // Extract structured data (parse text into rows)
+     const rows = [];
+     // ... your extraction logic ...
 
-  // Format for CSV output
-  rows.forEach((row, index) => {
-    row.ID = formatId(DATASET_KEY, index + 1);
-    row.problem = cleanText(row.problem);
-    row.solution = cleanText(row.solution);
-    // ... standardize other columns ...
-  });
+     // Format for CSV output
+     rows.forEach((row, index) => {
+       row.ID = formatId(DATASET_KEY, index + 1);
+       row.problem = cleanText(row.problem);
+       row.solution = cleanText(row.solution);
+       // ... standardize other columns ...
+     });
 
-  // Write standardized CSV
-  const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
-  await writeCsv(csvPath, rows, { clear: true });
+     // Write standardized CSV
+     const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
+     await writeCsv(csvPath, rows, { clear: true });
 
-  console.log(`✓ Extracted ${rows.length} rows to ${csvPath}`);
-}
+     console.log(`✓ Extracted ${rows.length} rows to ${csvPath}`);
+   }
 
-main().catch(console.error);
-```
+   main().catch(console.error);
+   ```
 
 3. **Add JSDoc header describing parsing logic**
 
@@ -365,7 +364,7 @@ All datasets must follow the same CSV structure for pipeline compatibility:
 
 **Header (unquoted):**
 
-```
+```txt
 ID,problem,solution,materials,circular_strategy,category,impact,source_url,metadata_json
 ```
 
@@ -557,11 +556,12 @@ Look at existing well-documented scripts:
 - `scrape_c2c.js` – Puppeteer pagination with backup
 - `extract_epa_tri.js` – Multi-dimensional CSV with quality scoring
 - `extract_cgr_2025.js` – PDF text extraction with structured output
+
   > npm run datasets-scripts
-  >
-  > ```
-  >
-  > ```
+
+  ```pwsh
+  # This will run all extraction and scraping scripts
+  ```
 
 ## Step 2: Optional - Transform & Extract
 
@@ -574,7 +574,6 @@ Look at existing well-documented scripts:
    ```pwsh
    # Transform source data to problem/solution pairs
    # (JavaScript code - same for all shells)
-   """
    import fs from 'fs';
    import { parse } from 'csv-parse/sync';
 
@@ -590,7 +589,6 @@ Look at existing well-documented scripts:
    }));
 
    fs.writeFileSync('output.csv', formatAsCSV(transformed));
-   """
    ```
 
 2. **Run transformation:**
@@ -669,6 +667,7 @@ ID,problem,solution,materials,circular_strategy,category,impact,source_url,metad
    - Write to CSV with proper quoting
 
 3. **Validation script:**
+
    ```pwsh
    node datasets/scripts/validate_csv.js datasets/raw/new_source/data.csv
    # Checks: headers match, quotes consistent, IDs unique
@@ -714,6 +713,7 @@ The merge script automatically discovers all CSV files in both directories.
 
 1. **Add to:** `datasets/manual_entries/manual_entries.csv`
 2. **Run merge:**
+
    ```pwsh
    npm run merge  # Merges manual_entries.csv with all processed/*.csv files
    ```
@@ -759,6 +759,7 @@ npm run populate  # Runs: merge → chunk → embed → store
    ```
 
 4. **Validate CSV:**
+
    ```pwsh
    node datasets/scripts/check_csv.js datasets/processed/new_data.csv
    ```
@@ -794,7 +795,7 @@ Select-String "new_00001" datasets/archives/combined_input.csv
 2. Ensure filename ends with `.csv`
 3. Check for permission issues: `Get-ChildItem -Force datasets/processed/`
 
-# 4. Re-run: `npm run merge`
+## 4. Re-run: `npm run merge`
 
 ### Issue: ID format validation errors
 
