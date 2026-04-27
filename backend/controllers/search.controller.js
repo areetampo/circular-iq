@@ -18,7 +18,6 @@
 import * as ceCasesRepository from '#database/repositories/ce_cases.repository.js';
 import { createEmbedding } from '#services/embedding.service.js';
 import { logOperation } from '#utils/controller-helpers.js';
-import { logger } from '#utils/logger.js';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_LIMIT = 50;

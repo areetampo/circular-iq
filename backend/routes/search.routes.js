@@ -11,7 +11,6 @@
 import express from 'express';
 
 import { searchCeCases } from '#controllers/search.controller.js';
-import { logger } from '#utils/logger.js';
 
 /**
  * Create search router

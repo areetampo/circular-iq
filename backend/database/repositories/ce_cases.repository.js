@@ -11,8 +11,6 @@
  * @module ce_cases.repository
  */
 
-import { logger } from '#utils/logger.js';
-
 /**
  * Keyword full-text search against ce_cases.
  * Uses the generated tsvector (search_vector) with GIN index.

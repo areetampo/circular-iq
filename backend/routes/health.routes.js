@@ -14,7 +14,6 @@ import {
   getMinimalHealth,
   getSystemHealth,
 } from '#services/health.service.js';
-import { logger } from '#utils/logger.js';
 
 const router = express.Router();
 
