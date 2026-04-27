@@ -341,3 +341,33 @@ export function cleanUrl(urlStr, options = {}) {
     return urlStr;
   }
 }
+
+/**
+ * Format file size to human readable string
+ * @param {number} bytes - File size in bytes
+ * @returns {string} Formatted size
+ */
+export function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
+ * Get initials from username
+ * @param {string} username - Username string
+ * @returns {string} Initials (max 2 chars)
+ */
+export function getUserInitials(username) {
+  if (!username) return '-';
+  return username
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}

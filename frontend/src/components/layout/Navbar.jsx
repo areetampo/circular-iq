@@ -10,6 +10,7 @@ import {
   navItemsSecondary,
 } from '@/constants/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getUserInitials } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 import { getSession } from '@/utils/session';
 
@@ -43,17 +44,6 @@ export default function Navbar() {
       );
     }
     return currentPath.startsWith(path);
-  };
-
-  const getUserInitials = () => {
-    const username = profile?.username || user?.username;
-    if (!username) return '-';
-    return username
-      .split(' ')
-      .map((w) => w[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
   };
 
   const getUsername = () => {
@@ -121,7 +111,7 @@ export default function Navbar() {
                     aria-label="Profile menu"
                   >
                     <Avatar.Fallback className="bg-(--color-hover-accent-strong) font-medium text-(--color-accent)">
-                      {getUserInitials()}
+                      {getUserInitials(profile?.username || user?.username)}
                     </Avatar.Fallback>
                   </Avatar>
                 ) : (
@@ -154,7 +144,7 @@ export default function Navbar() {
                             className="bg-(--color-accent-light) text-(--color-accent)"
                           >
                             <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
-                              {getUserInitials()}
+                              {getUserInitials(profile?.username || user?.username)}
                             </Avatar.Fallback>
                           </Avatar>
                           <div>
@@ -268,7 +258,7 @@ export default function Navbar() {
                             className="bg-(--color-accent-light) text-(--color-accent)"
                           >
                             <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
-                              {getUserInitials()}
+                              {getUserInitials(profile?.username || user?.username)}
                             </Avatar.Fallback>
                           </Avatar>
                           <div>
