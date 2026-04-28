@@ -322,95 +322,110 @@ function FilterSidebar({
     return <p className="text-xs text-(--color-text-muted)">Filters appear after searching</p>;
   }
 
+  const [isFiltersOverflowing, setIsFiltersOverflowing] = useState(false);
+  const filtersRef = useRef(null);
+
+  useEffect(() => {
+    const element = filtersRef.current;
+    if (element) {
+      const checkOverflow = () => {
+        const isOverflowing = element.scrollHeight > element.clientHeight;
+        setIsFiltersOverflowing(isOverflowing);
+      };
+
+      checkOverflow();
+      const resizeObserver = new ResizeObserver(checkOverflow);
+      resizeObserver.observe(element);
+
+      return () => resizeObserver.disconnect();
+    }
+  }, [results]);
+
   return (
-    <div className="w-full space-y-5">
-      {/* Strategy Filter */}
-      {strategies.length >= 2 && (
-        <div>
-          <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
-            Strategy
-          </p>
-          <div className="flex w-full flex-wrap gap-1.5">
-            <Chip
-              variant="filter"
-              active={activeStrategies.length === 0}
-              onClick={() => setActiveStrategies([])}
-            >
-              All
-            </Chip>
-            {strategies.map((strategy) => (
-              <Chip
-                key={strategy}
-                variant="filter"
-                active={activeStrategies.includes(strategy)}
-                onClick={() => handleStrategyToggleLocal(strategy)}
-                limit={22}
-              >
-                {strategy}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Category Filter */}
-      {categories.length >= 2 && (
-        <div>
-          <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
-            Category
-          </p>
-          <div className="flex w-full flex-wrap gap-1.5">
-            <Chip
-              variant="filter"
-              active={activeCategories.length === 0}
-              onClick={() => setActiveCategories([])}
-            >
-              All
-            </Chip>
-            {categories.map((category) => (
-              <Chip
-                key={category}
-                variant="filter"
-                active={activeCategories.includes(category)}
-                onClick={() => handleCategoryToggleLocal(category)}
-                limit={22}
-              >
-                {category}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Source Filter */}
-      {sources.length >= 2 && (
-        <div>
-          <p className="mb-2 text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
-            Source
-          </p>
-          <div className="flex w-full flex-wrap gap-1.5">
-            <Chip
-              variant="filter"
-              active={activeSources.length === 0}
-              onClick={() => setActiveSources([])}
-            >
-              All
-            </Chip>
-            {sources.map((source) => (
-              <Chip
-                key={source}
-                variant="filter"
-                active={activeSources.includes(source)}
-                onClick={() => handleSourceToggleLocal(source)}
-                limit={25}
-              >
-                {source}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    <ScrollShadow
+      id="filters-sidebar-scroll"
+      ref={filtersRef}
+      className={`h-[115vh] overflow-hidden ${isFiltersOverflowing && 'pr-2.5'} pb-2 hover:overflow-y-auto hover:pr-0`}
+      size={30}
+    >
+      <Accordion
+        className="w-full"
+        allowsMultipleExpanded
+        defaultExpandedKeys={new Set(['strategy', 'category', 'source'])}
+      >
+        {[
+          {
+            id: 'strategy',
+            title: 'Strategy',
+            items: strategies,
+            activeItems: activeStrategies,
+            onClear: () => setActiveStrategies([]),
+            onToggle: handleStrategyToggleLocal,
+            chipTextLimit: 25,
+            showWhen: strategies.length >= 2,
+          },
+          {
+            id: 'category',
+            title: 'Category',
+            items: categories,
+            activeItems: activeCategories,
+            onClear: () => setActiveCategories([]),
+            onToggle: handleCategoryToggleLocal,
+            chipTextLimit: 25,
+            showWhen: categories.length >= 2,
+          },
+          {
+            id: 'source',
+            title: 'Source',
+            items: sources,
+            activeItems: activeSources,
+            onClear: () => setActiveSources([]),
+            onToggle: handleSourceToggleLocal,
+            chipTextLimit: 25,
+            showWhen: sources.length >= 2,
+          },
+        ]
+          .filter((filter) => filter.showWhen)
+          .map((filter) => (
+            <Accordion.Item key={filter.id} id={filter.id}>
+              <Accordion.Heading>
+                <Accordion.Trigger className="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-(--color-bg-hover)">
+                  <span className="text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
+                    {filter.title}
+                  </span>
+                  <Accordion.Indicator className="text-(--color-text-muted)">
+                    <ChevronDown className="size-4" />
+                  </Accordion.Indicator>
+                </Accordion.Trigger>
+              </Accordion.Heading>
+              <Accordion.Panel>
+                <Accordion.Body>
+                  <div className="flex w-full flex-wrap gap-1.5 pt-2">
+                    <Chip
+                      variant="filter"
+                      active={filter.activeItems.length === 0}
+                      onClick={filter.onClear}
+                    >
+                      All
+                    </Chip>
+                    {filter.items.map((item) => (
+                      <Chip
+                        key={item}
+                        variant="filter"
+                        active={filter.activeItems.includes(item)}
+                        onClick={() => filter.onToggle(item)}
+                        limit={filter.chipTextLimit}
+                      >
+                        {item}
+                      </Chip>
+                    ))}
+                  </div>
+                </Accordion.Body>
+              </Accordion.Panel>
+            </Accordion.Item>
+          ))}
+      </Accordion>
+    </ScrollShadow>
   );
 }
 
