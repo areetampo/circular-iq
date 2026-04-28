@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Button, Chip, CopyIcon, Spinner } from '@/components/common';
+import { Button, Chip, CopyIcon, Separator, Spinner } from '@/components/common';
 import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
-import { formatTimestamp, formatRelativeTime, toTitleCase } from '@/lib/formatting';
+import { formatRelativeTime, formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 const scoreColor = (s) =>
@@ -210,17 +210,26 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       {/* Bottom row with additional stats and controls */}
       <div className="mt-5 flex items-center justify-between">
         {/* Additional stats */}
-        <div className="flex items-center gap-3 text-[0.7rem] text-(--color-text-muted) [&>span]:font-mono">
+        <div className="flex items-center gap-2 text-[0.7rem] text-(--color-text-muted) [&>span]:font-mono">
           {assessment.technical_feasibility && (
-            <span>Tech: {assessment.technical_feasibility}%</span>
+            <>
+              <span>Tech: {assessment.technical_feasibility}%</span>
+              <Separator orientation="vertical" />
+            </>
           )}
-          {assessment.economic_viability && <span>Econ: {assessment.economic_viability}%</span>}
+          {assessment.economic_viability && (
+            <>
+              <span>Econ: {assessment.economic_viability}%</span>
+              <Separator orientation="vertical" />
+            </>
+          )}
           {assessment.circularity_potential && (
-            <span>Circular: {assessment.circularity_potential}%</span>
+            <>
+              <span>Circular: {assessment.circularity_potential}%</span>
+              <Separator orientation="vertical" />
+            </>
           )}
-          {assessment.risk_level && (
-            <span className="font-medium">{assessment.risk_level.toUpperCase()} RISK</span>
-          )}
+          {assessment.risk_level && <span>{assessment.risk_level.toUpperCase()} RISK</span>}
         </div>
 
         {/* Controls */}
