@@ -44,7 +44,7 @@ function ResultCard({ result, isHybridMode }) {
   } = result;
 
   return (
-    <div className="group relative flex flex-col gap-4 rounded-2xl border border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border) hover:shadow-md">
+    <div className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border) hover:shadow-md">
       {/* 1) HEADER: title + score badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 font-sans text-[0.9375rem] leading-snug font-medium tracking-[-0.01em] text-(--color-text-primary)">
@@ -175,8 +175,32 @@ function ResultCard({ result, isHybridMode }) {
 }
 
 function ResultsGrid({ results, isHybridMode }) {
+  const [isResultsOverflowing, setIsResultsOverflowing] = useState(false);
+  const resultsRef = useRef(null);
+
+  useEffect(() => {
+    const element = resultsRef.current;
+    if (element) {
+      const checkOverflow = () => {
+        const isOverflowing = element.scrollHeight > element.clientHeight;
+        setIsResultsOverflowing(isOverflowing);
+      };
+
+      checkOverflow();
+      const resizeObserver = new ResizeObserver(checkOverflow);
+      resizeObserver.observe(element);
+
+      return () => resizeObserver.disconnect();
+    }
+  }, [results]);
+
   return (
-    <ScrollShadow style={{ height: '95vh' }} className="pb-2" size={30}>
+    <ScrollShadow
+      id="results-grid-scroll"
+      ref={resultsRef}
+      className={`h-[95vh] overflow-hidden ${isResultsOverflowing && 'pr-2.5'} pb-2 hover:overflow-y-auto hover:pr-0`}
+      size={30}
+    >
       <div className="flex flex-col gap-3">
         {results.map((result) => (
           <ResultCard key={result.id} result={result} isHybridMode={isHybridMode} />
