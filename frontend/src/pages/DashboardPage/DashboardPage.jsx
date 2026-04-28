@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/common';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
 import { formatRelativeTime } from '@/lib/formatting';
+import { cn } from '@/utils/cn';
 
 import { GlobalActivity, SolutionsSearch } from './components';
 
@@ -79,18 +80,23 @@ export default function DashboardPage() {
         </div>
 
         {/* Refresh button + updated at timestamp */}
-        <div className="flex flex-col items-end justify-center gap-2">
+        <div
+          className={cn(
+            'flex flex-col items-end justify-center gap-2',
+            globalLoading && 'items-center',
+          )}
+        >
           <Button
             onClick={handleRefresh}
             disabled={globalLoading}
             variant="teal"
-            className={globalLoading ? 'opacity-60' : ''}
+            className={cn(globalLoading && 'opacity-60')}
           >
-            <RotateCw size={15} className={globalLoading ? 'animate-spin' : ''} strokeWidth={2.5} />
+            <RotateCw size={15} className={cn(globalLoading && 'animate-spin')} strokeWidth={2.5} />
             Refresh
           </Button>
           <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
-            {globalLoading ? 'updating ...' : `updated ${formatRelativeTime(updatedAt)}`}
+            {globalLoading ? 'updating...' : `updated ${formatRelativeTime(updatedAt)}`}
           </p>
         </div>
       </div>
