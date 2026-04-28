@@ -137,15 +137,16 @@ export default function AppRoutes() {
             }
           />
 
-          {/* ─── Protected ─── */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <PageErrorBoundary pageName="Dashboard">
                 <DashboardPage />
-              </ProtectedRoute>
+              </PageErrorBoundary>
             }
           />
+
+          {/* ─── Protected ─── */}
           <Route
             path="/assessments"
             element={
