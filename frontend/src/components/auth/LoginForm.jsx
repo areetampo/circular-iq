@@ -23,10 +23,16 @@ export function LoginForm({ onSwitchToSignup }) {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: 'onBlur',
   });
+
+  const handleFillTestCredentials = () => {
+    setValue('username', FRONTEND_CONFIG.testCredentials.username);
+    setValue('password', FRONTEND_CONFIG.testCredentials.password);
+  };
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -182,7 +188,6 @@ export function LoginForm({ onSwitchToSignup }) {
             <span>Username: {FRONTEND_CONFIG.testCredentials.username}</span>
             <CopyButton
               strokeWidth={2.5}
-              className="ml-0.5"
               size={12}
               value={FRONTEND_CONFIG.testCredentials.username}
             />
@@ -192,11 +197,18 @@ export function LoginForm({ onSwitchToSignup }) {
             <span>Password: {FRONTEND_CONFIG.testCredentials.password}</span>
             <CopyButton
               strokeWidth={2.5}
-              className="ml-0.5"
               size={12}
               value={FRONTEND_CONFIG.testCredentials.password}
             />
           </div>
+          <Button
+            size="md"
+            variant="info-soft"
+            className="py-0.5 tracking-wide shadow-sm transition-all duration-200 active:scale-95"
+            onClick={handleFillTestCredentials}
+          >
+            FILL
+          </Button>
         </div>
       </div>
     </div>
