@@ -32,9 +32,6 @@ after(async () => {
   await closeAllPools();
 });
 
-// Mock the anonymous usage check to always allow (in case ENV doesn't set test mode)
-const originalEnforceAnonymousUsage = () => null;
-
 // Minimal mock supabase for scoring that returns controlled RPC data
 const mockSupabase = {
   rpc: async (name, params) => ({ data: [], error: null }),

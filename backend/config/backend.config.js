@@ -210,11 +210,6 @@ export const BACKEND_CONFIG = deepFreeze({
       endpoint: '/api/score/stream',
       description: 'RAG Analysis & Scoring with SSE Streaming (Rate Limited)',
     },
-    {
-      method: 'GET',
-      endpoint: '/api/score/test-anonymous-limit-tracking',
-      description: 'Test Anonymous Usage Limit Tracking',
-    },
 
     // Analytics
     { method: 'GET', endpoint: '/api/analytics', description: 'Analytics Summary' },

@@ -82,21 +82,6 @@ export default function createScoringRouter(openai, supabase) {
     keyGenerator: (req) => extractIPAddress(req),
   });
 
-  // helper endpoint for testing tracking
-  router.get('/test-anonymous-limit-tracking', async (req, res) => {
-    try {
-      const result = await scoringController.enforceAnonymousUsage(req, supabase, serviceSupabase);
-      res.json({ allowed: result === null, result });
-    } catch (err) {
-      logger.error({ err }, 'Failed to test anonymous limit tracking');
-      res.status(500).json({
-        error: err.message || 'Internal server error',
-        code: err.code || 'INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  });
-
   router.post('/', scoringRateLimiter, async (req, res) => {
     const start = Date.now();
     try {

@@ -435,10 +435,6 @@ Full scoring pipeline. Returns complete result object. Rate limited to 10 reques
 
 Server-Sent Events (SSE) streaming version of the scoring pipeline. Returns real-time progress updates during scoring. Same rate limiting as `/api/score`.
 
-#### GET `/api/score/test-anonymous-limit-tracking`
-
-Test endpoint for anonymous usage limit tracking. Returns current usage status for debugging rate limiting.
-
 ### Assessment Endpoints
 
 #### POST `/api/assessments`
