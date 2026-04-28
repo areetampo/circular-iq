@@ -878,7 +878,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 onChange={handleTogglePublic}
                 isDisabled={isUpdatingPublic}
               >
-                <Checkbox.Content className="-mr-1.5">
+                <Checkbox.Content className="-mr-1">
                   <Label htmlFor={`assessment-public-toggle-${currentData.id}`}>
                     <p className="text-[0.8125rem] font-medium opacity-80">
                       Public assessment{' '}
@@ -923,36 +923,44 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
               >
                 <div
                   className={cn(
-                    'flex items-center gap-2 [&>span]:font-mono',
-                    isUpdatingPublic && '[&>span]:opacity-30',
+                    'flex items-center gap-2 **:font-mono',
+                    '[&_*:first-child]:flex [&_*:first-child]:items-center [&_*:first-child]:gap-1',
                   )}
                 >
-                  <span>{displayPublicUrl}</span>
                   {isUpdatingPublic ? (
-                    <div className="opacity-20">
+                    <div className="opacity-30">
+                      <span>{displayPublicUrl}</span>
                       <ExternalLink
                         size={18}
                         strokeWidth={2}
-                        className="mx-1 mb-[4.5px] inline-flex cursor-not-allowed text-black/75"
+                        className="cursor-not-allowed text-black/75"
                       />
                     </div>
                   ) : (
-                    <Link to={publicUrl} target="_blank" rel="noopener noreferrer">
+                    <Link
+                      to={publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group"
+                    >
+                      <span className="underline-offset-3 group-hover:underline">
+                        {displayPublicUrl}
+                      </span>
                       <ExternalLink
                         size={18}
                         strokeWidth={2}
-                        className="mx-1 mb-[4.5px] inline-flex text-black/75 transition-transform duration-150 hover:scale-110 hover:text-black active:scale-95"
+                        className="text-black/75 transition-transform duration-150 group-hover:scale-110 group-hover:text-black active:scale-95"
                       />
                     </Link>
                   )}
-                  <span>{'/'}</span>
+                  <span className={isUpdatingPublic && 'opacity-30'}>/</span>
                   <CopyButton
                     value={publicUrl}
                     description="URL"
                     noBorder
                     isDisabled={isUpdatingPublic}
                   />
-                  <span>{'/'}</span>
+                  <span className={isUpdatingPublic && 'opacity-30'}>/</span>
                   <CopyButton
                     value={`${currentData.public_id}`}
                     description="ID"
