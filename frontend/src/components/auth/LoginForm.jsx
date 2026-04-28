@@ -67,9 +67,9 @@ export function LoginForm({ onSwitchToSignup }) {
     <div className="w-full md_lg:-mt-20">
       {/* Header */}
       <div className="mb-7 text-center">
-        <h2 className="text-center font-display text-[1.375rem] font-semibold tracking-[-0.01em] text-(--color-text-primary)">
+        <p className="text-center font-sans text-[1.375rem] font-medium tracking-[-0.01em] text-(--color-text-primary)">
           Sign in
-        </h2>
+        </p>
         <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
           Welcome back!
         </p>

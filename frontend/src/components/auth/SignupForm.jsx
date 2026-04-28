@@ -173,9 +173,9 @@ export function SignupForm({ onSwitchToLogin }) {
     <div className="w-full">
       {/* Header */}
       <div className="mb-7 text-center">
-        <h2 className="text-center text-[1.375rem] tracking-[-0.01em] text-(--color-text-primary)">
+        <p className="text-center font-sans text-[1.375rem] font-medium tracking-[-0.01em] text-(--color-text-primary)">
           Create Account
-        </h2>
+        </p>
         <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
           Join to start evaluating circular economy ideas
         </p>
