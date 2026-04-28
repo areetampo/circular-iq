@@ -48,7 +48,7 @@ export default function CopyButton({
       <button
         onClick={handleClick}
         className={cn(
-          'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-(--color-accent-light-mid)',
+          'flex cursor-pointer items-center justify-center p-0.5 transition-all duration-200',
           isDisabled && 'cursor-not-allowed opacity-30',
           className,
         )}
@@ -71,8 +71,8 @@ export default function CopyButton({
     <button
       onClick={handleClick}
       className={cn(
-        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200 hover:bg-(--color-accent-light-mid)',
-        noBorder ? '' : 'border-[1.5px] border-(--color-border-dark-20)',
+        'flex cursor-pointer items-center justify-center gap-2 rounded-xl px-2 py-0.5 transition-all duration-200',
+        noBorder ? '' : 'border-[1.5px] border-current',
         isDisabled && 'cursor-not-allowed opacity-30',
         className,
       )}
