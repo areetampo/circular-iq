@@ -122,8 +122,19 @@ export function getCurrentTimestampFormatted() {
 }
 
 /**
- * Formats a timestamp into a relative human-readable string with calendar accuracy.
- * @param {number|string|Date} timestamp - The value to compare against now.
+ * Formats a timestamp into a relative human-readable string.
+ *
+ * Rules:
+ *  <1 min   → "few seconds ago"
+ *  <1 hr    → "N mins ago"
+ *  <1 day   → "N hr [N mins] ago"          (mins omitted if 0)
+ *  <7 days  → "N day[s] [N hr[s]] ago"     (hrs omitted if 0)
+ *  <1 month → "N w [N day[s]] ago"         (days omitted if 0)
+ *  <1 year  → "N mo [N w | N day[s]] ago"  (sub-unit omitted if 0; days ≥7 → weeks)
+ *  ≥1 year  → "N yr[s] [N month[s] | N w] ago"
+ *               months shown if >0; else weeks if calDays ≥7; else nothing
+ *
+ * @param {number|string|Date} timestamp
  * @returns {string}
  */
 export function formatRelativeTime(timestamp) {
@@ -140,61 +151,73 @@ export function formatRelativeTime(timestamp) {
   const diffHrs = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHrs / 24);
 
-  // Helper to handle pluralization
-  const p = (count, unit) => `${count} ${unit}${count === 1 ? '' : 's'}`;
+  // pluralise: p(2, 'hr', 'hrs') → "2 hrs"
+  const p = (n, singular, plural = singular + 's') => `${n} ${n === 1 ? singular : plural}`;
 
   // 1. Under 1 minute
   if (diffMins < 1) return 'few seconds ago';
 
-  // 2. Under 1 hour
-  if (diffHrs < 1) return `${p(diffMins, 'min')} ago`;
+  // 2. Under 1 hour — mins only
+  if (diffHrs < 1) return `${p(diffMins, 'min', 'mins')} ago`;
 
-  // 3. Under 24 hours
-  if (diffHrs < 24) {
+  // 3 & 4. Under 24 hours — hr[s] + min[s] (omit mins if 0)
+  if (diffDays < 1) {
     const m = diffMins % 60;
-    return `${p(diffHrs, 'hr')} and ${p(m, 'min')} ago`;
+    const minPart = m > 0 ? ` ${p(m, 'min', 'mins')}` : '';
+    return `${p(diffHrs, 'hr', 'hrs')}${minPart} ago`;
   }
 
-  // 4. Under 7 days
+  // 5 & 6. Under 7 days — day[s] + hr[s] (omit hrs if 0)
   if (diffDays < 7) {
     const h = diffHrs % 24;
-    return `${p(diffDays, 'day')} and ${p(h, 'hr')} ago`;
+    const hrPart = h > 0 ? ` ${p(h, 'hr', 'hrs')}` : '';
+    return `${p(diffDays, 'day', 'days')}${hrPart} ago`;
   }
 
-  // 5. Under 1 month (Calendar precise)
-  const oneMonthLater = new Date(past);
-  oneMonthLater.setMonth(past.getMonth() + 1);
+  // --- Calendar-accurate from here ---
+  let calYears = now.getFullYear() - past.getFullYear();
+  let calMonths = now.getMonth() - past.getMonth();
+  let calDays = now.getDate() - past.getDate();
 
-  if (now < oneMonthLater) {
+  if (calDays < 0) {
+    calMonths -= 1;
+    calDays += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+  }
+  if (calMonths < 0) {
+    calYears -= 1;
+    calMonths += 12;
+  }
+
+  // Convert remaining calendar days → week string or day string (never both)
+  const subUnit = (d) => {
+    if (d <= 0) return '';
+    if (d >= 7) return ` ${p(Math.floor(d / 7), 'w', 'w')}`;
+    return ` ${p(d, 'day', 'days')}`;
+  };
+
+  // 7. Under 1 calendar month — weeks + days (omit days if 0)
+  //    (we reach here only when calYears === 0 && calMonths === 0)
+  if (calYears === 0 && calMonths === 0) {
     const weeks = Math.floor(diffDays / 7);
     const d = diffDays % 7;
-    // Requirement: "1 w 2 days"
-    return `${weeks} w ${p(d, 'day')} ago`;
+    const dayPart = d > 0 ? ` ${p(d, 'day', 'days')}` : '';
+    return `${p(weeks, 'w', 'w')}${dayPart} ago`;
   }
 
-  // 6 & 7. Months and Years
-  let years = now.getFullYear() - past.getFullYear();
-  let months = now.getMonth() - past.getMonth();
-  let days = now.getDate() - past.getDate();
-
-  if (days < 0) {
-    months -= 1;
-    const tempDate = new Date(past);
-    tempDate.setFullYear(past.getFullYear() + years);
-    tempDate.setMonth(past.getMonth() + months);
-    days = Math.floor((now - tempDate) / (1000 * 60 * 60 * 24));
+  // 8. Under 1 year — mo + (weeks or days, omit if 0)
+  if (calYears === 0) {
+    return `${p(calMonths, 'mo', 'mo')}${subUnit(calDays)} ago`;
   }
 
-  if (months < 0) {
-    years -= 1;
-    months += 12;
+  // 9. 1+ years — yr[s] + month[s]  OR  yr[s] + w  OR  yr[s] only
+  //    (days < 7 are discarded at the year scale)
+  let suffix = '';
+  if (calMonths > 0) {
+    suffix = ` ${p(calMonths, 'month', 'months')}`;
+  } else if (calDays >= 7) {
+    suffix = ` ${p(Math.floor(calDays / 7), 'w', 'w')}`;
   }
-
-  if (years >= 1) {
-    return `${p(years, 'yr')} and ${p(months, 'month')} ago`;
-  }
-
-  return `${p(months, 'mo')} ${p(days, 'day')} ago`;
+  return `${p(calYears, 'yr', 'yrs')}${suffix} ago`;
 }
 
 /**
