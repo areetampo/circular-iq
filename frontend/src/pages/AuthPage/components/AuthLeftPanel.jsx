@@ -43,11 +43,11 @@ export default function AuthLeftPanel() {
           <span>Start an Assessment</span>
         </Button>
         <div className="flex items-center justify-center gap-3">
-          <Button variant="teal" as={Link} to="/guide">
+          <Button variant="success-soft" as={Link} to="/guide">
             <TextSearch size={16} strokeWidth={2} />
             <span>View Guide</span>
           </Button>
-          <Button variant="teal" as={Link} to="/dashboard?activeTab=search">
+          <Button variant="success-soft" as={Link} to="/dashboard?activeTab=search">
             <Telescope size={16} strokeWidth={2} />
             <span>Explore Solutions</span>
           </Button>
