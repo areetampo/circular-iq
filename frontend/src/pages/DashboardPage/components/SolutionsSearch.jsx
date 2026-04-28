@@ -1,4 +1,5 @@
 import {
+  Accordion,
   Checkbox,
   Label,
   Pagination,
@@ -8,8 +9,8 @@ import {
   Tooltip,
 } from '@heroui/react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { Building2, ChevronDown, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import {
@@ -395,18 +396,26 @@ export function SolutionsSearch() {
   // Parse multi-value parameters from URL
   const parseMultiParam = (raw) => (raw ? raw.split(',').filter(Boolean) : []);
 
-  // ── State derived from URL (reactive) ───────────────────────────────────────────
-  // URL as the single source of truth — recalculate on every render
-  const query = searchParams.get('searchQuery') || '';
-  const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
-    ? searchParams.get('mode')
-    : 'hybrid';
-  const pageRaw = parseInt(searchParams.get('page') || '1', 10);
-  const page = Number.isNaN(pageRaw) || pageRaw < 1 ? 1 : pageRaw;
+  // ── State derived from URL (memoized for performance) ──────────────────────────
+  const searchState = useMemo(() => {
+    const query = searchParams.get('searchQuery') || '';
+    const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
+      ? searchParams.get('mode')
+      : 'hybrid';
+    const pageRaw = parseInt(searchParams.get('page') || '1', 10);
+    const page = Number.isNaN(pageRaw) || pageRaw < 1 ? 1 : pageRaw;
 
-  const activeStrategies = parseMultiParam(searchParams.get('strategies'));
-  const activeCategories = parseMultiParam(searchParams.get('categories'));
-  const activeSources = parseMultiParam(searchParams.get('sources'));
+    return {
+      query,
+      mode,
+      page,
+      activeStrategies: parseMultiParam(searchParams.get('strategies')),
+      activeCategories: parseMultiParam(searchParams.get('categories')),
+      activeSources: parseMultiParam(searchParams.get('sources')),
+    };
+  }, [searchParams]);
+
+  const { query, mode, page, activeStrategies, activeCategories, activeSources } = searchState;
 
   // Generic URL updater helper
   const updateParams = useCallback(
@@ -424,7 +433,7 @@ export function SolutionsSearch() {
     [searchParams, setSearchParams],
   );
 
-  const debouncedQuery = useDebounce(query, 400);
+  const debouncedQuery = useDebounce(query, 250);
   const ITEMS_PER_PAGE = 5;
   const queryClient = useQueryClient();
 
@@ -455,20 +464,25 @@ export function SolutionsSearch() {
   // Handle query changes
   const handleQueryChange = useCallback(
     (val) => {
-      const next = new URLSearchParams(searchParams);
-      if (val) {
-        next.set('searchQuery', val);
-      } else {
-        // No query → remove all search-related params
-        ['searchQuery', 'page', 'mode', 'strategies', 'categories', 'sources'].forEach((p) =>
-          next.delete(p),
-        );
-      }
-      // Reset page when query changes
-      next.delete('page');
-      setSearchParams(next, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (val) {
+            next.set('searchQuery', val);
+          } else {
+            // No query → remove all search-related params
+            ['searchQuery', 'page', 'mode', 'strategies', 'categories', 'sources'].forEach((p) =>
+              next.delete(p),
+            );
+          }
+          // Reset page when query changes
+          next.delete('page');
+          return next;
+        },
+        { replace: true },
+      );
     },
-    [searchParams, setSearchParams],
+    [setSearchParams],
   );
 
   // Handle mode changes
