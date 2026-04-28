@@ -263,7 +263,7 @@ export default function SampleTestCasesContainer({
                 .map(([key, value]) => {
                   return (
                     <Chip key={key} size="xs" variant="score-pill" color={getScoreColor(value)}>
-                      {key.replace(/_/g, ' ')}: {value}
+                      {`${key.replace(/_/g, ' ')}: ${value}`}
                     </Chip>
                   );
                 })}

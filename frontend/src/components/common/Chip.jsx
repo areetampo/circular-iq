@@ -104,7 +104,7 @@ const variantStyles = {
 
   // Score pills - for sample test case score displays
   'score-pill': [
-    'rounded-full border font-medium font-mono font-semibold',
+    'rounded-full border font-medium font-sniglet',
     'transition-all duration-150 ease-in-out',
   ].join(' '),
 };

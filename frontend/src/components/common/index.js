@@ -14,4 +14,3 @@ export { default as SectionHeading } from './SectionHeading';
 export { default as Separator } from './Separator';
 export { default as Spinner } from './Spinner';
 export { default as TruncatedTextTooltip } from './TruncatedTextTooltip';
-
