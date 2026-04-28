@@ -133,7 +133,7 @@ export default function CompareForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl/tight font-bold text-(--color-text-primary)">
+        <h1 className="font-sans text-3xl/tight font-medium text-(--color-text-primary)">
           Compare Assessments
         </h1>
         <p className="mt-2 text-sm text-(--color-text-secondary)">

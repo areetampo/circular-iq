@@ -1,4 +1,4 @@
-import { Drawer, Separator } from '@heroui/react';
+import { Drawer } from '@heroui/react';
 import { PencilLine } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -75,8 +75,6 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                   </p>
                 </div>
 
-                <Separator variant="secondary" />
-
                 {/* Business Solution Section */}
                 <div className="mt-6">
                   <h3 className="mb-3 font-mono text-xs font-semibold tracking-widest uppercase">
@@ -86,8 +84,6 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                     {solution}
                   </p>
                 </div>
-
-                <Separator variant="secondary" />
 
                 {/* Evaluation Parameters Section */}
                 {evaluationParameters && Object.keys(evaluationParameters).length > 0 && (
@@ -169,8 +165,6 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requ
                     </div>
                   </div>
                 )}
-
-                <Separator variant="secondary" />
 
                 {/* Business Context Section */}
                 {filteredBusinessContext.length > 0 && (

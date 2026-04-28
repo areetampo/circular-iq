@@ -1,9 +1,10 @@
-import { Accordion, cn, Label, NumberField, Separator } from '@heroui/react';
+import { Accordion, cn, Label, NumberField } from '@heroui/react';
 import { ChevronDown, Info, Minus } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import { Separator } from '@/components/common';
 import {
   parameterGroups,
   parameterGuidance,
@@ -241,16 +242,7 @@ function EvaluationParametersContainer({
                         <div className="flex flex-1 flex-col items-center px-2 py-1">
                           <ParameterBox paramGroupIdx={groupIdx} paramKey={key} loading={loading} />
                         </div>
-                        {idx < group.length - 1 && (
-                          <div className="flex items-center justify-center">
-                            <div className="my-2 hidden w-px self-stretch bg-border md:block" />
-                            <Separator
-                              orientation="horizontal"
-                              variant="secondary"
-                              className="w-2/3 md:hidden"
-                            />
-                          </div>
-                        )}
+                        {idx < group.length - 1 && <Separator pct={70} wrapperCn="md:hidden" />}
                       </React.Fragment>
                     ))}
                   </div>

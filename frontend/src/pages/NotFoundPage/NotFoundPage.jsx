@@ -1,19 +1,18 @@
-import { Separator } from '@heroui/react';
 import { BarChart3, Book, Compass, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/components/common';
+import { Button, Separator } from '@/components/common';
 
 export default function NotFoundPage() {
   return (
     <div className="flex min-h-[80vh] w-full flex-col items-center justify-center px-6 py-16 text-center">
       {/* 404 numeral — large editorial */}
-      <p className="font-jua text-[7.5rem] leading-none font-bold tracking-tight text-(--color-accent) select-none">
+      <p className="font-jua text-[7.5rem] leading-none font-bold tracking-tight text-(--color-accent) text-shadow-lg">
         404
       </p>
 
       {/* Heading + description */}
-      <h1 className="mt-3 font-display text-[1.625rem] font-semibold text-(--color-text-primary)">
+      <h1 className="mt-3 font-sans text-[1.625rem] font-medium text-(--color-text-primary) text-shadow-md">
         Page Not Found
       </h1>
       <p className="mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed text-(--color-text-muted)">
@@ -21,9 +20,7 @@ export default function NotFoundPage() {
         deleted.
       </p>
 
-      <div className="flex w-full justify-center">
-        <Separator variant="secondary" className="my-8 w-1/12" />
-      </div>
+      <Separator pct={10} wrapperCn="my-8" />
 
       {/* Navigation options */}
       <div className="mb-8 grid gap-4 text-left sm:grid-cols-2">

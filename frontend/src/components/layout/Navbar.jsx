@@ -1,9 +1,9 @@
-import { Avatar, Popover, Separator, Tooltip } from '@heroui/react';
+import { Avatar, Popover, Tooltip } from '@heroui/react';
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, SiteLogo, SiteName } from '@/components/common';
+import { Button, Separator, SiteLogo, SiteName } from '@/components/common';
 import {
   getTooltipTextForNavItemsSecondary,
   navigationItems,
@@ -155,7 +155,7 @@ export default function Navbar() {
                           </div>
                         </div>
                       </div>
-                      <Separator className="my-2" variant="secondary" />
+                      <Separator wrapperCn="my-2" />
                     </>
                   )}
 
@@ -193,7 +193,7 @@ export default function Navbar() {
                     );
                   })}
 
-                  <Separator className="my-2" variant="secondary" />
+                  <Separator wrapperCn="my-2" />
 
                   {/* Sign out / Sign in */}
                   <div className="px-2 pt-1 pb-2">
@@ -269,7 +269,7 @@ export default function Navbar() {
                           </div>
                         </div>
                       </div>
-                      <Separator className="my-2" variant="secondary" />
+                      <Separator wrapperCn="my-2" />
                     </>
                   )}
 
@@ -330,7 +330,7 @@ export default function Navbar() {
                     );
                   })}
 
-                  <Separator className="my-2" variant="secondary" />
+                  <Separator wrapperCn="my-2" />
 
                   {/* Auth action */}
                   <div className="px-2 pt-1 pb-2">

@@ -3,7 +3,9 @@
  * Skeleton for AssessmentViewPage (/assessments/share?id=)
  * Accurately matches the actual component structure and layout
  */
-import { Separator, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
+
+import { Separator } from '@/components/common';
 
 export default function AssessmentViewPageSkeleton() {
   return (
@@ -67,7 +69,7 @@ export default function AssessmentViewPageSkeleton() {
                       </div>
                       <Skeleton className="size-4" />
                     </div>
-                    <Separator variant="secondary" />
+                    <Separator />
                   </div>
                 ))}
               </div>

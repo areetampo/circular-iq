@@ -2,7 +2,9 @@
  * ResultsSkeleton Component
  * Clean skeleton with no borders, only content skeletons preserving exact spacing
  */
-import { Separator, Skeleton } from '@heroui/react';
+import { Skeleton } from '@heroui/react';
+
+import { Separator } from '@/components/common';
 
 export default function ResultsSkeleton() {
   return (
@@ -52,9 +54,7 @@ export default function ResultsSkeleton() {
         </div>
       </div>
 
-      <div className="flex w-full items-center justify-center">
-        <Separator variant="secondary" className="mt-4 mb-6 w-1/2" />
-      </div>
+      <Separator pct={50} wrapperCn="mt-4 mb-6" />
 
       {/* Case Summary skeleton */}
       <div data-export-section="case-summary">
@@ -73,7 +73,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4" />
             </div>
-            <Separator variant="secondary" />
+            <Separator />
           </div>
 
           {/* Solution accordion skeleton */}
@@ -88,7 +88,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4" />
             </div>
-            <Separator variant="secondary" />
+            <Separator />
           </div>
 
           {/* Business Context accordion skeleton */}
@@ -103,7 +103,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4" />
             </div>
-            <Separator variant="secondary" />
+            <Separator />
           </div>
 
           {/* Parameter accordion skeleton */}
@@ -118,7 +118,7 @@ export default function ResultsSkeleton() {
               </div>
               <Skeleton className="size-4" />
             </div>
-            <Separator variant="secondary" />
+            <Separator />
           </div>
         </div>
       </div>

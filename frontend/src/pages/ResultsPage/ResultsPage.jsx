@@ -1,4 +1,4 @@
-import { Checkbox, Label, Separator, toast } from '@heroui/react';
+import { Checkbox, Label, toast } from '@heroui/react';
 import {
   BarChart3,
   CheckCircle2,
@@ -16,7 +16,7 @@ import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { SectionHeading, Spinner } from '@/components/common';
+import { SectionHeading, Separator, Spinner } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -974,9 +974,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         )}
       </div>
 
-      <div className="flex w-full items-center justify-center">
-        <Separator variant="secondary" className="mt-4 mb-6 w-1/2" />
-      </div>
+      <Separator pct={50} wrapperCn="mt-4 mb-6" />
 
       {/* Case Summary */}
       <div data-export-section="case-summary" className="p-1 sm:p-3">
@@ -1005,50 +1003,50 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
           reportTips={reportTips}
         />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <CircularEconomyTierCard actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <WeightedScoreCard actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <ParameterConsistencyCard actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <RStrategyAlignmentCard actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <ScoreCategoryBreakdown actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <GapAnalysisCard actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <IndustryMetadataSection actualResult={actualResult} fieldHelp={fieldHelp} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <CategoryAnalysis
           actualResult={actualResult}
           resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
         />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <PerformanceComparison
           resolvedRadarData={resolvedRadarData}
           radarConfigs={radarConfigs}
           detailLoading={detailLoading}
         />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <IntegrityAnalysis strengths={strengths} gaps={gaps} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <AuditSummaryCard actualResult={actualResult} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <DatabaseEvidenceCard actualResult={actualResult} casesSummaries={casesSummaries} />
-        <Separator variant="secondary" className="my-8" />
+        <Separator pct={40} wrapperCn="my-8" />
 
         <SectionHeading
           variant="small"

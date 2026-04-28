@@ -1,4 +1,4 @@
-import { Drawer, Separator } from '@heroui/react';
+import { Drawer } from '@heroui/react';
 import {
   BookCopy,
   ChartSpline,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
+import { Separator } from '@/components/common';
 import { ASSESSMENT_METHODOLOGY_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks/useDrawerDirection';
@@ -93,9 +94,7 @@ export default function AssessmentMethodologyDrawer() {
                 ))}
               </div>
 
-              <div className="flex w-full justify-center">
-                <Separator className="w-3/5" variant="secondary" />
-              </div>
+              <Separator pct={60} />
 
               {/* Data Sources Section */}
               <div className="space-y-4">

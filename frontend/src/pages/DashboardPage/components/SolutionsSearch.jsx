@@ -5,7 +5,6 @@ import {
   Pagination,
   ScrollShadow,
   SearchField,
-  Separator,
   Tooltip,
 } from '@heroui/react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ import {
   DetailsBadge,
   DetailsDisplay,
   ExpandableText,
+  Separator,
   Spinner,
   TruncatedTextTooltip,
 } from '@/components/common';
@@ -93,7 +93,7 @@ function ResultCard({ result, isHybridMode }) {
       {/* 4) SOLUTION or SUMMARY */}
       {solution && (
         <div>
-          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <Separator wrapperCn="mb-3" />
           <p className="mb-1 text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
             Solution
           </p>
@@ -104,7 +104,7 @@ function ResultCard({ result, isHybridMode }) {
       )}
       {!solution && summary && (
         <div>
-          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <Separator wrapperCn="mb-3" />
           <p className="mb-1 text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
             Summary
           </p>
@@ -120,7 +120,7 @@ function ResultCard({ result, isHybridMode }) {
       {/* 5) IMPACT */}
       {impact && (
         <div>
-          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <Separator wrapperCn="mb-3" />
           <p className="mt-0.5 mb-1 text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
             Impact
           </p>
@@ -136,7 +136,7 @@ function ResultCard({ result, isHybridMode }) {
       {/* 6) FOOTER: company + source */}
       {(company || source_url) && (
         <div className="mt-1">
-          <Separator orientation="horizontal" className="mb-3" variant="secondary" />
+          <Separator wrapperCn="mb-3" />
           <div className="flex items-center justify-between gap-2">
             {company ? (
               <div className="flex items-center gap-1 text-xs text-(--color-text-muted)">

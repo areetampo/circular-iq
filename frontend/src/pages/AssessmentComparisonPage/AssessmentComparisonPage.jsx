@@ -1,14 +1,13 @@
-import { Separator, Tooltip, toast } from '@heroui/react';
+import { Tooltip, toast } from '@heroui/react';
 import { Download, ExternalLink, FingerprintPattern, MoveLeft } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/common';
+import { Button, Separator } from '@/components/common';
 import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV, exportComparisonPDF } from '@/features/export';
-import { getCurrentTimestampFormatted } from '@/lib/formatting';
 
 import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
 import { computeAssessmentData } from './utils/assessmentUtils';
@@ -145,8 +144,8 @@ export default function AssessmentComparisonPage() {
         <Tooltip.Content showArrow>
           <p className="wrap-break-word">
             View
-            <span className="mx-1 font-medium whitespace-nowrap underline decoration-1 underline-offset-4">
-              {assessment.title}djhasjdsajdhajshdjkasfdsfsffsfsfdsfs
+            <span className="mx-1 font-medium whitespace-nowrap underline decoration-1 underline-offset-3">
+              {assessment.title}
             </span>
             separately
           </p>
@@ -164,8 +163,8 @@ export default function AssessmentComparisonPage() {
     <div className="mt-6 w-full space-y-0">
       {/* Sticky header: A1 title + score | VS + delta | A2 title + score */}
       <div className="sticky top-0 z-9999 bg-(--color-bg) px-6 py-4">
-        <Separator variant="secondary" className="absolute inset-x-0 bottom-0" />
-        <Separator variant="secondary" className="absolute inset-x-0 top-0" />
+        <Separator wrapperCn="absolute inset-x-0 bottom-0" />
+        <Separator wrapperCn="absolute inset-x-0 top-0" />
         <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4">
           <div className="pl-4">
             <AssessmentTitleWithLink assessment={assessment1} publicId={publicId1} />
@@ -261,11 +260,7 @@ export default function AssessmentComparisonPage() {
       >
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
           <div className="relative pr-6 lg:pr-8">
-            <Separator
-              orientation="vertical"
-              variant="secondary"
-              className="absolute top-0 right-0 h-full"
-            />
+            <Separator orientation="vertical" wrapperCn="absolute top-0 right-0 h-full" />
             <AssessmentColumn
               assessment={assessment1}
               scoringResult={scoringResult1}
@@ -287,11 +282,7 @@ export default function AssessmentComparisonPage() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 flex items-center justify-between p-6">
-        <Separator variant="secondary" className="absolute inset-x-0 top-0" />
-        <p className="text-sm font-medium text-(--color-text-muted)">
-          Last updated: {getCurrentTimestampFormatted()}
-        </p>
+      <div className="mt-8 flex items-center justify-end">
         <Button variant="ghost" as={Link} to="/assessments">
           <MoveLeft size={16} /> Back to Assessments
         </Button>

@@ -1,5 +1,6 @@
-import { Separator } from '@heroui/react';
 import PropTypes from 'prop-types';
+
+import { Separator } from '@/components/common';
 
 function DashboardSectionHeading({ label, count }) {
   return (
@@ -10,7 +11,7 @@ function DashboardSectionHeading({ label, count }) {
         </span>
         {count != null && <span className="text-sm text-(--color-text-muted)">{count}</span>}
       </div>
-      <Separator variant="secondary" />
+      <Separator />
     </div>
   );
 }

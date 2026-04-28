@@ -87,7 +87,7 @@ export default function SharePage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-lg flex-col justify-center px-6 py-12">
-      <h1 className="mb-4 font-display text-2xl/tight font-bold text-(--color-text-primary)">
+      <h1 className="mb-4 font-sans text-2xl/tight font-medium text-(--color-text-primary)">
         Open a Shared Assessment
       </h1>
       <p className="mb-8 max-w-md text-sm text-(--color-text-secondary)">

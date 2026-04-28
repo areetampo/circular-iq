@@ -1,4 +1,4 @@
-import { Accordion, ScrollShadow, Separator, Table } from '@heroui/react';
+import { Accordion, ScrollShadow, Table } from '@heroui/react';
 import {
   BookCopy,
   Check,
@@ -18,14 +18,14 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Chip } from '@/components/common';
+import { Chip, Separator } from '@/components/common';
 import { cn } from '@/utils/cn';
 
 import { GUIDE_PAGE_CONTENT } from './content';
 
 // Reusable Section Heading Component
 const SectionHeading = ({ children }) => (
-  <h2 className="mb-1 font-display text-2xl font-bold text-(--color-text-primary)">{children}</h2>
+  <p className="mb-1 font-sans text-2xl font-medium text-(--color-text-primary)">{children}</p>
 );
 
 // Parameter category border colors
@@ -1001,7 +1001,7 @@ const EvaluationCriteriaSection = () => {
             <div key={i} className="relative flex flex-col items-center px-2 text-center">
               {/* Connector line — only between steps, not after last */}
               {i < GUIDE_PAGE_CONTENT.evaluationCriteria.calculationSteps.length - 1 && (
-                <Separator className="absolute top-4 left-1/2" variant="secondary" />
+                <Separator wrapperCn="absolute top-4 left-1/2" />
               )}
               <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-accent) text-sm font-medium text-white">
                 {step.number}
@@ -1745,9 +1745,11 @@ export default function GuidePage() {
     <div className="mx-auto mt-8 max-w-6xl">
       {/* Page header */}
       <div className="mb-8 flex items-center justify-between pl-8">
-        <h2 className="flex items-center gap-3 text-3xl font-semibold text-mist-900 *:font-display">
-          <span>Circular Economy Evaluation Guide</span>
-          <TextSearch strokeWidth={2.5} size={32} className="mt-1" />
+        <h2 className="flex items-center gap-3 text-3xl">
+          <span className="font-sans font-medium text-mist-900">
+            Circular Economy Evaluation Guide
+          </span>
+          <TextSearch strokeWidth={2.5} size={32} />
         </h2>
       </div>
 
@@ -1767,7 +1769,7 @@ export default function GuidePage() {
             {sections.map((section, index) => (
               <React.Fragment key={index}>
                 {section}
-                {index < sections.length - 1 && <Separator variant="secondary" className="my-12" />}
+                {index < sections.length - 1 && <Separator pct={40} wrapperCn="my-12" />}
               </React.Fragment>
             ))}
           </div>
