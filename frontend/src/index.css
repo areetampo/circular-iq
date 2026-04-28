@@ -250,7 +250,6 @@
   --theme-checkbox-hover: #6b5537;
   --theme-textarea-focus-ring: #735c3f;
   --theme-input-focus-ring: #a88c6b;
-  --theme-scrollbar-thumb: #cebeab;
   --theme-dropdown-hover: #e8ddcb;
   --theme-icon-accent: #7a5c2e;
   --theme-icon-success: #2d5a3d;
@@ -388,9 +387,6 @@
   --color-drawer-close-hover-bg: var(--theme-drawer-close-hover-bg);
   --color-drawer-close-hover-text: var(--theme-text-primary);
   --color-app-bg: #f0eadf;
-  --color-scrollbar-thumb: var(--theme-scrollbar-thumb);
-  --color-scrollbar-track: var(--theme-bg-primary);
-  --color-scrollbar-thumb-hover: var(--theme-accent);
   --color-select-bg: var(--theme-select-bg);
   --color-select-bg-hover: var(--theme-select-bg-hover);
   --color-select-popover-bg: var(--theme-select-popover-bg);
@@ -2286,27 +2282,26 @@
   }
 
   /* ============================================= */
-  /*  SCROLLBAR STYLES                             */
+  /*  SCROLLBAR                             */
   /* ============================================= */
 
+  html,
+  body,
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    scrollbar-color: #cebeab transparent;
   }
 
-  ::-webkit-scrollbar {
-    @apply h-2.25 w-2.25;
+  *::-webkit-scrollbar {
+    width: 8px;
   }
 
-  ::-webkit-scrollbar-track {
-    @apply border-l border-(--color-border-ui) bg-(--color-scrollbar-track);
+  *::-webkit-scrollbar-thumb {
+    background: #cebeab;
+    border-radius: 9999px;
   }
 
-  ::-webkit-scrollbar-thumb {
-    @apply rounded-[20px] border-2! border-(--color-scrollbar-track)! bg-(--color-scrollbar-thumb)! transition-colors duration-200 ease-in-out;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-(--color-scrollbar-thumb-hover)!;
+  *::-webkit-scrollbar-thumb:hover {
+    background: #cea881;
   }
 }
