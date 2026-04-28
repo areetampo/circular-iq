@@ -9,8 +9,6 @@ import { cn } from '@/utils/cn';
 const variantStyles = {
   primary:
     'bg-(--color-accent) text-white hover:bg-(--color-accent-hover) border border-transparent',
-  secondary:
-    'bg-transparent text-(--color-text-primary) border border-(--color-border-strong) hover:border-(--color-primary-900)/20 hover:bg-black/5',
   ghost:
     'bg-(--color-accent-soft-10) text-(--color-text-secondary) border border-transparent hover:text-(--color-text-primary) hover:bg-(--color-hover-accent-strong)',
   ghastly:
@@ -22,11 +20,14 @@ const variantStyles = {
   'dialog-primary': 'bg-(--color-accent) text-white w-full hover:bg-(--color-accent-hover)',
   'dialog-secondary':
     'bg-transparent text-(--color-text-secondary) w-full border border-(--color-border-strong) hover:bg-(--color-accent-light)',
-  'eco-soft':
-    'bg-transparent text-(--color-accent) border border-(--color-border-ui) hover:border-(--color-accent)/20 hover:bg-(--color-accent-light)',
   teal: 'bg-(--color-success) text-white hover:bg-(--color-success-hover) border border-transparent',
-  'neutral-soft':
-    'bg-transparent text-(--color-text-secondary) border border-(--color-border-ui) hover:border-(--color-accent)/20 hover:text-(--color-accent)',
+  'neutral-soft': 'text-(--color-accent) bg-(--color-accent-soft-ui) hover:bg-(--color-accent)/20',
+  'info-soft': 'text-(--color-info) bg-(--color-info-soft-ui) hover:bg-(--color-info)/20',
+  'success-soft':
+    'text-(--color-success) bg-(--color-success-soft-ui) hover:bg-(--color-success)/20',
+  'warning-soft':
+    'text-(--color-warning) bg-(--color-warning-soft-ui) hover:bg-(--color-warning)/20',
+  'danger-soft': 'text-(--color-error) bg-(--color-error-soft-ui) hover:bg-(--color-error)/20',
 };
 
 const sizeStyles = {
@@ -62,7 +63,7 @@ const getSpinnerSize = (size) => spinnerSizeMap[size] || 16;
 
 export const Button = forwardRef(function Button(
   {
-    className = '',
+    className,
     variant = 'primary',
     size = 'md',
     fullWidth = false,
