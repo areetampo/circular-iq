@@ -56,10 +56,11 @@ if (!parsed.success) {
     logger.error(
       '✕ Test environment validation failed, ensure all required variables are set in env/.env.test',
     );
-    process.exit(1);
   } else {
-    process.exit(1);
+    logger.error('✕ Environment validation failed, check your environment variables configuration');
   }
+
+  process.exit(1);
 }
 
 const env = Object.freeze({ ...parsed.data });
@@ -74,7 +75,7 @@ if (env.STRICT_ENV) {
     .map(([key]) => key);
 
   if (missingExplicit.length > 0) {
-    logger.error({ missingExplicit }, 'STRICT_ENV enabled and missing explicit values');
+    logger.error({ missingExplicit }, '✕ STRICT_ENV enabled and missing explicit values');
     process.exit(1);
   }
 }
