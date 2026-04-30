@@ -1,68 +1,33 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleCheck, CircleDot, CircleX, Eye, EyeOff } from 'lucide-react';
-import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, DetailsBadge, SITE_FULL_NAME } from '@/components/common';
 import { signInWithUsername, signUpWithUsername } from '@/lib/auth';
-import { AUTH_VALIDATION, signupSchema } from '@/lib/validation';
+import {
+  AUTH_VALIDATION,
+  signupSchema,
+  validatePasswordLength,
+  validatePasswordMatch,
+  validatePasswordNoSpaces,
+  validatePasswordSpecialChar,
+  validateUsernameChars,
+  validateUsernameHasLetter,
+  validateUsernameLength,
+  validateUsernameNoSpaces,
+} from '@/lib/validation';
 import { cn } from '@/utils/cn';
 
-// Validation helper functions
-const validateUsernameLength = (value) => {
-  const length = value?.trim().length || 0;
-  return (
-    length >= AUTH_VALIDATION.USERNAME.MIN_LENGTH && length <= AUTH_VALIDATION.USERNAME.MAX_LENGTH
-  );
-};
-
-const validateUsernameChars = (value) => {
-  const trimmed = value?.trim() || '';
-  // Only letters, numbers, - and _ allowed
-  const charsRegex = /^[a-zA-Z0-9_-]+$/;
-  return charsRegex.test(trimmed);
-};
-
-const validateUsernameHasLetter = (value) => {
-  const trimmed = value?.trim() || '';
-  // Must contain at least one letter
-  const letterRegex = /[a-zA-Z]/;
-  return letterRegex.test(trimmed);
-};
-
-const validateUsernameNoSpaces = (value) => {
-  // No spaces allowed - check the actual value without trimming
-  const noSpacesRegex = /^\S*$/;
-  return noSpacesRegex.test(value || '');
-};
-
-const validatePasswordLength = (value) => {
-  const length = value?.length || 0;
-  return (
-    length >= AUTH_VALIDATION.PASSWORD.MIN_LENGTH && length <= AUTH_VALIDATION.PASSWORD.MAX_LENGTH
-  );
-};
-
-const validatePasswordSpecialChar = (value) => {
-  // Must include at least one special character
-  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-  return specialCharRegex.test(value || '');
-};
-
-const validatePasswordNoSpaces = (value) => {
-  // No spaces allowed - check the actual value without trimming
-  const noSpacesRegex = /^\S*$/;
-  return noSpacesRegex.test(value || '');
-};
-
-const validatePasswordMatch = (password, confirmPassword) => {
-  return password === confirmPassword && password.length > 0;
-};
-
-// Reusable validation rule component
+/**
+ * Reusable validation rule component.
+ * @param {boolean} isValid - Whether the validation passed.
+ * @param {boolean} hasInput - Whether the field has input.
+ * @param {React.ReactNode} children - The validation text.
+ * @returns {React.ReactNode} The validation rule component.
+ */
 const ValidationRule = ({ isValid, hasInput, children }) => (
   <div
     className={cn(
@@ -81,7 +46,16 @@ const ValidationRule = ({ isValid, hasInput, children }) => (
   </div>
 );
 
-export function SignupForm({ onSwitchToLogin }) {
+/**
+ * A signup form component that handles new user registration.
+ * Exposes a `submit` method via ref to programmatically trigger form submission.
+ *
+ * @param {Object} props - Component props
+ * @param {() => void} props.onSwitchToLogin - Callback function to switch back to the login form view
+ * @param {React.ForwardedRef<{ submit: () => void }>} ref - Ref to expose the submit method
+ * @returns {JSX.Element} Rendered signup form
+ */
+const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -99,6 +73,10 @@ export function SignupForm({ onSwitchToLogin }) {
     resolver: zodResolver(signupSchema),
     mode: 'onChange',
   });
+
+  useImperativeHandle(ref, () => ({
+    submit: handleSubmit(onSubmit),
+  }));
 
   const formData = watch();
 
@@ -372,8 +350,6 @@ export function SignupForm({ onSwitchToLogin }) {
       </div>
     </div>
   );
-}
+});
 
-SignupForm.propTypes = {
-  onSwitchToLogin: PropTypes.func.isRequired,
-};
+export default SignupForm;

@@ -1,8 +1,7 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, KeyRound, Minus, User } from 'lucide-react';
-import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -11,7 +10,16 @@ import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 
-export function LoginForm({ onSwitchToSignup }) {
+/**
+ * A login form component that handles user authentication with username and password.
+ * Exposes a `submit` method via ref to programmatically trigger form submission.
+ *
+ * @param {Object} props - Component props
+ * @param {() => void} props.onSwitchToSignup - Callback function to switch to the signup form view
+ * @param {React.ForwardedRef<{ submit: () => void }>} ref - Ref to expose the submit method
+ * @returns {JSX.Element} Rendered login form
+ */
+const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +32,7 @@ export function LoginForm({ onSwitchToSignup }) {
     formState: { errors },
     reset,
     setValue,
+    trigger,
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: 'onBlur',
@@ -32,6 +41,9 @@ export function LoginForm({ onSwitchToSignup }) {
   const handleFillTestCredentials = () => {
     setValue('username', FRONTEND_CONFIG.testCredentials.username);
     setValue('password', FRONTEND_CONFIG.testCredentials.password);
+    // Trigger validation to clear error states after setting values because -
+    // bug - in login form - user focuses a TextField but doesn't enter any value, upon unfocusing it gets invalid state for being empty (correct behaviour), issue is - when fill button is clicked and sets TextField values, invalid state persists until user manually focuses that TextField
+    trigger(['username', 'password']);
   };
 
   const onSubmit = async (data) => {
@@ -148,7 +160,7 @@ export function LoginForm({ onSwitchToSignup }) {
         </div>
 
         {/* Submit Button */}
-        <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
+        <Button ref={ref} type="submit" variant="primary" fullWidth isLoading={isLoading}>
           Sign in
         </Button>
       </Form>
@@ -213,8 +225,6 @@ export function LoginForm({ onSwitchToSignup }) {
       </div>
     </div>
   );
-}
+});
 
-LoginForm.propTypes = {
-  onSwitchToSignup: PropTypes.func.isRequired,
-};
+export default LoginForm;
