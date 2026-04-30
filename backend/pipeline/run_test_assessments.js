@@ -27,6 +27,26 @@ const TEST_USER_PASSWORD = BACKEND_CONFIG.testCredentials.password;
 const RATE_LIMIT_PER_MINUTE = 10;
 const DELAY_MS = (60 * 1000) / RATE_LIMIT_PER_MINUTE; // 6000 ms
 
+// --- CLI flag parsing ---
+const args = process.argv.slice(2);
+
+function getFlagValue(prefix) {
+  const arg = args.find((a) => a.startsWith(prefix));
+  if (!arg) return null;
+  const value = arg.slice(prefix.length);
+  return value.length > 0 ? value : null;
+}
+
+const checkpointFlagRaw = getFlagValue('--checkpoint=');
+const checkpointOverride =
+  checkpointFlagRaw !== null && !isNaN(Number(checkpointFlagRaw))
+    ? Math.max(0, Number(checkpointFlagRaw))
+    : null;
+
+const totalFlagRaw = getFlagValue('--total=');
+const totalOverride =
+  totalFlagRaw !== null && !isNaN(Number(totalFlagRaw)) ? Number(totalFlagRaw) : null;
+
 async function getAuthToken() {
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -169,9 +189,25 @@ async function main() {
   logger.info('Authenticated');
 
   const checkpoint = await loadCheckpoint();
-  let start = checkpoint.lastIndex;
 
-  for (let i = start; i < inputs.length; i++) {
+  // If --checkpoint= flag provided, override and persist it before starting
+  if (checkpointOverride !== null) {
+    logger.info({ checkpointOverride }, 'Overriding checkpoint via --checkpoint= flag');
+    checkpoint.lastIndex = checkpointOverride;
+    await saveCheckpoint(checkpointOverride);
+  }
+
+  const start = checkpoint.lastIndex;
+
+  // Determine the end index: honour --total= if provided
+  const end =
+    totalOverride !== null ? Math.min(start + totalOverride, inputs.length) : inputs.length;
+
+  if (totalOverride !== null) {
+    logger.info({ start, end, totalOverride }, 'Running with --total= limit');
+  }
+
+  for (let i = start; i < end; i++) {
     const input = inputs[i];
     const scorePayload = {
       businessProblem: input.businessProblem,
@@ -180,7 +216,7 @@ async function main() {
       evaluationParameters: input.evaluationParameters,
     };
 
-    logger.info({ current: i + 1, totalToScore: inputs.length }, 'Scoring...');
+    logger.info({ current: i + 1, totalToScore: end }, 'Scoring...');
     let scoringResult;
     try {
       scoringResult = await callScoreAPI(token, scorePayload);
@@ -201,7 +237,7 @@ async function main() {
       parameters: input.evaluationParameters,
     };
 
-    logger.info({ currentlySaving: i + 1, totalToSave: inputs.length }, 'Saving...');
+    logger.info({ currentlySaving: i + 1, totalToSave: end }, 'Saving...');
     try {
       await callSaveAPI(token, savePayload);
     } catch (err) {
@@ -211,8 +247,8 @@ async function main() {
     }
 
     saveCheckpoint(i + 1);
-    logger.info({ saved: i + 1, totalToSave: inputs.length }, 'Saved');
-    if (i < inputs.length - 1) {
+    logger.info({ saved: i + 1, totalToSave: end }, 'Saved');
+    if (i < end - 1) {
       await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
     }
   }
