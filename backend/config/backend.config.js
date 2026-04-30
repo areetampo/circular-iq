@@ -45,13 +45,16 @@ const schema = (process.env.NODE_ENV || '').toLowerCase() === 'test' ? testEnvSc
 const parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
-  logger.error('✕ Environment validation failed');
-  logger.error(parsed.error.format());
+  logger.error(
+    { error: parsed.error.format() },
+    '✕ Environment validation failed, check your environment variables configuration',
+  );
 
-  // For test environment, fail if validation fails; no fallbacks
-  if ((process.env.NODE_ENV || '').toLowerCase() === 'test') {
+  const isTestEnv = (process.env.NODE_ENV || '').toLowerCase() === 'test';
+
+  if (isTestEnv) {
     logger.error(
-      '✕ Test environment validation failed. Ensure all required variables are set in env/.env.test',
+      '✕ Test environment validation failed, ensure all required variables are set in env/.env.test',
     );
     process.exit(1);
   } else {
