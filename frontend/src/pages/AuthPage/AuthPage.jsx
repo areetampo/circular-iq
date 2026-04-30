@@ -14,11 +14,10 @@ export default function AuthPage() {
     if (viewParam === 'login' || viewParam === 'signup') {
       setView(viewParam);
     } else {
-      // Set default view to login and update URL if no valid view parameter exists
       setView('login');
       setSearchParams({ view: 'login' });
     }
-  }, []); // Run only once on mount
+  }, [searchParams]); // Re-run whenever URL params change
 
   const handleViewChange = (newView) => {
     setView(newView);
