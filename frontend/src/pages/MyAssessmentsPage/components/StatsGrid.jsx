@@ -88,7 +88,7 @@ export function StatsGrid({
     if (displayIndustries.length === 0) return '—';
     if (displayIndustries.length === 1) return toTitleCase(displayIndustries[0].industry);
     if (displayIndustries.length === 2) {
-      return `${toTitleCase(displayIndustries[0].industry)} & ${toTitleCase(displayIndustries[1].industry)}`;
+      return `${toTitleCase(displayIndustries[0].industry)}\n&\n${toTitleCase(displayIndustries[1].industry)}`;
     }
     return `${toTitleCase(displayIndustries[0].industry)},\n${toTitleCase(displayIndustries[1].industry)},\n...`;
   };
@@ -127,14 +127,14 @@ export function StatsGrid({
 
         {displayIndustries.length > 0 ? (
           <div className="flex flex-col items-start gap-1">
-            <span className="font-mono text-base leading-none tracking-[-0.04em] wrap-break-word text-(--color-text-primary)">
+            <span className="font-mono text-base leading-none tracking-[-0.04em] wrap-break-word whitespace-pre-line text-(--color-text-primary)">
               {getDisplayText()}
             </span>
 
             {displayIndustries.length > 2 ? (
               <Popover>
                 <Popover.Trigger>
-                  <Button variant="ghastly" size="sm">
+                  <Button variant="ghastly" size="sm" className="px-2 py-0.5">
                     View all
                   </Button>
                 </Popover.Trigger>
