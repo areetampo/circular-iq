@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Helper to handle the "string true" vs "boolean true" mess in .env files
 const booleanSchema = z.preprocess((val) => val === 'true' || val === true, z.boolean());
 
-// Transforms "a, b, c" into ["a", "b", "c"] automatically
+// Transforms "a,b,c" into ["a", "b", "c"] automatically
 const commaSeparatedStringArraySchema = z
   .string()
   .default('')
