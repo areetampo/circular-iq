@@ -381,3 +381,100 @@ export const signupSchema = z
     message: "Passwords don't match",
     path: ['confirmPassword'],
   });
+
+// ============================================
+// Authentication Validation Helper Functions
+// ============================================
+// These functions provide granular validation for real-time feedback
+// in the signup form. They complement the Zod schemas above.
+
+/**
+ * Checks if trimmed username length is within allowed range.
+ * @param {string} value - Username input.
+ * @returns {boolean} True if length between MIN and MAX.
+ */
+export function validateUsernameLength(value) {
+  const length = value?.trim().length || 0;
+  return (
+    length >= AUTH_VALIDATION.USERNAME.MIN_LENGTH && length <= AUTH_VALIDATION.USERNAME.MAX_LENGTH
+  );
+}
+
+/**
+ * Checks if username contains only letters, numbers, underscore or hyphen.
+ * @param {string} value - Username input.
+ * @returns {boolean} True if only allowed characters.
+ */
+export function validateUsernameChars(value) {
+  const trimmed = value?.trim() || '';
+  // Only letters, numbers, - and _ allowed
+  const charsRegex = /^[a-zA-Z0-9_-]+$/;
+  return charsRegex.test(trimmed);
+}
+
+/**
+ * Ensures username contains at least one letter (a-z or A-Z).
+ * @param {string} value - Username input.
+ * @returns {boolean} True if at least one letter present.
+ */
+export function validateUsernameHasLetter(value) {
+  const trimmed = value?.trim() || '';
+  // Must contain at least one letter
+  const letterRegex = /[a-zA-Z]/;
+  return letterRegex.test(trimmed);
+}
+
+/**
+ * Verifies username has no spaces (any whitespace) in raw input.
+ * @param {string} value - Username input (untrimmed).
+ * @returns {boolean} True if no spaces.
+ */
+export function validateUsernameNoSpaces(value) {
+  // No spaces allowed - check the actual value without trimming
+  const noSpacesRegex = /^\S*$/;
+  return noSpacesRegex.test(value || '');
+}
+
+/**
+ * Checks if password length is within allowed range.
+ * @param {string} value - Password input.
+ * @returns {boolean} True if length between MIN and MAX.
+ */
+export function validatePasswordLength(value) {
+  const length = value?.length || 0;
+  return (
+    length >= AUTH_VALIDATION.PASSWORD.MIN_LENGTH && length <= AUTH_VALIDATION.PASSWORD.MAX_LENGTH
+  );
+}
+
+/**
+ * Ensures password contains at least one special character.
+ * @param {string} value - Password input.
+ * @returns {boolean} True if special character found.
+ */
+export function validatePasswordSpecialChar(value) {
+  // Must include at least one special character
+  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+  return specialCharRegex.test(value || '');
+}
+
+/**
+ * Verifies password has no spaces (any whitespace) in raw input.
+ * @param {string} value - Password input (untrimmed).
+ * @returns {boolean} True if no spaces.
+ */
+export function validatePasswordNoSpaces(value) {
+  // No spaces allowed - check the actual value without trimming
+  const noSpacesRegex = /^\S*$/;
+  return noSpacesRegex.test(value || '');
+}
+
+/**
+ * Checks if password and confirm password match.
+ * @param {string} password - Password input.
+ * @param {string} confirmPassword - Confirm password input.
+ * @returns {boolean} True if passwords match.
+ */
+export function validatePasswordMatch(password, confirmPassword) {
+  return password === confirmPassword && password.length > 0;
+}
