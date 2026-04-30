@@ -4,9 +4,28 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import DIALOGS from '@/components/dialogs/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { defaultValues } from '@/features/assessments/validation';
 import { useAuth } from '@/hooks/useAuth';
 import { getSessionId } from '@/lib/storage';
 import { getSession } from '@/utils/session';
+
+/**
+ * Check if session inputs are at default values (empty/initial state)
+ * @param {Object} inputs - Session inputs object
+ * @returns {boolean} True if inputs are at default values
+ */
+function isAtDefaultValues(inputs) {
+  if (!inputs) return true;
+
+  const inputsAtDefaults =
+    (!inputs.businessProblem || inputs.businessProblem.trim() === '') &&
+    (!inputs.businessSolution || inputs.businessSolution.trim() === '') &&
+    JSON.stringify(inputs.evaluationParameters || {}) ===
+      JSON.stringify(defaultValues.evaluationParameters) &&
+    JSON.stringify(inputs.businessContext || {}) === JSON.stringify(defaultValues.businessContext);
+
+  return inputsAtDefaults;
+}
 
 /**
  * Check if the results restore dialog is muted
@@ -95,11 +114,13 @@ export function AppSessionManager() {
 
     // ALWAYS show input-restore toast when appropriate on home path
     // Skip if user is coming from re-evaluate (has formData in location.state)
+    // Skip if inputs are at default values (prevents toast after login/signup)
     if (
       location.pathname === '/' &&
       sessionData?.inputs &&
       !hasShownInputsToast.current &&
-      !location.state?.formData
+      !location.state?.formData &&
+      !isAtDefaultValues(sessionData.inputs)
     ) {
       // delay until after render/paint
       setTimeout(() => {
@@ -165,7 +186,8 @@ export function AppSessionManager() {
       return;
     }
 
-    if (sessionData?.inputs) {
+    // Skip if inputs are at default values (prevents toast after login/signup)
+    if (sessionData?.inputs && !isAtDefaultValues(sessionData.inputs)) {
       setTimeout(() => {
         toast.info('Previous inputs restored.', { timeout: 2500 });
       }, 0);
