@@ -10,14 +10,31 @@ export default function AuthRightPanel({ view, setView }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key !== 'Enter') return;
-      if (document.activeElement?.tagName === 'BUTTON' && document.activeElement?.type === 'submit')
-        return;
 
-      formRef.current?.click(); // <-- click() instead of submit()
+      const active = document.activeElement;
+      const tag = active?.tagName;
+
+      // Let anchors navigate normally.
+      if (tag === 'A') return;
+
+      // If focus is on any button, prevent its default Enter behaviour
+      // (re-click / form submit via that button) and manually trigger our
+      // controlled submit instead — this covers CopyButton (which renders as
+      // type="submit" inside HeroUI <Form>) and FILL (type="button").
+      if (tag === 'BUTTON') {
+        e.preventDefault();
+        e.stopPropagation();
+        formRef.current?.submit();
+        return;
+      }
+
+      formRef.current?.submit();
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    // Use capture:true so this fires before the HeroUI <Form> can swallow
+    // the Enter event (which was preventing the FILL button case from logging).
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
   return (

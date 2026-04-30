@@ -1,7 +1,7 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, KeyRound, Minus, User } from 'lucide-react';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -38,12 +38,18 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
     mode: 'onBlur',
   });
 
+  useImperativeHandle(ref, () => ({
+    submit: handleSubmit(onSubmit),
+  }));
+
   const handleFillTestCredentials = () => {
     setValue('username', FRONTEND_CONFIG.testCredentials.username);
     setValue('password', FRONTEND_CONFIG.testCredentials.password);
     // Trigger validation to clear error states after setting values because -
     // bug - in login form - user focuses a TextField but doesn't enter any value, upon unfocusing it gets invalid state for being empty (correct behaviour), issue is - when fill button is clicked and sets TextField values, invalid state persists until user manually focuses that TextField
     trigger(['username', 'password']);
+    // No blur() needed — AuthRightPanel's keydown handler now skips Enter
+    // for ALL buttons (not just submit), so focus on FILL no longer blocks submit.
   };
 
   const onSubmit = async (data) => {
@@ -160,7 +166,7 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
         </div>
 
         {/* Submit Button */}
-        <Button ref={ref} type="submit" variant="primary" fullWidth isLoading={isLoading}>
+        <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
           Sign in
         </Button>
       </Form>
