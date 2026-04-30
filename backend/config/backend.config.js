@@ -130,16 +130,10 @@ export const buildDatabaseConfig = () => ({
 });
 
 const parseAllowedOrigins = () => {
-  // Only include localhost if we are NOT in production
-  const defaults =
-    env.NODE_ENV !== 'production'
-      ? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
-      : [];
-
   const origins = env.ALLOWED_ORIGINS ?? [];
-  const frontend = env.APP_URL ? [env.APP_URL] : [];
+  const frontend = env.APP_URL ?? [];
 
-  return [...new Set([...defaults, ...origins, ...frontend])];
+  return [...new Set([...origins, ...frontend])];
 };
 
 const parseAuthAllowList = () => {
