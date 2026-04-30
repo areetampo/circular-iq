@@ -300,6 +300,23 @@ export default function LandingPage() {
         };
       }
 
+      // Get default form values for comparison
+      const defaultFormState = {
+        businessProblem: (defaultValues?.businessProblem || '').trim(),
+        businessSolution: (defaultValues?.businessSolution || '').trim(),
+        evaluationParameters: defaultValues?.evaluationParameters || {},
+        businessContext: defaultValues?.businessContext || {},
+      };
+
+      // Check if current form is at default values (handles login scenario)
+      const isAtDefaults =
+        currentFormState.businessProblem === defaultFormState.businessProblem &&
+        currentFormState.businessSolution === defaultFormState.businessSolution &&
+        JSON.stringify(currentFormState.evaluationParameters) ===
+          JSON.stringify(defaultFormState.evaluationParameters) &&
+        JSON.stringify(currentFormState.businessContext) ===
+          JSON.stringify(defaultFormState.businessContext);
+
       // Compare current form state with saved state
       const hasUnsavedChanges =
         currentFormState.businessProblem !== savedState.businessProblem ||
@@ -310,21 +327,27 @@ export default function LandingPage() {
           JSON.stringify(savedState.businessContext);
 
       // Only show alert if there are unsaved changes AND there's actually content to lose
+      // AND the form is not at default values (prevents false alerts after login)
       const hasContentToLose =
         currentFormState.businessProblem ||
         currentFormState.businessSolution ||
         Object.keys(currentFormState.evaluationParameters).length > 0 ||
         Object.keys(currentFormState.businessContext).length > 0;
 
-      // Debug logging (remove in production)
-      if (process.env.NODE_ENV === 'development') {
-        logger.log('BeforeUnload Debug:', {
-          currentFormState,
-          savedState,
-          hasUnsavedChanges,
-          hasContentToLose,
-        });
+      // Don't show alert if form is at default values (handles login scenario)
+      if (isAtDefaults) {
+        return;
       }
+
+      // Debug logging
+      logger.log('BeforeUnload Debug:', {
+        currentFormState,
+        savedState,
+        defaultFormState,
+        hasUnsavedChanges,
+        hasContentToLose,
+        isAtDefaults,
+      });
 
       if (hasUnsavedChanges && hasContentToLose) {
         e.preventDefault();
