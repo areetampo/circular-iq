@@ -10,7 +10,7 @@ import { getGlobalStats } from '@/features/assessments/api/assessmentApi';
  * @returns {Object}
  */
 export function useGlobalStats({ enabled = true } = {}) {
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, isError, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['global-stats'],
     queryFn: getGlobalStats,
     enabled,
@@ -68,8 +68,10 @@ export function useGlobalStats({ enabled = true } = {}) {
     assessmentsByIndustry: assessStats?.assessments_by_industry ?? {},
 
     isLoading,
+    isFetching,
     isError,
     error: error?.message ?? null,
     refetch,
+    dataUpdatedAt,
   };
 }
