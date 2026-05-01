@@ -48,7 +48,7 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
       <DetailsDisplay
         variant="error"
         title="Failed to Load Assessment"
-        message={error || 'Unable to retrieve the assessment details. Please try again.'}
+        description={error || 'Unable to retrieve the assessment details. Please try again.'}
         actions={[
           {
             label: 'Refresh',
@@ -74,7 +74,7 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
       <DetailsDisplay
         variant="warning"
         title="Assessment Not Found"
-        message="The requested assessment could not be found. It may have been deleted or you might not have access to it."
+        description="The requested assessment could not be found. It may have been deleted or you might not have access to it."
         actions={[
           {
             label: 'Refresh',
