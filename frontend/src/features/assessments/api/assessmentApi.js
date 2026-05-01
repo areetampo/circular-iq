@@ -34,6 +34,12 @@ async function getAuthHeaders() {
   return headers;
 }
 
+/**
+ * Make an authenticated API request
+ * @param {string} path - API endpoint path
+ * @param {Object} options - Request options
+ * @returns {Promise<Response>} Fetch response
+ */
 async function request(path, options = {}) {
   const headers = await getAuthHeaders();
   const finalOptions = {
@@ -50,6 +56,13 @@ async function request(path, options = {}) {
   return response;
 }
 
+/**
+ * Make an authenticated API request and parse JSON response
+ * @param {string} path - API endpoint path
+ * @param {Object} options - Request options
+ * @returns {Promise<Object>} Parsed JSON response data
+ * @throws {Error} If request fails with detailed error information
+ */
 async function requestJson(path, options = {}) {
   const response = await request(path, options);
   const text = await response.text();
@@ -75,6 +88,16 @@ async function requestJson(path, options = {}) {
   return data;
 }
 
+/**
+ * Submit assessment for scoring
+ * @param {Object} formData - Assessment form data
+ * @param {string} formData.businessProblem - Business problem description
+ * @param {string} formData.businessSolution - Business solution description
+ * @param {Object} formData.evaluationParameters - Evaluation parameters
+ * @param {Object} [formData.businessContext] - Optional business context
+ * @returns {Promise<Object>} Scoring results
+ * @throws {Object} Error response if request fails (including 403 limit errors)
+ */
 export async function scoreAssessment(formData) {
   const response = await request('/api/score', {
     method: 'POST',
@@ -99,6 +122,21 @@ export async function scoreAssessment(formData) {
   return data;
 }
 
+/**
+ * Fetch user assessments with filtering and pagination
+ * @param {Object} [params={}] - Query parameters
+ * @param {string} [params.industry] - Filter by industry
+ * @param {string} [params.sortBy] - Sort field (created_at, overall_score, title)
+ * @param {string} [params.order] - Sort order (asc, desc)
+ * @param {number|string} [params.page] - Page number (defaults to 1)
+ * @param {number|string} [params.pageSize] - Items per page (max 100)
+ * @param {string} [params.search] - Search term for title/industry
+ * @param {string} [params.createdFrom] - Filter by creation date (from)
+ * @param {string} [params.createdTo] - Filter by creation date (to)
+ * @param {number} [params.minScore] - Filter by minimum score
+ * @param {number} [params.maxScore] - Filter by maximum score
+ * @returns {Promise<Object>} Assessments list with pagination info
+ */
 export async function getAssessments(params = {}) {
   // Remove sessionId from params - auth is now handled by token
   const cleanParams = { ...params };
@@ -127,11 +165,21 @@ export async function getAssessments(params = {}) {
   return safeValidateAssessmentsList(data) || data;
 }
 
+/**
+ * Fetch assessment statistics for the current user
+ * @returns {Promise<Object>} Assessment statistics including totals, averages, and distributions
+ */
 export async function getAssessmentStats() {
   const data = await requestJson('/api/assessments/stats');
   return data;
 }
 
+/**
+ * Fetch a single assessment by ID
+ * @param {string|number} id - Assessment ID
+ * @returns {Promise<Object>} Assessment data with validated structure
+ * @throws {Error} If ID is missing or validation fails
+ */
 export async function getAssessmentById(id) {
   if (!id) {
     throw new Error('Assessment id is required');
@@ -185,6 +233,11 @@ export async function getPublicAssessment(publicId) {
   }
 }
 
+/**
+ * Create a new assessment
+ * @param {Object} payload - Assessment data to create
+ * @returns {Promise<Object>} Created assessment data
+ */
 export async function createAssessment(payload) {
   return requestJson('/api/assessments', {
     method: 'POST',
@@ -192,6 +245,13 @@ export async function createAssessment(payload) {
   });
 }
 
+/**
+ * Update an existing assessment
+ * @param {string|number} id - Assessment ID
+ * @param {Object} updates - Fields to update
+ * @returns {Promise<Object>} Updated assessment data
+ * @throws {Error} If ID is missing
+ */
 export async function updateAssessment(id, updates) {
   if (!id) {
     throw new Error('Assessment id is required');
@@ -202,6 +262,12 @@ export async function updateAssessment(id, updates) {
   });
 }
 
+/**
+ * Delete an assessment
+ * @param {string|number} id - Assessment ID
+ * @returns {Promise<Object>} Deletion response
+ * @throws {Error} If ID is missing or deletion fails
+ */
 export async function deleteAssessment(id) {
   if (!id) {
     throw new Error('Assessment id is required');
@@ -231,6 +297,7 @@ export async function deleteAssessment(id) {
 /**
  * Compare two assessments by publicId with visibility checking
  * Handles cross-user comparisons with privacy enforcement
+ * Public endpoint - no authentication required
  */
 export async function getComparisonAssessments(id1, id2) {
   if (!id1 || !id2) {
@@ -238,7 +305,19 @@ export async function getComparisonAssessments(id1, id2) {
   }
 
   const query = new URLSearchParams({ id1, id2 });
-  const data = await requestJson(`/api/assessments/compare?${query}`);
+
+  // Public endpoint - no auth required, but still use proxy in production
+  const url = buildApiUrl(`/api/assessments/compare?${query}`);
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const message = data?.error || data?.message || `Request failed (${response.status})`;
+    throw new Error(message);
+  }
 
   // Validate response data for both assessments
   try {
@@ -258,10 +337,13 @@ export async function getComparisonAssessments(id1, id2) {
 }
 
 /**
- * Fetch global dashboard statistics.
- * Aggregates from scoring_results_log (all scoring calls, anon + auth)
- * + get_market_data RPC + get_assessment_statistics RPC.
- * No authentication required.
+ * Fetch global activity statistics
+ * Aggregates data from multiple sources:
+ * - scoring_results_log (all scoring calls, anonymous + authenticated)
+ * - get_market_data RPC for market benchmarks
+ * - get_assessment_statistics RPC for global assessment stats
+ * No authentication required
+ * @returns {Promise<Object>} Global statistics including market data and assessment stats
  */
 export async function getGlobalStats() {
   return requestJson('/api/analytics/global-stats');
