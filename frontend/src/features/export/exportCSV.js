@@ -8,7 +8,7 @@
 /**
  * Escapes special characters in CSV values for Excel compatibility
  * Handles commas, quotes, newlines, tabs, and special characters
- * @param {string} value - The value to escape
+ * @param {string|number|null|undefined} value - The value to escape
  * @returns {string} Escaped value safe for Excel
  */
 function escapeCSV(value) {

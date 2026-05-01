@@ -87,6 +87,10 @@ function checkPageBreak(pdf, y, neededHeight, state) {
   return y;
 }
 
+/**
+ * Fill the entire page background with the background color
+ * @param {Object} pdf - jsPDF instance
+ */
 function fillPageBackground(pdf) {
   const c = hexToRgb(COLOR_BG);
   pdf.setFillColor(c.r, c.g, c.b);
@@ -354,31 +358,60 @@ function drawTableRow(pdf, x, y, cells, widths, isHeader = false, hasBackground 
 }
 
 /**
- * Estimates the height a similar case card will need (in mm).
- * Used to decide whether to start a new page before rendering.
+ * Estimates the height a similar case card will need (in mm)
+ * Used to decide whether to start a new page before rendering
+ * @param {Object} pdf - jsPDF instance
+ * @param {Object} caseItem - Similar case data
+ * @returns {number} Estimated height in millimeters
  */
 function estimateCaseCardHeight(pdf, caseItem) {
   const textWidth = CONTENT_WIDTH - 14;
   let h = 16; // title + similarity line + padding
 
-  if (caseItem.materials) h += 5;
+  // Title wrapping
+  if (caseItem.title) {
+    const titleLines = pdf.splitTextToSize(caseItem.title, textWidth);
+    h += titleLines.length * 4.8; // 4.8mm per line
+  }
 
-  const addBlock = (text) => {
-    if (!text) return;
-    h += 5; // label
-    const lines = pdf.splitTextToSize(formatTextForPDF(text), textWidth);
-    h += lines.length * 4 + 3;
-  };
+  // Summary wrapping (most cards have this)
+  if (caseItem.summary) {
+    const summaryLines = pdf.splitTextToSize(caseItem.summary, textWidth);
+    h += summaryLines.length * 3.6; // 3.6mm per line
+  }
 
-  addBlock(caseItem.problem);
-  addBlock(caseItem.solution);
-  addBlock(caseItem.impact);
-  if (caseItem.source_display || caseItem.source_url) h += 6;
-  h += 8; // bottom padding
+  // Optional fields
+  if (caseItem.problem) {
+    const problemLines = pdf.splitTextToSize(caseItem.problem, textWidth);
+    h += problemLines.length * 3.6;
+  }
+  if (caseItem.solution) {
+    const solutionLines = pdf.splitTextToSize(caseItem.solution, textWidth);
+    h += solutionLines.length * 3.6;
+  }
+  if (caseItem.impact) {
+    const impactLines = pdf.splitTextToSize(caseItem.impact, textWidth);
+    h += impactLines.length * 3.6;
+  }
+  if (caseItem.materials) {
+    const materialsLines = pdf.splitTextToSize(caseItem.materials, textWidth);
+    h += materialsLines.length * 3.6;
+  }
 
   return h;
 }
 
+/**
+ * Draws a similar case card with accent stripe and content
+ * NOTE: No checkPageBreak calls inside this function — callers must ensure
+ * enough space exists before calling, using estimateCaseCardHeight().
+ * Mid-card page breaks corrupt the accent stripe calculation (negative totalHeight).
+ * @param {Object} pdf - jsPDF instance
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {Object} caseItem - Similar case data
+ * @returns {number} New Y position after drawing
+ */
 function drawSimilarCaseCard(pdf, x, y, caseItem) {
   // NOTE: No checkPageBreak calls inside this function — callers must ensure
   // enough space exists before calling, using estimateCaseCardHeight().
