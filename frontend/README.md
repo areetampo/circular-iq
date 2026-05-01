@@ -2,8 +2,8 @@
 
 React 19 + Vite 7 SPA for assessing, visualising, comparing, and managing circular economy evaluations.
 
-**Author:** Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>
-**License:** UNLICENSED
+**Author:** Areeb Ahmed Zahoori <areebrawl@gmail.com>
+**License:** MIT
 
 ## Overview
 
@@ -1405,5 +1405,8 @@ For issues or questions:
 
 ---
 
-**Last Updated:** 26 April 2026
-**Frontend Version:** React 19 / Vite 7 / HeroUI v3 / Tailwind v4
+## License & Support
+
+**LICENSE:** MIT
+**Author:** Areeb Ahmed Zahoori
+**Last Updated:** 02 May 2026

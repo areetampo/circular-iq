@@ -2,8 +2,8 @@
 
 Node.js/Express backend powering the Circular Economy Assessor. Handles document processing, semantic search, AI-driven assessment scoring, analytics, and the data ingestion pipeline.
 
-**Author:** Areeb Ahmed Zahoori <zahooriareeb47@gmail.com>
-**License:** UNLICENSED
+**Author:** Areeb Ahmed Zahoori <areebrawl@gmail.com>
+**License:** MIT
 
 ## Overview
 
@@ -985,7 +985,6 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 ## License & Support
 
+**LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**License:** UNLICENSED — proprietary software
-**Status:** Production Ready
-**Last Updated:** 26 April 2026
+**Last Updated:** 02 May 2026
