@@ -7,6 +7,7 @@ AI-powered platform for evaluating circular economy business initiatives against
 - **Author:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com)
 - **License:** UNLICENSED
 - **Repository:** [areetampo/circular-economy](https://github.com/areetampo/circular-economy)
+- **Monitoring:** [UptimeRobot](https://dashboard.uptimerobot.com/monitors/802964160)
 
 ## Overview
 
