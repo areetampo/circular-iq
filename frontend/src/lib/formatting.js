@@ -154,8 +154,11 @@ export function formatRelativeTime(timestamp) {
   // pluralise: p(2, 'hr', 'hrs') → "2 hrs"
   const p = (n, singular, plural = singular + 's') => `${n} ${n === 1 ? singular : plural}`;
 
+  // 0. under 10s
+  if (diffSecs < 10) return 'just now';
+
   // 1. Under 1 minute
-  if (diffMins < 1) return 'few seconds ago';
+  if (diffMins < 1) return `${p(diffSecs, 'second', 'seconds')} ago`;
 
   // 2. Under 1 hour — mins only
   if (diffHrs < 1) return `${p(diffMins, 'min', 'mins')} ago`;
