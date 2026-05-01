@@ -1,5 +1,7 @@
 {
   "search.exclude": {
+    "**/.git/**": true,
+    "**/.github/**": true,
     "**/.husky/**": true,
     "**/.scratch/**": true,
     "**/backend/database/migrations/**": true,
@@ -22,6 +24,8 @@
   },
 
   "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/.github/**": true,
     "**/.husky/**": true,
     "**/.scratch/**": true,
     "**/backend/datasets/**": true,
