@@ -22,6 +22,31 @@ export function requireAuth(serviceSupabase) {
     try {
       const IS_TEST = BACKEND_CONFIG.nodeEnv === 'test';
 
+      // Debug: Log when requireAuth is called
+      logger.log({ reqPath: req.path, originalUrl: req.originalUrl }, '🔐 requireAuth called');
+      logger.log({ reqHeaders: Object.keys(req.headers) }, '🔐 Headers');
+
+      // Check if this is a public route using full request path
+      const authAllowList = BACKEND_CONFIG.app.authAllowList;
+      const routeMatchers = BACKEND_CONFIG.app.routeMatchers;
+
+      // Check exact match first using full path
+      if (authAllowList.has(req.originalUrl?.split('?')[0])) {
+        logger.log({ reqPath: req.originalUrl }, '🔐 Route is public - bypassing auth');
+        return next();
+      }
+
+      // Then check regex patterns for dynamic routes using full path
+      const fullPath = req.originalUrl?.split('?')[0];
+      const isPublicRoute = routeMatchers.some((matcher) => {
+        return matcher.test(fullPath);
+      });
+
+      if (isPublicRoute) {
+        logger.log({ reqPath: fullPath }, '🔐 Route is public - bypassing auth');
+        return next();
+      }
+
       // Extract token from Authorization header
       const authHeader = req.headers.authorization || '';
       if (!authHeader.startsWith('Bearer ')) {
