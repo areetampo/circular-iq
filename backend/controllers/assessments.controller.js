@@ -465,6 +465,7 @@ export async function deleteAssessment(supabase, user, token, id) {
 
 /**
  * Compare two assessments with visibility rules
+ * For public access (user is null), both assessments must be public
  */
 export async function compareAssessments(supabase, user, token, publicId1, publicId2) {
   const startTime = Date.now();
@@ -492,13 +493,13 @@ export async function compareAssessments(supabase, user, token, publicId1, publi
     const basic2 = basicRes2.data;
 
     if (!basic1 || !basic2) {
-      const error = new Error('one or more ids incorrect');
+      const error = new Error('One or more ids incorrect');
       error.code = 'INVALID_IDS';
       throw error;
     }
 
-    const isOwn1 = basic1.user_id === userId;
-    const isOwn2 = basic2.user_id === userId;
+    const isOwn1 = userId ? basic1.user_id === userId : false;
+    const isOwn2 = userId ? basic2.user_id === userId : false;
 
     // Helper: fetch full row, optionally requiring is_public
     const fetchFull = (publicId, requirePublic = false) => {
@@ -522,14 +523,14 @@ export async function compareAssessments(supabase, user, token, publicId1, publi
     // One owned, one foreign — foreign must be public
     if (isOwn1 && !isOwn2) {
       if (!basic2.is_public) {
-        const error = new Error('one or more assessments isnt public');
+        const error = new Error(`Assessment ${publicId2} is not publicly available for comparison`);
         error.code = 'NOT_PUBLIC';
         throw error;
       }
       const [r1, r2] = await Promise.all([fetchFull(publicId1), fetchFull(publicId2, true)]);
       if (!r1.data || !r2.data) {
-        const error = new Error('one or more assessments isnt public');
-        error.code = 'NOT_PUBLIC';
+        const error = new Error(`Assessment ${publicId2} not found or is not public`);
+        error.code = 'NOT_FOUND';
         throw error;
       }
       logOperation('compareAssessments', 'success', Date.now() - startTime);
@@ -538,30 +539,38 @@ export async function compareAssessments(supabase, user, token, publicId1, publi
 
     if (!isOwn1 && isOwn2) {
       if (!basic1.is_public) {
-        const error = new Error('one or more assessments isnt public');
+        const error = new Error(`Assessment ${publicId1} is not publicly available for comparison`);
         error.code = 'NOT_PUBLIC';
         throw error;
       }
       const [r1, r2] = await Promise.all([fetchFull(publicId1, true), fetchFull(publicId2)]);
       if (!r1.data || !r2.data) {
-        const error = new Error('one or more assessments isnt public');
-        error.code = 'NOT_PUBLIC';
+        const error = new Error(`Assessment ${publicId1} not found or is not public`);
+        error.code = 'NOT_FOUND';
         throw error;
       }
       logOperation('compareAssessments', 'success', Date.now() - startTime);
       return { assessment1: r1.data, assessment2: r2.data };
     }
 
-    // Both foreign — both must be public
+    // Both foreign (including public access when user is null) — both must be public
     if (!basic1.is_public || !basic2.is_public) {
-      const error = new Error('one or more assessments isnt public');
+      const nonPublicIds = [];
+      if (!basic1.is_public) nonPublicIds.push(publicId1);
+      if (!basic2.is_public) nonPublicIds.push(publicId2);
+      const error = new Error(
+        `Assessment(s) ${nonPublicIds.join(', ')} are not publicly available for comparison`,
+      );
       error.code = 'NOT_PUBLIC';
       throw error;
     }
     const [r1, r2] = await Promise.all([fetchFull(publicId1, true), fetchFull(publicId2, true)]);
     if (!r1.data || !r2.data) {
-      const error = new Error('one or more assessments isnt public');
-      error.code = 'NOT_PUBLIC';
+      const missingIds = [];
+      if (!r1.data) missingIds.push(publicId1);
+      if (!r2.data) missingIds.push(publicId2);
+      const error = new Error(`Assessment(s) ${missingIds.join(', ')} not found or are not public`);
+      error.code = 'NOT_FOUND';
       throw error;
     }
     logOperation('compareAssessments', 'success', Date.now() - startTime);
