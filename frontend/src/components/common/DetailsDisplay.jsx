@@ -52,22 +52,51 @@ const variants = {
 };
 
 /**
- * Reusable error display component with beautiful, consistent styling
- * Used across error boundaries, error states, and error pages
+ * Reusable display component with beautiful, consistent styling
+ * Used across error boundaries, error states, informational messages, and various UI states
  *
- * Variants:
- * - error: Red theme for critical errors
- * - warning: Yellow/amber theme for warnings
- * - info: Blue theme for informational messages
- * - 404: Special theme for not found pages
+ * @param {Object} props - Component props
+ * @param {'neutral'|'error'|'warning'|'info'|'404'} props.variant - Visual variant theme
+ * @param {React.ElementType} props.icon - Custom icon component (Lucide icon)
+ * @param {string} props.title - Main heading/title text
+ * @param {boolean} props.showTitle - Whether to display the title (default: true)
+ * @param {string} props.description - Descriptive message text (default: 'Something went wrong. Please try again later.')
+ * @param {boolean} props.showDescription - Whether to display the description (default: true)
+ * @param {React.ReactNode} props.children - Additional custom content to display
+ * @param {Array<Object>} props.actions - Array of action buttons: [{ label, icon, onClick, variant, size, className, state }]
+ * @param {boolean} props.showDefaultActions - Whether to show default "Refresh" and "Return Home" buttons (default: true)
+ * @param {boolean} props.fullScreen - Whether to use full screen height (default: false)
+ * @param {string|Object} props.errorDetails - Error details to show in dev mode
+ * @param {string} props.className - Additional CSS classes
+ * @returns {JSX.Element} Rendered DetailsDisplay component
+ *
+ * @example
+ * Basic error display
+ * <DetailsDisplay
+ *   variant="error"
+ *   title="Network Error"
+ *   description="Unable to connect to the server. Please check your internet connection."
+ *   actions={[{ label: 'Retry', onClick: handleRetry }]}
+ * />
+ *
+ * @example
+ * Info message with custom icon
+ * <DetailsDisplay
+ *   variant="info"
+ *   icon={Info}
+ *   title="Sign In Required"
+ *   description="Please sign in to access this feature."
+ *   showDefaultActions={false}
+ *   actions={[{ label: 'Sign In', onClick: handleSignIn }]}
+ * />
  */
 export default function DetailsDisplay({
   variant = 'error',
   icon: CustomIcon,
   title = 'An Error Occurred',
   showTitle = true,
-  message = 'Something went wrong. Please try again later.',
-  showMessage = true,
+  description = 'Something went wrong. Please try again later.',
+  showDescription = true,
   children,
   actions = [],
   showDefaultActions = true,
@@ -82,17 +111,17 @@ export default function DetailsDisplay({
   const defaultActions = showDefaultActions
     ? [
         {
+          variant: 'ghost',
           label: 'Refresh Page',
           icon: RotateCw,
           onPress: () => window.location.reload(),
-          variant: 'ghost',
         },
         {
+          variant: 'ghost',
           label: 'Return Home',
           icon: Home,
           as: Link,
           to: '/',
-          variant: 'ghost',
         },
       ]
     : [];
@@ -136,14 +165,14 @@ export default function DetailsDisplay({
             <h1 className={cn('font-sniglet text-2xl', `text-(${style.titleColor})`)}>{title}</h1>
           )}
 
-          {showMessage && (
+          {showDescription && (
             <p
               className={cn(
                 'mx-auto mt-2 max-w-md text-sm/relaxed',
                 `text-(${style.messageColor})`,
               )}
             >
-              {message}
+              {description}
             </p>
           )}
         </div>
@@ -187,6 +216,7 @@ export default function DetailsDisplay({
                   key={index}
                   as={Component} // Pass the component type here
                   to={action.to}
+                  state={action.state} // Pass state for Link navigation
                   smooth={action.smooth} // HashLink will use this, standard Link will ignore it
                   onPress={action.onPress || action.onClick}
                   variant={action.variant || 'ghost'}
@@ -214,12 +244,12 @@ DetailsDisplay.propTypes = {
   /** to show the title or not */
   showTitle: PropTypes.bool,
   /** Descriptive message */
-  message: PropTypes.string,
-  /** to show the message or not */
-  showMessage: PropTypes.bool,
+  description: PropTypes.string,
+  /** to show the description or not */
+  showDescription: PropTypes.bool,
   /** Additional custom content */
   children: PropTypes.node,
-  /** Array of action buttons: [{ label, icon, onClick, variant, size, className }] */
+  /** Array of action buttons: [{ label, icon, onClick, variant, size, className, state }] */
   actions: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,
@@ -228,6 +258,7 @@ DetailsDisplay.propTypes = {
       variant: PropTypes.string,
       size: PropTypes.string,
       className: PropTypes.string,
+      state: PropTypes.object, // For Link navigation state
     }),
   ),
   /** Show default "Refresh" and "Return Home" buttons */
