@@ -1,4 +1,4 @@
-﻿bleach==6.3.0
+bleach==6.3.0
 camelot-py==1.0.9
 certifi==2026.1.4
 cffi==2.0.0
@@ -21,7 +21,7 @@ pdfminer.six==20260107
 pillow==12.1.1
 protobuf==6.33.5
 pycparser==3.0
-pypdf==5.9.0
+pypdf==6.10.2
 pypdfium2==5.5.0
 python-dateutil==2.9.0.post0
 python-slugify==8.0.4
