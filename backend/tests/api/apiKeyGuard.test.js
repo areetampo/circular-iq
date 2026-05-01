@@ -4,7 +4,13 @@ import { after, test } from 'node:test';
 import express from 'express';
 import request from 'supertest';
 
+// Load environment first
+import '#config/loadEnv.js';
 import { closeAllPools } from '#database/client.js';
+import { logger } from '#utils/logger.js';
+
+// Setup global logger for the test
+globalThis.logger = logger;
 
 // Import AFTER configuring env to pick up values
 const { apiKeyGuard } = await import('#server/app.js');
@@ -24,9 +30,6 @@ function makeApp() {
 }
 
 test('requests without api key are allowed when auth is disabled', async () => {
-  console.log('API_AUTH_ENABLED:', process.env.API_AUTH_ENABLED);
-  console.log('BACKEND_CONFIG apiAuthEnabled:', BACKEND_CONFIG.app.apiAuthEnabled);
-
   const app = makeApp();
   const res = await request(app).get('/protected');
 
