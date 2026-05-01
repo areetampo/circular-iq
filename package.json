@@ -5,7 +5,7 @@
   "description": "RAG-powered evaluator for circular economy business evaluations",
   "type": "module",
   "author": "Areeb Ahmed Zahoori <areebrawl@gmail.com>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "workspaces": [
     "backend",
     "frontend"
