@@ -7,6 +7,7 @@ import express from 'express';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as analyticsController from '#controllers/analytics.controller.js';
+import { requireAuth } from '#middleware/auth.middleware.js';
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 
@@ -22,10 +23,12 @@ function logRequest(method, path, status, duration) {
 export default function createAnalyticsRouter(supabase, serviceSupabase) {
   const router = express.Router();
 
-  router.get('/', analyticsController.getSummary(supabase));
-  router.get('/enhanced', analyticsController.getEnhanced(supabase));
   router.post('/embeddings/reindex', analyticsController.postEmbeddingsReindex());
-  router.get('/global-stats', analyticsController.getGlobalStats(serviceSupabase));
+  router.get(
+    '/global-stats',
+    requireAuth(serviceSupabase),
+    analyticsController.getGlobalStats(serviceSupabase),
+  );
 
   // fallback error handler for unexpected errors
   router.use((err, req, res, next) => {
