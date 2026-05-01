@@ -717,7 +717,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <DetailsDisplay
         variant="error"
         title="Failed to Load Assessment"
-        message={detailError || 'Unable to retrieve the assessment details. Please try again.'}
+        description={detailError || 'Unable to retrieve the assessment details. Please try again.'}
         actions={[
           {
             label: 'Retry',
@@ -742,7 +742,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <DetailsDisplay
         variant="warning"
         title="Assessment Not Found"
-        message="The requested assessment could not be found. It may have been deleted or you might not have access to it."
+        description="The requested assessment could not be found. It may have been deleted or you might not have access to it."
         actions={[
           {
             label: 'Retry Loading',
@@ -769,7 +769,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       <DetailsDisplay
         variant="info"
         title="No Assessment Data"
-        message="No assessment results are available. Please complete an assessment to see results."
+        description="No assessment results are available. Please complete an assessment to see results."
         actions={[
           {
             label: 'Start New Assessment',
