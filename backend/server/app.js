@@ -159,9 +159,14 @@ app.get('/health', async (req, res) => {
 
 // Catch-all for root pings to stop CORS errors in deployment logs
 app.get('/', (req, res) => {
-  res.send(
-    `Circular Economy API is Running ₰ ${BACKEND_CONFIG.app.allowedOrigins.length} allowed origins configured.`,
-  );
+  let message = 'Circular Economy API is Running ₰';
+  if (!BACKEND_CONFIG.isProduction) {
+    const origins = BACKEND_CONFIG.app.allowedOrigins;
+    if (origins.length > 0) {
+      message += ` [${origins.join(', ')}] allowed origins configured.`;
+    }
+  }
+  res.send(message);
 });
 
 app.use(
