@@ -1,8 +1,8 @@
 import { Input, Label, ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Home, MoveLeft, Plus, RotateCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Home, MoveLeft, Plus, RotateCw, ScrollText } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
 import { Button, DetailsDisplay } from '@/components/common';
@@ -12,6 +12,7 @@ import { getAssessments, updateAssessment } from '@/features/assessments/api/ass
 import { usePrefetchAssessment } from '@/features/assessments/hooks/useAssessment';
 import { useAssessments } from '@/features/assessments/hooks/useAssessments';
 import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
+import { useAuth } from '@/hooks/useAuth';
 import { useDebounce } from '@/hooks/useDebounce';
 import { toTitleCase } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
@@ -20,6 +21,8 @@ import { parseSortBy } from '@/utils/sortUtils';
 import { AssessmentList, AssessmentListSkeleton, FilterBar, StatsGrid } from './components';
 
 export default function MyAssessmentsPage() {
+  const { isAuthenticated, authLoading } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionId = useMemo(() => getSessionId(), []);
@@ -155,6 +158,31 @@ export default function MyAssessmentsPage() {
   }, [selectedIndustries]);
 
   const industryOptions = useMemo(() => ['all', ...INDUSTRY_OPTIONS], []);
+
+  // Show authentication message for unauthenticated users
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="flex flex-col gap-6">
+        <DetailsDisplay
+          variant="info"
+          icon={ScrollText}
+          title="Sign in to view your assessments"
+          description="You can create an account or sign in to access your assessment history. You also get unlimited evaluations by doing so!"
+          showDefaultActions={false}
+          actions={[
+            {
+              variant: 'teal',
+              label: 'Sign In',
+              icon: Home,
+              as: Link,
+              to: '/auth?view=login',
+              state: { from: location },
+            },
+          ]}
+        />
+      </div>
+    );
+  }
 
   const {
     assessments,
@@ -744,7 +772,7 @@ export default function MyAssessmentsPage() {
         <DetailsDisplay
           variant="error"
           title="Error Loading Assessments"
-          message={
+          description={
             isAssessmentsError.message ||
             'An error occurred while loading your assessments. Please try again.'
           }
@@ -774,7 +802,7 @@ export default function MyAssessmentsPage() {
         <DetailsDisplay
           variant="neutral"
           title="No assessments yet"
-          message="Start your first assessment to track your circular economy progress and get personalized recommendations."
+          description="Start your first assessment to track your circular economy progress and get personalized recommendations."
           showDefaultActions={false}
           actions={[
             {
@@ -796,7 +824,7 @@ export default function MyAssessmentsPage() {
         <DetailsDisplay
           variant="neutral"
           title="No assessments found"
-          message="Your current filters didn't match any assessments. Try selecting a different
+          description="Your current filters didn't match any assessments. Try selecting a different
             industry or adjusting your search."
           showDefaultActions={false}
           actions={[
@@ -1029,7 +1057,7 @@ export default function MyAssessmentsPage() {
         <DetailsDisplay
           variant="error"
           title="Error Loading Assessments"
-          message={
+          description={
             isAssessmentStatsError?.message ||
             'An error occurred while loading your assessments. Please try again.'
           }

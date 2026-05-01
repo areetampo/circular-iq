@@ -1,5 +1,5 @@
 import { ListBox, SearchField, Select, Tooltip } from '@heroui/react';
-import { GitCompare } from 'lucide-react';
+import { Scale, Share2, TrendingUpDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
@@ -76,28 +76,50 @@ export function FilterBar({
         </div>
 
         {/* Compare button */}
-        <Tooltip delay={0}>
-          <Tooltip.Trigger>
-            <Button
-              variant="results-action"
-              as={selectedIds.size === 2 ? Link : 'button'}
-              to={selectedIds.size === 2 ? compareUrl : undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              isDisabled={selectedIds.size !== 2}
-            >
-              <GitCompare size={14} strokeWidth={2} />
-              <span className="font-mono">compare ({selectedIds.size}/2)</span>
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content showArrow placement="top">
-            <p>
-              {selectedIds.size === 2
-                ? 'Compare these two assessments'
-                : 'Select exactly 2 assessments to compare'}
-            </p>
-          </Tooltip.Content>
-        </Tooltip>
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="ghost"
+            as={Link}
+            to={'/assessments/share'}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Share2 size={14} strokeWidth={2} />
+            <span>Shared Assessments</span>
+          </Button>
+          <Button
+            variant="ghost"
+            as={Link}
+            to={'/assessments/compare'}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Scale size={14} strokeWidth={2} />
+            <span>Compare Others</span>
+          </Button>
+          <Tooltip delay={0}>
+            <Tooltip.Trigger>
+              <Button
+                variant="results-action"
+                as={selectedIds.size === 2 ? Link : 'button'}
+                to={selectedIds.size === 2 ? compareUrl : undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                isDisabled={selectedIds.size !== 2}
+              >
+                <TrendingUpDown size={14} strokeWidth={2} />
+                <span className="font-mono">compare ({selectedIds.size}/2)</span>
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content showArrow placement="top">
+              <p>
+                {selectedIds.size === 2
+                  ? 'Compare these two assessments'
+                  : 'Select exactly 2 assessments to compare'}
+              </p>
+            </Tooltip.Content>
+          </Tooltip>
+        </div>
       </div>
 
       {/* Industry filter chips */}
