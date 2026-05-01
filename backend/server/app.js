@@ -15,7 +15,7 @@ import { createSupabaseAnonClient, createSupabaseClient } from '#database/supaba
 import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
-import healthRoutes from '#routes/health.routes.js';
+import createHealthRouter from '#routes/health.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
 import { getMinimalHealth, getSystemHealth } from '#services/health.service.js';
@@ -29,26 +29,33 @@ const authAllowList = BACKEND_CONFIG.app.authAllowList;
 const routeMatchers = BACKEND_CONFIG.app.routeMatchers;
 const { apiKey, apiAuthEnabled } = BACKEND_CONFIG.app;
 
-// Helper to check for path in authAllowList (used by apiKeyGuard)
+/**
+ * Helper to check if a path is in the public route allowlist
+ * Used by apiKeyGuard to determine if authentication is required
+ * @param {string} path - Request path to check
+ * @returns {boolean} True if path is public (no auth required)
+ */
 function isPublicRoute(path) {
-  // logger.log('Checking if path is in authAllowList:', path);
-  // logger.log('All public routes:', Array.from(authAllowList));
-  // logger.log('Route matchers:', routeMatchers);
+  logger.log('=== AUTH DEBUG ===');
+  logger.log(
+    { authAllowList: Array.from(authAllowList), path, routeMatchers },
+    'Checking if path is in authAllowList',
+  );
 
   // Check exact match first
   if (authAllowList.has(path)) {
-    // logger.log('Path found in authAllowList:', path);
+    logger.log('Path found in authAllowList ✓');
     return true;
   }
 
   // Then check regex patterns for dynamic routes
   const isMatched = routeMatchers.some((matcher) => {
     const matches = matcher.test(path);
-    // logger.log(`Testing matcher ${matcher} against path ${path}: ${matches}`);
+    logger.log({ matcher, path, matches }, 'Testing matcher against path');
     return matches;
   });
 
-  // logger.log('Final isPublicRoute result:', isMatched);
+  logger.log({ isMatched }, 'Route matcher result');
   return isMatched;
 }
 
@@ -56,20 +63,28 @@ function isPublicRoute(path) {
 // COMMON UTILITIES
 // ============================================
 
+/**
+ * Safely compare API keys using timing-safe comparison to prevent timing attacks
+ * @param {string} providedKey - API key provided in request
+ * @param {string} storedKey - Expected API key from configuration
+ * @returns {boolean} True if keys match
+ */
 function safeCompare(providedKey, storedKey) {
   if (!providedKey || !storedKey) return false;
 
   const providedBuffer = Buffer.from(providedKey);
   const storedBuffer = Buffer.from(storedKey);
 
-  if (providedBuffer.length !== storedBuffer.length) {
-    crypto.timingSafeEqual(storedBuffer, storedBuffer);
-    return false;
-  }
+  // Ensure both buffers are same length before comparison
+  if (providedBuffer.length !== storedBuffer.length) return false;
 
   return crypto.timingSafeEqual(providedBuffer, storedBuffer);
 }
 
+/**
+ * Validate required configuration for API authentication
+ * @throws {Error} If API key is required but not set in production
+ */
 function validateConfig() {
   if (!apiKey && apiAuthEnabled) {
     const message = 'API_AUTH_ENABLED=true but API_KEY is not set';
@@ -84,6 +99,22 @@ function validateConfig() {
   }
 }
 
+/**
+ * API key authentication middleware
+ * Validates API key for non-public routes when API auth is enabled.
+ *
+ * Auth flow:
+ *  1. Public routes always pass through.
+ *  2. If API auth is disabled, pass through.
+ *  3. If a Bearer token is present but doesn't match the API key, it is
+ *     likely a Supabase JWT — let requireAuth handle it downstream.
+ *  4. If a valid x-api-key or Bearer API key is provided, pass through.
+ *  5. Otherwise reject with 401.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next function
+ */
 export function apiKeyGuard(req, res, next) {
   const isPublic = isPublicRoute(req.path);
 
@@ -105,8 +136,8 @@ export function apiKeyGuard(req, res, next) {
   const isValidHeader = safeCompare(apiKeyHeader, apiKey);
   const isValidBearer = safeCompare(bearerToken, apiKey);
 
-  // if a Bearer token is present but doesn't match the API key,
-  // it's likely a Supabase JWT — let requireAuth handle it downstream
+  // If a Bearer token is present but doesn't match the API key,
+  // it's likely a Supabase JWT — let requireAuth handle it downstream.
   if (bearerToken && !isValidBearer && !isValidHeader) {
     return next();
   }
@@ -206,11 +237,11 @@ const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 validateConfig();
 
 // mount routers
-app.use('/health', healthRoutes);
+app.use('/health', createHealthRouter(serviceSupabase));
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
-app.use('/api/search', createSearchRouter(supabase));
+app.use('/api/search', createSearchRouter(supabase, serviceSupabase));
 
 app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
   try {
