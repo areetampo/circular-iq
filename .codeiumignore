@@ -1,8 +1,10 @@
 # Datasets
+
 **/backend/datasets/
 !**/backend/datasets/scripts/
 
 # Standard build/dependency folders
+
 **/node_modules/
 **/dist/
 **/build/
@@ -10,10 +12,14 @@
 .vite/
 
 # Version control and config
+
 .git/
+.github/
+.husky/
 .vscode/
 
 # Large or non-code file types
+
 *.csv
 *.jsonl
 *.pdf
@@ -22,6 +28,7 @@
 *.tsbuildinfo
 
 # Environment Variables
+
 env/.env.backend
 env/.env.frontend
 env/.env.production
