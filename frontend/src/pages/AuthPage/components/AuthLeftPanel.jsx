@@ -47,7 +47,7 @@ export default function AuthLeftPanel() {
             <TextSearch size={16} strokeWidth={2} />
             <span>View Guide</span>
           </Button>
-          <Button variant="success-soft" as={Link} to="/dashboard?activeTab=search">
+          <Button variant="success-soft" as={Link} to="/solutions">
             <Telescope size={16} strokeWidth={2} />
             <span>Explore Solutions</span>
           </Button>

@@ -1,13 +1,14 @@
 import { AlertDialog } from '@heroui/react';
-import { Angry, FileDown, InfinityIcon, Orbit, Save, Share } from 'lucide-react';
+import { Angry, FileDown, InfinityIcon, Orbit, Save, Share, TextSearch } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 export function LimitReachedDialog(props) {
   const { limit: propLimit, message: propMessage, isOpen: propIsOpen } = props || {};
   const { isDialogOpen, dialog, onClose } = useGlobalDialog();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const usingProps = typeof propIsOpen !== 'undefined' || propLimit || propMessage;
@@ -18,7 +19,7 @@ export function LimitReachedDialog(props) {
 
   const handleSignUp = () => {
     onClose();
-    navigate('/auth', { state: { mode: 'signup', from: '/' } });
+    navigate('/auth', { state: { mode: 'signup', from: location } });
   };
 
   const handleCancel = () => {
@@ -27,9 +28,10 @@ export function LimitReachedDialog(props) {
 
   const LIMIT_REACHED_DIALOG_POINTS = [
     { icon: InfinityIcon, text: 'Unlimited evaluations' },
+    { icon: TextSearch, text: 'Search circular economy solutions' },
+    { icon: Orbit, text: 'Access global activity analytics' },
     { icon: Share, text: 'Share assessments' },
     { icon: Save, text: 'Save and compare results' },
-    { icon: Orbit, text: 'Access dashboard analytics' },
     { icon: FileDown, text: 'Export reports (PDF, CSV)' },
   ];
 
