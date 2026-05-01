@@ -135,7 +135,7 @@ export const buildDatabaseConfig = () => ({
 
 const parseAllowedOrigins = () => {
   const origins = env.ALLOWED_ORIGINS ?? [];
-  const frontend = env.APP_URL ?? [];
+  const frontend = env.APP_URL ? [env.APP_URL] : [];
 
   return [...new Set([...origins, ...frontend])];
 };
