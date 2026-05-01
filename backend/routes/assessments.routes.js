@@ -120,7 +120,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    * GET /public/:publicId
    * Retrieve a publicly shared assessment (no auth required)
    */
-  router.get('/public/:publicId', async (req, res) => {
+  router.get('/public/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const result = await assessmentsController.getPublicAssessment(
@@ -149,7 +149,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    * GET /validate/:publicId
    * Validate a public assessment ID exists and is shareable
    */
-  router.get('/validate/:publicId', async (req, res) => {
+  router.get('/validate/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
       const result = await assessmentsController.validatePublicId(
@@ -187,6 +187,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    * Compare two assessments by publicId with visibility rules
    * Query params: id1, id2 (both required)
    * Supports cross-user comparison with privacy enforcement
+   * Public endpoint - no authentication required
    *
    * NOTE: This route must appear before `GET /:publicId` to avoid the dynamic
    * param route capturing the literal path segment `compare`.
@@ -203,11 +204,10 @@ export default function createAssessmentsRouter(serviceSupabase) {
         };
       }
 
-      const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.compareAssessments(
         serviceSupabase,
         req.user,
-        token,
+        req.headers.authorization?.slice(7).trim(),
         id1,
         id2,
       );
