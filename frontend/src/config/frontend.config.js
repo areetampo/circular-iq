@@ -101,7 +101,7 @@ export const FRONTEND_CONFIG = deepFreeze({
   // Frontend Routes Configuration
   // All routes and their supported query parameters based on actual implementation
   routes: [
-    // Public Routes (No Authentication Required)
+    // Core Public Routes
     {
       path: '/',
       name: 'Landing Page',
@@ -114,7 +114,22 @@ export const FRONTEND_CONFIG = deepFreeze({
       name: 'Authentication',
       description: 'Login and signup page',
       authRequired: false,
-      queryParameters: [],
+      queryParameters: [
+        {
+          name: 'mode',
+          type: 'string',
+          required: false,
+          default: 'login',
+          description: 'Auth mode: "login" or "signup"',
+          validation: 'login|signup',
+        },
+        {
+          name: 'from',
+          type: 'string',
+          required: false,
+          description: 'Redirect URL after successful authentication',
+        },
+      ],
     },
     {
       path: '/guide',
@@ -131,45 +146,13 @@ export const FRONTEND_CONFIG = deepFreeze({
       queryParameters: [],
       stateParameters: ['result', 'formData', 'isRestored'],
     },
+    // Solutions & Analytics Routes
     {
-      path: '/share/:publicId',
-      name: 'Legacy Share Redirect',
-      description: 'Legacy share URL redirect (redirects to /assessments/share)',
-      authRequired: false,
-      queryParameters: [],
-      pathParameters: ['publicId'],
-    },
-    {
-      path: '/assessments/share',
-      name: 'Share Gateway',
-      description: 'Public assessment share gateway and viewer',
+      path: '/solutions',
+      name: 'Search Solutions',
+      description: 'Search circular economy solutions from 6,000+ real-world cases',
       authRequired: false,
       queryParameters: [
-        {
-          name: 'id',
-          type: 'string',
-          required: false,
-          description: 'Assessment public ID for direct share access',
-          validation: 'UUID format',
-        },
-      ],
-    },
-
-    // Protected Routes (Authentication Required)
-    {
-      path: '/dashboard',
-      name: 'Global Intelligence Dashboard',
-      description: 'Two-tab dashboard with search solutions and global activity',
-      authRequired: true,
-      queryParameters: [
-        {
-          name: 'activeTab',
-          type: 'string',
-          required: false,
-          default: 'search',
-          description: 'Active tab: "search" or "global"',
-          validation: 'search|global',
-        },
         {
           name: 'searchQuery',
           type: 'string',
@@ -215,11 +198,18 @@ export const FRONTEND_CONFIG = deepFreeze({
         },
       ],
       behavior: {
-        tabSwitching: 'Switching to global tab strips all search-specific params',
         validation: 'Invalid params are validated against actual results and dropped',
         cleanup: 'Orphan params are cleaned up on mount when no searchQuery',
       },
     },
+    {
+      path: '/global-activity',
+      name: 'Global Activity',
+      description: 'Live insights from all circular economy assessments worldwide',
+      authRequired: false,
+      queryParameters: [],
+    },
+    // Assessment Management Routes
     {
       path: '/assessments',
       name: 'My Assessments',
@@ -272,6 +262,21 @@ export const FRONTEND_CONFIG = deepFreeze({
       },
     },
     {
+      path: '/assessments/share',
+      name: 'Share Gateway',
+      description: 'Public assessment share gateway and viewer',
+      authRequired: false,
+      queryParameters: [
+        {
+          name: 'id',
+          type: 'string',
+          required: false,
+          description: 'Assessment public ID for direct share access',
+          validation: 'UUID format',
+        },
+      ],
+    },
+    {
       path: '/assessments/compare',
       name: 'Compare Assessments',
       description: 'Assessment comparison tool or selection form',
@@ -315,13 +320,12 @@ export const FRONTEND_CONFIG = deepFreeze({
       loading: 'Shows loading spinner during authentication check',
     },
     urlStateManagement: {
-      dashboard: 'URL is single source of truth for all search state',
+      solutions: 'URL is single source of truth for all search state',
       assessments: 'Filter parameters persist in URL for shareability',
       validation: 'Invalid parameters are validated and cleaned up',
     },
     navigation: {
       state: 'React Router state can pass result, formData, isRestored',
-      legacy: 'Legacy /share/:publicId redirects to /assessments/share',
     },
   },
 });
