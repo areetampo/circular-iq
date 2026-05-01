@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { lazy, Suspense } from 'react';
-import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
 import LoaderComponent from '@/components/common/LoaderComponent';
@@ -11,14 +11,15 @@ import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 
+const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
-const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
-const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
-const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
 const SharePage = lazy(() => import('@/pages/SharePage/SharePage'));
 const ComparePageWrapper = lazy(() => import('@/pages/ComparePage/ComparePageWrapper'));
-const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
+const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
+const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
+const SolutionsPage = lazy(() => import('@/pages/SolutionsPage/SolutionsPage'));
+const GlobalActivityPage = lazy(() => import('@/pages/GlobalActivityPage/GlobalActivityPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
 /**
@@ -26,6 +27,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
  */
 function ProtectedRoute({ children }) {
   const { isAuthenticated, authLoading } = useAuth();
+  const location = useLocation();
 
   if (authLoading) {
     return (
@@ -38,7 +40,8 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    // Pass the current location as state so auth forms can redirect back after login
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   return children;
@@ -48,11 +51,6 @@ ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-function ShareRedirect() {
-  const { publicId } = useParams();
-  return <Navigate to={`/assessments/share?id=${publicId}`} replace />;
-}
-
 /**
  * Application routes.
  *
@@ -60,8 +58,8 @@ function ShareRedirect() {
  * - Static path segments before dynamic (`/assessments/compare` before `/assessments/:publicId`).
  * - Deeper share routes before shallower ones where relevant.
  *
- * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/share/:publicId`, `/assessments/share?id=`.
- * Protected: `/dashboard`, `/assessments`, `/assessments/compare?id1=&id2=`, `/assessments/:publicId`.
+ * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/solutions`, `/global-activity`, `/assessments/share?id=`, `/assessments`, `/assessments/compare`.
+ * Protected: `/assessments/:publicId`.
  */
 export default function AppRoutes() {
   return (
@@ -96,24 +94,41 @@ export default function AppRoutes() {
             </div>
           }
         >
+          {/* ─── Public Routes ─── */}
           <Route index element={<LandingPage />} />
 
-          {/* ─── Public: legacy share URL → canonical path ─── */}
           <Route
-            path="/share/:publicId"
+            path="/assessments"
             element={
-              <PageErrorBoundary pageName="Share Redirect">
-                <ShareRedirect />
+              <PageErrorBoundary pageName="My Assessments">
+                <MyAssessmentsPage />
               </PageErrorBoundary>
             }
           />
 
-          {/* ─── Public: share gateway & shared assessment view ─── */}
           <Route
             path="/assessments/share"
             element={
               <PageErrorBoundary pageName="Share Gateway">
                 <SharePage />
+              </PageErrorBoundary>
+            }
+          />
+
+          <Route
+            path="/assessments/compare"
+            element={
+              <PageErrorBoundary pageName="Compare Assessments">
+                <ComparePageWrapper />
+              </PageErrorBoundary>
+            }
+          />
+
+          <Route
+            path="/results"
+            element={
+              <PageErrorBoundary pageName="Results">
+                <ResultsPage />
               </PageErrorBoundary>
             }
           />
@@ -127,49 +142,30 @@ export default function AppRoutes() {
             }
           />
 
-          {/* ─── Public: session results (unsaved) & legacy redirects ─── */}
           <Route
-            path="/results"
+            path="/solutions"
             element={
-              <PageErrorBoundary pageName="Results">
-                <ResultsPage />
+              <PageErrorBoundary pageName="Solutions">
+                <SolutionsPage />
               </PageErrorBoundary>
             }
           />
 
           <Route
-            path="/dashboard"
+            path="/global-activity"
             element={
-              <PageErrorBoundary pageName="Dashboard">
-                <DashboardPage />
+              <PageErrorBoundary pageName="Global Activity">
+                <GlobalActivityPage />
               </PageErrorBoundary>
             }
           />
 
-          {/* ─── Protected ─── */}
-          <Route
-            path="/assessments"
-            element={
-              <ProtectedRoute>
-                <MyAssessmentsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assessments/compare"
-            element={
-              <ProtectedRoute>
-                <PageErrorBoundary pageName="Compare Assessments">
-                  <ComparePageWrapper />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            }
-          />
+          {/* ─── Protected Routes ─── */}
           <Route
             path="/assessments/:publicId"
             element={
               <ProtectedRoute>
-                <PageErrorBoundary pageName="Assessment Results">
+                <PageErrorBoundary pageName="Results page (from assessments/:publicId)">
                   <ResultsPage isViewFromMyAssessments={true} />
                 </PageErrorBoundary>
               </ProtectedRoute>
