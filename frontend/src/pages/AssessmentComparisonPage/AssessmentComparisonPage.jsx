@@ -1,16 +1,15 @@
 import { Tooltip, toast } from '@heroui/react';
-import { Download, ExternalLink, FingerprintPattern, MoveLeft } from 'lucide-react';
+import { Download, ExternalLink, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { Button, Separator } from '@/components/common';
-import DetailsDisplay from '@/components/common/DetailsDisplay';
+import { Button, DetailsDisplay, Separator } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV, exportComparisonPDF } from '@/features/export';
+import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 
 import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
-import { computeAssessmentData } from './utils/assessmentUtils';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
@@ -21,19 +20,21 @@ export default function AssessmentComparisonPage() {
   const publicId1 = searchParams.get('id1');
   const publicId2 = searchParams.get('id2');
 
-  const { assessment1, assessment2, comparisonData, isLoading, isError, error } =
-    useAssessmentComparison(publicId1, publicId2);
+  const { assessment1, assessment2, isLoading, isError, error } = useAssessmentComparison(
+    publicId1,
+    publicId2,
+  );
 
   if (!publicId1 || !publicId2) {
     return (
       <DetailsDisplay
         variant="warning"
         title="Unable to Compare"
-        message="Please select two assessments to compare. Missing required assessment IDs."
+        description="Please select two assessments to compare. Missing required assessment IDs."
         actions={[
           {
-            label: 'Back to Assessments',
-            icon: MoveLeft,
+            label: 'Refresh',
+            icon: RotateCw,
             variant: 'ghost',
             to: '/assessments',
             as: Link,
@@ -58,11 +59,11 @@ export default function AssessmentComparisonPage() {
       <DetailsDisplay
         variant="error"
         title="Cannot Compare Assessments"
-        message={error || 'One or more ids incorrect'}
+        description={error || 'One or both IDs incorrect'}
         actions={[
           {
-            label: 'Back to Assessments',
-            icon: MoveLeft,
+            label: 'Refresh',
+            icon: RotateCw,
             variant: 'ghost',
             to: '/assessments',
             as: Link,
@@ -85,11 +86,11 @@ export default function AssessmentComparisonPage() {
       <DetailsDisplay
         variant="warning"
         title="Assessment Not Found"
-        message="One or both of the selected assessments could not be found. They may have been deleted or you may not have permission to access them."
+        description="One or both of the selected assessments could not be found. They may have been deleted or you may not have permission to access them."
         actions={[
           {
-            label: 'Back to Assessments',
-            icon: MoveLeft,
+            label: 'Refresh',
+            icon: RotateCw,
             variant: 'ghost',
             to: '/assessments',
             as: Link,
