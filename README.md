@@ -1,12 +1,18 @@
 ﻿# Circular Economy Evaluator
 
-[![Live Site](https://img.shields.io/badge/Live%20Site-xern.vercel.app-8B7355?style=for-the-badge&logo=vercel&logoColor=white)](https://xern.vercel.app)
+[![Live Site](https://img.shields.io/badge/Live%20Site-xern.vercel.app-8B7355?logo=vercel&logoColor=white)](https://xern.vercel.app)
+![Node](https://img.shields.io/badge/node-18+-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Stack](https://img.shields.io/badge/stack-React%20%2B%20Express-blue)
+![DB](https://img.shields.io/badge/database-Supabase%20pgvector-3ECF8E?logo=supabase)
+![AI](https://img.shields.io/badge/AI-OpenAI-412991?logo=openai&logoColor=white)
+![Deployment](https://img.shields.io/badge/deploy-Vercel%20%2B%20Render-black?logo=vercel)
 
 AI-powered platform for evaluating circular economy business initiatives against a knowledge base of 40,000+ real-world case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
 - **Author:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com)
-- **License:** UNLICENSED
 - **Repository:** [areetampo/circular-economy](https://github.com/areetampo/circular-economy)
+- **License:** MIT
 - **Monitoring:** [UptimeRobot](https://dashboard.uptimerobot.com/monitors/802964160)
 
 ## Overview
@@ -798,8 +804,8 @@ For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERE
 
 ## License
 
-UNLICENSED — proprietary software.
+**LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 26 April 2026
+**Last Updated:** 02 May 2026
 
 ---
