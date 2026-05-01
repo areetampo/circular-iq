@@ -31,7 +31,7 @@ class ResultsErrorBoundary extends React.Component {
         <DetailsDisplay
           variant="error"
           title="Unable to Display Results"
-          message="There was an error displaying this assessment. Please try refreshing the page or return to your assessments."
+          description="There was an error displaying this assessment. Please try refreshing the page or return to your assessments."
           actions={[
             {
               label: 'Refresh Page',

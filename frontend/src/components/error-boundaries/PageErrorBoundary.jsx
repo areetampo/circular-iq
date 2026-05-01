@@ -33,7 +33,7 @@ class PageErrorBoundary extends React.Component {
         <DetailsDisplay
           variant="error"
           title={`Unable to Display ${pageName}`}
-          message={`An unexpected error occurred while rendering this ${pageName.toLowerCase()}. This could be due to data processing or visualization issues.`}
+          description={`An unexpected error occurred while rendering this ${pageName.toLowerCase()}. This could be due to data processing or visualization issues.`}
           errorDetails={this.state.error}
           fullScreen={false}
         />

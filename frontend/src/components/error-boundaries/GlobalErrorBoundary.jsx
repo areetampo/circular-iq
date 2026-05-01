@@ -26,7 +26,7 @@ class GlobalErrorBoundary extends React.Component {
         <DetailsDisplay
           variant="error"
           title="Something went wrong"
-          message="An unexpected error occurred. Please try refreshing the page or return to the home page."
+          description="An unexpected error occurred. Please try refreshing the page or return to the home page."
           errorDetails={this.state.error}
           fullScreen={true}
         />

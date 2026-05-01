@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component {
         <DetailsDisplay
           variant="error"
           title="Something went wrong"
-          message="An unexpected error occurred. Please try refreshing the page."
+          description="An unexpected error occurred. Please try refreshing the page."
           errorDetails={this.state.error}
           fullScreen={true}
         />
