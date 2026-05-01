@@ -7,14 +7,13 @@
 import { spawn } from 'child_process';
 import path from 'path';
 
-import { filterSchema } from '#middleware/validation.middleware.js';
-import {
-  buildRecentMonths,
-  formatMonthKey,
-  safeNumber,
-  sanitizeFilter,
-} from '#utils/analyticsHelpers.js';
+import { safeNumber } from '#utils/analyticsHelpers.js';
 
+/**
+ * Parse time range string to extract number of days
+ * @param {string} timeRange - Time range string (e.g., "30d", "90d", "all")
+ * @returns {number|null} Number of days or null if invalid
+ */
 function parseTimeRange(timeRange) {
   if (!timeRange) return null;
   const normalized = String(timeRange).trim().toLowerCase();
@@ -26,6 +25,11 @@ function parseTimeRange(timeRange) {
   return days;
 }
 
+/**
+ * Extract overall score from a database row
+ * @param {Object} row - Database row containing score information
+ * @returns {number} Overall score or 0 if not found
+ */
 function getScoreFromRow(row) {
   if (!row) return 0;
   if (row.result_json && row.result_json.overall_score != null) {
@@ -37,6 +41,11 @@ function getScoreFromRow(row) {
   return 0;
 }
 
+/**
+ * Calculate standard deviation of an array of numbers
+ * @param {Array<number>} arr - Array of numbers
+ * @returns {number} Standard deviation rounded to 2 decimal places
+ */
 function computeStdDev(arr) {
   if (!arr || arr.length === 0) return 0;
   const n = arr.length;
@@ -48,7 +57,11 @@ function computeStdDev(arr) {
   return Number(Math.sqrt(variance).toFixed(2));
 }
 
-// Compute ISO week key YYYY-Www for a UTC date
+/**
+ * Compute ISO week key in format YYYY-Www for a UTC date
+ * @param {Date} date - Date object
+ * @returns {string|null} ISO week key (e.g., "2024-W01") or null if invalid
+ */
 function getISOWeekKey(date) {
   if (!date) return null;
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -62,427 +75,14 @@ function getISOWeekKey(date) {
 
 // ------------------- controller handlers -------------------
 
-export function getSummary(supabase) {
-  return async (req, res) => {
-    try {
-      const industryFilter = sanitizeFilter(req.query.industry);
-      const timeRangeRaw = String(req.query.timeRange || '').trim();
-      const days = parseTimeRange(timeRangeRaw);
-
-      let query = supabase
-        .from('user_assessments')
-        .select('industry, result_json, overall_score, created_at')
-        .eq('is_public', true);
-
-      if (industryFilter) {
-        query = query.eq('industry', industryFilter);
-      }
-
-      let startDate = null;
-      if (days) {
-        startDate = new Date();
-        startDate.setUTCDate(startDate.getUTCDate() - days);
-        query = query.gte('created_at', startDate.toISOString());
-      }
-
-      const { data: assessments, error } = await query;
-
-      if (error) throw error;
-
-      const totalCount = assessments?.length || 0;
-      const scores = (assessments || []).map(getScoreFromRow);
-      const averageScore = scores.length
-        ? Number((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2))
-        : 0;
-
-      const industryMap = new Map();
-      for (const row of assessments || []) {
-        const industry = row.industry; // structured column only
-        const score = getScoreFromRow(row);
-        if (!industryMap.has(industry)) {
-          industryMap.set(industry, { industry, count: 0, totalScore: 0 });
-        }
-        const entry = industryMap.get(industry);
-        entry.count += 1;
-        entry.totalScore += score;
-      }
-
-      const industryMetrics = Array.from(industryMap.values()).map((entry) => ({
-        industry: entry.industry,
-        count: entry.count,
-        averageScore: entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0,
-      }));
-
-      const recentMonths = buildRecentMonths(6);
-      const monthStats = new Map(
-        recentMonths.map((month) => [month.key, { ...month, count: 0, totalScore: 0 }]),
-      );
-
-      for (const row of assessments || []) {
-        if (!row.created_at) continue;
-        const createdDate = new Date(row.created_at);
-        if (Number.isNaN(createdDate.getTime())) continue;
-        const monthKey = formatMonthKey(
-          new Date(Date.UTC(createdDate.getUTCFullYear(), createdDate.getUTCMonth(), 1)),
-        );
-        if (!monthStats.has(monthKey)) continue;
-        const bucket = monthStats.get(monthKey);
-        bucket.count += 1;
-        bucket.totalScore += getScoreFromRow(row);
-      }
-
-      const timeSeries = Array.from(monthStats.values()).map((entry) => ({
-        month: entry.key,
-        label: entry.label,
-        count: entry.count,
-        averageScore: entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0,
-      }));
-
-      res.json({
-        aggregate: {
-          totalCount,
-          averageScore,
-        },
-        industryMetrics,
-        timeSeries,
-      });
-    } catch (err) {
-      logger.error({ err }, 'Failed to fetch analytics');
-      res.status(500).json({
-        error: err?.message || 'Failed to fetch analytics',
-        code: err?.code || 'INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
-}
-
-export function getEnhanced(supabase) {
-  return async (req, res) => {
-    try {
-      const timeRangeRaw = String(req.query.timeRange || '').trim();
-      const days = parseTimeRange(timeRangeRaw);
-
-      // Sanitize raw query values to handle arrays/objects, then validate with Zod
-      let industryFilter;
-      try {
-        const parsed = filterSchema.parse({
-          industry: sanitizeFilter(req.query.industry),
-          category: sanitizeFilter(req.query.category),
-          source: sanitizeFilter(req.query.source),
-        });
-        industryFilter = parsed.industry;
-      } catch (err) {
-        return res.status(400).json({ error: 'Invalid industry filter', details: err.errors });
-      }
-
-      let query = supabase
-        .from('user_assessments')
-        .select(
-          'industry, result_json, overall_score, economic_viability, created_at, is_public, contribute_to_global_benchmarks',
-        )
-        .eq('is_public', true);
-
-      if (industryFilter) {
-        query = query.eq('industry', industryFilter);
-      }
-
-      if (days) {
-        const startDate = new Date();
-        startDate.setUTCDate(startDate.getUTCDate() - days);
-        query = query.gte('created_at', startDate.toISOString());
-      }
-
-      const { data: assessments, error } = await query;
-      if (error) throw error;
-
-      const totalCount = assessments?.length || 0;
-      const scores = (assessments || []).map(getScoreFromRow);
-      const viabilityScores = (assessments || []).map((a) => safeNumber(a.economic_viability));
-
-      // Basic aggregate stats
-      const averageScore = scores.length
-        ? Number((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2))
-        : 0;
-
-      const avgViability = viabilityScores.length
-        ? Number(
-            (viabilityScores.reduce((sum, s) => sum + s, 0) / viabilityScores.length).toFixed(2),
-          )
-        : 0;
-
-      // Score distribution
-      const scoreRanges = { '0-20': 0, '21-40': 0, '41-60': 0, '61-80': 0, '81-100': 0 };
-      scores.forEach((score) => {
-        if (score <= 20) scoreRanges['0-20']++;
-        else if (score <= 40) scoreRanges['21-40']++;
-        else if (score <= 60) scoreRanges['41-60']++;
-        else if (score <= 80) scoreRanges['61-80']++;
-        else scoreRanges['81-100']++;
-      });
-
-      // Industry metrics with more details
-      const industryMap = new Map();
-      for (const row of assessments || []) {
-        const industry = row.industry || 'Unknown'; // Explicitly group null as "Unknown"
-        const score = getScoreFromRow(row);
-        const viability = safeNumber(row.economic_viability);
-
-        if (!industryMap.has(industry)) {
-          industryMap.set(industry, {
-            industry,
-            count: 0,
-            totalScore: 0,
-            totalViability: 0,
-            scores: [],
-            strategies: new Map(),
-          });
-        }
-        const entry = industryMap.get(industry);
-        entry.count += 1;
-        entry.totalScore += score;
-        entry.totalViability += viability;
-        entry.scores.push(score);
-
-        // Extract R-strategy if available
-        const strategy = row.result_json?.metadata?.r_strategy || row.result_json?.r_strategy;
-        if (strategy) {
-          entry.strategies.set(strategy, (entry.strategies.get(strategy) || 0) + 1);
-        }
-      }
-
-      const industryMetrics = Array.from(industryMap.values()).map((entry) => {
-        const sortedScores = [...entry.scores].sort((a, b) => a - b);
-        const median =
-          sortedScores.length > 0 ? sortedScores[Math.floor(sortedScores.length / 2)] : 0;
-        const volatility = computeStdDev(entry.scores);
-        const marketShare =
-          totalCount > 0 ? Number(((entry.count / totalCount) * 100).toFixed(1)) : 0;
-
-        return {
-          industry: entry.industry,
-          count: entry.count,
-          averageScore: entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0,
-          avgViability: entry.count ? Number((entry.totalViability / entry.count).toFixed(2)) : 0,
-          median,
-          min: Math.min(...entry.scores, 100),
-          max: Math.max(...entry.scores, 0),
-          volatility,
-          marketShare,
-          topStrategies: Array.from(entry.strategies.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3)
-            .map(([strategy, count]) => ({ strategy, count })),
-        };
-      });
-
-      // Time series bucketing based on requested granularity
-      const granularity = String(req.query.granularity || 'weekly').toLowerCase();
-
-      const makeBuckets = () => {
-        const buckets = new Map();
-        if (granularity === 'monthly') {
-          const monthsToShow = 12;
-          for (let i = monthsToShow - 1; i >= 0; i--) {
-            const monthDate = new Date();
-            monthDate.setMonth(monthDate.getMonth() - i);
-            const key = `${monthDate.getUTCFullYear()}-${String(
-              monthDate.getUTCMonth() + 1,
-            ).padStart(2, '0')}`;
-            buckets.set(key, {
-              key,
-              label: key,
-              count: 0,
-              totalScore: 0,
-              totalViability: 0,
-              scores: [],
-            });
-          }
-        } else if (granularity === 'daily') {
-          const daysToShow = 30;
-          for (let i = daysToShow - 1; i >= 0; i--) {
-            const dayDate = new Date();
-            dayDate.setDate(dayDate.getDate() - i);
-            const key = dayDate.toISOString().slice(0, 10);
-            buckets.set(key, {
-              key,
-              label: key,
-              count: 0,
-              totalScore: 0,
-              totalViability: 0,
-              scores: [],
-            });
-          }
-        } else {
-          // weekly (ISO weeks)
-          const weeksToShow = 12;
-          for (let i = weeksToShow - 1; i >= 0; i--) {
-            const ref = new Date();
-            ref.setUTCDate(ref.getUTCDate() - i * 7);
-            const key = getISOWeekKey(ref);
-            buckets.set(key, {
-              key,
-              label: key,
-              count: 0,
-              totalScore: 0,
-              totalViability: 0,
-              scores: [],
-              newAssessments: 0,
-            });
-          }
-        }
-        return buckets;
-      };
-
-      const bucketMap = makeBuckets();
-
-      for (const row of assessments || []) {
-        if (!row.created_at) continue;
-        const date = new Date(row.created_at);
-        let key;
-        if (granularity === 'monthly') {
-          key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-        } else if (granularity === 'daily') {
-          key = date.toISOString().slice(0, 10);
-        } else {
-          // weekly - use ISO week key
-          key = getISOWeekKey(date);
-        }
-
-        if (bucketMap.has(key)) {
-          const bucket = bucketMap.get(key);
-          const score = getScoreFromRow(row);
-          bucket.count += 1;
-          bucket.totalScore += score;
-          bucket.totalViability += safeNumber(row.economic_viability);
-          bucket.scores.push(score);
-          if (bucket.newAssessments != null) bucket.newAssessments += 1;
-        }
-      }
-
-      const timeSeries = Array.from(bucketMap.values()).map((entry) => {
-        const average = entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0;
-        const stdDev = computeStdDev(entry.scores);
-        const ci = entry.count > 0 ? 1.96 * (stdDev / Math.sqrt(entry.count)) : 0;
-        const upper = Number(Math.min(100, average + ci).toFixed(2));
-        const lower = Number(Math.max(0, average - ci).toFixed(2));
-        return {
-          period: entry.key,
-          label: entry.label,
-          count: entry.count,
-          averageScore: average,
-          avgViability: entry.count ? Number((entry.totalViability / entry.count).toFixed(2)) : 0,
-          stdDev,
-          confidenceUpper: upper,
-          confidenceLower: lower,
-          growth: entry.newAssessments || 0,
-        };
-      });
-
-      // compute industry market share for requested industry if present
-      const requestedIndustry = industryFilter || null;
-      let industryMarketShare = null;
-      if (requestedIndustry) {
-        const match = industryMetrics.find((m) => m.industry === requestedIndustry);
-        industryMarketShare = match?.marketShare ?? null;
-      } else {
-        industryMarketShare = null;
-      }
-
-      // R-Strategy distribution
-      const strategyMap = new Map();
-      for (const row of assessments || []) {
-        const strategy =
-          row.result_json?.metadata?.r_strategy || row.result_json?.r_strategy || 'Unknown';
-        const score = getScoreFromRow(row);
-
-        if (!strategyMap.has(strategy)) {
-          strategyMap.set(strategy, { strategy, count: 0, totalScore: 0 });
-        }
-        const entry = strategyMap.get(strategy);
-        entry.count += 1;
-        entry.totalScore += score;
-      }
-
-      const strategyDistribution = Array.from(strategyMap.values()).map((entry) => ({
-        strategy: entry.strategy,
-        count: entry.count,
-        percentage: totalCount > 0 ? Number(((entry.count / totalCount) * 100).toFixed(1)) : 0,
-        averageScore: entry.count ? Number((entry.totalScore / entry.count).toFixed(2)) : 0,
-      }));
-
-      // Scale distribution
-      const scaleMap = new Map();
-      for (const row of assessments || []) {
-        const scale = row.result_json?.metadata?.scale || row.result_json?.scale || 'Unknown';
-        if (!scaleMap.has(scale)) {
-          scaleMap.set(scale, 0);
-        }
-        scaleMap.set(scale, scaleMap.get(scale) + 1);
-      }
-
-      const scaleDistribution = Array.from(scaleMap.entries()).map(([scale, count]) => ({
-        scale,
-        count,
-        percentage: totalCount > 0 ? Number(((count / totalCount) * 100).toFixed(1)) : 0,
-      }));
-
-      // Public vs Private assessments
-      const publicCount = (assessments || []).filter((a) => a.is_public).length;
-      const contributingCount = (assessments || []).filter(
-        (a) => a.contribute_to_global_benchmarks,
-      ).length;
-
-      const overallVolatility = computeStdDev(scores);
-
-      res.json({
-        aggregate: {
-          totalCount,
-          averageScore,
-          avgViability,
-          publicCount,
-          contributingCount,
-          medianScore:
-            scores.length > 0
-              ? [...scores].sort((a, b) => a - b)[Math.floor(scores.length / 2)]
-              : 0,
-          overallVolatility,
-        },
-        // Convenience top-level fields for frontend consumption
-        overallVolatility,
-        industryMetrics,
-        industryMarketShare,
-        timeSeries,
-        scoreDistribution: Object.entries(scoreRanges).map(([range, count]) => ({
-          range,
-          count,
-          percentage: totalCount > 0 ? Number(((count / totalCount) * 100).toFixed(1)) : 0,
-        })),
-        strategyDistribution,
-        scaleDistribution,
-        trends: {
-          recentGrowth: timeSeries.slice(-4).reduce((sum, w) => sum + (w.growth || 0), 0),
-          scoreImprovement:
-            timeSeries.length > 1
-              ? Number(
-                  (
-                    timeSeries[timeSeries.length - 1].averageScore - timeSeries[0].averageScore
-                  ).toFixed(2),
-                )
-              : 0,
-        },
-      });
-    } catch (err) {
-      logger.error({ err }, 'Failed to fetch enhanced analytics');
-      res.status(500).json({
-        error: err?.message || 'Failed to fetch enhanced analytics',
-        code: err?.code || 'INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
-}
-
+/**
+ * POST /api/analytics/embeddings/reindex
+ *
+ * Starts the embedding pipeline reindex process in the background
+ * Returns immediately with process ID for tracking
+ *
+ * @returns {Function} Express middleware handler
+ */
 export function postEmbeddingsReindex() {
   return async (req, res) => {
     try {
