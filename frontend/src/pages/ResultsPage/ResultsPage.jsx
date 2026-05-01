@@ -34,13 +34,8 @@ import {
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  cleanUrl,
-  formatRelativeTime,
-  formatTimestamp,
-  toTitleCase,
-  truncate,
-} from '@/lib/formatting';
+import { useRelativeTime } from '@/hooks/useRelativeTime';
+import { cleanUrl, formatTimestamp, toTitleCase, truncate } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
@@ -210,6 +205,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     if (isViewFromMyAssessments) return null;
     return navigationFormData || sessionSnapshot?.formData || null;
   }, [isViewFromMyAssessments, navigationFormData, sessionSnapshot]);
+
+  // Real-time relative timestamps (moved after currentData is defined)
+  const savedRelativeTime = useRelativeTime(currentData?.created_at);
+  const calculatedRelativeTime = useRelativeTime(currentData?.processing_info?.timestamp);
 
   // Save complete results to session (including inputs that generated the result).
   // IMPORTANT: results are a snapshot and MUST remain exactly as they were when
@@ -855,10 +854,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* created_at for saved assessments (/assessments/:id) and processing_info?.timestamp for unsaved calculated results */}
         <div className="mb-1 w-full pr-2 text-right text-[0.68rem] text-(--color-text-secondary)/60">
-          {currentData.created_at && <>saved {formatRelativeTime(currentData.created_at)}</>}
-          {currentData.processing_info?.timestamp && (
-            <>calculated {formatRelativeTime(currentData.processing_info.timestamp)}</>
-          )}
+          {currentData.created_at && <>saved {savedRelativeTime}</>}
+          {currentData.processing_info?.timestamp && <>calculated {calculatedRelativeTime}</>}
         </div>
 
         {/* Share Assessment Section */}

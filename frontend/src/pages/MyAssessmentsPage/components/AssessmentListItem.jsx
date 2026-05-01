@@ -6,7 +6,8 @@ import { Link } from 'react-router-dom';
 
 import { Button, Chip, CopyIcon, Separator, Spinner } from '@/components/common';
 import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
-import { formatRelativeTime, formatTimestamp, toTitleCase } from '@/lib/formatting';
+import { useRelativeTime } from '@/hooks/useRelativeTime';
+import { formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 const scoreColor = (s) =>
@@ -23,7 +24,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   onTogglePublic,
 }) {
   const assessmentLink = `/assessments/${assessment.public_id}`;
-  const formattedDate = formatRelativeTime(assessment.created_at);
+  const formattedDate = useRelativeTime(assessment.created_at);
 
   const [copiedPublicId, setCopiedPublicId] = useState(null);
   const [togglingPublic, setTogglingPublic] = useState(null);
