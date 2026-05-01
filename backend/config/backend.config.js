@@ -150,14 +150,21 @@ const parseAuthAllowList = () => {
 // Factory function to create route matchers for dynamic routes
 // Supports patterns like /api/assessments/:id
 const createRouteMatchers = (publicRoutes) => {
-  return Array.from(publicRoutes).map((route) => {
+  const matchers = Array.from(publicRoutes).map((route) => {
     // Convert Express-style route patterns to regex
     // Simple implementation for :paramName patterns
     const regexPattern = route
       .replace(/:[^\s/]+/g, '[^/]+') // Replace :param with regex for non-slash chars
       .replace(/\//g, '\\/'); // Escape forward slashes
-    return new RegExp(`^${regexPattern}$`);
+    const matcher = new RegExp(`^${regexPattern}$`);
+    logger.info(
+      { route, regexPattern, matcher },
+      'Creating route matcher: route -> regexPattern -> matcher',
+    );
+    return matcher;
   });
+  logger.info({ matchersLength: matchers.length }, 'Total route matchers created');
+  return matchers;
 };
 
 // convert to a Set so that callers can use `.has()` for fast lookup
@@ -207,19 +214,6 @@ export const BACKEND_CONFIG = deepFreeze({
       method: 'POST',
       endpoint: '/api/score/stream',
       description: 'RAG Analysis & Scoring with SSE Streaming (Rate Limited)',
-    },
-
-    // Analytics
-    { method: 'GET', endpoint: '/api/analytics', description: 'Analytics Summary' },
-    {
-      method: 'GET',
-      endpoint: '/api/analytics/enhanced',
-      description: 'Enhanced Analytics with Time Series',
-    },
-    {
-      method: 'POST',
-      endpoint: '/api/analytics/embeddings/reindex',
-      description: 'Reindex Embeddings (Maintenance)',
     },
     {
       method: 'GET',
