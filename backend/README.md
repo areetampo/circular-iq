@@ -481,7 +481,7 @@ Validate that a `publicId` exists and is publicly accessible. Returns `{ valid: 
 
 #### GET `/api/assessments/compare`
 
-Compare two assessments. Query params: `id1`, `id2`. Returns both assessments plus computed `factorDiffs`, `comparisonData`, and `overallDiff`.
+Compare two assessments. Query params: `id1`, `id2`. Returns both assessments plus computed `factorDiffs`, `comparisonData`, and `overallDiff`. Both assessments must be public for comparison.
 
 ### Profile Endpoint
 
@@ -518,6 +518,9 @@ SUPABASE_SERVICE_ROLE_KEY=eyxxxxxxxxxxxxx
 INTERNAL_BACKEND_API_KEY=your-secret-api-key
 PORT=8000
 NODE_ENV=development
+
+# Public routes (no authentication required)
+PUBLIC_ROUTES=/api/score,/api/score/stream,/api/assessments/public/:publicId,/api/assessments/validate/:publicId,/api/assessments/compare,/api/analytics/global-stats,/api/search/ce-cases
 
 # Database backend switch
 USE_SUPABASE_DOCUMENTS_TABLE=true   # set to false to switch to Aiven

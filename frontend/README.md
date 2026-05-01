@@ -11,11 +11,12 @@ The frontend provides:
 
 1. **Assessment Flow** — guided questionnaires with optional business context + 8 evaluation parameters
 2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
-3. **Global Dashboard** — live analytics from all scoring calls worldwide
-4. **Export Functionality** — PDF reports and CSV data exports
-5. **Assessment History** — save, rename, delete, compare, and share assessments
-6. **Session Management** — automatic save/restore across browser sessions
-7. **Anonymous Usage** — 5 free assessments with IP-based tracking; unlimited for logged-in users
+3. **Solutions Search** — semantic search across 6,000+ real circular economy case studies
+4. **Global Activity** — live analytics from all scoring calls worldwide
+5. **Export Functionality** — PDF reports and CSV data exports
+6. **Assessment History** — save, rename, delete, compare, and share assessments
+7. **Session Management** — automatic save/restore across browser sessions
+8. **Anonymous Usage** — 5 free assessments with IP-based tracking; unlimited for logged-in users
 
 ## Tech Stack
 
@@ -80,12 +81,18 @@ frontend/src/
 │   │       ├── DetailsTab.jsx                  # Project details, gap analysis, enrichment cards
 │   │       └── DatabaseEvidenceTab.jsx         # Side-by-side similar cases with score grids
 │   │
-│   ├── DashboardPage/
-│   │   ├── DashboardPage.jsx                   # Tab shell — URL-driven tab state (no useState for selectedKey),
-│   │   │ # handleTabChange strips search params on global tab switch
+│   ├── SolutionsPage/
+│   │   ├── SolutionsPage.jsx                    # Solutions search page with URL-as-state
 │   │   └── components/
-│   │       ├── GlobalActivity.jsx              # Global Activity tab — all charts, tables, callout cards
-│   │       ├── SolutionsSearch.jsx             # Search Solutions tab — URL-as-state search + filters + pagination
+│   │       ├── SolutionsSearch.jsx             # Search component with filters + pagination
+│   │       ├── PageHeader.jsx                  # Page header component with title and icon
+│   │       └── index.js                        # Barrel exports
+│   │
+│   ├── GlobalActivityPage/
+│   │   ├── GlobalActivityPage.jsx              # Global activity page wrapper
+│   │   └── components/
+│   │       ├── GlobalActivity.jsx              # Global activity component with all charts
+│   │       ├── GlobalActivityHeader.jsx       # Header with refresh functionality and timestamp
 │   │       ├── StatCard.jsx                    # Metric card with loading skeleton
 │   │       ├── ChartPanel.jsx                  # Chart wrapper with title, loading state, error state
 │   │       ├── SingleValueChart.jsx            # Fallback for single-data-point distributions
@@ -102,7 +109,7 @@ frontend/src/
 │   │       └── IndustryFilterChip.jsx          # Industry chip filter toggle
 │   │
 │   ├── AuthPage/AuthPage.jsx
-│   ├── ComparePage/ComparePage.jsx             # Route wrapper → AssessmentComparisonPage
+│   ├── ComparePage/ComparePageWrapper.jsx      # Route wrapper → AssessmentComparisonPage
 │   ├── GuidePage/GuidePage.jsx
 │   ├── SharePage/SharePage.jsx                 # Public shared assessment view
 │   └── NotFoundPage/NotFoundPage.jsx
@@ -276,18 +283,20 @@ frontend/src/
 
 ## Routes
 
-| Path                     | Component            | Auth | Description                               |
-| ------------------------ | -------------------- | ---- | ----------------------------------------- |
-| `/`                      | `LandingPage`        | No   | Assessment input form with guided mode    |
-| `/auth`                  | `AuthPage`           | No   | Login / signup                            |
-| `/guide`                 | `GuidePage`          | No   | Help & methodology documentation          |
-| `/results`               | `ResultsPage`        | No   | Results for session-based scoring         |
-| `/assessments`           | `MyAssessmentsPage`  | Yes  | Saved assessment history                  |
-| `/assessments/:id`       | `AssessmentViewPage` | Yes  | View single saved assessment              |
-| `/assessments/share?id=` | `SharePage`          | No   | Public shared assessment view             |
-| `/compare`               | `ComparePage`        | Yes  | Side-by-side comparison (query: id1, id2) |
-| `/dashboard`             | `DashboardPage`      | No   | Global analytics dashboard                |
-| `*`                      | `NotFoundPage`       | —    | 404                                       |
+| Path                                   | Component                  | Auth | Description                            |
+| -------------------------------------- | -------------------------- | ---- | -------------------------------------- |
+| `/`                                    | `LandingPage`              | No   | Assessment input form with guided mode |
+| `/auth`                                | `AuthPage`                 | No   | Login / signup                         |
+| `/guide`                               | `GuidePage`                | No   | Help & methodology documentation       |
+| `/results`                             | `ResultsPage`              | No   | Results for session-based scoring      |
+| `/assessments`                         | `MyAssessmentsPage`        | No   | Saved assessment history               |
+| `/assessments/:publicId`               | `ResultsPage`              | Yes  | View single saved assessment           |
+| `/assessments/share?id=`               | `SharePage`                | No   | Public shared assessment view          |
+| `/assessments/compare`                 | `ComparePageWrapper`       | No   | Comparison form                        |
+| `/assessments/compare?id1=...&id2=...` | `AssessmentComparisonPage` | No   | Side-by-side assessment comparison     |
+| `/solutions`                           | `SolutionsPage`            | No   | Search circular economy solutions      |
+| `/global-activity`                     | `GlobalActivityPage`       | No   | Global activity analytics              |
+| `*`                                    | `NotFoundPage`             | —    | 404                                    |
 
 ## Setup & Installation
 
@@ -509,7 +518,7 @@ All chart components use consistent prop patterns — never use `xKey`, `yKey`, 
 />
 ```
 
-**Single data point fallback** — when a pie chart has only 1 data point, use `SingleValueChart` from `DashboardPage/components/`:
+**Single data point fallback** — when a pie chart has only 1 data point, use `SingleValueChart` from the respective page components:
 
 ```jsx
 // Check before rendering PieChart:
@@ -578,9 +587,10 @@ result.gap_analysis;
 /results                    // ResultsPage — freshly scored result (session-based)
 /assessments                // MyAssessmentsPage — saved history (auth required)
 /assessments/:id            // AssessmentViewPage — view saved assessment
-/assessments/share?publicId= // SharePage — public shared view (no auth)
-/compare?id1=X&id2=Y        // ComparePage → AssessmentComparisonPage
-/dashboard                  // DashboardPage — global analytics
+/assessments/share?id= // SharePage — public shared view (no auth)
+/compare?id1=X&id2=Y        // ComparePageWrapper → AssessmentComparisonPage
+/solutions                   // SolutionsPage — search solutions
+/global-activity             // GlobalActivityPage — global analytics
 ```
 
 ### Session Management
@@ -984,11 +994,13 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 /auth                       → AuthPage             (login/signup)
 /guide                      → GuidePage            (help & methodology)
 /results                    → ResultsPage          (session-based scoring results)
-/assessments                → MyAssessmentsPage    (saved history, auth required)
-/assessments/:id            → AssessmentViewPage   (view saved assessment, auth required)
+/assessments                → MyAssessmentsPage    (saved history, public)
+/assessments/:publicId      → ResultsPage          (view saved assessment, auth required)
 /assessments/share?id=      → SharePage           (public shared view, no auth)
-/compare                    → ComparePage          (side-by-side comparison, auth required)
-/dashboard                  → DashboardPage        (global analytics)
+/assessments/compare         → ComparePageWrapper  (comparison form & results, public)
+/assessments/compare?id1=...&id2=... → AssessmentComparisonPage (side-by-side comparison, public)
+/solutions                  → SolutionsPage        (solutions overview)
+/global-activity            → GlobalActivityPage   (global analytics)
 *                           → NotFoundPage
 ```
 

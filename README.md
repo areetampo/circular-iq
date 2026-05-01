@@ -18,7 +18,7 @@ The platform guides users through a structured assessment and returns a complete
 3. **Enrich** with 3 deterministic and LLM-powered analysis layers
 4. **Compare** against similar real-world projects from the knowledge base
 5. **Export** as PDF or CSV with full SDG alignment and improvement roadmap
-6. **Track** assessment history and benchmark against global data on the Dashboard
+6. **Track** assessment history and benchmark against global data
 
 ## Core Architecture
 
@@ -30,7 +30,7 @@ The platform guides users through a structured assessment and returns a complete
 │  Frontend Layer (React 19 / Vite 7)                                 │
 │  ├─ Assessment Flow — guided questionnaires + business context      │
 │  ├─ Results Visualisation — charts, tables, export, drawers         │
-│  ├─ Global Dashboard — live analytics from scoring_results_log      │
+│  ├─ Global Activity — live analytics from scoring_results_log      │
 │  ├─ State Management — React Query + custom hooks                   │
 │  ├─ UI Components — HeroUI v3 + Tailwind CSS v4 + Recharts          │
 │  └─ Session Persistence — localStorage + anonymous tracking         │
@@ -126,11 +126,9 @@ These inputs improve LLM calibration and enable stage-appropriate scoring.
 - Per-field chunking: problem, solution, impact, materials, circular_strategy
 - Structured metadata: industry, R-strategy, scale, geographic focus, primary material
 
-### Global Intelligence Dashboard
+### Solutions Search & Global Activity
 
-Two-tab interface at `/dashboard` with full URL state synchronisation:
-
-**Search Solutions tab** (`?activeTab=search`)
+**Solutions Search** (`/solutions`)
 
 - Semantic search across 6,000+ real circular economy case studies from the `ce_cases` knowledge base
 - Two search modes: **Keyword** (BM25 full-text, < 50ms) and **Semantic** (AI-powered hybrid vector + keyword, < 500ms)
@@ -140,7 +138,7 @@ Two-tab interface at `/dashboard` with full URL state synchronisation:
 - Background fetch indicators, stale data refresh button, and prefetch-on-hover for hybrid mode
 - Result cards display: title, match score %, circular strategy chip, category chip, materials chip, full expandable problem / solution / summary / impact, company name, source link
 
-**Global Activity tab** (`?activeTab=global`)
+**Global Activity** (`/global-activity`)
 
 - **Section 1 — Global Activity**: Live aggregates from `scoring_results_log` (all non-junk scoring calls, authenticated + anonymous)
   - Top-line stats: total scored, avg score, saved assessments (community), input quality rate with junk count
@@ -159,7 +157,7 @@ Two-tab interface at `/dashboard` with full URL state synchronisation:
   - Industry table: volume, avg score, share of assessments (from `scoring_results_log`)
   - Saved Assessments by Tier and by Risk pie charts (from `get_assessment_statistics()` RPC — opted-in saved assessments only)
 
-URL behaviour: switching to Global tab strips all search-specific params; invalid tab params default to search; manual refresh button with "updated N minutes ago" timestamp.
+Global Activity includes manual refresh button with "updated N minutes ago" timestamp.
 
 ### Assessment Management
 
@@ -192,20 +190,45 @@ URL behaviour: switching to Global tab strips all search-specific params; invali
 │   ├── api/proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
 │   ├── src/
 │   │   ├── app/                     # Root component, routes, global providers
+│   │   │   ├── App.jsx              # Root component with providers and routing
+│   │   │   ├── AppRoutes.jsx        # All route definitions
+│   │   │   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
 │   │   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries
 │   │   ├── contexts/                # Auth, Dialog, Drawer, Modal React contexts
 │   │   ├── features/
 │   │   │   ├── assessments/         # API client, all hooks (useAssessment, useGlobalStats, etc.), validation, utils
 │   │   │   ├── export/              # exportCSV.js, exportPDF.js
+│   │   │   ├── search/              # searchApi.js for circular economy cases search
 │   │   │   └── session/             # AppSessionManager, useSession
-│   │   ├── hooks/                   # useAuth, useDialog, useDrawer, useDrawerDirection, useExportState, useToast, useDebounce
+│   │   ├── hooks/                   # useAuth, useDialog, useDrawer, useDrawerDirection, useExportState, useToast, useDebounce, useRelativeTime
 │   │   ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
 │   │   ├── pages/
-│   │   │   ├── AssessmentComparisonPage/components/   # Tab components + ComparisonSkeleton + ChangeIndicator
-│   │   │   ├── DashboardPage/components/              # StatCard, ChartPanel, SolutionsSearch etc.
-│   │   │   ├── LandingPage/components/                # BusinessContextContainer, EvaluationParametersContainer, etc.
-│   │   │   ├── MyAssessmentsPage/components/          # AssessmentListItem, FilterBar, IndustryFilterChip
-│   │   │   └── ResultsPage/components/                # ScoreOverview, WeightedScoreCard, AuditSummary, DatabaseEvidence, etc.
+│   │   │   ├── AssessmentComparisonPage/    # Assessment comparison with 4-tab layout
+│   │   │   ├── AssessmentViewPage/          # Saved assessment view
+│   │   │   ├── AuthPage/                     # Login and signup page
+│   │   │   ├── ComparePage/                  # Route wrapper for assessment comparison
+│   │   │   ├── GlobalActivityPage/           # Global activity analytics with refresh
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── GlobalActivity.jsx              # Main global activity component
+│   │   │   │   │   ├── GlobalActivityHeader.jsx       # Header with refresh functionality
+│   │   │   │   │   ├── StatCard.jsx                    # Metric display component
+│   │   │   │   │   ├── ChartPanel.jsx                  # Chart wrapper component
+│   │   │   │   │   ├── DashboardSectionHeading.jsx    # Section heading component
+│   │   │   │   │   ├── EmptyChart.jsx                  # Empty state placeholder
+│   │   │   │   │   ├── SingleValueChart.jsx            # Single metric chart
+│   │   │   │   │   └── index.js                        # Barrel exports
+│   │   │   ├── GuidePage/                    # User guide page
+│   │   │   ├── LandingPage/                  # Main landing page
+│   │   │   ├── MyAssessmentsPage/           # User's saved assessments list
+│   │   │   ├── NotFoundPage/                # 404 error page
+│   │   │   ├── ResultsPage/                 # Assessment results display
+│   │   │   ├── SharePage/                   # Public shared assessment view
+│   │   │   └── SolutionsPage/               # Solutions search page
+│   │   │       ├── components/
+│   │   │       │   ├── SolutionsSearch.jsx           # Main search component with URL state
+│   │   │       │   ├── PageHeader.jsx                 # Page header component
+│   │   │       │   └── index.js                        # Barrel exports
+│   │   ├── config/                   # frontend.config.js with route definitions and query parameters
 │   │   ├── constants/               # evaluationData, industries, industryThemes, drawer constants
 │   │   ├── utils/                   # cn, content, session, async, ui, logger
 │   │   ├── test/                    # Test utilities and setup
@@ -307,18 +330,23 @@ VITE_ENABLE_ANALYTICS=true    # optional
 
 ### Scoring
 
-| Method | Endpoint     | Auth     | Description                                                                       |
-| ------ | ------------ | -------- | --------------------------------------------------------------------------------- |
-| `POST` | `/api/score` | Optional | Full scoring pipeline: validation → vector search → Layer 2 → LLM audit → Layer 3 |
+| Method | Endpoint            | Auth     | Description                                                                       |
+| ------ | ------------------- | -------- | --------------------------------------------------------------------------------- |
+| `POST` | `/api/score`        | Optional | Full scoring pipeline: validation → vector search → Layer 2 → LLM audit → Layer 3 |
+| `POST` | `/api/score/stream` | Optional | Real-time scoring with Server-Sent Events for progress updates                    |
 
 ### Analytics
 
-| Method | Endpoint                            | Auth     | Description                                     |
-| ------ | ----------------------------------- | -------- | ----------------------------------------------- |
-| `GET`  | `/api/analytics`                    | Optional | Summary analytics                               |
-| `GET`  | `/api/analytics/enhanced`           | Optional | Enhanced analytics with time series             |
-| `POST` | `/api/analytics/embeddings/reindex` | Optional | Reindex embeddings (maintenance)                |
-| `GET`  | `/api/analytics/global-stats`       | Optional | Global dashboard stats from scoring_results_log |
+| Method | Endpoint                            | Auth     | Description                                    |
+| ------ | ----------------------------------- | -------- | ---------------------------------------------- |
+| `GET`  | `/api/analytics/global-stats`       | Optional | Global activity stats from scoring_results_log |
+| `POST` | `/api/analytics/embeddings/reindex` | Optional | Reindex embeddings (maintenance)               |
+
+### Search
+
+| Method | Endpoint               | Auth     | Description                                  |
+| ------ | ---------------------- | -------- | -------------------------------------------- |
+| `GET`  | `/api/search/ce-cases` | Optional | Search circular economy cases knowledge base |
 
 ### Assessments
 
@@ -329,16 +357,29 @@ VITE_ENABLE_ANALYTICS=true    # optional
 | `GET`    | `/api/assessments/stats`              | Required | User aggregate statistics                        |
 | `GET`    | `/api/assessments/public/:publicId`   | None     | Retrieve public/shared assessment                |
 | `GET`    | `/api/assessments/validate/:publicId` | None     | Validate shared assessment id                    |
-| `GET`    | `/api/assessments/:id`                | Required | Fetch specific assessment                        |
-| `PATCH`  | `/api/assessments/:id`                | Required | Update (rename, set is_public)                   |
+| `GET`    | `/api/assessments/compare`            | None     | Compare two assessments (query params: id1, id2) |
+| `GET`    | `/api/assessments/:publicId`          | Required | Fetch specific assessment                        |
+| `PATCH`  | `/api/assessments/:id`                | Required | Update assessment (rename, set is_public)        |
 | `DELETE` | `/api/assessments/:id`                | Required | Delete assessment                                |
-| `GET`    | `/api/assessments/compare`            | Required | Compare two assessments (query params: id1, id2) |
 
-### Utility
+### Health & System
+
+| Method | Endpoint            | Auth     | Description                                    |
+| ------ | ------------------- | -------- | ---------------------------------------------- |
+| `GET`  | `/health`           | Optional | Basic health check for load balancers          |
+| `GET`  | `/health/detailed`  | Optional | Comprehensive health check with service status |
+| `GET`  | `/health/database`  | Optional | Database connectivity check                    |
+| `GET`  | `/health/openai`    | Optional | OpenAI API connectivity check                  |
+| `GET`  | `/health/system`    | Optional | System resources health check                  |
+| `GET`  | `/health/config`    | Optional | Configuration validation check                 |
+| `GET`  | `/health/readiness` | Optional | Kubernetes readiness probe                     |
+| `GET`  | `/health/liveness`  | Optional | Kubernetes liveness probe                      |
+| `GET`  | `/health/version`   | Optional | Version and build information                  |
+
+### User Profile
 
 | Method | Endpoint       | Auth     | Description                |
 | ------ | -------------- | -------- | -------------------------- |
-| `GET`  | `/health`      | None     | Health check               |
 | `GET`  | `/api/profile` | Required | Authenticated user profile |
 
 ## Authentication
@@ -589,7 +630,7 @@ Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and a
 
 - `assessments` only captures user-saved evaluations (a subset)
 - `scoring_results_log` captures every API call including anonymous and unsaved — far wider coverage
-- Dashboard `GET /api/analytics/global-stats` uses service-role access to `scoring_results_log`
+- Global Activity `GET /api/analytics/global-stats` uses service-role access to `scoring_results_log`
 - Identical column promotion strategy across both tables makes analytics queries portable
 
 ### Hybrid search (vector + BM25)
