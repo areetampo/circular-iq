@@ -237,7 +237,7 @@ export default function GlobalActivity() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-16">
       {/* ════════════════════════════════════════════════════════════
           SECTION 1 — GLOBAL ACTIVITY
           ════════════════════════════════════════════════════════════════ */}

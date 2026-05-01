@@ -1,11 +1,11 @@
 import { Tabs } from '@heroui/react';
 import { Globe, RotateCw } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
-import { formatRelativeTime } from '@/lib/formatting';
+import { useRelativeTime } from '@/hooks/useRelativeTime';
 import { cn } from '@/utils/cn';
 
 import { GlobalActivity, SolutionsSearch } from './components';
@@ -13,10 +13,28 @@ import { GlobalActivity, SolutionsSearch } from './components';
 export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Timestamp for "Updated at" display
-  const [updatedAt, setUpdatedAt] = useState(new Date());
+  // ── Global data ─────────────────────────────────────────────────────────────
+  const {
+    isLoading: globalLoading,
+    isFetching,
+    refetch: refetchGlobal,
+    dataUpdatedAt,
+  } = useGlobalStats();
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // Convert ms timestamp to Date object for your useRelativeTime hook
+  const updatedAtDate = dataUpdatedAt ? new Date(dataUpdatedAt) : new Date();
+  const relativeTime = useRelativeTime(updatedAtDate);
+
+  // Refresh handler – no local state needed at all
+  const handleRefresh = async () => {
+    await refetchGlobal();
+    // dataUpdatedAt will be updated automatically by React Query
+  };
+
+  // Loading indicator: use React Query’s flags only
+  const showUpdating = globalLoading || isFetching;
+
+  // ── Tab handling ──────────────────────────────────────────────────────────────────
   // Derive selectedKey directly from the URL — single source of truth.
   // Never let local state drift from the URL.
   const activeTabParam = searchParams.get('activeTab');
@@ -50,31 +68,17 @@ export default function DashboardPage() {
     [searchParams, setSearchParams],
   );
 
-  // ── Global data ─────────────────────────────────────────────────────────────
-  const { isLoading: globalLoading, refetch: refetchGlobal } = useGlobalStats();
-
-  // Handle refresh button click
-  const handleRefresh = async () => {
-    try {
-      await refetchGlobal({ throwOnError: true });
-      setUpdatedAt(new Date()); // Update timestamp immediately after refetch
-    } catch (error) {
-      // Error is handled by React Query's global error handling
-      logger.error('[Dashboard Refresh] Error during refetch:', error);
-    }
-  };
-
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="mx-auto mt-4 max-w-6xl space-y-12 px-4 pb-16 sm:px-6">
+    <div className="mx-auto max-w-6xl space-y-8 px-4 sm:px-6">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4 pt-8">
+      <div className="flex items-end justify-between gap-4 pt-6">
         <div>
-          <h1 className="flex items-center gap-3 font-display text-[2rem] font-bold tracking-[-0.02em] text-(--color-text-primary)">
+          <h1 className="flex items-center gap-3 font-sans text-[2rem] font-medium tracking-[-0.02em] text-(--color-text-primary)">
             <Globe size={28} className="text-(--color-success)" strokeWidth={2.5} />
             Global Intelligence Dashboard
           </h1>
-          <p className="mt-3 pl-1 text-sm/relaxed text-(--color-text-secondary)">
+          <p className="pl-2 text-sm/relaxed text-(--color-text-secondary)">
             Live insights from all circular economy assessments worldwide
           </p>
         </div>
@@ -88,15 +92,15 @@ export default function DashboardPage() {
         >
           <Button
             onClick={handleRefresh}
-            disabled={globalLoading}
+            disabled={showUpdating}
             variant="teal"
-            className={cn(globalLoading && 'opacity-60')}
+            className={cn(showUpdating && 'opacity-60')}
           >
-            <RotateCw size={15} className={cn(globalLoading && 'animate-spin')} strokeWidth={2.5} />
+            <RotateCw size={15} className={cn(showUpdating && 'animate-spin')} strokeWidth={2.5} />
             Refresh
           </Button>
           <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
-            {globalLoading ? 'updating...' : `updated ${formatRelativeTime(updatedAt)}`}
+            {showUpdating ? 'updating...' : `updated ${relativeTime}`}
           </p>
         </div>
       </div>
