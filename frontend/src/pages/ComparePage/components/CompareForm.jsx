@@ -5,10 +5,14 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { isValidUUID } from '@/lib/validation';
+import { useSafeBack } from '@/utils/navigation';
 
 const STORAGE_KEY = 'comparePageInputs';
 
 export default function CompareForm() {
+  const navigate = useNavigate();
+  const goBackSafely = useSafeBack();
+
   const [publicId1, setPublicId1] = useState(() => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -25,10 +29,10 @@ export default function CompareForm() {
       return '';
     }
   });
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showEmptyError, setShowEmptyError] = useState({ id1: false, id2: false });
-  const navigate = useNavigate();
 
   // Save to sessionStorage whenever inputs change
   useEffect(() => {
@@ -194,13 +198,20 @@ export default function CompareForm() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" variant="primary" isLoading={loading}>
-            Compare
-          </Button>
-          <Button type="button" variant="ghost" onPress={handleClear}>
-            Clear
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button type="submit" variant="primary" isLoading={loading}>
+              Compare
+            </Button>
+            <Button variant="ghost" onPress={handleClear}>
+              Clear
+            </Button>
+          </div>
+          <div>
+            <Button variant="info-soft" as={Link} to="/assessments">
+              Compare your assessments
+            </Button>
+          </div>
         </div>
       </form>
 
@@ -232,9 +243,9 @@ export default function CompareForm() {
       </div>
 
       <div className="flex justify-center">
-        <Button type="button" variant="ghost" as={Link} to="/assessments">
+        <Button type="button" variant="ghost" onPress={goBackSafely}>
           <MoveLeft size={14} />
-          Back to Assessments
+          Back
         </Button>
       </div>
     </div>
