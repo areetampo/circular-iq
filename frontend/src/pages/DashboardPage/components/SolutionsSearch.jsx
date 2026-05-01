@@ -213,7 +213,7 @@ function ResultsGrid({ results, isHybridMode }) {
 // Sub-components for cleaner rendering logic
 function IdleState() {
   return (
-    <div className="flex items-center justify-center py-20">
+    <div className="flex items-center justify-center">
       <DetailsBadge
         variant="info"
         message="Type to search 6,000+ circular economy cases"
@@ -225,7 +225,7 @@ function IdleState() {
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center gap-3 py-16">
+    <div className="flex items-center justify-center">
       <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} />
     </div>
   );
@@ -233,7 +233,7 @@ function LoadingState() {
 
 function ErrorState({ error }) {
   return (
-    <div className="flex items-center justify-center py-16">
+    <div className="flex items-center justify-center">
       <DetailsBadge
         variant="error"
         message={`Error: ${error?.message || 'Failed to fetch solutions'}`}
@@ -244,8 +244,8 @@ function ErrorState({ error }) {
 
 function EmptyState({ query }) {
   return (
-    <div className="flex items-center justify-center py-16">
-      <DetailsBadge variant="error" message={`No results found for ' ${query} '`} />
+    <div className="flex items-center justify-center">
+      <DetailsBadge variant="warning" message={`No results found for '${query}'`} />
     </div>
   );
 }
@@ -770,7 +770,7 @@ export function SolutionsSearch() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="-mt-4 space-y-4">
       {/* Search input and mode toggle */}
       <div className="space-y-1">
         <div className="flex items-center justify-start gap-2 pl-2">
@@ -783,7 +783,11 @@ export function SolutionsSearch() {
             className="flex items-center justify-between gap-3 pl-2"
           >
             <Checkbox.Control>
-              <Checkbox.Indicator />
+              <Checkbox.Indicator>
+                {({ isSelected }) =>
+                  isSelected ? <div className="checkbox__default-indicator--plus" /> : null
+                }
+              </Checkbox.Indicator>
             </Checkbox.Control>
             <Checkbox.Content>
               <Label
@@ -798,7 +802,7 @@ export function SolutionsSearch() {
             </Checkbox.Content>
           </Checkbox>
 
-          {/* Result count */}
+          {/* Result count + refresh button */}
           {hasResults && (
             <div className="mt-px flex items-center gap-2 font-mono text-xs font-medium text-(--color-text-muted)">
               {hasResults && <Minus size={16} strokeWidth={2.5} />}
@@ -880,7 +884,7 @@ export function SolutionsSearch() {
         </ResizablePanelGroup>
       ) : (
         /* FULL WIDTH CENTERED STATES */
-        <div className="flex min-h-75 items-center justify-center">{renderFullWidthState()}</div>
+        <div className="flex min-h-80 items-center justify-center">{renderFullWidthState()}</div>
       )}
     </div>
   );
