@@ -7,10 +7,16 @@ import {
 } from '@/features/assessments/api/assessmentApi';
 
 /**
- * useAssessments
- * Paginated, filtered list of the current user’s assessments (React Query).
- * @param {Object} [options]
- * @returns {Object}
+ * useAssessments - Paginated, filtered list of the current user's assessments (React Query)
+ * @param {Object} [options={}] - Query options
+ * @param {string} [options.sessionId] - Session ID (deprecated, auth handled by token)
+ * @param {number|string} [options.page] - Page number
+ * @param {number|string} [options.pageSize] - Items per page
+ * @param {string} [options.sortBy] - Sort field (created_at, overall_score, title)
+ * @param {string} [options.order] - Sort order (asc, desc)
+ * @param {string} [options.search] - Search term
+ * @param {string} [options.industry] - Industry filter
+ * @returns {Object} Query result with assessments data and delete functionality
  */
 export function useAssessments({
   sessionId,

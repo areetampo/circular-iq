@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
  * @example
  * ✅ Correct usage
  * function MyComponent() {
- *   const goBackSafely = useSafeBack('/dashboard');
+ *   const goBackSafely = useSafeBack('/');
  *
  *   return <button onClick={goBackSafely}>Go Back</button>;
  * }

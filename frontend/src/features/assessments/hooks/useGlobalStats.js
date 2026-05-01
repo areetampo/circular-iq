@@ -4,7 +4,7 @@ import { getGlobalStats } from '@/features/assessments/api/assessmentApi';
 
 /**
  * useGlobalStats
- * Fetches combined global dashboard stats (log aggregates, market data RPC, assessment stats RPC).
+ * Fetches combined global activity stats (log aggregates, market data RPC, assessment stats RPC).
  * @param {Object} options
  * @param {boolean} [options.enabled]
  * @returns {Object}
