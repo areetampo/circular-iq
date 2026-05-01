@@ -9,10 +9,11 @@ import { cn } from '@/utils/cn';
 
 const footerLinks = [
   { name: 'My Assessments', href: '/assessments' },
-  { name: 'Dashboard', href: '/dashboard' },
+  { name: 'Solutions', href: '/solutions' },
+  { name: 'Global Activity', href: '/global-activity' },
   { name: 'Guide', href: '/guide' },
-  { name: 'Share', href: '/assessments/share' },
-  { name: 'Compare', href: '/assessments/compare' },
+  { name: 'Shared Assessments', href: '/assessments/share' },
+  { name: 'Compare Assessments', href: '/assessments/compare' },
 ];
 
 const socialLinks = [
