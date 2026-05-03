@@ -4,9 +4,8 @@ import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Button, Chip, CopyIcon, Separator, Spinner } from '@/components/common';
+import { Button, Chip, CopyIcon, Separator, Spinner, Tilt3D } from '@/components/common';
 import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
-import { useRelativeTime } from '@/hooks/useRelativeTime';
 import { formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
@@ -24,7 +23,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   onTogglePublic,
 }) {
   const assessmentLink = `/assessments/${assessment.public_id}`;
-  const formattedDate = useRelativeTime(assessment.created_at);
+  const formattedDate = formatTimestamp(assessment.created_at);
 
   const [copiedPublicId, setCopiedPublicId] = useState(null);
   const [togglingPublic, setTogglingPublic] = useState(null);
@@ -135,13 +134,15 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   };
 
   return (
-    <div
+    <Tilt3D
+      rotateRange={{ x: 2, y: 3 }}
+      block
       className={cn(
-        `group relative mb-2 block rounded-xl border-2 p-4 transition-all duration-200`,
-        `bg-(--color-bg-card-faint) hover:bg-(--color-bg-card-hover)`,
+        'group relative mb-2 block rounded-xl border-2 p-4 transition-all duration-200',
+        'bg-(--color-bg-card-faint) hover:bg-(--color-bg-card-hover)',
         isSelected
-          ? `border-(--color-accent-border-selected) bg-(--color-bg-card-selected) shadow-[0_0_0_2px_var(--color-accent-light-mid)]`
-          : `border-(--color-drawer-border) hover:border-(--color-accent-hover-border)`,
+          ? 'border-(--color-accent-border-selected) bg-(--color-bg-card-selected) shadow-[0_0_0_2px_var(--color-accent-light-mid)]'
+          : 'border-(--color-drawer-border)',
       )}
       onMouseEnter={() => onPrefetch(assessment.public_id)}
     >
@@ -285,7 +286,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           </Checkbox>
         </div>
       </div>
-    </div>
+    </Tilt3D>
   );
 });
 
