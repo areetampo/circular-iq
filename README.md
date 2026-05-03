@@ -13,7 +13,7 @@ AI-powered platform for evaluating circular economy business initiatives against
 - **Author:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com)
 - **Repository:** [areetampo/circular-economy](https://github.com/areetampo/circular-economy)
 - **License:** MIT
-- **Monitoring:** [UptimeRobot](https://dashboard.uptimerobot.com/monitors/802964160)
+- **Monitoring:** UptimeRobot, Vercel Serverless Ping Function, Github Workflows
 
 ## Overview
 
@@ -614,6 +614,17 @@ Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and a
 - [ ] `npm test` passes for both backend and frontend
 - [ ] Preview environment tested before promoting to production
 - [ ] DNS configured for custom domain (if applicable)
+
+### Monitoring (UptimeRobot + Vercel Serverless Ping Function + Github Workflows)
+
+- [UptimeRobot Monitor](https://dashboard.uptimerobot.com/monitors/802964160)
+
+- [Vercel Ping Function](frontend/api/ping.js) & [vercel.json](frontend/vercel.json)
+
+- [Github Workflows](.github/workflows/keep-alive.yml)
+  -- Repo → Settings → Secrets and variables → Actions → Variables -> New repository variable
+  -- Name: API_BASE_URL
+  -- Value: [backend-api-url]
 
 ## Architecture Decisions
 
