@@ -1,4 +1,4 @@
-# LFS tracking for large dataset files
+# LFS tracking for datasets
 backend/datasets/**/*.csv filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.json filter=lfs diff=lfs merge=lfs -text
 backend/datasets/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
