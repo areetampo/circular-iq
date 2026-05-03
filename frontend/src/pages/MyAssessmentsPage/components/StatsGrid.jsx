@@ -1,7 +1,7 @@
 import { Popover } from '@heroui/react';
 import PropTypes from 'prop-types';
 
-import { Button } from '@/components/common';
+import { Button, Tilt3D } from '@/components/common';
 import { toTitleCase } from '@/lib/formatting';
 
 const scoreColor = (s) =>
@@ -22,7 +22,7 @@ const sizeMap = {
 
 // Reusable StatCard component
 const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
-  <div className="flex flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
+  <Tilt3D className="flex h-full flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
     <span className="text-[0.725rem] font-semibold tracking-[0.12em] text-(--color-text-muted) uppercase">
       {label}
     </span>
@@ -32,7 +32,7 @@ const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
       {value}
     </span>
     <span className="mt-0.5 text-[0.75rem] font-medium text-(--color-text-muted)">{subtitle}</span>
-  </div>
+  </Tilt3D>
 );
 
 export function StatsGrid({
@@ -120,7 +120,7 @@ export function StatsGrid({
       />
 
       {/* Top Industry Card */}
-      <div className="flex flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
+      <Tilt3D className="flex flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
         <span className="text-[0.625rem] font-bold tracking-[0.12em] text-(--color-text-muted) uppercase">
           Top {displayIndustries.length > 1 ? 'Industries' : 'Industry'}
         </span>
@@ -183,7 +183,7 @@ export function StatsGrid({
             <span className="mt-0.5 text-[0.75rem] text-(--color-text-muted)">—</span>
           </>
         )}
-      </div>
+      </Tilt3D>
     </div>
   );
 }
