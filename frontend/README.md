@@ -135,10 +135,12 @@ frontend/src/
 │   │   └── index.js
 │   │
 │   ├── common/
-│   │   ├── Button.jsx, Brand.jsx, Switch.jsx
-│   │   ├── DetailsDisplay.jsx, LoaderComponent.jsx, LoaderIcon.jsx
-│   │   ├── GlobalLoadingBar.jsx, ScrollToTop.jsx
-│   │   ├── ChartWrapper.jsx
+│   │   ├── Button.jsx, Brand.jsx, ButtonStages.jsx, Chip.jsx
+│   │   ├── CopyButton.jsx, CopyIcon.jsx, DetailsBadge.jsx
+│   │   ├── DetailsDisplay.jsx, ExpandableText.jsx, SectionHeading.jsx
+│   │   ├── GlobalLoadingBar.jsx, LoaderComponent.jsx, LoaderIcon.jsx
+│   │   ├── ScrollToTop.jsx, Separator.jsx, Spinner.jsx, Tilt3D.jsx
+│   │   ├── TruncatedTextTooltip.jsx, ChartWrapper.jsx
 │   │   └── index.js
 │   │
 │   ├── dialogs/
