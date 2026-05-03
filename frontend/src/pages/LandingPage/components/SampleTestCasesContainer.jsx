@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { Button, Chip } from '@/components/common';
+import { Button, Chip, Tilt3D } from '@/components/common';
 import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
@@ -213,17 +213,19 @@ export default function SampleTestCasesContainer({
   };
 
   return (
-    <ScrollShadow className="grid max-h-125 grid-cols-1 gap-3 overflow-y-auto pb-6 md:grid-cols-2">
+    <ScrollShadow className="-mt-4 -mr-3 -ml-4 grid max-h-125 grid-cols-1 gap-3 overflow-y-auto pt-5 pr-3 pb-6 pl-4 md:grid-cols-2">
       {sampleTestCases.map((testCase, index) => {
         const isSelected = selectedCase === testCase.id;
 
         return (
-          <div
+          <Tilt3D
+            rotateRange={{ x: 12, y: 6 }}
+            // shadow={false}
+            block
             key={testCase.id}
             onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'group relative flex cursor-pointer flex-col gap-3 rounded-xl p-3',
-              'border-2 transition-all duration-200',
+              'group relative flex cursor-pointer flex-col gap-3 rounded-xl border-2 p-3 transition-all duration-200',
               isSelected
                 ? 'border-(--color-accent-alpha-70) bg-(--color-accent-100-10) shadow-sm'
                 : 'border-(--color-border-strong-alpha-80) bg-(--color-bg-card)' +
@@ -276,7 +278,7 @@ export default function SampleTestCasesContainer({
                 <BookOpen size={11} />
               </Button>
             </div>
-          </div>
+          </Tilt3D>
         );
       })}
     </ScrollShadow>
