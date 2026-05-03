@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { SectionHeading } from '@/components/common';
+import { SectionHeading, Tilt3D } from '@/components/common';
 import { categoryMapping, validKeys } from '@/constants/evaluationData';
 import { cn } from '@/utils/cn';
 
@@ -33,8 +33,10 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
             const badgeColor = getScoreColor(numValue);
 
             return (
-              <div
+              <Tilt3D
                 key={key}
+                rotateRange={{ x: 2, y: 3 }}
+                block
                 className="rounded-2xl border-2 border-(--color-border-card) bg-(--color-bg-card-light) p-4"
               >
                 <div className="mb-2 flex items-center justify-between">
@@ -63,11 +65,15 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                     }}
                   />
                 </div>
-              </div>
+              </Tilt3D>
             );
           })}
           {/* Business Viability Category */}
-          <div className="rounded-2xl border-2 border-(--color-border-card) bg-(--color-bg-card-light) p-4">
+          <Tilt3D
+            rotateRange={{ x: 2, y: 3 }}
+            block
+            className="rounded-2xl border-2 border-(--color-border-card) bg-(--color-bg-card-light) p-4"
+          >
             <div className="mb-2 flex items-center justify-between">
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-(--color-text-primary)">
@@ -97,7 +103,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
                 }}
               />
             </div>
-          </div>
+          </Tilt3D>
         </div>
       </div>
     </div>

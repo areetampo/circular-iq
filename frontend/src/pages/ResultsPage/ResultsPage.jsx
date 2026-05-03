@@ -16,7 +16,7 @@ import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { SectionHeading, Separator, Spinner } from '@/components/common';
+import { SectionHeading, Separator, Spinner, Tilt3D } from '@/components/common';
 import CopyButton from '@/components/common/CopyButton';
 import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
@@ -34,7 +34,6 @@ import {
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { useSession } from '@/features/session/hooks/useSession';
 import { useAuth } from '@/hooks/useAuth';
-import { useRelativeTime } from '@/hooks/useRelativeTime';
 import { cleanUrl, formatTimestamp, toTitleCase, truncate } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
@@ -207,8 +206,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }, [isViewFromMyAssessments, navigationFormData, sessionSnapshot]);
 
   // Real-time relative timestamps (moved after currentData is defined)
-  const savedRelativeTime = useRelativeTime(currentData?.created_at);
-  const calculatedRelativeTime = useRelativeTime(currentData?.processing_info?.timestamp);
+  const savedRelativeTime = formatTimestamp(currentData?.created_at);
+  const calculatedRelativeTime = formatTimestamp(currentData?.processing_info?.timestamp);
 
   // Save complete results to session (including inputs that generated the result).
   // IMPORTANT: results are a snapshot and MUST remain exactly as they were when
@@ -854,13 +853,17 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
         {/* created_at for saved assessments (/assessments/:id) and processing_info?.timestamp for unsaved calculated results */}
         <div className="mb-1 w-full pr-2 text-right text-[0.68rem] text-(--color-text-secondary)/60">
-          {currentData.created_at && <>saved {savedRelativeTime}</>}
-          {currentData.processing_info?.timestamp && <>calculated {calculatedRelativeTime}</>}
+          {currentData.created_at && <>saved: {savedRelativeTime}</>}
+          {currentData.processing_info?.timestamp && <>calculated: {calculatedRelativeTime}</>}
         </div>
 
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
-          <div className="rounded-xl border-2 border-(--color-border-card) px-3 py-1">
+          <Tilt3D
+            rotateRange={{ x: 2, y: 3 }}
+            block
+            className="rounded-xl border-2 border-(--color-border-card) px-3 py-1"
+          >
             {/* Toggle row */}
             {isResultsRoute ? (
               <span className="text-[0.8125rem] font-medium opacity-80">
@@ -967,7 +970,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                 </div>
               </div>
             </div>
-          </div>
+          </Tilt3D>
         )}
       </div>
 

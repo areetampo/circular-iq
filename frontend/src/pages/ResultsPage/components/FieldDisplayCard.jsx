@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 
+import { Tilt3D } from '@/components/common';
 import { toTitleCase } from '@/lib/formatting';
 
 /**
@@ -10,7 +11,7 @@ import { toTitleCase } from '@/lib/formatting';
  */
 export function FieldDisplayCard({ label, value, helpText }) {
   return (
-    <div className="rounded-xl border-[1.5px] border-(--color-border-ui) p-4">
+    <Tilt3D className="rounded-xl border-[1.5px] border-(--color-border-ui) p-4">
       <div className="mb-1 text-sm font-semibold tracking-wide text-(--color-text-label) uppercase">
         {label}
       </div>
@@ -20,7 +21,7 @@ export function FieldDisplayCard({ label, value, helpText }) {
       <div className="mt-1 text-sm wrap-break-word text-(--color-text-muted) italic">
         {helpText}
       </div>
-    </div>
+    </Tilt3D>
   );
 }
 

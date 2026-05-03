@@ -1,7 +1,7 @@
 import { FileText, Frown, MoveRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Chip, SectionHeading } from '@/components/common';
+import { Chip, SectionHeading, Tilt3D } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 
@@ -46,18 +46,18 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
               const matchStrength = getMatchStrength(caseItem.similarity || 0);
 
               return (
-                <div
+                <Tilt3D
+                  rotateRange={{ x: 8, y: 12 }}
+                  block
                   key={index}
                   className="group flex cursor-pointer items-start gap-4 rounded-xl border-2 border-(--color-border-strong) p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
                   onClick={() => handleViewDetails(caseItem)}
                 >
-                  <div className="flex-1">
-                    <h4 className="mb-2 font-sniglet text-lg text-(--color-text-primary)">
-                      {caseTitle}
-                    </h4>
+                  <div className="flex flex-1 flex-col gap-3">
+                    <h4 className="text-lg text-(--color-text-primary)">{caseTitle}</h4>
 
                     {/* Year + Location + Use type + Source + Category + Circular Strategy + Materials chips */}
-                    <div className="mb-3 flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {caseItem.year && <Chip variant="source">{caseItem.year}</Chip>}
                       {caseItem.location && <Chip variant="source">{caseItem.location}</Chip>}
                       {caseItem.use_type && <Chip variant="source">{caseItem.use_type}</Chip>}
@@ -74,7 +74,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                     <div className="flex gap-4">
                       <div className="flex items-center gap-3">
                         <Chip variant="match" color={matchStrength}>
-                          {matchPercentage}% match
+                          {`${matchPercentage}% match`}
                         </Chip>
                       </div>
 
@@ -88,7 +88,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Tilt3D>
               );
             })}
           </div>

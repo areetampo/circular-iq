@@ -1,7 +1,7 @@
 import { PieChart } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { SectionHeading } from '@/components/common';
+import { SectionHeading, Tilt3D } from '@/components/common';
 import { getParameterStyling } from '@/constants/groupStyleConfig';
 import { cn } from '@/utils/cn';
 
@@ -22,7 +22,7 @@ export function ScoreCategoryBreakdown({ actualResult }) {
       {/* Category grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {Object.entries(actualResult.score_breakdown).map(([category, data]) => (
-          <div key={category} className="rounded-xl border-2 border-border p-4">
+          <Tilt3D key={category} className="rounded-xl border-2 border-(--color-border-ui) p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="text-sm font-semibold text-(--color-text-primary)">{category}</div>
               <div className="text-lg font-medium text-(--color-text-primary)">{data.score}</div>
@@ -43,7 +43,7 @@ export function ScoreCategoryBreakdown({ actualResult }) {
                 </div>
               ))}
             </div>
-          </div>
+          </Tilt3D>
         ))}
       </div>
     </div>

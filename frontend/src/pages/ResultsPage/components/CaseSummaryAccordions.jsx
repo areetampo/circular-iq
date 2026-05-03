@@ -3,30 +3,38 @@ import { BarChart2, Globe, Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import { SectionHeading } from '@/components/common';
+import { SectionHeading, Tilt3D } from '@/components/common';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { toTitleCase } from '@/lib/formatting';
 
 // Reusable accordion item component
 function AccordionItem({ id, icon, iconColor, title, description, children }) {
   return (
-    <Accordion.Item id={id}>
-      <Accordion.Heading>
-        <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
-          <div className="flex items-center gap-3">
-            {React.createElement(icon, { size: 20, className: `text-${iconColor}` })}
-            <div>
-              <h4 className="font-medium text-(--color-text-primary)">{title}</h4>
-              <p className="text-sm text-(--color-text-muted)">{description}</p>
-            </div>
-          </div>
-          <Accordion.Indicator className="text-(--color-text-muted)" />
-        </Accordion.Trigger>
-      </Accordion.Heading>
-      <Accordion.Panel>
-        <Accordion.Body>{children}</Accordion.Body>
-      </Accordion.Panel>
-    </Accordion.Item>
+    <Tilt3D
+      rotateRange={{ x: 2, y: 3 }}
+      block
+      className="overflow-hidden rounded-xl hover:relative hover:z-10"
+    >
+      <div className="border-b-[1.5px] border-(--color-border-ui)">
+        <Accordion.Item id={id}>
+          <Accordion.Heading>
+            <Accordion.Trigger className="flex w-full items-center justify-between py-3 transition-colors hover:bg-(--color-accent-light)">
+              <div className="flex items-center gap-3">
+                {React.createElement(icon, { size: 20, className: `text-${iconColor}` })}
+                <div>
+                  <h4 className="font-medium text-(--color-text-primary)">{title}</h4>
+                  <p className="text-sm text-(--color-text-muted)">{description}</p>
+                </div>
+              </div>
+              <Accordion.Indicator className="text-(--color-text-muted)" />
+            </Accordion.Trigger>
+          </Accordion.Heading>
+          <Accordion.Panel>
+            <Accordion.Body>{children}</Accordion.Body>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </div>
+    </Tilt3D>
   );
 }
 
