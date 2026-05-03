@@ -18,7 +18,7 @@ export default function BusinessInputField({
   minLength = 200,
 }) {
   return (
-    <div className="space-y-0">
+    <div>
       <div className="mb-3 flex flex-col gap-1.5 pl-2">
         {/* Label */}
         <div className="flex items-center gap-2">
@@ -56,9 +56,7 @@ export default function BusinessInputField({
       />
 
       {/* Character counter */}
-      <div className="mt-1 pr-2">
-        <LiveCharacterCounter fieldName={fieldName} minLength={minLength} />
-      </div>
+      <LiveCharacterCounter fieldName={fieldName} minLength={minLength} className="mt-1 pr-2" />
     </div>
   );
 }
