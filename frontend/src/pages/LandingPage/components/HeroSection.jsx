@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { BookOpen, Target } from 'lucide-react';
 
-import { Button } from '@/components/common';
+import { Button, Tilt3D } from '@/components/common';
 
 export default function HeroSection({
   openAssessmentMethodologyDrawer,
@@ -18,9 +18,11 @@ export default function HeroSection({
             transition={{ duration: 0.55, ease: 'easeOut' }}
           >
             {/* Main heading */}
-            <h1 className="mb-6 font-display text-[clamp(38px,5.5vw,60px)] leading-[1.1] font-bold tracking-[-0.03em] text-(--color-text-primary)">
-              Where circular economy meets <em className="text-accent-700 italic">evidence.</em>
-            </h1>
+            <Tilt3D shadowMode="text">
+              <h1 className="mb-6 font-display text-[clamp(38px,5.5vw,60px)] leading-[1.1] font-bold tracking-[-0.03em] text-(--color-text-primary)">
+                Where circular economy meets <em className="text-accent-700 italic">evidence.</em>
+              </h1>
+            </Tilt3D>
 
             {/* Subtitle */}
             <p className="mx-auto mb-10 max-w-lg text-[1.0625rem] leading-relaxed font-normal text-(--color-text-muted)">
@@ -28,7 +30,7 @@ export default function HeroSection({
               studies.
             </p>
 
-            {/* Trust signal strip — 3 statistics, editorial style */}
+            {/* Trust signal strip */}
             <div className="mt-10 mb-8 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
               {[
                 { value: '40K+', label: 'Circular economy\ncases analysed' },
@@ -36,9 +38,14 @@ export default function HeroSection({
                 { value: '8', label: 'Weighted evaluation\ndimensions' },
               ].map(({ value, label }) => (
                 <div key={value} className="text-center">
-                  <p className="mb-2 font-sniglet text-[1.75rem] leading-none font-medium text-(--color-text-primary)">
+                  <Tilt3D
+                    rotateRange={{ x: 20, y: 30 }}
+                    block
+                    shadowMode="text"
+                    className="mb-2 font-sniglet text-[1.75rem] leading-none font-medium text-(--color-text-primary)"
+                  >
                     {value}
-                  </p>
+                  </Tilt3D>
                   <p className="text-xs/snug whitespace-pre-line text-(--color-text-muted)">
                     {label}
                   </p>
@@ -49,7 +56,7 @@ export default function HeroSection({
         </div>
       </section>
 
-      {/* Meta strip — Assessment Methodology · features · Evaluation Criteria */}
+      {/* Meta strip */}
       <div className="flex w-full items-center justify-center">
         <div className="mb-2 flex w-4/5 flex-wrap items-center justify-center gap-6 py-5">
           {[
