@@ -38,7 +38,7 @@ function ResultCard({ result, isHybridMode }) {
   } = result;
 
   return (
-    <div className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border) hover:shadow-md">
+    <div className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border)">
       {/* 1) HEADER: title + score badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 font-sans text-[0.9375rem] leading-snug font-medium tracking-[-0.01em] text-(--color-text-primary)">
