@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
-import { Separator } from '@/components/common';
+import { Separator, Tilt3D } from '@/components/common';
 import {
   parameterGroups,
   parameterGuidance,
@@ -13,13 +13,11 @@ import {
 } from '@/constants/evaluationData';
 import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useSession } from '@/features/session/hooks/useSession';
 
 // ─── ParameterBox ─────────────────────────────────────────────────────────────
 const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
-  const { control, getValues } = useFormContext();
+  const { control } = useFormContext();
   const { openSpecificEvaluationParameterInfoDrawer } = useGlobalDrawer();
-  const { saveSession } = useSession();
 
   const getTierClass = (score, isSelected) => {
     const tier = TIER_CONFIG.find((t) => score >= t.minScore);
@@ -63,24 +61,31 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   useGrouping: false,
                 }}
               >
-                <Label
-                  className={cn(
-                    'inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-jua',
-                    `cursor-pointer transition-all duration-300 hover:scale-97 hover:opacity-90`,
-                    'border-[1.5px] text-xs font-semibold tracking-[0.08rem] uppercase',
-                    (() => {
-                      const cfg =
-                        GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
-                        DEFAULT_CONFIG;
-                      return cn(cfg.paramBg, cfg.paramTextColor, cfg.paramBorder);
-                    })(),
-                  )}
-                  onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
-                  aria-label={`View details drawer for ${parameterLabels[paramKey].label}`}
+                <Tilt3D
+                  rotateRange={{ x: 8, y: 12 }}
+                  springConfig={{ stiffness: 2000, damping: 30 }}
+                  shadow={false}
+                  className="rounded-2xl"
                 >
-                  <span>{parameterLabels[paramKey].label}</span>
-                  <Info className="icon--info" size={18} strokeWidth={2} />
-                </Label>
+                  <Label
+                    className={cn(
+                      'inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-jua',
+                      `cursor-pointer transition-all duration-300`,
+                      'border-[1.5px] text-xs font-semibold tracking-[0.08rem] uppercase',
+                      (() => {
+                        const cfg =
+                          GROUP_STYLE_CONFIG[Object.keys(parameterGroups)[paramGroupIdx]] ??
+                          DEFAULT_CONFIG;
+                        return cn(cfg.paramBg, cfg.paramTextColor, cfg.paramBorder);
+                      })(),
+                    )}
+                    onClick={() => openSpecificEvaluationParameterInfoDrawer(paramKey)}
+                    aria-label={`View details drawer for ${parameterLabels[paramKey].label}`}
+                  >
+                    <span>{parameterLabels[paramKey].label}</span>
+                    <Info className="icon--info" size={18} strokeWidth={2} />
+                  </Label>
+                </Tilt3D>
 
                 <NumberField.Group className="my-1.5 flex h-8 items-center gap-1">
                   <NumberField.DecrementButton
@@ -143,26 +148,34 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
                   const tierClass = getTierClass(option.score, isSelected);
 
                   return (
-                    <button
+                    <Tilt3D
                       key={option.score}
-                      type="button"
-                      disabled={loading}
-                      onClick={() => field.onChange(option.score)}
-                      className={cn(
-                        `w-full cursor-pointer rounded-xl border-[1.4px] p-3 text-left transition-all duration-150`,
-                        'focus:outline-none',
-                        tierClass,
-                        loading && 'cursor-not-allowed opacity-40',
-                      )}
+                      perspective={600}
+                      rotateRange={{ x: 4, y: 6 }}
+                      shadowRange={1}
+                      block
+                      className="w-full rounded-xl"
                     >
-                      <div className="mb-0.5 font-mono text-xs/tight font-semibold">
-                        {option.label}
-                        <span className="ml-1 tabular-nums opacity-70">(~{option.score})</span>
-                      </div>
-                      <div className="font-mono text-[0.65rem] leading-snug font-medium opacity-75">
-                        {option.description}
-                      </div>
-                    </button>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => field.onChange(option.score)}
+                        className={cn(
+                          'w-full cursor-pointer rounded-xl border-[1.4px] p-3 text-left transition-all duration-150',
+                          'focus:outline-none',
+                          tierClass,
+                          loading && 'cursor-not-allowed opacity-40',
+                        )}
+                      >
+                        <div className="mb-0.5 font-mono text-xs/tight font-semibold">
+                          {option.label}
+                          <span className="ml-1 tabular-nums opacity-70">(~{option.score})</span>
+                        </div>
+                        <div className="font-mono text-[0.65rem] leading-snug font-medium opacity-75">
+                          {option.description}
+                        </div>
+                      </button>
+                    </Tilt3D>
                   );
                 })}
               </div>
