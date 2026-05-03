@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Citrus, Copyright } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { SITE_FULL_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
+import { SITE_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
 import { cn } from '@/utils/cn';
 
 const footerLinks = [
@@ -131,8 +131,8 @@ export default function Footer() {
             className="mt-6"
           >
             <div className="flex items-center justify-center gap-1 text-xs text-(--color-text-muted) md:flex-row">
-              <Copyright size={14} strokeWidth={2} className="mt-0.5" />
-              <span>2026 {SITE_FULL_NAME}. All rights reserved.</span>
+              <Copyright size={14} strokeWidth={2} />
+              <span className="leading-tight">2026 {SITE_NAME}. All rights reserved.</span>
             </div>
           </motion.div>
         </div>

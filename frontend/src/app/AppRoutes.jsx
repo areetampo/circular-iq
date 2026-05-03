@@ -3,8 +3,8 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
+import { ScrollToTop } from '@/components/common';
 import LoaderComponent from '@/components/common/LoaderComponent';
-import ScrollToTop from '@/components/common/ScrollToTop';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
 import AppContainer from '@/components/layout/AppContainer';
 import Footer from '@/components/layout/Footer';
