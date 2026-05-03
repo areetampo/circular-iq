@@ -18,8 +18,10 @@ import { cn } from '@/utils/cn';
  * @param {Function} props.onPress - Callback function when the button is pressed
  * @param {string} props.currentStage - Current stage text to display during loading
  * @param {string} [props.variant='teal'] - Button variant/color scheme
- * @param {string} [props.className=''] - Additional CSS classes to apply
- * @param {boolean} [props.fullWidth=false] - Whether the button should take full width
+ * @param {boolean} [props.fullWidth=false] - Whether to button should take full width
+ * @param {string} [props.buttonText='Press Button'] - Text to display on button when not loading
+ * @param {string} [props.className] - Additional CSS classes to apply
+ * @param {string} [props.buttonTextCn] - Additional CSS classes for button text
  *
  * @returns {JSX.Element} A button component with stage animations
  *
@@ -31,6 +33,8 @@ import { cn } from '@/utils/cn';
  *   currentStage="Validating input..."
  *   variant="blue"
  *   fullWidth={true}
+ *   buttonText="Submit"
+ *   className="rounded-full"
  * />
  */
 export default function ButtonStages({
@@ -39,9 +43,10 @@ export default function ButtonStages({
   onPress,
   currentStage = 'Processing...',
   variant = 'teal',
-  className,
   fullWidth = false,
   buttonText = 'Press Button',
+  className,
+  buttonTextCn,
 }) {
   // Content for non-loading state
   const [showNonLoading, setShowNonLoading] = useState(true);
@@ -117,8 +122,8 @@ export default function ButtonStages({
       onPress={onPress}
       isDisabled={isDisabled}
       variant={variant}
-      className={cn('h-12 rounded-4xl', className)}
       fullWidth={fullWidth}
+      className={cn('h-12 rounded-4xl', className)}
     >
       <div className="relative flex w-full items-center justify-center">
         {/* Non-loading text */}
@@ -126,6 +131,7 @@ export default function ButtonStages({
           className={cn(
             'absolute inset-0 flex items-center justify-center whitespace-nowrap transition-all duration-300 ease-in-out',
             showNonLoading ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0',
+            buttonTextCn,
           )}
         >
           {buttonText}
@@ -149,6 +155,7 @@ export default function ButtonStages({
               'text-[0.85rem] tracking-[0.01em] whitespace-nowrap',
               stageAnimation === 'out' && 'animate-fade-out-up',
               stageAnimation === 'in' && 'animate-fade-in-up',
+              buttonTextCn,
             )}
           >
             {displayedStage || 'Processing...'}
@@ -170,10 +177,12 @@ ButtonStages.propTypes = {
   currentStage: PropTypes.string,
   /** Button variant/color scheme */
   variant: Button.propTypes.variant,
-  /** Additional CSS classes to apply */
-  className: PropTypes.string,
   /** Whether button should take full width */
   fullWidth: Button.propTypes.fullWidth,
   /* text in the button */
   buttonText: PropTypes.string,
+  /** Additional CSS classes to apply */
+  className: PropTypes.string,
+  /** Additional CSS classes for button text */
+  buttonTextCn: PropTypes.string,
 };
