@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 
+import { Tilt3D } from '@/components/common';
+
 /**
  * Chart panel component for wrapping charts with title and loading states
  * @param {Object} props - Component props
@@ -11,7 +13,11 @@ import PropTypes from 'prop-types';
  */
 export default function ChartPanel({ title, children, isLoading, error, chartHeight }) {
   return (
-    <div className="w-full rounded-[14px] border-2 border-(--color-border-ui) bg-transparent p-4">
+    <Tilt3D
+      rotateRange={{ x: 2, y: 3 }}
+      block
+      className="w-full rounded-[14px] border-2 border-(--color-border-ui) bg-transparent p-4"
+    >
       {title && (
         <div className="mb-4 text-[0.9375rem] font-semibold text-(--color-text-secondary)">
           {title}
@@ -27,7 +33,7 @@ export default function ChartPanel({ title, children, isLoading, error, chartHei
       ) : (
         <div className="overflow-visible">{children}</div>
       )}
-    </div>
+    </Tilt3D>
   );
 }
 

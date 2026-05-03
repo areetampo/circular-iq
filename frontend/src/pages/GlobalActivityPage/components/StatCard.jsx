@@ -1,4 +1,7 @@
+import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
+
+import { Tilt3D } from '@/components/common';
 
 /**
  * Stat card component for displaying metrics with loading states
@@ -22,12 +25,10 @@ export default function StatCard({ title, value, subtext, loading }) {
 
   if (loading) {
     return (
-      <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent p-5">
-        <div className="h-7 w-16 animate-pulse rounded-md bg-(--color-skeleton-pulse-lg)" />
-        <div className="mt-2 h-2.5 w-20 animate-pulse rounded-md bg-(--color-skeleton-pulse-md)" />
-        {subtext && (
-          <div className="mt-1 h-3.5 w-24 animate-pulse rounded-md bg-(--color-skeleton-pulse-md)" />
-        )}
+      <div className="flex flex-col items-start justify-center gap-3.5 rounded-3xl border-2 border-(--color-border-ui) bg-transparent p-5">
+        <Skeleton className="h-3.5 w-24 rounded-md" />
+        <Skeleton className="h-8 w-18 rounded-md" />
+        {subtext && <Skeleton className="h-3.5 w-32 rounded-md" />}
       </div>
     );
   }
@@ -35,7 +36,7 @@ export default function StatCard({ title, value, subtext, loading }) {
   const formattedValue = formatValue(value);
 
   return (
-    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent p-5">
+    <Tilt3D block className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent p-5">
       <p className="mb-1 text-[0.625rem] font-semibold tracking-widest text-(--color-text-muted) uppercase">
         {title}
       </p>
@@ -43,7 +44,7 @@ export default function StatCard({ title, value, subtext, loading }) {
         {formattedValue ?? '—'}
       </p>
       {subtext && <p className="mt-1 text-[0.75rem] text-(--color-text-muted)">{subtext}</p>}
-    </div>
+    </Tilt3D>
   );
 }
 
