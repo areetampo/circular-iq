@@ -53,13 +53,8 @@ const MATERIAL_OPTIONS = [
   { value: 'biological', label: 'Biological / Organic' },
 ];
 
-function BusinessContextContainer({
-  loading = false,
-  businessContextExpandedKeys,
-  setBusinessContextExpandedKeys,
-  isReevaluateDataReady = false,
-}) {
-  const { control, getValues, watch } = useFormContext();
+function BusinessContextContainer({ loading = false }) {
+  const { control, watch } = useFormContext();
 
   // Watch business context values to ensure they're available before rendering
   const businessContextValues = watch('businessContext');
@@ -213,7 +208,6 @@ function BusinessContextContainer({
 
 BusinessContextContainer.propTypes = {
   loading: PropTypes.bool,
-  isReevaluateDataReady: PropTypes.bool,
 };
 
 export default BusinessContextContainer;

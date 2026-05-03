@@ -633,10 +633,7 @@ export default function LandingPage() {
                       </Accordion.Heading>
                       <Accordion.Panel>
                         <Accordion.Body className="bg-transparent p-0">
-                          <BusinessContextContainer
-                            loading={loading}
-                            isReevaluateDataReady={isReevaluateDataReady}
-                          />
+                          <BusinessContextContainer loading={loading} />
                         </Accordion.Body>
                       </Accordion.Panel>
                     </Accordion.Item>
@@ -700,7 +697,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Submit button */}
-                <div className="flex w-full flex-col items-center justify-center gap-2">
+                <div className="flex w-full flex-col items-center justify-center gap-2 rounded-full">
                   <Tooltip delay={0} isDisabled={isValid} className="w-full">
                     <Tooltip.Trigger className="w-full">
                       <ButtonStages
@@ -711,6 +708,7 @@ export default function LandingPage() {
                         variant="teal"
                         fullWidth
                         buttonText="Evaluate Circularity"
+                        buttonTextCn="font-mono tracking-wider"
                       />
                     </Tooltip.Trigger>
                     <Tooltip.Content showArrow placement="top">
@@ -729,7 +727,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Sample Test Cases */}
-                <div className="group/stcacc w-full overflow-hidden rounded-xl border border-(--color-border-strong) bg-[oklch(0.99_0.008_80/0.3)] shadow-sm transition-shadow duration-300">
+                <div className="group/stcacc w-full overflow-visible rounded-xl border border-(--color-border-strong) bg-[oklch(0.99_0.008_80/0.3)] shadow-sm transition-shadow duration-300">
                   <Accordion
                     className="w-full"
                     variant="default"
@@ -768,7 +766,7 @@ export default function LandingPage() {
                         </Accordion.Trigger>
                       </Accordion.Heading>
                       <Accordion.Panel>
-                        <Accordion.Body className="bg-transparent pt-2">
+                        <Accordion.Body className="overflow-visible">
                           <SampleTestCasesContainer
                             openEvalParams={openEvalParams}
                             openBusinessContext={openBusinessContext}
