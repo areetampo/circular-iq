@@ -22,10 +22,12 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   onPrefetch,
   onTogglePublic,
 }) {
-  const assessmentLink = `/assessments/${assessment.public_id}`;
-  const formattedDate = formatTimestamp(assessment.created_at);
+  const assessmentPublicId = assessment.public_id;
+  const assessmentPath = `/assessments/${assessmentPublicId}`;
+  const assessmentUrl = `${window.location.origin}${assessmentPath}`;
 
-  const [copiedPublicId, setCopiedPublicId] = useState(null);
+  const [copiedAssessmentPublicId, setCopiedAssessmentPublicId] = useState(null);
+  const [copiedAssessmentUrl, setCopiedAssessmentUrl] = useState(null);
   const [togglingPublic, setTogglingPublic] = useState(null);
 
   // Use centralized assessment handlers
@@ -37,10 +39,15 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
     isExportingCSV,
   } = useAssessmentHandlers();
 
-  const handleCopy = (publicId, value) => {
+  const handleCopy = (type, value) => {
     navigator.clipboard.writeText(value);
-    setCopiedPublicId(publicId);
-    setTimeout(() => setCopiedPublicId(null), 1500);
+    if (type === 'id') {
+      setCopiedAssessmentPublicId(value);
+      setTimeout(() => setCopiedAssessmentPublicId(null), 1500);
+    } else if (type === 'url') {
+      setCopiedAssessmentUrl(value);
+      setTimeout(() => setCopiedAssessmentUrl(null), 1500);
+    }
   };
 
   const handleTogglePublic = async (id) => {
@@ -78,14 +85,19 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   };
 
   const actionButtons = [
-    { icon: Eye, label: 'View', onClick: () => onView(assessment.public_id), link: assessmentLink },
+    { icon: Eye, label: 'View', onClick: () => onView(assessmentPublicId), link: assessmentPath },
     { icon: Pencil, label: 'Rename', onClick: () => onRename(assessment.id) },
     { icon: Trash2, label: 'Delete', onClick: () => onDelete(assessment.id) },
     { icon: RefreshCw, label: 'Re-evaluate', onClick: handleReevaluateClick },
     {
       icon: CopyIcon,
+      label: 'URL',
+      onClick: () => handleCopy('url', assessmentUrl),
+    },
+    {
+      icon: CopyIcon,
       label: 'ID',
-      onClick: () => handleCopy(assessment.public_id, assessment.public_id),
+      onClick: () => handleCopy('id', assessmentPublicId),
     },
     {
       icon: Download,
@@ -124,7 +136,11 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           size={11}
           strokeWidth={2.5}
           {...(btn.label === 'ID' && {
-            hasCopied: copiedPublicId === assessment.public_id,
+            hasCopied: copiedAssessmentPublicId === assessmentPublicId,
+            copyIconClassname: 'pr-3',
+          })}
+          {...(btn.label === 'URL' && {
+            hasCopied: copiedAssessmentUrl === assessmentUrl,
             copyIconClassname: 'pr-3',
           })}
         />
@@ -132,6 +148,8 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
       </Button>
     );
   };
+
+  const formattedDate = formatTimestamp(assessment.created_at);
 
   return (
     <Tilt3D
@@ -144,14 +162,14 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           ? 'border-(--color-accent-border-selected) bg-(--color-bg-card-selected) shadow-[0_0_0_2px_var(--color-accent-light-mid)]'
           : 'border-(--color-drawer-border)',
       )}
-      onMouseEnter={() => onPrefetch(assessment.public_id)}
+      onMouseEnter={() => onPrefetch(assessmentPublicId)}
     >
       {/* Main content row */}
       <div className="flex items-start justify-between gap-3">
         {/* Title and metadata section */}
         <div className="min-w-0 flex-1 overflow-hidden">
           <h3 className="mb-1 truncate font-sans text-2xl/tight font-[450] text-(--color-text-primary)">
-            <Link to={assessmentLink} className="block truncate">
+            <Link to={assessmentPath} className="block truncate">
               {assessment.title ||
                 formatTimestamp(assessment.created_at, {
                   showSeconds: true,
@@ -197,8 +215,8 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
             <div className="flex flex-col items-end gap-1">
               {[
                 [0, 3],
-                [3, 5],
-                [5, 7],
+                [3, 6],
+                [6, 8],
               ].map(([start, end], rowIdx) => (
                 <div key={rowIdx} className="flex gap-1">
                   {actionButtons.slice(start, end).map((btn, idx) => renderBtn(btn, start + idx))}
@@ -346,7 +364,7 @@ export const AssessmentCardSkeleton = () => (
 
       {/* Action buttons skeleton */}
       <div className="flex flex-col items-end gap-2">
-        {[[3], [2], [2]].map(([count], rowIdx) => (
+        {[[3], [3], [2]].map(([count], rowIdx) => (
           <div key={rowIdx} className="flex gap-1">
             {Array(count)
               .fill(0)
