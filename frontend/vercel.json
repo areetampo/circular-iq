@@ -4,12 +4,6 @@
       "includeFiles": "src/config/**"
     }
   },
-  "cron": [
-    {
-      "path": "/api/ping",
-      "schedule": "*/5 * * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/:path*",
