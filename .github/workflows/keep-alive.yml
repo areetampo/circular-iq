@@ -10,4 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping backend
-        run: curl -s ${{ vars.API_BASE_URL }}/health
+        run: |
+          curl --fail -s -o /dev/null -w "Status: %{http_code}\nTime: %{time_total}s\nURL: ${{ vars.API_URL }}/health\n" \
+          ${{ vars.API_URL }}/health
