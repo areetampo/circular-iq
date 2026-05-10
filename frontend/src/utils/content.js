@@ -133,24 +133,6 @@ export function extractProblemSolution(caseItem) {
 }
 
 /**
- * Extract case information for evidence cards
- * @param {Object} caseItem - Case object with similarity, id, content
- * @param {number} index - Index of the case
- * @returns {Object} Formatted case info
- */
-export function extractCaseInfo(caseItem, index) {
-  const matchPercentage = caseItem.similarity ? Math.round(caseItem.similarity * 10000) / 100 : 0;
-  const sourceCaseId = caseItem.id || index + 1;
-  const content = caseItem.content || '';
-
-  return {
-    matchPercentage,
-    sourceCaseId,
-    content,
-  };
-}
-
-/**
  * Get match strength label and color based on similarity percentage
  * @param {number} similarity - Similarity score (0-1)
  * @returns {string} matchStrength
@@ -173,139 +155,10 @@ export function categorizeIntegrityGaps(integrityGaps) {
     return { strengths: [], gaps: [] };
   }
 
-  // In the full project, strengths come separately
-  // This function just returns gaps in the expected format
+  // In full project, strengths come separately
+  // This function just returns gaps in expected format
   return {
     strengths: [],
     gaps: integrityGaps,
   };
-}
-
-/**
- * Extract summary from long text
- * @param {string} text - Text to summarize
- * @param {number} maxLength - Maximum summary length (default 200)
- * @returns {string} Summary
- */
-export function extractSummary(text, maxLength = 200) {
-  if (!text || text.length <= maxLength) return text || '';
-
-  // Try to find a sentence boundary near the max length
-  const truncated = text.substring(0, maxLength);
-  const lastPeriod = truncated.lastIndexOf('.');
-  const lastSpace = truncated.lastIndexOf(' ');
-
-  if (lastPeriod > maxLength * 0.7) {
-    return text.substring(0, lastPeriod + 1);
-  }
-
-  if (lastSpace > maxLength * 0.7) {
-    return text.substring(0, lastSpace) + '...';
-  }
-
-  return truncated + '...';
-}
-
-/**
- * Parse markdown-like content to HTML
- * Simple parser for basic formatting
- * @param {string} content - Content with markdown
- * @returns {string} HTML string
- */
-export function parseMarkdownToHtml(content) {
-  if (!content) return '';
-
-  let html = content;
-
-  // Headers
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-  // Bold
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-  // Italic
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  // Line breaks
-  html = html.replace(/\n\n/g, '</p><p>');
-  html = html.replace(/\n/g, '<br>');
-
-  // Wrap in paragraphs
-  html = '<p>' + html + '</p>';
-
-  return html;
-}
-
-/**
- * Extract keywords from text
- * @param {string} text - Text to analyze
- * @param {number} count - Number of keywords to extract (default 5)
- * @returns {Array<string>} Array of keywords
- */
-export function extractKeywords(text, count = 5) {
-  if (!text) return [];
-
-  // Common stop words to exclude
-  const stopWords = new Set([
-    'the',
-    'a',
-    'an',
-    'and',
-    'or',
-    'but',
-    'in',
-    'on',
-    'at',
-    'to',
-    'for',
-    'of',
-    'with',
-    'by',
-    'from',
-    'as',
-    'is',
-    'was',
-    'are',
-    'were',
-    'been',
-    'be',
-    'have',
-    'has',
-    'had',
-    'do',
-    'does',
-    'did',
-    'will',
-    'would',
-    'could',
-    'should',
-    'may',
-    'might',
-    'can',
-    'this',
-    'that',
-    'these',
-    'those',
-  ]);
-
-  // Extract words, filter and count
-  const words = text
-    .toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
-    .split(/\s+/)
-    .filter((word) => word.length > 3 && !stopWords.has(word));
-
-  // Count frequency
-  const frequency = {};
-  words.forEach((word) => {
-    frequency[word] = (frequency[word] || 0) + 1;
-  });
-
-  // Sort by frequency and return top keywords
-  return Object.entries(frequency)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, count)
-    .map(([word]) => word);
 }

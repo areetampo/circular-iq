@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
  *                     in response to user interactions (e.g., button click).
  *
  * @example
- * ✅ Correct usage
+ * ✓ Correct usage
  * function MyComponent() {
  *   const goBackSafely = useSafeBack('/');
  *
@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router-dom';
  * }
  *
  * @example
- * ❌ Incorrect usage (causes "Invalid hook call" error)
+ * ✕ Incorrect usage (causes "Invalid hook call" error)
  * function MyComponent() {
  *   return (
  *     <button onClick={() => useSafeBack()}>
