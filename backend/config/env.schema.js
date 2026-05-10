@@ -16,7 +16,7 @@ const commaSeparatedStringArraySchema = z
       : [],
   );
 
-export const baseEnvSchema = z.object({
+const baseEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'staged', 'production'], {
     errorMap: () => ({ message: 'NODE_ENV must be development, test, staged, or production' }),
   }),
@@ -31,8 +31,6 @@ export const baseEnvSchema = z.object({
   TEST_USER_PASSWORD: z.string().trim().min(1, 'TEST_USER_PASSWORD is required').optional(),
 
   ALLOWED_ORIGINS: commaSeparatedStringArraySchema.optional(),
-  PUBLIC_ROUTES: commaSeparatedStringArraySchema.optional(),
-  HEALTH_ROUTES: commaSeparatedStringArraySchema.optional(),
 
   OPENAI_API_KEY: z.string().trim().min(1, 'OpenAI API Key is required'),
 
@@ -65,7 +63,7 @@ export const baseEnvSchema = z.object({
 
   USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema,
 
-  MAX_FREE_TRIES: z.coerce.number().int().positive(),
+  SCORING_MAX_FREE_TRIES: z.coerce.number().int().positive(),
 
   LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']),
 
@@ -101,8 +99,11 @@ export const envSchema = baseEnvSchema
     AIVEN_SSL_MODE: z.enum(['disable', 'require', 'verify-ca', 'verify-full']).default('require'),
 
     USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
-    MAX_FREE_TRIES: z.coerce.number().int().positive().default(5),
+
+    SCORING_MAX_FREE_TRIES: z.coerce.number().int().positive().default(20),
+
     LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']).default('info'),
+
     API_AUTH_ENABLED: booleanSchema.default(false),
     API_KEY: z.string().trim().default(''),
     STRICT_ENV: booleanSchema.default(false),

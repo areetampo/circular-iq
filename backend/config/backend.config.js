@@ -20,16 +20,16 @@
  */
 
 import '#config/loadEnv.js';
-import crypto from 'crypto';
 
 import pino from 'pino';
+
+import { envSchema, testEnvSchema } from '#config/env.schema.js';
+import { API_ENDPOINTS, UPTIME_ENDPOINTS } from '#constants/index.js';
 
 const logger = pino({
   name: 'backend.config',
   level: process.env.LOG_LEVEL || 'info',
 });
-
-import { envSchema, testEnvSchema } from '#config/env.schema.js';
 
 /* ------------------------------ */
 /* Test-friendly defaults */
@@ -123,7 +123,7 @@ const DB_FUNCTIONS = Object.freeze([
  * @returns {Object} Database configuration with tables and functions.
  * @private
  */
-export const buildDatabaseConfig = () => ({
+const buildDatabaseConfig = () => ({
   tables: { documents: 'documents' },
   functions: {
     ...Object.fromEntries(DB_FUNCTIONS.map((n) => [n, n])),
@@ -140,36 +140,6 @@ const parseAllowedOrigins = () => {
   return [...new Set([...origins, ...frontend])];
 };
 
-const parseAuthAllowList = () => {
-  const healthRoutes = env.HEALTH_ROUTES ?? [];
-  const publicRoutes = env.PUBLIC_ROUTES ?? [];
-
-  return [...new Set([...healthRoutes, ...publicRoutes])];
-};
-
-// Factory function to create route matchers for dynamic routes
-// Supports patterns like /api/assessments/:id
-const createRouteMatchers = (publicRoutes) => {
-  const matchers = Array.from(publicRoutes).map((route) => {
-    // Convert Express-style route patterns to regex
-    // Simple implementation for :paramName patterns
-    const regexPattern = route
-      .replace(/:[^\s/]+/g, '[^/]+') // Replace :param with regex for non-slash chars
-      .replace(/\//g, '\\/'); // Escape forward slashes
-    const matcher = new RegExp(`^${regexPattern}$`);
-    logger.info(
-      { route, regexPattern, matcher },
-      'Creating route matcher: route -> regexPattern -> matcher',
-    );
-    return matcher;
-  });
-  logger.info({ matchersLength: matchers.length }, 'Total route matchers created');
-  return matchers;
-};
-
-// convert to a Set so that callers can use `.has()` for fast lookup
-const authAllowListSet = new Set(parseAuthAllowList());
-
 export const BACKEND_CONFIG = deepFreeze({
   port: env.PORT,
   nodeEnv: env.NODE_ENV,
@@ -181,93 +151,7 @@ export const BACKEND_CONFIG = deepFreeze({
     password: env.TEST_USER_PASSWORD,
   },
 
-  api: [
-    // Health & Root
-    { method: 'GET', endpoint: '/health', description: 'Basic Health Check (Load Balancer)' },
-    { method: 'GET', endpoint: '/health/detailed', description: 'Comprehensive Health Check' },
-    { method: 'GET', endpoint: '/health/database', description: 'Database Health Check' },
-    { method: 'GET', endpoint: '/health/openai', description: 'OpenAI API Health Check' },
-    { method: 'GET', endpoint: '/health/system', description: 'System Resources Health Check' },
-    { method: 'GET', endpoint: '/health/config', description: 'Configuration Health Check' },
-    { method: 'GET', endpoint: '/health/readiness', description: 'Kubernetes Readiness Probe' },
-    { method: 'GET', endpoint: '/health/liveness', description: 'Kubernetes Liveness Probe' },
-    { method: 'GET', endpoint: '/health/version', description: 'Version and Build Information' },
-    { method: 'GET', endpoint: '/', description: 'Welcome/Root Endpoint' },
-
-    // User Profile
-    { method: 'GET', endpoint: '/api/profile', description: 'User Profile Data (Auth Required)' },
-
-    // Search
-    {
-      method: 'GET',
-      endpoint: '/api/search/ce-cases',
-      description: 'Search Circular Economy Cases Knowledge Base',
-    },
-
-    // Scoring/RAG
-    {
-      method: 'POST',
-      endpoint: '/api/score',
-      description: 'RAG Analysis & Scoring (Rate Limited)',
-    },
-    {
-      method: 'POST',
-      endpoint: '/api/score/stream',
-      description: 'RAG Analysis & Scoring with SSE Streaming (Rate Limited)',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/analytics/global-stats',
-      description: 'Global Dashboard Statistics',
-    },
-
-    // Assessments
-    {
-      method: 'POST',
-      endpoint: '/api/assessments',
-      description: 'Create Assessment (Auth Required)',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/assessments',
-      description: 'List User Assessments (Auth Required)',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/assessments/stats',
-      description: 'Assessment Statistics (Auth Required)',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/assessments/compare',
-      description: 'Compare Two Assessments (Auth Required)',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/assessments/public/:publicId',
-      description: 'Get Public Assessment (No Auth)',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/assessments/validate/:publicId',
-      description: 'Validate Public Assessment ID',
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/assessments/:publicId',
-      description: 'Get Assessment by Public ID (Auth Required)',
-    },
-    {
-      method: 'PATCH',
-      endpoint: '/api/assessments/:id',
-      description: 'Update Assessment (Auth Required)',
-    },
-    {
-      method: 'DELETE',
-      endpoint: '/api/assessments/:id',
-      description: 'Delete Assessment (Auth Required)',
-    },
-  ],
+  api: API_ENDPOINTS,
 
   openai: {
     apiKey: env.OPENAI_API_KEY,
@@ -299,21 +183,17 @@ export const BACKEND_CONFIG = deepFreeze({
     sslCA: env.AIVEN_CA_CERT,
   },
 
-  db: buildDatabaseConfig(),
-
-  useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
+  scoring: {
+    db: buildDatabaseConfig(),
+    useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
+    maxFreeTries: env.SCORING_MAX_FREE_TRIES,
+  },
 
   app: {
     appUrl: env.APP_URL,
     apiUrl: env.API_URL,
 
     allowedOrigins: parseAllowedOrigins(),
-    healthRoutes: new Set(env.HEALTH_ROUTES ?? []),
-    publicRoutesOnly: new Set(env.PUBLIC_ROUTES ?? []),
-    authAllowList: authAllowListSet,
-    routeMatchers: createRouteMatchers(authAllowListSet),
-
-    maxFreeTries: env.MAX_FREE_TRIES,
 
     logLevel: env.LOG_LEVEL,
 
@@ -321,29 +201,11 @@ export const BACKEND_CONFIG = deepFreeze({
     apiKey: env.API_KEY,
     strictEnv: env.STRICT_ENV,
   },
+
+  uptime: {
+    pollIntervalMs: 30_000, // 30 seconds
+    retentionDays: 7, // 7 days
+    pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
+    endpoints: UPTIME_ENDPOINTS.map((endpoint) => endpoint.path),
+  },
 });
-
-/* ------------------------------ */
-/* Environment Fingerprint (optional debugging) */
-/* ------------------------------ */
-
-const redacted = [
-  'OPENAI_API_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'SUPABASE_PASSWORD',
-  'SUPABASE_CONNECTION_STRING',
-  'AIVEN_PASSWORD',
-  'AIVEN_CONNECTION_STRING',
-  'AIVEN_CA_CERT',
-  'API_KEY',
-];
-
-export const ENV_FINGERPRINT = crypto
-  .createHash('sha256')
-  .update(
-    JSON.stringify({
-      ...env,
-      ...Object.fromEntries(redacted.map((key) => [key, '[Redacted] (❁´◡`❁)'])),
-    }),
-  )
-  .digest('hex');
