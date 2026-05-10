@@ -3,18 +3,15 @@ import { Download, ExternalLink, FingerprintPattern, MoveLeft, RotateCw } from '
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button, DetailsDisplay, Separator } from '@/components/common';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useAssessmentComparison } from '@/features/assessments/hooks/useAssessmentComparison';
+import { useAssessmentComparison } from '@/features/assessments/hooks';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { exportComparisonCSV, exportComparisonPDF } from '@/features/export';
-import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 
 import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
+import { computeAssessmentData } from './utils/assessmentUtils';
 
 export default function AssessmentComparisonPage() {
   const [searchParams] = useSearchParams();
-
-  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   // Support query params (/assessments/compare/?id1=...&id2=...)
   const publicId1 = searchParams.get('id1');
@@ -36,8 +33,7 @@ export default function AssessmentComparisonPage() {
             label: 'Refresh',
             icon: RotateCw,
             variant: 'ghost',
-            to: '/assessments',
-            as: Link,
+            onPress: () => window.location.reload(),
           },
           {
             label: 'Try Different IDs',
@@ -65,8 +61,7 @@ export default function AssessmentComparisonPage() {
             label: 'Refresh',
             icon: RotateCw,
             variant: 'ghost',
-            to: '/assessments',
-            as: Link,
+            onPress: () => window.location.reload(),
           },
           {
             label: 'Try Different IDs',
@@ -92,8 +87,7 @@ export default function AssessmentComparisonPage() {
             label: 'Refresh',
             icon: RotateCw,
             variant: 'ghost',
-            to: '/assessments',
-            as: Link,
+            onPress: () => window.location.reload(),
           },
           {
             label: 'Try Different IDs',
@@ -134,7 +128,7 @@ export default function AssessmentComparisonPage() {
       )}
       <Tooltip delay={0}>
         <Tooltip.Trigger className="item-center flex">
-          <Link to={`/assessments/share?id=${publicId}`} target="_blank" rel="noopener noreferrer">
+          <Link to={`/assessments/share/${publicId}`} target="_blank" rel="noopener noreferrer">
             <ExternalLink
               size={18}
               strokeWidth={2}
@@ -265,8 +259,6 @@ export default function AssessmentComparisonPage() {
             <AssessmentColumn
               assessment={assessment1}
               scoringResult={scoringResult1}
-              label="Assessment 1"
-              openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
               {...assessment1Data}
             />
           </div>
@@ -274,8 +266,6 @@ export default function AssessmentComparisonPage() {
             <AssessmentColumn
               assessment={assessment2}
               scoringResult={scoringResult2}
-              label="Assessment 2"
-              openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
               {...assessment2Data}
             />
           </div>

@@ -9,36 +9,37 @@ import {
 import { validKeys } from '@/constants/evaluationData';
 import { formatFactorName } from '@/lib/scoring';
 import {
+  CaseSummaryAccordions,
+  CategoryAnalysis,
+  CircularEconomyTierCard,
+  DatabaseEvidenceCard,
+  IndustryMetadataSection,
+  IntegrityAnalysis,
+  ParameterConsistencyCard,
+  PerformanceComparison,
+  RecommendationsCard,
   ResultsActionBar,
+  RStrategyAlignmentCard,
+  ScoreCategoryBreakdown,
   ScoreOverviewSection,
+  StrengthsGapsCard,
   WeightedScoreCard,
 } from '@/pages/ResultsPage/components';
-import { CaseSummaryAccordions } from '@/pages/ResultsPage/components/CaseSummaryAccordions';
-import { CategoryAnalysis } from '@/pages/ResultsPage/components/CategoryAnalysis';
-import { CircularEconomyTierCard } from '@/pages/ResultsPage/components/CircularEconomyTierCard';
-import { DatabaseEvidenceCard } from '@/pages/ResultsPage/components/DatabaseEvidenceCard';
-import { IndustryMetadataSection } from '@/pages/ResultsPage/components/IndustryMetadataSection';
-import { IntegrityAnalysis } from '@/pages/ResultsPage/components/IntegrityAnalysis';
-import { ParameterConsistencyCard } from '@/pages/ResultsPage/components/ParameterConsistencyCard';
-import { PerformanceComparison } from '@/pages/ResultsPage/components/PerformanceComparison';
-import { RecommendationsCard } from '@/pages/ResultsPage/components/RecommendationsCard';
-import { RStrategyAlignmentCard } from '@/pages/ResultsPage/components/RStrategyAlignmentCard';
-import { ScoreCategoryBreakdown } from '@/pages/ResultsPage/components/ScoreCategoryBreakdown';
-import { StrengthsGapsCard } from '@/pages/ResultsPage/components/StrengthsGapsCard';
 
-export function AssessmentColumn({
+/**
+ * Renders a single assessment column with all results and analysis
+ * Used in AssessmentComparisonPage and AssessmentViewPage
+ */
+export default function AssessmentColumn({
   assessment,
   scoringResult,
-  label,
   overallScore,
   strengths,
   gaps,
   casesSummaries,
   topFactor,
   focusFactor,
-  avgFactorScore,
   resolvedBusinessViabilityScore,
-  openResultsDatabaseEvidenceDetailsDrawer,
 }) {
   const fieldHelp = {
     industry: 'Sector we matched from your description',
@@ -118,17 +119,8 @@ export function AssessmentColumn({
         <ScoreOverviewSection
           actualResult={scoringResult}
           overallScore={overallScore}
-          casesSummaries={casesSummaries}
-          strengths={strengths}
-          gaps={gaps}
-          isViewFromMyAssessments={false}
-          currentData={null}
-          optimisticIsPublic={false}
           topFactor={topFactor}
           focusFactor={focusFactor}
-          avgFactorScore={avgFactorScore}
-          resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
-          reportTips={null}
         />
         <Separator pct={40} wrapperCn="my-8" />
 
@@ -196,18 +188,22 @@ export function AssessmentColumn({
 }
 
 AssessmentColumn.propTypes = {
+  /** Assessment data containing business problem, solution, context, and parameters */
   assessment: PropTypes.object.isRequired,
+  /** Scoring result object with scores, analysis, and metadata */
   scoringResult: PropTypes.object.isRequired,
-  label: PropTypes.string,
+  /** Overall circular economy score (0-100) */
   overallScore: PropTypes.number.isRequired,
+  /** Array of identified strengths from the analysis */
   strengths: PropTypes.array.isRequired,
+  /** Array of identified gaps from the analysis */
   gaps: PropTypes.array.isRequired,
+  /** Array of similar case summaries for comparison */
   casesSummaries: PropTypes.array.isRequired,
+  /** Top performing factors array */
   topFactor: PropTypes.array,
+  /** Focus factors array */
   focusFactor: PropTypes.array,
-  avgFactorScore: PropTypes.number.isRequired,
+  /** Resolved business viability score */
   resolvedBusinessViabilityScore: PropTypes.number.isRequired,
-  openResultsDatabaseEvidenceDetailsDrawer: PropTypes.func.isRequired,
 };
-
-export default AssessmentColumn;

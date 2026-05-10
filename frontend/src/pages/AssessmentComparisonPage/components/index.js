@@ -1,3 +1,3 @@
 export { default as AssessmentColumn } from './AssessmentColumn';
-export { ChangeIndicator } from './ChangeIndicator';
-export { ComparisonSkeleton } from './ComparisonSkeleton';
+export { default as ChangeIndicator } from './ChangeIndicator';
+export { default as ComparisonSkeleton } from './ComparisonSkeleton';

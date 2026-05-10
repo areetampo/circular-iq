@@ -1,7 +1,7 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-function ChangeIndicator({ diff }) {
+export default function ChangeIndicator({ diff }) {
   if (diff > 0) {
     return (
       <span className="flex items-center gap-0.5 text-xs text-(--color-success)">
@@ -23,6 +23,3 @@ ChangeIndicator.propTypes = {
   /** Numeric difference value (can be positive, negative, or zero) */
   diff: PropTypes.number.isRequired,
 };
-
-export { ChangeIndicator };
-export default ChangeIndicator;

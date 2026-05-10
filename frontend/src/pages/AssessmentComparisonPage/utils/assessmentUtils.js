@@ -20,11 +20,6 @@ export const computeAssessmentData = (scoringResult) => {
     subScoreEntries.length > 0
       ? subScoreEntries.reduce((worst, curr) => (curr[1] < worst[1] ? curr : worst))
       : null;
-  const avgFactorScore =
-    subScoreEntries.length > 0
-      ? Math.round(subScoreEntries.reduce((sum, [, val]) => sum + val, 0) / subScoreEntries.length)
-      : 0;
-
   // Business viability (exact formula from ResultsPage)
   const computeBusinessViabilityScore = (res) => {
     if (!res) return 0;
@@ -45,7 +40,6 @@ export const computeAssessmentData = (scoringResult) => {
     casesSummaries,
     topFactor,
     focusFactor,
-    avgFactorScore,
     resolvedBusinessViabilityScore,
   };
 };
