@@ -13,7 +13,7 @@
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getDatabaseClient, getDatabaseType, getSupabasePgPool } from '#database/client.js';
 
-const func = BACKEND_CONFIG.db.functions;
+const func = BACKEND_CONFIG.scoring.db.functions;
 
 /**
  * Documents Repository
@@ -63,7 +63,7 @@ export class DocumentsRepository {
     // (JSON object syntax) which Postgres halfvec rejects. We must format
     // the array as a proper vector literal "[0.04,0.08,...]" and cast it.
     const queryParams = [];
-    const placeholders = params.map((param, i) => {
+    const placeholders = params.map((param) => {
       if (Array.isArray(param)) {
         // Format as a halfvec literal — square brackets, comma-separated
         queryParams.push(`[${param.join(',')}]`);
