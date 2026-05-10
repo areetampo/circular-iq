@@ -3,23 +3,22 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
-import { ScrollToTop } from '@/components/common';
-import LoaderComponent from '@/components/common/LoaderComponent';
+import { LoaderComponent, ScrollToTop } from '@/components/common';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
-import AppContainer from '@/components/layout/AppContainer';
-import Footer from '@/components/layout/Footer';
-import Navbar from '@/components/layout/Navbar';
-import { useAuth } from '@/hooks/useAuth';
+import { AppContainer, Footer, Navbar } from '@/components/layout';
+import { useAuth } from '@/hooks';
 
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 const MyAssessmentsPage = lazy(() => import('@/pages/MyAssessmentsPage/MyAssessmentsPage'));
 const SharePage = lazy(() => import('@/pages/SharePage/SharePage'));
+const AssessmentViewPage = lazy(() => import('@/pages/AssessmentViewPage/AssessmentViewPage'));
 const ComparePageWrapper = lazy(() => import('@/pages/ComparePage/ComparePageWrapper'));
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 const GuidePage = lazy(() => import('@/pages/GuidePage/GuidePage'));
 const SolutionsPage = lazy(() => import('@/pages/SolutionsPage/SolutionsPage'));
 const GlobalActivityPage = lazy(() => import('@/pages/GlobalActivityPage/GlobalActivityPage'));
+const UptimeMonitorPage = lazy(() => import('@/pages/UptimeMonitorPage/UptimeMonitorPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
 /**
@@ -58,7 +57,7 @@ ProtectedRoute.propTypes = {
  * - Static path segments before dynamic (`/assessments/compare` before `/assessments/:publicId`).
  * - Deeper share routes before shallower ones where relevant.
  *
- * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/solutions`, `/global-activity`, `/assessments/share?id=`, `/assessments`, `/assessments/compare`.
+ * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/solutions`, `/global-activity`, `/assessments/share`, `/assessments/share/:id`, `/assessments`, `/assessments/compare`.
  * Protected: `/assessments/:publicId`.
  */
 export default function AppRoutes() {
@@ -72,7 +71,7 @@ export default function AppRoutes() {
         <Route
           path="/"
           element={
-            <div className="app__bg flex min-h-screen flex-col">
+            <div className="flex min-h-screen flex-col">
               <DriftingShapesBackground />
               <Navbar />
               <main className="flex-1">
@@ -111,6 +110,15 @@ export default function AppRoutes() {
             element={
               <PageErrorBoundary pageName="Share Gateway">
                 <SharePage />
+              </PageErrorBoundary>
+            }
+          />
+
+          <Route
+            path="/assessments/share/:id"
+            element={
+              <PageErrorBoundary pageName="Shared Assessment View">
+                <AssessmentViewPage />
               </PageErrorBoundary>
             }
           />
@@ -156,6 +164,15 @@ export default function AppRoutes() {
             element={
               <PageErrorBoundary pageName="Global Activity">
                 <GlobalActivityPage />
+              </PageErrorBoundary>
+            }
+          />
+
+          <Route
+            path="/uptime-monitor"
+            element={
+              <PageErrorBoundary pageName="Uptime Monitor">
+                <UptimeMonitorPage />
               </PageErrorBoundary>
             }
           />
