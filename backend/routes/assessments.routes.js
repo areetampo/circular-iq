@@ -11,7 +11,6 @@ import * as assessmentsController from '#controllers/assessments.controller.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 import { validateAssessment } from '#middleware/validation.middleware.js';
 import { authenticateRequest } from '#services/auth.service.js';
-import { logOperation } from '#utils/controller-helpers.js';
 
 /**
  * Create assessments router
@@ -34,12 +33,12 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.validatedBody,
         req.body,
       );
-      logOperation('POST', '/assessments', 201, Date.now() - startTime);
+      logger.logOperation('POST', '/assessments', 201, Date.now() - startTime);
       res.status(201).json(result);
     } catch (err) {
       logger.error({ err }, 'Error saving assessment');
       const statusCode = err.code === 'TITLE_LENGTH_INVALID' ? 400 : 500;
-      logOperation('POST', '/assessments', statusCode, Date.now() - startTime);
+      logger.logOperation('POST', '/assessments', statusCode, Date.now() - startTime);
       res.status(statusCode).json({
         error: err.message || 'Failed to save assessment',
         code: err.code || 'INTERNAL_ERROR',
@@ -60,11 +59,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.user,
         req.query,
       );
-      logOperation('GET', '/assessments', 200, Date.now() - startTime);
+      logger.logOperation('GET', '/assessments', 200, Date.now() - startTime);
       res.json(result);
     } catch (err) {
       logger.error({ err }, 'Error fetching assessments');
-      logOperation('GET', '/assessments', 500, Date.now() - startTime);
+      logger.logOperation('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json({
         error: err.message || 'Failed to fetch assessments',
         code: err.code || 'INTERNAL_ERROR',
@@ -81,11 +80,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
     const startTime = Date.now();
     try {
       const stats = await assessmentsController.getAssessmentStats(serviceSupabase, req.user);
-      logOperation('GET', '/assessments/stats', 200, Date.now() - startTime);
+      logger.logOperation('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
     } catch (err) {
       logger.error({ err }, 'Error fetching assessment stats');
-      logOperation('GET', '/assessments/stats', 500, Date.now() - startTime);
+      logger.logOperation('GET', '/assessments/stats', 500, Date.now() - startTime);
       res.status(500).json({
         error: err.message || 'Failed to fetch assessment statistics',
         code: err.code || 'INTERNAL_ERROR',
@@ -111,7 +110,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         user,
         req.params.publicId,
       );
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/public/${req.params.publicId}`,
         200,
@@ -120,7 +119,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/public/${req.params.publicId}`,
         statusCode,
@@ -151,7 +150,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.params.publicId,
         user,
       );
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/validate/${req.params.publicId}`,
         200,
@@ -167,7 +166,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
             : error.code === 'FORBIDDEN'
               ? 403
               : 500;
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/validate/${req.params.publicId}`,
         statusCode,
@@ -238,7 +237,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         id1,
         id2,
       );
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/compare?id1=${id1}&id2=${id2}`,
         200,
@@ -256,7 +255,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
               : error.code === 'NOT_PUBLIC'
                 ? 403
                 : 500;
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/compare?id1=${id1}&id2=${id2}`,
         statusCode,
@@ -283,11 +282,16 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.user,
         req.params.publicId,
       );
-      logOperation('GET', `/assessments/${req.params.publicId}`, 200, Date.now() - startTime);
+      logger.logOperation(
+        'GET',
+        `/assessments/${req.params.publicId}`,
+        200,
+        Date.now() - startTime,
+      );
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logOperation(
+      logger.logOperation(
         'GET',
         `/assessments/${req.params.publicId}`,
         statusCode,
@@ -314,7 +318,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.params.id,
         req.body,
       );
-      logOperation('PATCH', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
+      logger.logOperation('PATCH', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
       let statusCode = 500;
@@ -323,7 +327,12 @@ export default function createAssessmentsRouter(serviceSupabase) {
       } else if (error.code === 'TITLE_LENGTH_INVALID') {
         statusCode = 400;
       }
-      logOperation('PATCH', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
+      logger.logOperation(
+        'PATCH',
+        `/assessments/${req.params.id}`,
+        statusCode,
+        Date.now() - startTime,
+      );
       res.status(statusCode).json({
         error: error.message || 'Failed to update assessment',
         code: error.code || 'INTERNAL_ERROR',
@@ -344,11 +353,16 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.user,
         req.params.id,
       );
-      logOperation('DELETE', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
+      logger.logOperation('DELETE', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logOperation('DELETE', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
+      logger.logOperation(
+        'DELETE',
+        `/assessments/${req.params.id}`,
+        statusCode,
+        Date.now() - startTime,
+      );
       res.status(statusCode).json({
         error: error.message || 'Failed to delete assessment',
         code: error.code || 'INTERNAL_ERROR',

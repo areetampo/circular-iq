@@ -4,8 +4,6 @@
  * public sharing, market analysis per assessment.
  */
 
-import { logOperation } from '#utils/controller-helpers.js';
-
 /**
  * Save a new assessment
  */
@@ -116,7 +114,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody) {
       throw error;
     }
 
-    logOperation('saveAssessment', '/assessments', 'success', Date.now() - startTime);
+    logger.logOperation('saveAssessment', '/assessments', 'success', Date.now() - startTime);
 
     return {
       id: data[0].id,
@@ -124,7 +122,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody) {
       assessment: data[0],
     };
   } catch (error) {
-    logOperation('saveAssessment', '/assessments', 'error', Date.now() - startTime);
+    logger.logOperation('saveAssessment', '/assessments', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -204,7 +202,7 @@ export async function fetchUserAssessments(supabase, user, query) {
       throw error;
     }
 
-    logOperation('fetchUserAssessments', '/assessments', 'success', Date.now() - startTime);
+    logger.logOperation('fetchUserAssessments', '/assessments', 'success', Date.now() - startTime);
 
     return {
       assessments: data || [],
@@ -213,7 +211,7 @@ export async function fetchUserAssessments(supabase, user, query) {
       pageSize: size,
     };
   } catch (error) {
-    logOperation('fetchUserAssessments', '/assessments', 'error', Date.now() - startTime);
+    logger.logOperation('fetchUserAssessments', '/assessments', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -252,11 +250,21 @@ export async function getAssessmentStats(supabase, user) {
       assessmentsByScale: stats.assessments_by_scale || {},
     };
 
-    logOperation('getAssessmentStats', '/assessments/stats', 'success', Date.now() - startTime);
+    logger.logOperation(
+      'getAssessmentStats',
+      '/assessments/stats',
+      'success',
+      Date.now() - startTime,
+    );
 
     return result;
   } catch (error) {
-    logOperation('getAssessmentStats', '/assessments/stats', 'error', Date.now() - startTime);
+    logger.logOperation(
+      'getAssessmentStats',
+      '/assessments/stats',
+      'error',
+      Date.now() - startTime,
+    );
     throw error;
   }
 }
@@ -296,14 +304,24 @@ export async function getPublicAssessment(supabase, user, publicId) {
       throw forbiddenError;
     }
 
-    logOperation('getPublicAssessment', '/assessments/public', 'success', Date.now() - startTime);
+    logger.logOperation(
+      'getPublicAssessment',
+      '/assessments/public',
+      'success',
+      Date.now() - startTime,
+    );
 
     return {
       assessment: data,
       readonly: !isOwner, // Only owners can edit
     };
   } catch (error) {
-    logOperation('getPublicAssessment', '/assessments/public', 'error', Date.now() - startTime);
+    logger.logOperation(
+      'getPublicAssessment',
+      '/assessments/public',
+      'error',
+      Date.now() - startTime,
+    );
     throw error;
   }
 }
@@ -373,7 +391,12 @@ export async function validatePublicId(supabase, publicId, user = null) {
       throw forbiddenError;
     }
 
-    logOperation('validatePublicId', '/assessments/validate', 'success', Date.now() - startTime);
+    logger.logOperation(
+      'validatePublicId',
+      '/assessments/validate',
+      'success',
+      Date.now() - startTime,
+    );
 
     return {
       valid: true,
@@ -381,7 +404,12 @@ export async function validatePublicId(supabase, publicId, user = null) {
       isPublic: data.is_public,
     };
   } catch (error) {
-    logOperation('validatePublicId', '/assessments/validate', 'error', Date.now() - startTime);
+    logger.logOperation(
+      'validatePublicId',
+      '/assessments/validate',
+      'error',
+      Date.now() - startTime,
+    );
     throw error;
   }
 }
@@ -409,11 +437,11 @@ export async function getAssessmentById(supabase, user, publicId) {
       throw notFoundError;
     }
 
-    logOperation('getAssessmentById', '/assessments/:id', 'success', Date.now() - startTime);
+    logger.logOperation('getAssessmentById', '/assessments/:id', 'success', Date.now() - startTime);
 
     return { assessment: data };
   } catch (error) {
-    logOperation('getAssessmentById', '/assessments/:id', 'error', Date.now() - startTime);
+    logger.logOperation('getAssessmentById', '/assessments/:id', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -480,11 +508,11 @@ export async function updateAssessment(supabase, user, id, updates) {
       throw notFoundError;
     }
 
-    logOperation('updateAssessment', '/assessments/:id', 'success', Date.now() - startTime);
+    logger.logOperation('updateAssessment', '/assessments/:id', 'success', Date.now() - startTime);
 
     return { assessment: data, message: 'Assessment updated successfully' };
   } catch (error) {
-    logOperation('updateAssessment', '/assessments/:id', 'error', Date.now() - startTime);
+    logger.logOperation('updateAssessment', '/assessments/:id', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -527,12 +555,12 @@ export async function deleteAssessment(supabase, user, id) {
     }
 
     // logger.info({ id, userId }, 'Assessment deleted successfully');
-    logOperation('deleteAssessment', '/assessments/:id', 'success', Date.now() - startTime);
+    logger.logOperation('deleteAssessment', '/assessments/:id', 'success', Date.now() - startTime);
 
     return { message: 'Assessment deleted successfully', id };
   } catch (error) {
     logger.error({ error }, 'Error during deleteAssessment operation');
-    logOperation('deleteAssessment', '/assessments/:id', 'error', Date.now() - startTime);
+    logger.logOperation('deleteAssessment', '/assessments/:id', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -628,10 +656,20 @@ export async function compareAssessments(supabase, user, publicId1, publicId2) {
       throw error;
     }
 
-    logOperation('compareAssessments', '/assessments/compare', 'success', Date.now() - startTime);
+    logger.logOperation(
+      'compareAssessments',
+      '/assessments/compare',
+      'success',
+      Date.now() - startTime,
+    );
     return { assessment1: result1, assessment2: result2 };
   } catch (error) {
-    logOperation('compareAssessments', '/assessments/compare', 'error', Date.now() - startTime);
+    logger.logOperation(
+      'compareAssessments',
+      '/assessments/compare',
+      'error',
+      Date.now() - startTime,
+    );
     throw error;
   }
 }

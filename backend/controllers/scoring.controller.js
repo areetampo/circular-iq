@@ -27,7 +27,6 @@ import {
   getIdentifierFromRequest,
   SCORING_MAX_FREE_TRIES,
 } from '#utils/anonymousTracking.js';
-import { logOperation } from '#utils/controller-helpers.js';
 
 /**
  * Enforce anonymous usage limits
@@ -858,11 +857,11 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       });
 
     // --- RETURN TO CONTROLLER ---
-    logOperation('performScoring', '/scoring', 'success', Date.now() - startTime);
+    logger.logOperation('performScoring', '/scoring', 'success', Date.now() - startTime);
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
     logger.error({ requestId, error }, 'Scoring request error');
-    logOperation('performScoring', '/scoring', 'error', Date.now() - startTime);
+    logger.logOperation('performScoring', '/scoring', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -1520,11 +1519,21 @@ export async function performScoringWithStream(
     emitter('done', 'Complete!', { result: response });
 
     // --- RETURN TO CONTROLLER ---
-    logOperation('performScoringWithStream', '/scoring/stream', 'success', Date.now() - startTime);
+    logger.logOperation(
+      'performScoringWithStream',
+      '/scoring/stream',
+      'success',
+      Date.now() - startTime,
+    );
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
     logger.error({ requestId, error }, 'Scoring request error (stream)');
-    logOperation('performScoringWithStream', '/scoring/stream', 'error', Date.now() - startTime);
+    logger.logOperation(
+      'performScoringWithStream',
+      '/scoring/stream',
+      'error',
+      Date.now() - startTime,
+    );
     throw error;
   }
 }

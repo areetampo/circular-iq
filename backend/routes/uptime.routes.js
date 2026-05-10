@@ -6,7 +6,6 @@
 import express from 'express';
 
 import { getSupabaseClient } from '#database/client.js';
-import { logOperation } from '#utils/controller-helpers.js';
 
 /**
  * Create uptime router
@@ -30,11 +29,11 @@ export default function createUptimeRouter() {
       const { count, error } = await query;
       if (error) throw error;
       const duration = Date.now() - startTime;
-      logOperation('GET', '/api/uptime/count', 200, duration);
+      logger.logOperation('GET', '/api/uptime/count', 200, duration);
       res.json({ total: count });
     } catch (err) {
       const duration = Date.now() - startTime;
-      logOperation('GET', '/api/uptime/count', 500, duration);
+      logger.logOperation('GET', '/api/uptime/count', 500, duration);
       logger.error({ err }, 'Failed to fetch uptime count');
       res.status(500).json({ error: 'Failed to fetch count' });
     }
@@ -74,11 +73,11 @@ export default function createUptimeRouter() {
       }));
 
       const duration = Date.now() - startTime;
-      logOperation('GET', path, 200, duration);
+      logger.logOperation('GET', path, 200, duration);
       res.json({ endpointId, checks });
     } catch (err) {
       const duration = Date.now() - startTime;
-      logOperation('GET', path, 500, duration);
+      logger.logOperation('GET', path, 500, duration);
       logger.error({ err, endpointId }, 'Failed to fetch uptime history');
       res.status(500).json({
         error: 'Failed to fetch history',

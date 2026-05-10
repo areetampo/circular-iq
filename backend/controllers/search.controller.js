@@ -17,7 +17,6 @@
 
 import { ce_cases } from '#database/index.js';
 import { createEmbedding } from '#services/embedding.service.js';
-import { logOperation } from '#utils/controller-helpers.js';
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_LIMIT = 50;
@@ -157,7 +156,7 @@ export function searchCeCases(supabase) {
 
       const processingMs = Date.now() - startTime;
       logger.info({ query, mode, resultCount: results.length, processingMs }, 'Search complete');
-      logOperation('searchCeCases', '/search', 'success', processingMs);
+      logger.logOperation('searchCeCases', '/search', 'success', processingMs);
 
       return res.json({
         query,
@@ -172,7 +171,7 @@ export function searchCeCases(supabase) {
     } catch (error) {
       const processingMs = Date.now() - startTime;
       logger.error({ error, query: req.query.q }, 'CE cases search error');
-      logOperation('searchCeCases', '/search', 'error', processingMs);
+      logger.logOperation('searchCeCases', '/search', 'error', processingMs);
 
       return res.status(500).json({
         error: error.message || 'Search failed',
