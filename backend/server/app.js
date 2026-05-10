@@ -11,53 +11,21 @@ import helmet from 'helmet';
 import { OpenAI } from 'openai';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { createSupabaseAnonClient, createSupabaseClient } from '#database/supabase.client.js';
+import { createSupabaseAnonClient, createSupabaseClient } from '#database/index.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import createHealthRouter from '#routes/health.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
-import { getMinimalHealth, getSystemHealth } from '#services/health.service.js';
+import createUptimeRouter from '#routes/uptime.routes.js';
 
 const app = express();
 app.set('trust proxy', 1);
 
 const IS_PROD = BACKEND_CONFIG.isProduction;
 const allowedOrigins = BACKEND_CONFIG.app.allowedOrigins;
-const authAllowList = BACKEND_CONFIG.app.authAllowList;
-const routeMatchers = BACKEND_CONFIG.app.routeMatchers;
 const { apiKey, apiAuthEnabled } = BACKEND_CONFIG.app;
-
-/**
- * Helper to check if a path is in the public route allowlist
- * Used by apiKeyGuard to determine if authentication is required
- * @param {string} path - Request path to check
- * @returns {boolean} True if path is public (no auth required)
- */
-function isPublicRoute(path) {
-  logger.log('=== AUTH DEBUG ===');
-  logger.log(
-    { authAllowList: Array.from(authAllowList), path, routeMatchers },
-    'Checking if path is in authAllowList',
-  );
-
-  // Check exact match first
-  if (authAllowList.has(path)) {
-    logger.log('Path found in authAllowList ✓');
-    return true;
-  }
-
-  // Then check regex patterns for dynamic routes
-  const isMatched = routeMatchers.some((matcher) => {
-    const matches = matcher.test(path);
-    logger.log({ matcher, path, matches }, 'Testing matcher against path');
-    return matches;
-  });
-
-  logger.log({ isMatched }, 'Route matcher result');
-  return isMatched;
-}
 
 // ============================================
 // COMMON UTILITIES
@@ -116,9 +84,7 @@ function validateConfig() {
  * @param {Function} next - Express next function
  */
 export function apiKeyGuard(req, res, next) {
-  const isPublic = isPublicRoute(req.path);
-
-  if (!apiAuthEnabled || isPublic) return next();
+  if (!apiAuthEnabled) return next();
 
   if (!apiKey) {
     logger.error('API auth enabled but API_KEY not configured');
@@ -159,35 +125,6 @@ app.use(helmet());
 app.use(express.json({ limit: '512kb' }));
 app.use(express.urlencoded({ limit: '512kb', extended: true }));
 
-// Comprehensive health check endpoint
-app.get('/health', async (req, res) => {
-  try {
-    const { detailed = 'false', checks } = req.query;
-
-    if (detailed === 'true') {
-      // Detailed health check with all services
-      const healthData = await getSystemHealth({
-        checks: checks ? checks.split(',') : ['database', 'openai', 'system', 'config'],
-      });
-      res.json(healthData);
-    } else {
-      // Minimal health check for load balancers
-      const healthData = await getMinimalHealth();
-
-      // Set appropriate HTTP status based on health
-      const statusCode = healthData.status === 'ok' ? 200 : 503;
-      res.status(statusCode).json(healthData);
-    }
-  } catch (err) {
-    logger.error({ err }, 'Health check failed');
-    res.status(503).json({
-      status: 'error',
-      error: 'Health check failed',
-      timestamp: new Date().toISOString(),
-    });
-  }
-});
-
 // Catch-all for root pings to stop CORS errors in deployment logs
 app.get('/', (req, res) => {
   let message = 'Circular Economy API is Running ₰';
@@ -227,8 +164,6 @@ app.use(
   }),
 );
 
-app.use(apiKeyGuard);
-
 // initialize clients
 const supabase = createSupabaseAnonClient();
 const serviceSupabase = createSupabaseClient();
@@ -236,12 +171,15 @@ const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
 validateConfig();
 
-// mount routers
-app.use('/health', createHealthRouter(serviceSupabase));
+// mount public health routes before API key guard but after CORS middleware
+app.use('/health', createHealthRouter());
+
+app.use(apiKeyGuard);
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
-app.use('/api/search', createSearchRouter(supabase, serviceSupabase));
+app.use('/api/search', createSearchRouter(supabase));
+app.use('/api/uptime', createUptimeRouter());
 
 app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
   try {
@@ -319,4 +257,3 @@ app.use((err, req, res, next) => {
 });
 
 export default app;
-export { app };
