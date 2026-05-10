@@ -28,6 +28,9 @@ function uptimeTextClass(pct) {
   return 'text-(--color-error)';
 }
 
+// Number of recent checks to show in the response time sparkline
+const SPARKLINE_COUNT = 100;
+
 function dotBgClass(checks) {
   if (!checks || checks.length === 0) return 'bg-(--color-text-muted)';
   const latest = checks[checks.length - 1];
@@ -99,7 +102,7 @@ export default function EndpointCard({ endpoint, checks, checking }) {
   const avg = avgMs(checks);
   const latest = hasData ? checks[checks.length - 1] : null;
   const sparkData = hasData
-    ? checks.slice(-20).map((c, i) => ({ label: String(i), ms: c.up ? c.ms : null }))
+    ? checks.slice(-SPARKLINE_COUNT).map((c, i) => ({ label: String(i), ms: c.up ? c.ms : null }))
     : [];
 
   // For metric display: show '—' when no data or value is null
@@ -171,7 +174,7 @@ export default function EndpointCard({ endpoint, checks, checking }) {
       {hasData && checks.length > 2 && (
         <div>
           <p className="mb-1 font-mono text-[0.6rem] tracking-widest text-(--color-text-secondary) uppercase">
-            response time — last 20 checks
+            response time — last {SPARKLINE_COUNT} checks
           </p>
           <LineChart
             data={sparkData}
