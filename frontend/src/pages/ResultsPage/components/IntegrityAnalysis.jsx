@@ -4,18 +4,8 @@ import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 
-export function IntegrityAnalysis({ strengths, gaps }) {
+export default function IntegrityAnalysis({ strengths, gaps }) {
   if (!(gaps.length > 0 || strengths.length > 0)) return null;
-
-  const getSeverityColors = (severity) => {
-    return (
-      {
-        high: '--danger-soft',
-        medium: '--warning-soft',
-        low: '--info-soft',
-      }[severity] || '--info-soft'
-    );
-  };
 
   return (
     <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
@@ -38,7 +28,7 @@ export function IntegrityAnalysis({ strengths, gaps }) {
               <Accordion.Trigger className="px-4 py-3 transition-colors hover:bg-success-soft">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={20} className="text-(--color-success)" />
-                  <span className="text-base font-semibold text-(--color-text-primary)">
+                  <span className="text-base font-medium text-(--color-text-primary)">
                     Strengths Validated
                   </span>
                   <Chip variant="status" color="success" size="sm" className="ml-2 font-bold">
@@ -80,7 +70,7 @@ export function IntegrityAnalysis({ strengths, gaps }) {
               <Accordion.Trigger className="px-4 py-3 transition-colors">
                 <div className="flex items-center gap-2">
                   <AlertCircle size={20} className="text-(--color-warning)" />
-                  <span className="text-base font-semibold text-(--color-text-primary)">
+                  <span className="text-base font-medium text-(--color-text-primary)">
                     Areas for Improvement
                   </span>
                   <Chip variant="status" color="warning" size="sm" className="ml-2 font-bold">
@@ -133,5 +123,3 @@ IntegrityAnalysis.propTypes = {
   strengths: PropTypes.array,
   gaps: PropTypes.array,
 };
-
-export default IntegrityAnalysis;

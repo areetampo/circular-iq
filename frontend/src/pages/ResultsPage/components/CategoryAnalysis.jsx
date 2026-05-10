@@ -4,7 +4,7 @@ import { SectionHeading, Tilt3D } from '@/components/common';
 import { categoryMapping, validKeys } from '@/constants/evaluationData';
 import { cn } from '@/utils/cn';
 
-export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
+export default function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
   const getScoreColor = (numValue) => {
     return numValue >= 75
       ? 'var(--color-success)' // green
@@ -41,7 +41,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
               >
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-(--color-text-primary)">
+                    <h4 className="text-sm font-medium text-(--color-text-primary)">
                       {category.name}
                     </h4>
                     <p className="mt-0.5 text-sm text-(--color-text-muted)">{category.desc}</p>
@@ -76,7 +76,7 @@ export function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore 
           >
             <div className="mb-2 flex items-center justify-between">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-(--color-text-primary)">
+                <h4 className="text-sm font-medium text-(--color-text-primary)">
                   Business Viability
                 </h4>
                 <p className="mt-0.5 text-sm text-(--color-text-muted)">
@@ -114,5 +114,3 @@ CategoryAnalysis.propTypes = {
   actualResult: PropTypes.object,
   resolvedBusinessViabilityScore: PropTypes.number,
 };
-
-export default CategoryAnalysis;

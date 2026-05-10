@@ -2,20 +2,11 @@ import PropTypes from 'prop-types';
 
 import { formatProcessingTime, toTitleCase } from '@/lib/formatting';
 
-export function ScoreOverviewSection({
+export default function ScoreOverviewSection({
   actualResult,
   overallScore,
-  casesSummaries,
-  strengths,
-  gaps,
-  isViewFromMyAssessments,
-  currentData,
-  optimisticIsPublic,
   topFactor,
   focusFactor,
-  avgFactorScore,
-  resolvedBusinessViabilityScore,
-  reportTips,
 }) {
   return (
     <div className="mt-8">
@@ -118,24 +109,6 @@ export function ScoreOverviewSection({
 ScoreOverviewSection.propTypes = {
   actualResult: PropTypes.object.isRequired,
   overallScore: PropTypes.number.isRequired,
-  casesSummaries: PropTypes.arrayOf(PropTypes.string),
-  strengths: PropTypes.array,
-  gaps: PropTypes.array,
-  isViewFromMyAssessments: PropTypes.bool,
-  currentData: PropTypes.object,
-  optimisticIsPublic: PropTypes.bool,
   topFactor: PropTypes.array,
   focusFactor: PropTypes.array,
-  avgFactorScore: PropTypes.number.isRequired,
-  resolvedBusinessViabilityScore: PropTypes.number.isRequired,
-  reportTips: PropTypes.arrayOf(
-    PropTypes.shape({
-      title: PropTypes.string,
-      description: PropTypes.string,
-      Icon: PropTypes.elementType,
-      iconClassName: PropTypes.string,
-    }),
-  ).isRequired,
 };
-
-export default ScoreOverviewSection;

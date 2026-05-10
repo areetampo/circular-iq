@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 
 import { Button, CopyButton } from '@/components/common';
-import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
+import { useAssessmentHandlers } from '@/features/export';
 import { getSession, saveSession } from '@/utils/session';
 
-export function ResultsActionBar({
+export default function ResultsActionBar({
   currentData,
   user,
   isPublicShare,
@@ -81,7 +81,7 @@ export function ResultsActionBar({
               <RefreshCw size={14} className="mr-1" /> Re-evaluate
             </Button>
           )}
-          {location.pathname === '/assessments/share' && (
+          {location.pathname.startsWith('/assessments/share/') && (
             <Button as={Link} to="/assessments/share" variant="ghost" size="md">
               <Eye size={14} className="mr-1" /> View another
             </Button>

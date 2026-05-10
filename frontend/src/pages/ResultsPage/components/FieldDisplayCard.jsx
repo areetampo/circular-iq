@@ -9,7 +9,7 @@ import { toTitleCase } from '@/lib/formatting';
  *
  * Location: src/pages/ResultsPage/components/FieldDisplayCard.jsx
  */
-export function FieldDisplayCard({ label, value, helpText }) {
+export default function FieldDisplayCard({ label, value, helpText }) {
   return (
     <Tilt3D className="rounded-xl border-[1.5px] border-(--color-border-ui) p-4">
       <div className="mb-1 text-sm font-semibold tracking-wide text-(--color-text-label) uppercase">

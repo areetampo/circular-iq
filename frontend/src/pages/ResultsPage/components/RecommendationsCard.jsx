@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
 
-export function RecommendationsCard({ actualResult }) {
+export default function RecommendationsCard({ actualResult }) {
   return (
     <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
       <div className="p-2 sm:p-4">
@@ -42,5 +42,3 @@ export function RecommendationsCard({ actualResult }) {
 RecommendationsCard.propTypes = {
   actualResult: PropTypes.object,
 };
-
-export default RecommendationsCard;

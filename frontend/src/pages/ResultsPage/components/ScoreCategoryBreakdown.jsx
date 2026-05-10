@@ -5,7 +5,7 @@ import { SectionHeading, Tilt3D } from '@/components/common';
 import { getParameterStyling } from '@/constants/groupStyleConfig';
 import { cn } from '@/utils/cn';
 
-export function ScoreCategoryBreakdown({ actualResult }) {
+export default function ScoreCategoryBreakdown({ actualResult }) {
   if (!actualResult?.score_breakdown) return null;
 
   return (
@@ -53,5 +53,3 @@ export function ScoreCategoryBreakdown({ actualResult }) {
 ScoreCategoryBreakdown.propTypes = {
   actualResult: PropTypes.object,
 };
-
-export default ScoreCategoryBreakdown;

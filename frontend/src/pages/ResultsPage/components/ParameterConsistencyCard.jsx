@@ -5,7 +5,7 @@ import { formatFactorName } from '@/lib/scoring';
 
 import ScoreCard from './ScoreCard';
 
-export function ParameterConsistencyCard({ actualResult }) {
+export default function ParameterConsistencyCard({ actualResult }) {
   if (!actualResult?.parameter_consistency) return null;
 
   const { score, rating, interpretation, issues } = actualResult.parameter_consistency;
@@ -49,5 +49,3 @@ export function ParameterConsistencyCard({ actualResult }) {
 ParameterConsistencyCard.propTypes = {
   actualResult: PropTypes.object,
 };
-
-export default ParameterConsistencyCard;

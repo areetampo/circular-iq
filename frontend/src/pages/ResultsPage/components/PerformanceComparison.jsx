@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 
-import RadarChart from '@/components/charts/RadarChart';
+import { RadarChart } from '@/components/charts';
 import { SectionHeading } from '@/components/common';
 
-export function PerformanceComparison({ resolvedRadarData, radarConfigs, detailLoading }) {
+export default function PerformanceComparison({ resolvedRadarData, radarConfigs, detailLoading }) {
   if (resolvedRadarData && resolvedRadarData.length > 0) {
     return (
       <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
@@ -49,5 +49,3 @@ PerformanceComparison.propTypes = {
   radarConfigs: PropTypes.object,
   detailLoading: PropTypes.bool,
 };
-
-export default PerformanceComparison;

@@ -1,25 +1,18 @@
 import { Checkbox, Label, toast } from '@heroui/react';
-import {
-  BarChart3,
-  CheckCircle2,
-  Download,
-  ExternalLink,
-  MoveLeft,
-  MoveRight,
-  NotebookPen,
-  RefreshCw,
-  RotateCw,
-  Target,
-  TrendingUp,
-} from 'lucide-react';
+import { ExternalLink, MoveLeft, MoveRight, NotebookPen, RotateCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { SectionHeading, Separator, Spinner, Tilt3D } from '@/components/common';
-import CopyButton from '@/components/common/CopyButton';
-import DetailsDisplay from '@/components/common/DetailsDisplay';
-import { parameterLabels, validKeys } from '@/constants/evaluationData';
+import {
+  CopyButton,
+  DetailsDisplay,
+  SectionHeading,
+  Separator,
+  Spinner,
+  Tilt3D,
+} from '@/components/common';
+import { validKeys } from '@/constants/evaluationData';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import {
   deleteAssessment,
@@ -30,14 +23,15 @@ import {
   useAssessment,
   useCreateAssessment,
   usePublicAssessment,
-} from '@/features/assessments/hooks/useAssessment';
+} from '@/features/assessments/hooks';
 import { reconstructScoringResult } from '@/features/assessments/utils';
-import { useSession } from '@/features/session/hooks/useSession';
-import { useAuth } from '@/hooks/useAuth';
-import { cleanUrl, formatTimestamp, toTitleCase, truncate } from '@/lib/formatting';
+import { useSession } from '@/features/session';
+import { useAuth } from '@/hooks';
+import { cleanUrl, formatTimestamp, truncate } from '@/lib/formatting';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
+import { useSafeBack } from '@/utils/navigation';
 import { getSession, saveSession } from '@/utils/session';
 
 import {
@@ -63,8 +57,11 @@ import {
 
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
+
   const navigate = useNavigate();
   const location = useLocation();
+  const goBackSafely = useSafeBack('/');
+
   const isResultsRoute = location.pathname.startsWith('/results');
   const navigationResult = location.state?.result;
 
@@ -73,54 +70,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const { restoreEvaluation } = useSession();
   const { createAssessmentAsync } = useCreateAssessment();
-
-  const reportTips = useMemo(
-    () => [
-      {
-        title: 'Your Score',
-        description:
-          'The overall circularity rating out of 100. Compare this with similar projects to identify your competitive position.',
-        Icon: BarChart3,
-        iconClassName: 'var(--accent)',
-      },
-      {
-        title: 'Strengths',
-        description:
-          'Areas where your initiative excels. Leverage these as competitive advantages and marketing points.',
-        Icon: CheckCircle2,
-        iconClassName: 'var(--success)',
-      },
-      {
-        title: 'Focus Areas',
-        description:
-          'Priority improvements that could boost your score. Start with high-impact, low-effort changes first.',
-        Icon: Target,
-        iconClassName: 'var(--warning)',
-      },
-      {
-        title: 'Benchmarking',
-        description:
-          'See how you compare to similar projects. Use this to set realistic improvement targets.',
-        Icon: TrendingUp,
-        iconClassName: 'var(--info)',
-      },
-      {
-        title: 'Export Options',
-        description:
-          'Save this assessment and download a PDF report to share with stakeholders or track changes over time.',
-        Icon: Download,
-        iconClassName: 'var(--accent)',
-      },
-      {
-        title: 'Next Steps',
-        description:
-          'Address the identified improvement areas and reassess after implementing changes to track progress.',
-        Icon: RefreshCw,
-        iconClassName: 'var(--success)',
-      },
-    ],
-    [],
-  );
 
   const [sessionRestored, setSessionRestored] = useState(() => {
     // Initialize from sessionStorage to persist across page navigations
@@ -176,15 +125,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   const detailLoading = isPublicShare ? publicLoading : privateLoading;
   const detailError = isPublicShare ? publicError : privateError;
   const detailData = fetchedAssessment;
-
-  // Navigation handlers - only for complex navigation logic
-  const handleBack = useCallback(() => {
-    if (isViewFromMyAssessments) {
-      navigate('/assessments');
-    } else {
-      navigate('/');
-    }
-  }, [isViewFromMyAssessments, navigate]);
 
   const sessionSnapshot = useMemo(() => {
     if (isViewFromMyAssessments) return null;
@@ -434,13 +374,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
 
   const actualResult = scoringResult || currentData || null;
 
-  let caseIndustry = '';
-  try {
-    const { getIndustry } = require('@/lib/metadata');
-    caseIndustry = getIndustry(actualResult) || '';
-  } catch (e) {
-    caseIndustry = actualResult?.industry || actualResult?.metadata?.industry || '';
-  }
   const caseProblemSolution = useMemo(
     () => extractProblemSolution(actualResult || currentData || {}),
     [actualResult, currentData],
@@ -494,30 +427,6 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       currentData?.business_context ||
       null;
   }
-
-  const parameterEntries = useMemo(() => {
-    if (!evaluationParameterValues || typeof evaluationParameterValues !== 'object') return [];
-    return validKeys
-      .filter((key) => evaluationParameterValues[key] != null)
-      .map((key) => ({
-        key,
-        label: parameterLabels[key]?.label || toTitleCase(key),
-        value: Number(evaluationParameterValues[key]) || 0,
-      }));
-  }, [evaluationParameterValues]);
-
-  const handleReevaluate = useCallback(() => {
-    navigate('/', {
-      state: {
-        formData: {
-          businessProblem: problemText,
-          businessSolution: solutionText,
-          evaluation_parameters: evaluationParameterValues,
-          businessContext: businessContextValues || {},
-        },
-      },
-    });
-  }, [navigate, problemText, solutionText, evaluationParameterValues, businessContextValues]);
 
   const computeMarketAvg = (res) => {
     if (!res?.similar_cases || res.similar_cases.length === 0) return 65;
@@ -579,13 +488,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     if (!source) return '';
 
     // Prefer structured industry when available
-    const _ = import.meta.env; // keep this module reference stable for bundlers
     // lazily import helper to avoid circular imports in some test setups
     let industryVal = null;
     try {
       const { getIndustry } = require('@/lib/metadata');
       industryVal = getIndustry(source);
-    } catch (e) {
+    } catch (err) {
+      logger.warn('Failed to get industry from metadata, falling back to source.industry:', err);
+
       industryVal = source.industry || source.metadata?.industry || null;
     }
 
@@ -712,11 +622,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }
 
   if (isViewFromMyAssessments && detailError) {
+    const isForbidden = detailError === 'Assessment not publicly available';
     return (
       <DetailsDisplay
         variant="error"
-        title="Failed to Load Assessment"
-        description={detailError || 'Unable to retrieve the assessment details. Please try again.'}
+        title={isForbidden ? 'Assessment is Private' : 'Failed to Load Assessment'}
+        description={
+          isForbidden
+            ? 'This assessment is set to private and cannot be shared. Please contact the owner to make it public.'
+            : detailError || 'Unable to retrieve the assessment details. Please try again.'
+        }
         actions={[
           {
             label: 'Retry',
@@ -728,7 +643,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             label: 'Go Back',
             icon: MoveLeft,
             variant: 'ghost',
-            onClick: handleBack,
+            onClick: goBackSafely,
           },
         ].filter(Boolean)}
         showDefaultActions={false}
@@ -744,17 +659,16 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         description="The requested assessment could not be found. It may have been deleted or you might not have access to it."
         actions={[
           {
-            label: 'Retry Loading',
+            label: 'Retry',
             icon: RotateCw,
             variant: 'teal',
             onClick: refetch,
           },
           {
-            label: 'Return Home',
+            label: 'Go Back',
             icon: MoveLeft,
-            as: Link,
-            to: '/',
             variant: 'ghost',
+            onClick: goBackSafely,
           },
         ]}
         showDefaultActions={false}
@@ -776,6 +690,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             variant: 'teal',
             as: Link,
             to: '/',
+            iconRight: true,
           },
         ]}
         showDefaultActions={false}
@@ -805,19 +720,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     subScoreEntries.length > 0
       ? subScoreEntries.reduce((worst, curr) => (curr[1] < worst[1] ? curr : worst))
       : null;
-  const avgFactorScore =
-    subScoreEntries.length > 0
-      ? Math.round(
-          subScoreEntries.reduce((sum, [, val]) => sum + (Number(val) || 0), 0) /
-            subScoreEntries.length,
-        )
-      : 0;
 
   logger.log('navigationResult', navigationResult);
   logger.log('currentData', currentData);
   logger.log('actualResult', actualResult);
 
-  const publicUrl = `${window.location.origin}/assessments/share?id=${currentData.public_id}`;
+  const publicUrl = `${window.location.origin}/assessments/share/${currentData.public_id}`;
   const displayPublicUrl = truncate(
     cleanUrl(publicUrl, { stripProtocol: true, stripWww: true }),
     30,
@@ -991,17 +899,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         <ScoreOverviewSection
           actualResult={actualResult}
           overallScore={overallScore}
-          casesSummaries={casesSummaries}
-          strengths={strengths}
-          gaps={gaps}
-          isViewFromMyAssessments={isViewFromMyAssessments}
-          currentData={currentData}
-          optimisticIsPublic={optimisticIsPublic}
           topFactor={topFactor}
           focusFactor={focusFactor}
-          avgFactorScore={avgFactorScore}
-          resolvedBusinessViabilityScore={resolvedBusinessViabilityScore}
-          reportTips={reportTips}
         />
         <Separator pct={40} wrapperCn="my-8" />
 

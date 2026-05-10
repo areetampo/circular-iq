@@ -13,7 +13,7 @@ export default function ResultsSkeleton() {
       <div className="my-8 space-y-4 px-4 sm:px-6">
         {/* Title placeholder for saved assessments - left aligned like actual page */}
         <div className="mb-4">
-          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-8 w-100" />
         </div>
 
         {/* ResultsActionBar skeleton - single row layout like actual page */}

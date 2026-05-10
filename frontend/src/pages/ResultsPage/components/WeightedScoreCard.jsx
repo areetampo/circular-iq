@@ -6,7 +6,7 @@ import { getParameterStyling, getProgressBarColor } from '@/constants/groupStyle
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 
-export function WeightedScoreCard({ actualResult }) {
+export default function WeightedScoreCard({ actualResult }) {
   if (!actualResult?.weighted_score_card) return null;
 
   return (
@@ -81,5 +81,3 @@ export function WeightedScoreCard({ actualResult }) {
 WeightedScoreCard.propTypes = {
   actualResult: PropTypes.object,
 };
-
-export default WeightedScoreCard;

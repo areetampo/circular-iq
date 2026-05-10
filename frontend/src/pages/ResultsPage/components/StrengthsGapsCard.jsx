@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 
-export function StrengthsGapsCard({ strengths, gaps }) {
+export default function StrengthsGapsCard({ strengths, gaps }) {
   return (
     <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
       <div className="p-2 sm:p-4">
@@ -17,7 +17,7 @@ export function StrengthsGapsCard({ strengths, gaps }) {
           <div className="rounded-xl bg-green-600/7 p-4">
             <div className="mb-2 flex items-center gap-2">
               <CheckCircle2 size={20} className="text-green-700" />
-              <p className="text-sm font-semibold text-(--color-text-primary)">Strengths</p>
+              <p className="text-sm font-medium text-(--color-text-primary)">Strengths</p>
             </div>
             <ul className="space-y-2 text-sm">
               {strengths.length > 0
@@ -51,7 +51,7 @@ export function StrengthsGapsCard({ strengths, gaps }) {
             <div className="rounded-xl bg-red-600/5 p-4">
               <div className="mb-2 flex items-center gap-2">
                 <AlertCircle size={20} className="text-orange-700" />
-                <p className="text-sm font-semibold text-(--color-text-primary)">
+                <p className="text-sm font-medium text-(--color-text-primary)">
                   Areas for Improvement
                 </p>
               </div>
@@ -82,5 +82,3 @@ StrengthsGapsCard.propTypes = {
   strengths: PropTypes.array,
   gaps: PropTypes.array,
 };
-
-export default StrengthsGapsCard;

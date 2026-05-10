@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
 
-export function CircularEconomyTierCard({ actualResult }) {
+export default function CircularEconomyTierCard({ actualResult }) {
   if (!actualResult?.circular_economy_tier) return null;
 
   return (
@@ -38,5 +38,3 @@ export function CircularEconomyTierCard({ actualResult }) {
 CircularEconomyTierCard.propTypes = {
   actualResult: PropTypes.object,
 };
-
-export default CircularEconomyTierCard;

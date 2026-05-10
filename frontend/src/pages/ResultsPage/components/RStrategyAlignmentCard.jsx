@@ -5,7 +5,7 @@ import { formatFactorName } from '@/lib/scoring';
 
 import ScoreCard from './ScoreCard';
 
-export function RStrategyAlignmentCard({ actualResult }) {
+export default function RStrategyAlignmentCard({ actualResult }) {
   if (actualResult?.r_strategy_alignment?.alignment_score == null) return null;
 
   const { alignment_score, strategy, rating, message, misaligned_factors, well_aligned_factors } =
@@ -60,5 +60,3 @@ export function RStrategyAlignmentCard({ actualResult }) {
 RStrategyAlignmentCard.propTypes = {
   actualResult: PropTypes.object,
 };
-
-export default RStrategyAlignmentCard;

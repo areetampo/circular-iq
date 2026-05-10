@@ -11,7 +11,7 @@ import { toTitleCase } from '@/lib/formatting';
 function AccordionItem({ id, icon, iconColor, title, description, children }) {
   return (
     <Tilt3D
-      rotateRange={{ x: 2, y: 3 }}
+      rotateRange={{ x: 2, y: 1 }}
       block
       className="overflow-hidden rounded-xl hover:relative hover:z-10"
     >
@@ -48,7 +48,7 @@ function ContextField({ label, value }) {
   );
 }
 
-export function CaseSummaryAccordions({
+export default function CaseSummaryAccordions({
   businessProblem,
   businessSolution,
   businessContext,
@@ -78,7 +78,7 @@ export function CaseSummaryAccordions({
           title="Problem"
           description="What the assessment identifies as the problem"
         >
-          <p className="py-2 text-sm/relaxed text-(--color-text-muted)">
+          <p className="py-2 text-sm/relaxed wrap-break-word text-(--color-text-muted)">
             {businessProblem || 'Not available'}
           </p>
         </AccordionItem>
@@ -91,7 +91,7 @@ export function CaseSummaryAccordions({
           title="Solution"
           description="What the assessment proposes as the solution"
         >
-          <p className="py-2 text-sm/relaxed text-(--color-text-muted)">
+          <p className="py-2 text-sm/relaxed wrap-break-word text-(--color-text-muted)">
             {businessSolution || 'Not available'}
           </p>
         </AccordionItem>

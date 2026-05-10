@@ -1,11 +1,11 @@
-import { FileText, Frown, MoveRight } from 'lucide-react';
+import { FileText, FolderSearch, MoveRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading, Tilt3D } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 
-export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
+export default function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   const { openResultsDatabaseEvidenceDetailsDrawer, drawer } = useGlobalDrawer();
 
   const handleViewDetails = (caseItem) => {
@@ -30,7 +30,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
       </SectionHeading>
 
       {/* Description */}
-      <p className="mb-6 text-sm text-(--color-text-secondary)">
+      <p className="-mt-3 mb-6 text-sm text-(--color-text-secondary)">
         Similar cases and benchmark comparisons from the dataset
       </p>
 
@@ -94,7 +94,7 @@ export function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
-            <Frown size={50} className="text-(--color-text-muted)" />
+            <FolderSearch size={35} className="text-(--color-text-muted)" />
             <p className="text-md text-(--color-text-muted)">
               No similar cases were found in the database for this assessment.
             </p>
@@ -109,5 +109,3 @@ DatabaseEvidenceCard.propTypes = {
   actualResult: PropTypes.object.isRequired,
   casesSummaries: PropTypes.arrayOf(PropTypes.string),
 };
-
-export default DatabaseEvidenceCard;
