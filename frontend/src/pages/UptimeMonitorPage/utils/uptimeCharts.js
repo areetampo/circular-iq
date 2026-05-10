@@ -1,17 +1,18 @@
 /**
- * Aggregate checks into 30‑minute buckets for the last 24h (48 columns)
- * Returns array of { timeLabel, anyFailure, averageMs }
+ * Aggregate checks into 5‑minute buckets for the last 24h (288 columns)
+ * Returns array of { timeLabel, anyFailure, hasData, averageMs }
  * timeLabel format: "HH:MM" (24h, e.g. "14:30")
  */
-export function getLast24hStatus30min(history, endpoints) {
+export function getLast24hStatus5min(history, endpoints) {
   const now = Date.now();
   const buckets = [];
-  const totalBuckets = 48; // 24h * 2
+  const totalBuckets = 24 * 12; // 24h * 12 (5-min intervals)
 
   for (let i = totalBuckets - 1; i >= 0; i--) {
-    const bucketStart = now - (i + 1) * 30 * 60 * 1000;
-    const bucketEnd = now - i * 30 * 60 * 1000;
+    const bucketStart = now - (i + 1) * 5 * 60 * 1000;
+    const bucketEnd = now - i * 5 * 60 * 1000;
     let anyFailure = false;
+    let hasData = false;
     let totalMs = 0;
     let count = 0;
 
@@ -19,6 +20,7 @@ export function getLast24hStatus30min(history, endpoints) {
       const checks = history[ep.id] || [];
       const checksInBucket = checks.filter((c) => c.ts >= bucketStart && c.ts < bucketEnd);
       if (checksInBucket.some((c) => !c.up)) anyFailure = true;
+      if (checksInBucket.length > 0) hasData = true;
       const avgMs =
         checksInBucket.reduce((sum, c) => sum + (c.ms || 0), 0) / (checksInBucket.length || 1);
       if (checksInBucket.length > 0) {
@@ -34,7 +36,8 @@ export function getLast24hStatus30min(history, endpoints) {
 
     buckets.push({
       timeLabel,
-      anyFailure,
+      anyFailure: hasData && anyFailure, // only mark failure if there is data and a failure occurred
+      hasData,
       averageMs: count ? Math.round(totalMs / count) : null,
     });
   }
