@@ -197,8 +197,6 @@ ParameterBox.displayName = 'ParameterBox';
 
 function EvaluationParametersContainer({
   loading,
-  innerExpandedKeys,
-  onInnerExpandedChange,
   evalParamsExpandedKeys,
   setEvalParamsExpandedKeys,
 }) {

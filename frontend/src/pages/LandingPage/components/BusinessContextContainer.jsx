@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
-import { Spinner } from '@/components/common';
-
 const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
 
 const BUSINESS_MODEL_OPTIONS = [
@@ -187,17 +185,13 @@ function BusinessContextContainer({ loading = false }) {
                   </p>
                 </Label>
               </Checkbox.Content>
-              {loading ? (
-                <Spinner size={23} />
-              ) : (
-                <Checkbox.Control className="size-6">
-                  <Checkbox.Indicator>
-                    {({ isSelected }) =>
-                      isSelected ? <div className="checkbox__default-indicator--plus" /> : null
-                    }
-                  </Checkbox.Indicator>
-                </Checkbox.Control>
-              )}
+              <Checkbox.Control className="size-6">
+                <Checkbox.Indicator>
+                  {({ isSelected }) =>
+                    isSelected ? <div className="checkbox__default-indicator--plus" /> : null
+                  }
+                </Checkbox.Indicator>
+              </Checkbox.Control>
             </Checkbox>
           )}
         />

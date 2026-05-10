@@ -8,7 +8,7 @@ import { Button, Chip, Tilt3D } from '@/components/common';
 import { sampleTestCases } from '@/constants/sampleTestCases.js';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useSession } from '@/features/session/hooks/useSession';
+import { useSession } from '@/features/session';
 import { cn } from '@/utils/cn';
 
 // Helper function to get color based on score
@@ -110,7 +110,7 @@ export default function SampleTestCasesContainer({
   openEvalParams = () => {},
   openBusinessContext = () => {},
 }) {
-  const { setValue, trigger, getValues, reset } = useFormContext();
+  const { getValues, reset } = useFormContext();
   const { openSpecificSampleTestCaseViewDetailsDrawer } = useGlobalDrawer();
   const { openReplaceInputsDialog } = useGlobalDialog();
   const { saveSession } = useSession();
@@ -164,7 +164,7 @@ export default function SampleTestCasesContainer({
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
-      /* ignore */
+      logger.warn('Failed to save session after loading test case', err);
     }
 
     toast.success('Test case loaded!', {
@@ -209,7 +209,7 @@ export default function SampleTestCasesContainer({
     if (e && typeof e.stopPropagation === 'function') {
       e.stopPropagation();
     }
-    openSpecificSampleTestCaseViewDetailsDrawer(testCase, requestSelectCase);
+    openSpecificSampleTestCaseViewDetailsDrawer(testCase);
   };
 
   return (
@@ -219,7 +219,7 @@ export default function SampleTestCasesContainer({
 
         return (
           <Tilt3D
-            rotateRange={{ x: 12, y: 6 }}
+            rotateRange={{ x: 3, y: 2 }}
             // shadow={false}
             block
             key={testCase.id}

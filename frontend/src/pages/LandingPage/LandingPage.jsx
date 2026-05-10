@@ -9,12 +9,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ButtonStages, DetailsBadge } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { assessmentSchema, defaultValues } from '@/features/assessments/validation';
-import { useSession } from '@/features/session/hooks/useSession';
-import { useAuth } from '@/hooks/useAuth';
-import { useLoadingStages } from '@/hooks/useLoadingStages';
+import { evaluationFormDefaults, evaluationFormSchema } from '@/features/assessments/validation';
+import { useSession } from '@/features/session';
+import { useLoadingStages } from '@/hooks';
 import { loadEvaluationState } from '@/lib/storage';
 import { getCharacterCount } from '@/lib/validation';
+import { dominantCharRatio, nonLetterDensity, uniqueWordRatio } from '@/utils/formHelpers';
 
 import {
   BusinessContextContainer,
@@ -27,7 +27,7 @@ import {
 export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sessionData, saveSession, clearSession } = useSession();
+  const { sessionData, saveSession } = useSession();
   const { openLimitReachedDialog } = useGlobalDialog();
   const { currentStage, startStream, reset: resetProgress } = useLoadingStages();
   const {
@@ -42,18 +42,123 @@ export default function LandingPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [innerExpandedKeys, setInnerExpandedKeys] = useState(
-    new Set(['Access Value', 'Embedded Value', 'Processing Value']),
-  );
+
+  const methods = useForm({
+    resolver: zodResolver(evaluationFormSchema),
+    mode: 'onChange',
+    defaultValues: evaluationFormDefaults,
+  });
+
+  const {
+    register,
+    reset,
+    handleSubmit,
+    watch,
+    formState: { isValid },
+  } = methods;
+
+  // Get specific validation error message based on form state
+  const getValidationErrorMessage = useCallback(() => {
+    const problemValue = methods.getValues('businessProblem') || '';
+    const solutionValue = methods.getValues('businessSolution') || '';
+
+    const problemCount = getCharacterCount(problemValue);
+    const solutionCount = getCharacterCount(solutionValue);
+    const problemMeetsMin = problemCount >= 200;
+    const solutionMeetsMin = solutionCount >= 200;
+
+    // Check quality issues
+    const problemUniq = uniqueWordRatio(problemValue);
+    const solutionUniq = uniqueWordRatio(solutionValue);
+    const problemNonLetter = nonLetterDensity(problemValue);
+    const solutionNonLetter = nonLetterDensity(solutionValue);
+    const problemDominant = dominantCharRatio(problemValue);
+    const solutionDominant = dominantCharRatio(solutionValue);
+
+    if (!problemMeetsMin && !solutionMeetsMin) {
+      return 'Both problem and solution need at least 200 characters (excluding spaces)';
+    }
+
+    if (!problemMeetsMin && solutionMeetsMin) {
+      return 'Problem needs at least 200 characters (excluding spaces)';
+    }
+
+    if (problemMeetsMin && !solutionMeetsMin) {
+      return 'Solution needs at least 200 characters (excluding spaces)';
+    }
+
+    const issues = [];
+    if (problemUniq < 0.3) issues.push('problem is repetitive');
+    if (solutionUniq < 0.3) issues.push('solution is repetitive');
+    if (problemNonLetter > 0.25) issues.push('problem has too many symbols');
+    if (solutionNonLetter > 0.25) issues.push('solution has too many symbols');
+    if (problemDominant > 0.5) issues.push('problem has repetitive characters');
+    if (solutionDominant > 0.5) issues.push('solution has repetitive characters');
+
+    if (issues.length > 0) {
+      return `Issues found: ${issues.join(', ')}`;
+    }
+
+    return null; // All good
+  }, [methods]);
+
+  // Quality validation function (mirrors backend logic)
+  const validateInputQuality = useCallback((problem, solution) => {
+    const minLength = 50; // Reasonable minimum for detailed input
+
+    if (!problem || !solution) {
+      return { isJunk: true, reason: 'Missing problem or solution' };
+    }
+
+    if (problem.length < minLength || solution.length < minLength) {
+      return { isJunk: true, reason: 'Input too short to be meaningful' };
+    }
+
+    // Check for obvious spam/junk patterns
+    const junkPatterns = [/^[a-z]{1,3}$/i, /^-{3,}$/, /^x{3,}$/, /^(test|lorem|ipsum)/i];
+    if (junkPatterns.some((pattern) => pattern.test(problem) || pattern.test(solution))) {
+      return { isJunk: true, reason: 'Input matches junk patterns' };
+    }
+
+    // Detect single-character flooding (e.g. "AAAA..." or "1111...")
+    const probDominant = dominantCharRatio(problem);
+    const solDominant = dominantCharRatio(solution);
+    if (probDominant > 0.5 || solDominant > 0.5) {
+      return {
+        isJunk: true,
+        reason: 'Input appears to be repetitive characters; please provide a real description.',
+      };
+    }
+
+    // Low uniqueness detection: many repeated words or filler
+    const probUniq = uniqueWordRatio(problem);
+    const solUniq = uniqueWordRatio(solution);
+    if (probUniq < 0.3 || solUniq < 0.3) {
+      return {
+        isJunk: true,
+        reason:
+          'Input appears repetitive or low-information; please provide more detailed, specific descriptions.',
+      };
+    }
+
+    // Non-letter density check (too many symbols/characters suggests junk)
+    if (nonLetterDensity(problem) > 0.25 || nonLetterDensity(solution) > 0.25) {
+      return {
+        isJunk: true,
+        reason:
+          'Input contains excessive non-text characters; please provide plain-language descriptions.',
+      };
+    }
+
+    return null;
+  }, []);
 
   // State and refs for full session autosave logic
   const skipAutosaveRef = useRef(false);
-  const businessProblemSectionRef = useRef(null);
   const lastAppliedSessionRef = useRef(null);
   const lastSavedLocalTimestampRef = useRef(null);
   const autosaveTimerRef = useRef(null);
   const reevaluateDataAppliedRef = useRef(false);
-  const [isReevaluateDataReady, setIsReevaluateDataReady] = useState(false);
   const AUTOSAVE_DEBOUNCE_MS = 150;
 
   // Accordion state management
@@ -72,20 +177,6 @@ export default function LandingPage() {
     new Set(['test-cases']),
   );
   const formContainerRef = useRef(null);
-
-  const methods = useForm({
-    resolver: zodResolver(assessmentSchema),
-    mode: 'onChange',
-    defaultValues,
-  });
-
-  const {
-    register,
-    reset,
-    handleSubmit,
-    watch,
-    formState: { isValid },
-  } = methods;
 
   // Full session autosave logic implementation
   const persistInputs = useCallback(
@@ -190,14 +281,11 @@ export default function LandingPage() {
         'Processing Value',
       ]),
     );
-    setInnerExpandedKeys(new Set(['Access Value', 'Embedded Value', 'Processing Value']));
   };
 
   const openBusinessContext = () => {
     setBusinessContextExpandedKeys(new Set(['business-context-heading']));
   };
-
-  const ALL_INNER_KEYS = new Set(['Access Value', 'Embedded Value', 'Processing Value']);
 
   // Session sync useEffect
   useEffect(() => {
@@ -302,10 +390,10 @@ export default function LandingPage() {
 
       // Get default form values for comparison
       const defaultFormState = {
-        businessProblem: (defaultValues?.businessProblem || '').trim(),
-        businessSolution: (defaultValues?.businessSolution || '').trim(),
-        evaluationParameters: defaultValues?.evaluationParameters || {},
-        businessContext: defaultValues?.businessContext || {},
+        businessProblem: (evaluationFormDefaults?.businessProblem || '').trim(),
+        businessSolution: (evaluationFormDefaults?.businessSolution || '').trim(),
+        evaluationParameters: evaluationFormDefaults?.evaluationParameters || {},
+        businessContext: evaluationFormDefaults?.businessContext || {},
       };
 
       // Check if current form is at default values (handles login scenario)
@@ -410,7 +498,6 @@ export default function LandingPage() {
 
       // Small delay to ensure form reset completes before setting ready state
       setTimeout(() => {
-        setIsReevaluateDataReady(true);
         persistInputs(newFormData);
       }, 100);
 
@@ -427,13 +514,12 @@ export default function LandingPage() {
     }
   }, [location.state?.formData, persistInputs, reset]);
 
-  const { user } = useAuth();
-
   const handleFormSubmit = async (formData) => {
-    // Validate minimum character requirements
+    // Validate minimum character requirements (excluding spaces)
     if (getCharacterCount(formData.businessProblem) < 200) {
       toast.danger('Business Problem is too short', {
-        description: 'Please provide at least 200 characters for business problem description.',
+        description:
+          'Please provide at least 200 characters for business problem description (excluding spaces).',
         timeout: 3000,
       });
       return;
@@ -441,8 +527,19 @@ export default function LandingPage() {
 
     if (getCharacterCount(formData.businessSolution) < 200) {
       toast.danger('Business Solution is too short', {
-        description: 'Please provide at least 200 characters for business solution description.',
+        description:
+          'Please provide at least 200 characters for business solution description (excluding spaces).',
         timeout: 3000,
+      });
+      return;
+    }
+
+    // Validate input quality (mirrors backend logic)
+    const qualityCheck = validateInputQuality(formData.businessProblem, formData.businessSolution);
+    if (qualityCheck) {
+      toast.danger('Input Quality Issue', {
+        description: qualityCheck.reason,
+        timeout: 4000,
       });
       return;
     }
@@ -477,17 +574,7 @@ export default function LandingPage() {
 
         // Handle anonymous limit reached
         if (err?.code === 'LIMIT_REACHED') {
-          openLimitReachedDialog({
-            limit: err?.limit || 20,
-            message:
-              err?.message ||
-              `You've reached the limit of free evaluations. Create an account to continue assessing your circular economy initiatives!`,
-          });
-          try {
-            clearSession();
-          } catch (e) {
-            logger.error('Failed to clear session after limit reached:', e);
-          }
+          openLimitReachedDialog();
           return;
         }
 
@@ -498,37 +585,6 @@ export default function LandingPage() {
           timeout: 3000,
         });
       },
-    });
-  };
-
-  const handleSampleTestSelect = (testCase) => {
-    reset({
-      businessProblem: testCase.businessProblem,
-      businessSolution: testCase.businessSolution,
-      evaluationParameters: testCase.evaluationParameters,
-      businessContext: testCase.businessContext,
-    });
-
-    // Open all 5 accordions above Sample Test Cases when a test case is selected:
-    // 1. Business Context accordion
-    // 2. Evaluation Parameters accordion
-    // 3. Access Value accordion
-    // 4. Embedded Value accordion
-    // 5. Processing Value accordion
-    setEvalParamsExpandedKeys(
-      new Set([
-        'evaluation-parameters-heading',
-        'Access Value',
-        'Embedded Value',
-        'Processing Value',
-      ]),
-    );
-    setInnerExpandedKeys(new Set(['Access Value', 'Embedded Value', 'Processing Value']));
-    setBusinessContextExpandedKeys(new Set(['business-context-heading']));
-
-    toast.success('Sample test case loaded', {
-      description: 'Form has been filled with the example data.',
-      timeout: 2000,
     });
   };
 
@@ -687,8 +743,6 @@ export default function LandingPage() {
                             loading={loading}
                             evalParamsExpandedKeys={evalParamsExpandedKeys}
                             setEvalParamsExpandedKeys={setEvalParamsExpandedKeys}
-                            innerExpandedKeys={innerExpandedKeys}
-                            onInnerExpandedChange={setInnerExpandedKeys}
                           />
                         </Accordion.Body>
                       </Accordion.Panel>
@@ -713,9 +767,8 @@ export default function LandingPage() {
                     </Tooltip.Trigger>
                     <Tooltip.Content showArrow placement="top">
                       <span>
-                        Please fill out business problem and solution fields
-                        <br />
-                        (min. 200 chars each)
+                        {getValidationErrorMessage() ||
+                          'Please fill out business problem and solution fields (min. 200 chars each)'}
                       </span>
                     </Tooltip.Content>
                   </Tooltip>
