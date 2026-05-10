@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { GapAnalysisCard } from './GapAnalysisCard.jsx';
+import GapAnalysisCard from './GapAnalysisCard.jsx';
 
 describe('GapAnalysisCard', () => {
   const mockResult = {

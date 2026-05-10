@@ -2,11 +2,9 @@ import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 
-export function AuditSummaryCard({ result, variant = 'default' }) {
+export default function AuditSummaryCard({ result, variant = 'default' }) {
   const audit = result?.audit;
   if (!audit) return null;
-
-  const isTransparent = variant === 'transparent';
 
   return (
     <div>
@@ -27,13 +25,13 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
         AI Audit Summary
       </SectionHeading>
 
-      <p className="mb-6 text-sm/relaxed text-(--color-text-secondary)">
+      <p className="-mt-3 mb-6 text-sm/relaxed text-(--color-text-secondary)">
         Comprehensive analysis and recommendations
       </p>
 
       {audit.integrity_gaps && audit.integrity_gaps.length > 0 && (
         <div className="mb-6">
-          <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">Integrity Gaps</h4>
+          <h4 className="mb-3 text-base font-medium text-(--color-text-primary)">Integrity Gaps</h4>
           <ul className="space-y-3">
             {audit.integrity_gaps.map((gap, i) => (
               <li key={i} className="flex items-center gap-3">
@@ -49,7 +47,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {audit.strengths && audit.strengths.length > 0 && (
         <div className="mb-6">
-          <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">Strengths</h4>
+          <h4 className="mb-3 text-base font-medium text-(--color-text-primary)">Strengths</h4>
           <ul className="space-y-2">
             {audit.strengths.map((strength, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-(--color-text-secondary)">
@@ -63,7 +61,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {audit.technical_recommendations && audit.technical_recommendations.length > 0 && (
         <div className="mb-6">
-          <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
+          <h4 className="mb-3 text-base font-medium text-(--color-text-primary)">
             Technical Recommendations
           </h4>
           <ul className="space-y-2">
@@ -79,7 +77,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {audit.similar_cases_summaries && audit.similar_cases_summaries.length > 0 && (
         <div className="mb-6">
-          <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
+          <h4 className="mb-3 text-base font-medium text-(--color-text-primary)">
             Similar Cases Summaries
           </h4>
           <ul className="space-y-2">
@@ -95,9 +93,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {audit.market_opportunity_summary && (
         <div className="mb-6 border-l-2 border-(--color-accent) py-1 pl-3">
-          <h4 className="mb-1 text-xs font-semibold text-(--color-accent) uppercase">
-            Market Opportunity
-          </h4>
+          <h4 className="mb-1 text-xs font-semibold tracking-wide uppercase">Market Opportunity</h4>
           <p className="text-sm/relaxed text-(--color-text-secondary)">
             {audit.market_opportunity_summary}
           </p>
@@ -106,7 +102,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {audit.improvement_roadmap && audit.improvement_roadmap.length > 0 && (
         <div className="mb-6">
-          <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
+          <h4 className="mb-3 text-base font-medium text-(--color-text-primary)">
             Improvement Roadmap
           </h4>
           <div className="space-y-3">
@@ -116,7 +112,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                 className="flex gap-3 rounded-xl border-2 border-(--color-border-ui) p-3"
               >
                 <div
-                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
                     i === 0 || item.priority === 1 || item.priority === '1'
                       ? 'bg-(--color-error) text-white'
                       : i === 1 || item.priority === 2 || item.priority === '2'
@@ -134,13 +130,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
                     {item.description || item.action}
                   </div>
                   {variant === 'transparent' && item.timeframe && (
-                    <Chip
-                      size="sm"
-                      variant="soft"
-                      className="bg-(--color-bg-field) text-xs text-(--color-text-muted)"
-                    >
-                      {item.timeframe}
-                    </Chip>
+                    <Chip size="sm">{item.timeframe}</Chip>
                   )}
                   {variant === 'assessment' && item.impact && (
                     <Chip
@@ -186,33 +176,29 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {variant === 'transparent' && audit.sdg_alignment && audit.sdg_alignment.length > 0 && (
         <div className="mb-4">
-          <h4 className="mb-3 text-sm font-bold text-(--color-text-primary)">
-            UN Sustainable Development Goals
-          </h4>
+          <h4 className="mb-3 text-base font-medium">UN Sustainable Development Goals</h4>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {audit.sdg_alignment.map((sdg, i) => (
               <div
                 key={i}
                 className="flex gap-2 rounded-xl border-2 border-(--color-border-ui) bg-transparent p-3"
               >
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-info) font-semibold text-(--color-bg)">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-info) font-medium text-(--color-bg)">
                   {sdg.sdg_number}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-(--color-text-primary)">
-                    {sdg.sdg_name}
-                  </div>
-                  <div className="mt-0.5 text-sm text-(--color-text-muted)">{sdg.rationale}</div>
+                  <div className="text-sm font-medium">{sdg.sdg_name}</div>
+                  <div className="my-0.5 text-sm text-(--color-text-muted)">{sdg.rationale}</div>
                   <Chip
                     size="sm"
-                    variant="soft"
-                    className={`mt-1 text-xs ${
+                    variant="status"
+                    color={
                       sdg.relevance === 'high'
-                        ? 'bg-(--color-accent-light) text-(--color-success)'
+                        ? 'success'
                         : sdg.relevance === 'medium'
-                          ? 'bg-(--color-accent-light) text-(--color-accent)'
-                          : 'bg-border text-(--color-text-muted)'
-                    }`}
+                          ? 'warning'
+                          : 'danger'
+                    }
                   >
                     {sdg.relevance} relevance
                   </Chip>
@@ -225,7 +211,7 @@ export function AuditSummaryCard({ result, variant = 'default' }) {
 
       {variant === 'transparent' && audit.key_metrics_comparison && (
         <div className="mb-4">
-          <h4 className="my-3 text-sm font-bold text-(--color-text-primary)">
+          <h4 className="my-3 text-base font-medium text-(--color-text-primary)">
             Key Metrics Comparison
           </h4>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -251,5 +237,3 @@ AuditSummaryCard.propTypes = {
   result: PropTypes.object.isRequired,
   variant: PropTypes.oneOf(['default', 'transparent', 'assessment']),
 };
-
-export default AuditSummaryCard;

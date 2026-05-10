@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Chip, SectionHeading } from '@/components/common';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 
-export function GapAnalysisCard({ result, variant = 'default' }) {
+export default function GapAnalysisCard({ result, variant = 'default' }) {
   const gapAnalysis = result?.gap_analysis;
   if (!gapAnalysis?.has_benchmarks) return null;
 
@@ -71,5 +71,3 @@ GapAnalysisCard.propTypes = {
   result: PropTypes.object.isRequired,
   variant: PropTypes.oneOf(['default', 'transparent', 'assessment']),
 };
-
-export default GapAnalysisCard;

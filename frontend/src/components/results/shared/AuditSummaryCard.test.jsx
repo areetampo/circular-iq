@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { AuditSummaryCard } from './AuditSummaryCard.jsx';
+import AuditSummaryCard from './AuditSummaryCard.jsx';
 
 describe('AuditSummaryCard', () => {
   const mockResult = {

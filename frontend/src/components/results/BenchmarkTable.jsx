@@ -2,13 +2,7 @@ import { Table } from '@heroui/react';
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
-
-function formatFactorName(factor) {
-  return factor
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { formatFactorName } from '@/lib/scoring';
 
 const statusConfig = {
   below_average: { label: 'Needs Work', color: 'danger' },
@@ -16,7 +10,7 @@ const statusConfig = {
   above_average: { label: 'Strong', color: 'success' },
 };
 
-export default function BenchmarkTable({ comparisons = {}, opportunities = [], strengths = [] }) {
+export default function BenchmarkTable({ comparisons = {} }) {
   const rows = Object.entries(comparisons || {}).map(([factor, data]) => {
     const status = data.status || 'average';
     const config = statusConfig[status] || statusConfig.average;
@@ -97,6 +91,4 @@ export default function BenchmarkTable({ comparisons = {}, opportunities = [], s
 
 BenchmarkTable.propTypes = {
   comparisons: PropTypes.object,
-  opportunities: PropTypes.arrayOf(PropTypes.string),
-  strengths: PropTypes.arrayOf(PropTypes.string),
 };

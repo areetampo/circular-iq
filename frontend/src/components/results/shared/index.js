@@ -1,2 +1,2 @@
-export { GapAnalysisCard } from './GapAnalysisCard.jsx';
-export { AuditSummaryCard } from './AuditSummaryCard.jsx';
+export { default as AuditSummaryCard } from './AuditSummaryCard.jsx';
+export { default as GapAnalysisCard } from './GapAnalysisCard.jsx';

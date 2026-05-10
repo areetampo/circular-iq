@@ -54,7 +54,6 @@ function ChartTooltipContent({
   hideIndicator = false,
   indicator = 'dot',
   nameKey,
-  labelKey,
   labelFormatter,
   formatter,
 }) {
