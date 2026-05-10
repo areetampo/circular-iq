@@ -9,11 +9,12 @@ Node.js/Express backend powering the Circular Economy Assessor. Handles document
 
 The backend is the core of the RAG (Retrieval-Augmented Generation) system:
 
-1. **Data Pipeline** — ingests 34+ circular economy datasets → chunks → embeddings → PostgreSQL + pgvector
+1. **Data Pipeline** — ingests 32+ circular economy datasets → chunks → embeddings → PostgreSQL + pgvector
 2. **Hybrid Search** — combines semantic vector similarity (pgvector HNSW) with BM25 keyword matching
 3. **Assessment Scoring** — 8-dimensional scoring system with 3-layer enrichment (deterministic + LLM)
 4. **API Layer** — REST endpoints for scoring, assessment management, analytics, and search
-5. **Analytics** — global dashboard stats from `scoring_results_log` covering all users and sessions
+5. **Uptime Monitoring** — automated health checks every 30 seconds with 7-day retention and real-time dashboard
+6. **Analytics** — global dashboard stats from `scoring_results_log` covering all users and sessions
 
 ## Layered Architecture
 
@@ -57,73 +58,114 @@ backend/
 │
 ├── routes/                   # Thin Express wrappers — HTTP definition only
 │   ├── analytics.routes.js   # GET /api/analytics/...
-│   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/...
+│   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/... (including validate, share, compare)
+│   ├── health.routes.js      # GET /health/* endpoints
 │   ├── scoring.routes.js     # POST /api/score
-│   └──
-├── controllers/              # Request handlers — validate, delegate, format
+│   ├── search.routes.js      # GET /api/search/ce-cases
+│   └── uptime.routes.js     # GET/POST /api/uptime/* endpoints
+│
+├── controllers/                  # Request handlers — validate, delegate, format
 │   ├── analytics.controller.js   # Analytics, global-stats, featured solutions, document stats
 │   ├── assessments.controller.js # Assessment CRUD, market analysis, comparison
 │   ├── scoring.controller.js     # Full scoring pipeline orchestration + log
+│   └── search.controller.js      # ce_cases search functionality
 │
-├── services/                 # Core business logic — no HTTP context
-│   ├── scoring.service.js    # Hybrid search RPC + LLM audit + similar cases pipeline
-│   ├── scoring.logic.js      # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
-│   ├── embedding.service.js  # OpenAI API: embed text, batch handling, exponential backoff
-│   └── chunking.service.js   # Semantic text splitting from CSV rows into chunks
+├── services/                    # Business logic: scoring.service, scoring.logic, embedding.service, health.service
+│   ├── auth.service.js          # Authentication service
+│   ├── embedding.service.js     # OpenAI API: embed text, batch handling, exponential backoff
+│   ├── health.service.js         # Health check endpoints and system monitoring
+│   ├── scoring.logic.js         # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
+│   ├── scoring.service.js       # Full scoring pipeline orchestration
+│   └── uptimePolling.service.js # Uptime monitoring polling service
 │
 ├── middleware/
 │   ├── auth.middleware.js        # API key guard (x-api-key) + Supabase JWT verification
 │   └── validation.middleware.js  # Zod-based request body validation
 │
 ├── database/
-│   ├── client.js             # Dual-backend client factory (returns Supabase or Aiven client)
-│   ├── index.js              # Exports documentsRepository singleton
-│   ├── supabase.client.js    # Supabase client initialisation (anon + service-role)
+│   ├── client.js                         # Dual-backend client factory (returns Supabase or Aiven client)
+│   ├── index.js                          # Exports documentsRepository singleton
+│   ├── supabase.client.js                # Supabase client initialisation (anon + service-role)
+│   ├── queries/                          # Database query definitions (3 files)
 │   ├── repositories/
-│   │   └── documents.repository.js  # All documents table access (matchDocuments, searchHybrid,
-│   │                                #   countBy, countByCategory, findRecent, searchByIndustry)
-│   └── migrations/           # SQL migration files — run in Supabase SQL editor in order
+│   │   ├── ce_cases.repository.js         # CE cases search functions
+│   │   └── documents.repository.js       # All documents table access (matchDocuments, searchHybrid, etc.)
+│   └── migrations/                        # SQL migration files — run in Supabase SQL editor in order
 │       ├── 01_vector_infrastructure.sql  # pgvector + halfvec extension, documents table + HNSW index
-│       ├── 02_user_assessments.sql       # assessments table (v3) + get_market_data/get_assessment_statistics RPCs
-│       ├── 03_user_profiles.sql          # user_profiles table
+│       ├── 02_user_profiles.sql          # user_profiles table
+│       ├── 03_user_assessments.sql       # assessments table (v3) + get_market_data/get_assessment_statistics RPCs
 │       ├── 04_anonymous_usage.sql        # anonymous_usage table + rate limiting logic
 │       ├── 05_results_logs.sql           # scoring_results_log table (append-only audit log)
-│       └── 06_after_ingestion.sql        # Post-ingestion optimisation indexes (run once after bulk load)
+│       ├── 06_ce_cases.sql               # ce_cases table with hybrid search functions
+│       └── 07_uptime_monitor.sql        # uptime_checks table for monitoring history
 │
-├── pipeline/                 # Data processing stages
-│   ├── merge_datasets.js     # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
-│   ├── generate_chunks.js    # Stage 2: semantic chunking → chunks.json
-│   ├── generate_embeddings.js # Stage 3: OpenAI embeddings → embedded_chunks.json
-│   ├── store_embeddings.js   # Stage 4: store vectors in documents table (Supabase or Aiven)
-│   ├── create_samples.js     # Generate test/sample data for development
-│   ├── run_datasets_scripts.js # Orchestrate all dataset extraction scripts in sequence
-│   └── datasetsUtils.js      # DATASETS registry, path constants, formatId() helper
+├── pipeline/                 # Data processing stages (10 scripts)
+│   ├── create_samples.js         # Generate test/sample data for development
+│   ├── embed_ce_cases.js         # Embed ce_cases knowledge base
+│   ├── generate_chunks.js        # Stage 2: semantic chunking → chunks.json
+│   ├── generate_embeddings.js    # Stage 3: OpenAI embeddings → embedded_chunks.json
+│   ├── generate_test_inputs.js   # Generate test assessment inputs
+│   ├── ingest_ce_cases.js        # Ingest ce_cases data
+│   ├── merge_datasets.js         # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
+│   ├── run_datasets_scripts.js   # Orchestrate all dataset extraction scripts in sequence
+│   ├── run_test_assessments.js   # Run test assessments
+│   ├── store_embeddings.js       # Stage 4: store vectors in documents table (Supabase or Aiven)
+│   └── datasetsUtils.js          # DATASETS registry, path constants, formatId() helper
 │
 ├── utils/
-│   └── anonymousTracking.js  # IP hashing, identifier generation (no PII stored)
+│   ├── analyticsHelpers.js     # Analytics helper functions
+│   ├── anonymousTracking.js   # IP hashing, identifier generation (no PII stored)
+│   ├── controller-helpers.js   # Helper functions for controllers
+│   ├── datasetsUtils.js        # DATASETS registry, path constants, formatId() helper
+│   ├── formatting.js           # Text formatting utilities
+│   └── logger.js               # Logging utilities
+├── constants/                   # API endpoints, uptime endpoints constants
+│   ├── apiEndpoints.js         # Centralized API endpoint definitions
+│   ├── index.js               # Constants barrel export
+│   └── uptimeEndpoints.js      # Uptime monitoring endpoint definitions
 │
-├── tests/
-│   ├── run-tests.js               # Test runner script
-│   ├── anonymous.test.js          # Anonymous tracking middleware
-│   ├── apiKeyGuard.test.js        # API key guard middleware
-│   ├── envtest.js                 # Environment variable loading
-│   ├── api/
+├── config/                      # Centralised config, env schema, embedding constants, chunk config
+├── middleware/                  # Auth guard (API key + JWT) + Zod validation
+├── pipeline/                    # Data processing stages (10 scripts)
+├── routes/                      # Thin Express wrappers — HTTP definition only
+├── server/                      # Entry point (index.js), app factory (app.js), bootstrap
+├── services/                    # Business logic: scoring.service, scoring.logic, embedding.service, health.service, uptimePolling.service
+├── tests/                       # Backend test suite
+│   ├── api/                    # API endpoint tests (10 test files)
+│   │   ├── analytics-missing-endpoints.test.js
 │   │   ├── analytics.enhanced.test.js
 │   │   ├── analytics.featured.test.js
+│   │   ├── anonymous.test.js
 │   │   ├── api-auth.test.js
+│   │   ├── apiKeyGuard.test.js
 │   │   ├── assessments-routes.test.js
+│   │   ├── health.test.js
+│   │   ├── misc-endpoints.test.js
 │   │   └── scoring.rpc.test.js
-│   ├── database/
-│   │   └── documents.repository.test.js
-│   └── services/
-│       ├── score-validation.test.js
-│       └── scoring-logic-enrichment.test.js  # 33 tests for Layer 2 enrichment
-│
-├── DATASETS_REFERENCE.md    # Complete inventory of all 34+ datasets
-├── PIPELINE_RUNNING.md      # How to run the data processing pipeline
+│   ├── database/               # Database tests (1 test file)
+│   ├── services/               # Service layer tests (2 test files)
+│   │   ├── score-validation.test.js
+│   │   └── scoring-logic-enrichment.test.js
+│   ├── utils/                  # Utility tests (2 test files)
+│   ├── run-tests.js            # Main test runner
+│   ├── run-tests-simple.js     # Simple test runner
+│   └── setup.js                # Test setup and configuration
+├── DATASETS_REFERENCE.md    ## Complete inventory of all 32 datasets
+├── HEALTH_ENDPOINTS.md      # Health check endpoints documentation
 ├── PIPELINE_ADDING_DATASETS.md  # How to add new dataset sources
-└── package.json
+├── PIPELINE_RUNNING.md      # How to run data processing pipeline
+├── .gitignore, .renderignore
+├── requirements-dev.txt, package.json
+└── README.md
 ```
+
+### Each Layer's Responsibilities
+
+1. **Routes** — define HTTP methods, paths, and rate limiting. No business logic. Delegate to controllers.
+2. **Controllers** — handle requests, validate input, format responses, call services.
+3. **Services** — core business logic and integrations. No HTTP context (no req/res).
+4. **Utilities** — shared helper functions, path constants, ID formatting.
+5. **Database** — Supabase client initialization, DocumentsRepository, migrations.
 
 ## Scoring Pipeline
 
@@ -170,7 +212,7 @@ backend/
 
 ## Database Tables
 
-### `assessments`
+### `user_assessments`
 
 User-saved assessments. Fully aligned with the scoring API response — all promoted scalar columns mirror the result object so the full response can be reconstructed from columns without parsing `result_json`.
 
@@ -221,13 +263,36 @@ Access rules:
 
 Used by `GET /api/analytics/global-stats` for Dashboard data — wider coverage than `assessments` since it includes all anonymous and unsaved calls.
 
+### `uptime_checks`
+
+Stores health check monitoring data for the uptime monitoring system. Key columns: `endpoint_id`, `status`, `up`, `response_time_ms`, `payload` (JSONB), `checked_at`.
+
+**Features:**
+
+- 7-day automatic data retention
+- Real-time polling every 30 seconds in production
+- Historical analysis with 30-minute buckets
+- CSV export capabilities
+- Production-only polling to avoid duplicate development data
+
+### `ce_cases`
+
+Circular economy case studies knowledge base for search functionality. Key columns: `title`, `problem`, `solution`, `impact`, `materials`, `circular_strategy`, `category`, `company_name`, `source_url`, `metadata` (JSONB).
+
+**Search capabilities:**
+
+- Keyword search via BM25 algorithm
+- Semantic search via vector similarity
+- Hybrid search combining both approaches
+- Metadata filtering by strategy, category, source
+
 ### `documents`
 
 Vector-searchable knowledge base. Key columns: `content`, `embedding` (halfvec 1536), `industry`, `category`, `source`, `metadata` (JSONB: r_strategy, scale, primary_material, geographic_focus, fields, word_count, chunk_type, source_id, source_row).
 
 **Architecture note:** All `documents` table access goes through `DocumentsRepository` — never direct Supabase or Aiven client calls. This enforces the dual-backend abstraction.
 
-### `documents` table schema
+#### `documents` table schema
 
 ```sql
 CREATE TABLE documents (
@@ -253,12 +318,6 @@ CREATE INDEX idx_documents_embedding ON documents
   USING hnsw(embedding extensions.halfvec_cosine_ops);
 CREATE INDEX idx_documents_created_at ON documents(created_at);
 ```
-
-### `ce_cases`
-
-Vector-searchable circular economy case study knowledge base (separate from the `documents` scoring knowledge base). Key columns: `id`, `problem`, `solution`, `materials`, `circular_strategy`, `category`, `impact`, `source_url`, `embedding` (vector 1536), `metadata_json` (JSONB: title, company, summary, and other scraped fields).
-
-Indexed via HNSW for approximate nearest-neighbour similarity search.
 
 ### RPC Functions
 
@@ -320,16 +379,16 @@ formatId('c2c', 100000); // → 'c2c_100000'  (auto-expands beyond 5 digits)
 const padding = index.toString().padStart(ID_DIGITS, '0');
 ```
 
-**Why use the helper?** It handles overflow automatically and keeps IDs consistent across all 34 dataset scripts.
+**Why use the helper?** It handles overflow automatically and keeps IDs consistent across all 32 dataset scripts.
 
 ### Dataset Registry
 
-`utils/datasetsUtils.js` exports `DATASETS` — an array of metadata objects for all 34 registered datasets. Each entry includes:
+`utils/datasetsUtils.js` exports `DATASETS` — an array of metadata objects for all 32 registered datasets. Each entry includes:
 
 - `key` — unique identifier (e.g. `'c2c'`)
 - `name` — human-readable title
 - `raw_folder` — directory for raw source files (null if web-scraped)
-- `processed_csv` — output CSV filename
+- `processed_csv` — output CSV filename in `datasets/processed/`
 - `scrape_script` / `extract_script` — path to processing script
 - `source_url` — primary data source URL
 - `urls` — additional URLs (API endpoints, paginated lists, etc.)
@@ -446,42 +505,97 @@ Save a completed assessment for the authenticated user.
 ```json
 {
   "title": "My Packaging Initiative",
-  "is_public": false,
+  "is_public": true,
   "contribute_to_global_benchmarks": true
 }
 ```
 
-#### GET `/api/assessments`
-
-List all assessments for the authenticated user. Returns array of assessment records with promoted scalar columns.
-
-#### GET `/api/assessments/stats`
-
-Aggregate statistics for the authenticated user's assessments. Calls `get_assessment_statistics(user_uuid)` RPC.
-
-#### GET `/api/assessments/:id`
-
-Fetch a single assessment by id. Requires authentication; user must own the assessment.
-
-#### PATCH `/api/assessments/:id`
-
-Update assessment fields. Supported fields: `title`, `is_public`, `contribute_to_global_benchmarks`.
-
-#### DELETE `/api/assessments/:id`
-
-Delete an assessment. Requires authentication; user must own the assessment.
-
-#### GET `/api/assessments/public/:publicId`
-
-Retrieve a shared assessment without authentication. Returns full result including `result_json`.
-
-#### GET `/api/assessments/validate/:publicId`
-
-Validate that a `publicId` exists and is publicly accessible. Returns `{ valid: true }` or 404.
-
 #### GET `/api/assessments/compare`
 
 Compare two assessments. Query params: `id1`, `id2`. Returns both assessments plus computed `factorDiffs`, `comparisonData`, and `overallDiff`. Both assessments must be public for comparison.
+
+#### GET `/api/assessments/validate/:publicId`
+
+Validate assessment ID exists and is shareable. Supports user access to their own assessments regardless of public status. Requires authentication.
+
+### Uptime Monitor Endpoints
+
+| Method | Endpoint                          | Auth | Description                                                 |
+| ------ | --------------------------------- | ---- | ----------------------------------------------------------- |
+| `GET`  | `/api/uptime/count`               | None | Get total number of uptime checks (optionally per endpoint) |
+| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 10000)    |
+| `POST` | `/api/uptime/checks`              | None | Store a single health check result                          |
+
+#### GET `/api/uptime/count`
+
+Returns the total number of stored uptime checks.
+
+**Query Parameters:**
+
+- `endpointId` — filter by specific endpoint (optional)
+
+**Response:**
+
+```json
+{
+  "total": 1250
+}
+```
+
+#### GET `/api/uptime/history/:endpointId`
+
+Retrieve recent uptime checks for a specific endpoint.
+
+**Path Parameters:**
+
+- `endpointId` — identifier of the endpoint (e.g., "health", "database", "openai")
+
+**Query Parameters:**
+
+- `limit` — number of results to return (default 10000, max 10000)
+
+**Response:**
+
+```json
+{
+  "endpointId": "health",
+  "checks": [
+    {
+      "id": "uuid",
+      "status": "ok",
+      "up": true,
+      "responseTimeMs": 45,
+      "payload": {...},
+      "createdAt": "2026-01-15T10:30:00.000Z"
+    }
+  ]
+}
+```
+
+#### POST `/api/uptime/checks`
+
+Store a single health check result.
+
+**Request Body:**
+
+```json
+{
+  "endpointId": "health",
+  "status": "ok",
+  "up": true,
+  "responseTimeMs": 45,
+  "payload": {...}
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "id": "uuid"
+}
+```
 
 ### Profile Endpoint
 
@@ -519,8 +633,7 @@ INTERNAL_BACKEND_API_KEY=your-secret-api-key
 PORT=8000
 NODE_ENV=development
 
-# Public routes (no authentication required)
-PUBLIC_ROUTES=/api/score,/api/score/stream,/api/assessments/public/:publicId,/api/assessments/validate/:publicId,/api/assessments/compare,/api/analytics/global-stats,/api/search/ce-cases
+# Scoring endpoints respect SCORING_MAX_FREE_TRIES for anonymous users
 
 # Database backend switch
 USE_SUPABASE_DOCUMENTS_TABLE=true   # set to false to switch to Aiven
@@ -684,25 +797,25 @@ npm run embed -- --archives
 npm run store -- --archives   # also forces Supabase backend
 ```
 
-### Dataset Scrapers
+### Dataset Scripts
 
 Pull data from web sources using Puppeteer automation:
 
 ```bash
 # Individual scrapers:
-node datasets/scripts/scrape_c2c.js          # Cradle-to-Cradle certified products
-node datasets/scripts/scrape_ecesp.js        # ECESP good practices
-node datasets/scripts/scrape_emf.js          # Ellen MacArthur Foundation case studies
-node datasets/scripts/scrape_open_food_facts.js
+node backend/datasets/scripts/scrape_c2c.js          # Cradle-to-Cradle certified products
+node backend/datasets/scripts/scrape_ecesp.js        # ECESP good practices
+node backend/datasets/scripts/scrape_emf.js          # Ellen MacArthur Foundation case studies
+node backend/datasets/scripts/scrape_open_food_facts.js
 
 # Run all extract_* then scrape_* scripts in sequence:
 npm run datasets-scripts
 
 # Debug — show browser window while scraping:
-node datasets/scripts/scrape_ecesp.js --show
+node backend/datasets/scripts/scrape_ecesp.js --show
 
 # Recover from interrupted scrape:
-node datasets/scripts/scrape_c2c.js --use-backup
+node backend/datasets/scripts/scrape_c2c.js --use-backup
 ```
 
 **Backup & Recovery Mode:** All scrapers save intermediate results every N pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If interrupted, rebuild from saved backup:
@@ -753,16 +866,17 @@ npm test                 # Runs backend tests as part of workspace testing
 
 ## Test Suite
 
-| Test File                          | Tests | Description                                                                                                                 |
-| ---------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------- |
-| `scoring-logic-enrichment.test.js` | 33    | WeightedScoreCard, CE Tier (4 tiers + boundary conditions), ParameterConsistency (8 rules), RStrategyAlignment (9 profiles) |
-| `assessments-routes.test.js`       | —     | CRUD endpoints, auth guards                                                                                                 |
-| `scoring.rpc.test.js`              | —     | Scoring pipeline integration                                                                                                |
-| `analytics.enhanced.test.js`       | —     | Enhanced analytics endpoints                                                                                                |
-| `analytics.featured.test.js`       | —     | Featured solutions endpoint                                                                                                 |
-| `api-auth.test.js`                 | —     | API authentication flow                                                                                                     |
-| `anonymous.test.js`                | —     | Anonymous tracking middleware                                                                                               |
-| `apiKeyGuard.test.js`              | —     | API key guard unit tests                                                                                                    |
+| Test File                          | Tests | Description                                                                                                        |
+| ---------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------ |
+| `scoring-logic-enrichment.test.js` | 33    | WeightedScoreCard, CE Tier (4 tiers + boundaries), ParameterConsistency (8 rules), RStrategyAlignment (9 profiles) |
+| `assessments-routes.test.js`       | —     | CRUD endpoints, auth guards                                                                                        |
+| `scoring.rpc.test.js`              | —     | Scoring pipeline integration                                                                                       |
+| `analytics.enhanced.test.js`       | —     | Analytics endpoints                                                                                                |
+| `api-auth.test.js`                 | —     | API key guard                                                                                                      |
+| `anonymous.test.js`                | —     | Anonymous tracking middleware                                                                                      |
+| `apiKeyGuard.test.js`              | —     | Auth middleware unit tests                                                                                         |
+| `documents.repository.test.js`     | —     | Repository layer                                                                                                   |
+| `score-validation.test.js`         | —     | Input validation                                                                                                   |
 
 ### Running Tests
 
@@ -776,9 +890,6 @@ npm test
 # Run specific test file
 node tests/services/scoring-logic-enrichment.test.js
 ```
-
-| `documents.repository.test.js` | — | Repository layer methods |
-| `score-validation.test.js` | — | Input validation edge cases |
 
 ## Dataset Script Documentation Standards
 
@@ -869,7 +980,7 @@ function scoreRecord(record) { ... }
 
 ## Datasets Included
 
-**34 processed datasets** totalling ~40,000+ document chunks from diverse sources:
+**32 processed datasets** totalling ~40,000+ document chunks from diverse sources:
 
 - GreenTechGuardians: 2,286 case studies
 - Ellen MacArthur Foundation: 3,825+ case studies

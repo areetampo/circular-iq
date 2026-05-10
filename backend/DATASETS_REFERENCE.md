@@ -1,6 +1,6 @@
 # Datasets Reference: Complete Integration Guide
 
-Complete reference for all 34 datasets integrated into the circular economy system, datasetsUtils.js utilities, and processing pipeline documentation.
+Complete reference for all 32 datasets integrated into circular economy system, datasetsUtils.js utilities, and processing pipeline documentation.
 
 ## Quick Links
 
@@ -80,7 +80,7 @@ import {
 
 ### Dataset Registry
 
-**DATASETS Array:** Contains 34 registered datasets (see registry table below) with:
+**DATASETS Array:** Contains 32 registered datasets (see registry table below) with:
 
 - `key`: Unique identifier (e.g., 'c2c', 'emf', 'refed')
 - `name`: Human-readable title
@@ -369,7 +369,7 @@ Currently implemented for:
 - `scrape_remanufacturing_eu.js` – Remanufacturing case studies
 - `scrape_wrap.js` – WRAP resources and case studies
 
-## Complete Dataset Inventory (34 Datasets)
+## Complete Dataset Inventory (32 Datasets)
 
 All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` array). This is the authoritative source of truth.
 
@@ -412,7 +412,7 @@ All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` arra
 
 ### Summary Statistics
 
-- **Total Datasets:** 34 registered datasets
+- **Total Datasets:** 32 registered datasets
 - **Scraper-based (Puppeteer):** 13 datasets
   - c2c, circle_knowledge_hub, ecesp, emf, fashion_innovation, kalundborg, metabolic, obf, off, opf, refed, rema (partial), wrap (partial)
 - **PDF-based Extraction:** 8 datasets
@@ -424,9 +424,9 @@ All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` arra
 - **Mixed/Multi-format:** 5 datasets
   - dataeu, fashion_transparency, gtg, metabolic, wrap
 
-> **New in Registry:** Expanded dataset support includes `metabolic` (with both scraping and PDF extraction), and improved documentation for all extraction scripts.
+> **Updated Registry:** Current registry includes 32 datasets with comprehensive documentation for all extraction scripts.
 >
-> **Note:** To add a new dataset, add an entry to the `DATASETS` array in `backend/utils/datasetsUtils.js` and create a corresponding extraction script. The pipeline will automatically discover the processed CSV when merging.
+> **Note:** To add a new dataset, add an entry to `DATASETS` array in `backend/utils/datasetsUtils.js` and create a corresponding extraction script. The pipeline will automatically discover processed CSV when merging.
 
 ## Data Format Standard
 

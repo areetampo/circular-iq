@@ -29,70 +29,71 @@ The platform guides users through a structured assessment and returns a complete
 ## Core Architecture
 
 ```txt
-┌─────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────────────┐
 │                    Full-Stack Architecture                          │
-├─────────────────────────────────────────────────────────────────────┤
+├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│  Frontend Layer (React 19 / Vite 7)                                 │
-│  ├─ Assessment Flow — guided questionnaires + business context      │
-│  ├─ Results Visualisation — charts, tables, export, drawers         │
-│  ├─ Global Activity — live analytics from scoring_results_log      │
-│  ├─ State Management — React Query + custom hooks                   │
-│  ├─ UI Components — HeroUI v3 + Tailwind CSS v4 + Recharts          │
-│  └─ Session Persistence — localStorage + anonymous tracking         │
+│  Frontend Layer (React 19 + Vite 7)
+│  ├─ Assessment Flow — guided questionnaires + business context
+│  ├─ Results Visualisation — charts, tables, export, drawers
+│  ├─ Global Activity — live analytics from scoring_results_log
+│  ├─ State Management — React Query + custom hooks
+│  ├─ UI Components — HeroUI v3 + Tailwind CSS v4 + Recharts
+│  └─ Session Persistence — localStorage + anonymous tracking
+│
+│  API Layer (Express.js — ESM)
+│  ├─ /api/score — full scoring + enrichment pipeline
+│  ├─ /api/analytics — global stats, doc stats
+│  ├─ /api/search — ce_cases knowledge base search (keyword + hybrid)
+│  ├─ /api/assessments — assessment CRUD + comparison
+│  ├─ /api/health — health check endpoints
+│  └─ /api/uptime — uptime monitoring data storage and retrieval
 │                                                                     │
-│  API Layer (Express.js — ESM)                                       │
-│  ├─ /api/score — full scoring + enrichment pipeline                 │
-│  ├─ /api/analytics — global stats, doc stats    │
-│  ├─ /api/search — ce_cases knowledge base search (keyword + hybrid)  │
-│  └─ /api/assessments — assessment CRUD + comparison                 │
+│  Business Logic Layer (Services)
+│  ├─ scoring.service.js — hybrid search + LLM audit orchestration
+│  ├─ scoring.logic.js — pure deterministic enrichment (Layer 2)
+│  └─ embedding.service.js — OpenAI API integration + batching
 │                                                                     │
-│  Business Logic Layer (Services)                                    │
-│  ├─ scoring.service.js — hybrid search + LLM audit orchestration    │
-│  ├─ scoring.logic.js — pure deterministic enrichment (Layer 2)      │
-│  ├─ embedding.service.js — OpenAI API integration + batching        │
-│  └─ chunking.service.js — semantic text splitting from CSV          │
+│  Data Processing Pipeline
+│  ├─ Extraction Layer (35 dataset scripts)
+│  │  ├─ scrape_*.js (Puppeteer web automation)
+│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)
+│  ├─ Merge (merge_datasets.js)
+│  ├─ Chunking (generate_chunks.js)
+│  ├─ Embedding (generate_embeddings.js)
+│  └─ Storage (store_embeddings.js)
 │                                                                     │
-│  Data Processing Pipeline                                           │
-│  ├─ Extraction Layer (34+ dataset scripts)                          │
-│  │  ├─ scrape_*.js (Puppeteer web automation)                       │
-│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)                      │
-│  ├─ Merge (merge_datasets.js)                                       │
-│  ├─ Chunking (generate_chunks.js)                                   │
-│  ├─ Embedding (generate_embeddings.js)                              │
-│  └─ Storage (store_embeddings.js)                                   │
+│  Database Layer (Supabase PostgreSQL + pgvector / Aiven)
+│  ├─ documents — vector-searchable knowledge base (40k+ chunks)
+│  ├─ user_assessments — user-saved results with all enrichment columns
+│  ├─ scoring_results_log — immutable log of every scoring call
+│  ├─ ce_cases — circular economy cases knowledge base
+│  ├─ user_profiles — user preferences
+│  ├─ anonymous_usage — rate limiting + session tracking
+│  ├─ uptime_checks — health monitoring history
+│  └─ RPC functions — hybrid search, market data, assessment stats
 │                                                                     │
-│  Database Layer (Supabase PostgreSQL + pgvector / Aiven)            │
-│  ├─ documents — vector-searchable knowledge base (40k+ chunks)      │
-│  ├─ assessments — user-saved results with all enrichment columns    │
-│  ├─ scoring_results_log — immutable log of every scoring call       │
-│  ├─ user_profiles — user preferences                                │
-│  ├─ anonymous_usage — rate limiting + session tracking              │
-│  └─ RPC functions — hybrid search, market data, assessment stats    │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Tech Stack
 
-| Category            | Technology                                     | Purpose                                            |
-| ------------------- | ---------------------------------------------- | -------------------------------------------------- |
-| **Runtime**         | Node.js 18+                                    | Server runtime                                     |
-| **Backend**         | Express.js (ESM)                               | REST API server                                    |
-| **Frontend**        | React 19 + Vite 7                              | UI framework and build tool                        |
-| **UI Library**      | HeroUI v3                                      | Component library                                  |
-| **Styling**         | Tailwind CSS v4                                | Utility-first CSS                                  |
-| **Charts**          | Recharts                                       | Data visualisation                                 |
-| **Database**        | Supabase PostgreSQL + pgvector                 | Primary vector store + relational data             |
-| **Alt DB**          | Aiven PostgreSQL                               | Alternative vector store (switchable via env flag) |
-| **AI — Embeddings** | OpenAI text-embedding-3-small                  | Semantic similarity search (1536 dims)             |
-| **AI — Reasoning**  | GPT-4o-mini                                    | LLM audit, enrichment, metadata extraction         |
-| **State**           | TanStack React Query                           | Server state, caching, background refetch          |
-| **Auth**            | Supabase Auth                                  | User authentication + Row Level Security           |
-| **Deployment**      | Vercel (frontend) + Render (backend)           | Hosting platforms                                  |
-| **Testing**         | Vitest (frontend) · Node test runner (backend) | Test frameworks                                    |
-| **Package Manager** | npm (workspaces)                               | Monorepo dependency management                     |
-| **Code Quality**    | ESLint + Prettier + Husky                      | Linting, formatting, and git hooks                 |
+| **Runtime** | Node.js 18+ (backend), Node.js 24+ (frontend) | Server runtime |
+| **Backend** | Express.js (ESM) | REST API server |
+| **Frontend** | React 19 + Vite 7 | UI framework and build tool |
+| **UI Library** | HeroUI v3 | Component library |
+| **Styling** | Tailwind CSS v4 | Utility-first CSS |
+| **Charts** | Recharts | Data visualisation |
+| **Database** | Supabase PostgreSQL + pgvector | Primary vector store + relational data |
+| **Alt DB** | Aiven PostgreSQL | Alternative vector store (switchable via env flag) |
+| **AI — Embeddings** | OpenAI text-embedding-3-small | Semantic similarity search (1536 dims) |
+| **AI — Reasoning** | GPT-4o-mini | LLM audit, enrichment, metadata extraction |
+| **State** | TanStack React Query | Server state, caching, background refetch |
+| **Auth** | Supabase Auth | User authentication + Row Level Security |
+| **Deployment** | Vercel (frontend) + Render (backend) | Hosting platforms |
+| **Testing** | Vitest (frontend) · Node test runner (backend) | Test frameworks |
+| **Package Manager** | npm (workspaces) | Monorepo dependency management |
+| **Code Quality** | ESLint + Prettier + Husky | Linting, formatting, and git hooks |
 
 ## Key Features
 
@@ -126,13 +127,13 @@ These inputs improve LLM calibration and enable stage-appropriate scoring.
 
 ### Knowledge Base
 
-- **40,000+ document chunks** from 34+ curated datasets
+- **40,000+ document chunks** from 32 curated datasets
 - Sources: Ellen MacArthur Foundation, WBCSD, Eurostat, academic papers, government reports, corporate sustainability reports
 - Vector search: cosine similarity on OpenAI embeddings (pgvector HNSW)
 - Per-field chunking: problem, solution, impact, materials, circular_strategy
 - Structured metadata: industry, R-strategy, scale, geographic focus, primary material
 
-### Solutions Search & Global Activity
+### Solutions Search
 
 **Solutions Search** (`/solutions`)
 
@@ -178,19 +179,57 @@ Global Activity includes manual refresh button with "updated N minutes ago" time
 ```txt
 ├── backend/
 │   ├── config/                      # Centralised config, env schema, embedding constants, chunk config
-│   ├── controllers/                 # Route handlers (analytics, scoring, assessments)
+│   ├── constants/                   # API endpoints, uptime endpoints constants
+│   ├── controllers/                 # Route handlers (analytics, scoring, assessments, search)
+│   │   ├── analytics.controller.js   # Analytics, global-stats, featured solutions, document stats
+│   │   ├── assessments.controller.js # Assessment CRUD, market analysis, comparison
+│   │   ├── scoring.controller.js     # Full scoring pipeline orchestration + log
+│   │   └── search.controller.js      # ce_cases search functionality
 │   ├── database/
-│   │   ├── migrations/              # SQL migration files 01–06 (run in Supabase SQL editor)
-│   │   ├── repositories/            # Data access layer (documents.repository.js)
+│   │   ├── migrations/              # SQL migration files 01–07 (run in Supabase SQL editor)
+│   │   ├── queries/                 # Database query definitions
+│   │   ├── repositories/            # Data access layer (documents.repository.js, ce_cases_repository.js)
 │   │   ├── client.js                # Dual-backend DB client factory (Supabase or Aiven)
-│   │   └── supabase.client.js       # Supabase client factory (anon + service-role)
+│   │   ├── supabase.client.js       # Supabase client factory (anon + service-role)
+│   │   └─ README.md               # Database layer documentation
 │   ├── middleware/                  # Auth guard (API key + JWT) + Zod validation
-│   ├── pipeline/                    # Data processing stages
-│   ├── routes/                      # Express route definitions (thin HTTP wrappers)
+│   ├── pipeline/                    # Data processing stages (10+ pipeline scripts)
+│   │   ├── create_samples.js         # Generate test/sample data for development
+│   │   ├── embed_ce_cases.js         # Embed ce_cases knowledge base
+│   │   ├── generate_chunks.js        # Stage 2: semantic chunking → chunks.json
+│   │   ├── generate_embeddings.js    # Stage 3: OpenAI embeddings → embedded_chunks.json
+│   │   ├── generate_test_inputs.js   # Generate test assessment inputs
+│   │   ├── ingest_ce_cases.js        # Ingest ce_cases data
+│   │   ├── merge_datasets.js         # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
+│   │   ├── run_datasets_scripts.js   # Orchestrate all dataset extraction scripts in sequence
+│   │   ├── run_test_assessments.js   # Run test assessments
+│   │   └── store_embeddings.js       # Stage 4: store vectors in documents table (Supabase or Aiven)
+│   ├── routes/                      # Thin Express wrappers — HTTP definition only
+│   │   ├── analytics.routes.js   # GET /api/analytics/...
+│   │   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/...
+│   │   ├── health.routes.js      # GET /health/* endpoints
+│   │   ├── scoring.routes.js     # POST /api/score
+│   │   ├── search.routes.js      # GET /api/search/ce-cases
+│   │   └── uptime.routes.js     # GET/POST /api/uptime/* endpoints
 │   ├── server/                      # Entry point (index.js), app factory (app.js), bootstrap
-│   ├── services/                    # Business logic: scoring.service, scoring.logic, embedding, chunking
+│   ├── services/                    # Business logic: scoring.service, scoring.logic, embedding.service, health.service
+│   │   ├── auth.service.js          # Authentication service
+│   │   ├── embedding.service.js     # OpenAI API: embed text, batch handling, exponential backoff
+│   │   ├── health.service.js         # Health check endpoints and system monitoring
+│   │   ├── scoring.logic.js         # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
+│   │   ├── scoring.service.js       # Full scoring pipeline orchestration
+│   │   └── uptimePolling.service.js # Uptime monitoring polling service
 │   ├── tests/                       # Backend test suite (api/, database/, services/)
-│   └── utils/                       # anonymousTracking.js, datasetsUtils.js etc
+│   │   ├── run-tests.js               # Test runner script
+│   │   └── *.test.js files           # Unit and integration tests
+│   ├── utils/                       # anonymousTracking.js, datasetsUtils.js etc
+│   ├── DATASETS_REFERENCE.md    # Complete inventory of all 32 datasets
+│   ├── HEALTH_ENDPOINTS.md      # Health check endpoints documentation
+│   ├── PIPELINE_ADDING_DATASETS.md  # How to add new dataset sources
+│   ├── PIPELINE_RUNNING.md      # How to run data processing pipeline
+│   ├── .gitignore, .renderignore
+│   ├── requirements-dev.txt, package.json
+│   └── README.md
 │
 ├── frontend/
 │   ├── api/proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
@@ -199,54 +238,30 @@ Global Activity includes manual refresh button with "updated N minutes ago" time
 │   │   │   ├── App.jsx              # Root component with providers and routing
 │   │   │   ├── AppRoutes.jsx        # All route definitions
 │   │   │   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
-│   │   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries
-│   │   ├── contexts/                # Auth, Dialog, Drawer, Modal React contexts
-│   │   ├── features/
-│   │   │   ├── assessments/         # API client, all hooks (useAssessment, useGlobalStats, etc.), validation, utils
-│   │   │   ├── export/              # exportCSV.js, exportPDF.js
-│   │   │   ├── search/              # searchApi.js for circular economy cases search
-│   │   │   └── session/             # AppSessionManager, useSession
-│   │   ├── hooks/                   # useAuth, useDialog, useDrawer, useDrawerDirection, useExportState, useToast, useDebounce, useRelativeTime
-│   │   ├── lib/                     # apiClient, formatting, metadata, scoring, storage, supabase, validation
-│   │   ├── pages/
-│   │   │   ├── AssessmentComparisonPage/    # Assessment comparison with 4-tab layout
-│   │   │   ├── AssessmentViewPage/          # Saved assessment view
-│   │   │   ├── AuthPage/                     # Login and signup page
-│   │   │   ├── ComparePage/                  # Route wrapper for assessment comparison
-│   │   │   ├── GlobalActivityPage/           # Global activity analytics with refresh
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── GlobalActivity.jsx              # Main global activity component
-│   │   │   │   │   ├── GlobalActivityHeader.jsx       # Header with refresh functionality
-│   │   │   │   │   ├── StatCard.jsx                    # Metric display component
-│   │   │   │   │   ├── ChartPanel.jsx                  # Chart wrapper component
-│   │   │   │   │   ├── DashboardSectionHeading.jsx    # Section heading component
-│   │   │   │   │   ├── EmptyChart.jsx                  # Empty state placeholder
-│   │   │   │   │   ├── SingleValueChart.jsx            # Single metric chart
-│   │   │   │   │   └── index.js                        # Barrel exports
-│   │   │   ├── GuidePage/                    # User guide page
-│   │   │   ├── LandingPage/                  # Main landing page
-│   │   │   ├── MyAssessmentsPage/           # User's saved assessments list
-│   │   │   ├── NotFoundPage/                # 404 error page
-│   │   │   ├── ResultsPage/                 # Assessment results display
-│   │   │   ├── SharePage/                   # Public shared assessment view
-│   │   │   └── SolutionsPage/               # Solutions search page
-│   │   │       ├── components/
-│   │   │       │   ├── SolutionsSearch.jsx           # Main search component with URL state
-│   │   │       │   ├── PageHeader.jsx                 # Page header component
-│   │   │       │   └── index.js                        # Barrel exports
-│   │   ├── config/                   # frontend.config.js with route definitions and query parameters
-│   │   ├── constants/               # evaluationData, industries, industryThemes, drawer constants
-│   │   ├── utils/                   # cn, content, session, async, ui, logger
-│   │   ├── test/                    # Test utilities and setup
-│   │   ├── types/                   # TypeScript type definitions
+│   │   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries (64 items)
+│   │   ├── contexts/                # React Context providers (Auth, Dialog, Drawer)
+│   │   ├── features/                # Feature modules: assessments, export, search, session (22 items)
+│   │   ├── hooks/                   # Custom React hooks (useAuth, useDebounce, etc.) (10 items)
+│   │   ├── lib/                     # API client, formatting, metadata, scoring, storage, supabase, validation (11 items)
+│   │   ├── pages/                   # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (91+ items)
+│   │   ├── config/                   # Frontend configuration with route definitions and query parameters (3 items)
+│   │   ├── constants/               # Evaluation data, industries, drawer constants (19 items)
 │   │   ├── index.css                # Global styles + Tailwind directives
 │   │   ├── main.jsx                 # React entry point
-│   │   └── setupTests.js            # Vitest global setup
+│   │   ├── setupTests.js            # Vitest global setup
+│   │   ├── test/                    # Test files (4 items)
+│   │   ├── types/                   # TypeScript type definitions (1 item)
+│   │   └── utils/                   # Utility functions (12 items)
+│   ├── public/                       # Static assets (app-bg.svg, site-logo images)
 │   ├── vite.config.js               # Vite configuration with aliases and chunking
+│   ├── vercel.json                  # Vercel deployment configuration
+│   ├── vitest.config.js             # Vitest test configuration
+│   ├── tsconfig.json                # TypeScript configuration
+│   ├── tsconfig.node.json           # Node.js TypeScript configuration
 │   └── package.json                 # Frontend dependencies and scripts
 │
 ├── env/
-│   └── .env.example                 # Environment variable template for both backend and frontend
+│   └── .env.example                 # Environment variable template
 │
 └── package.json                     # Root workspace scripts (dev:backend, dev:frontend, etc.)
 ```
@@ -276,13 +291,14 @@ cp env/.env.example env/.env.frontend
 # Edit both files — see Environment Variables section below
 
 # 4. Database migrations
-# Open Supabase SQL editor and run in order:
+# Run in order via Supabase SQL editor:
 #   backend/database/migrations/01_vector_infrastructure.sql
-#   backend/database/migrations/02_user_assessments.sql
-#   backend/database/migrations/03_user_profiles.sql
+#   backend/database/migrations/02_user_profiles.sql
+#   backend/database/migrations/03_user_assessments.sql
 #   backend/database/migrations/04_anonymous_usage.sql
 #   backend/database/migrations/05_results_logs.sql
-# Run 06_after_ingestion.sql once after bulk data load
+#   backend/database/migrations/06_ce_cases.sql
+#   backend/database/migrations/07_uptime_monitor.sql
 
 # 5. Start development servers (single command)
 npm run dev    # Starts both backend:8000 and frontend:5173 concurrently
@@ -298,36 +314,50 @@ npm run frontend   # Frontend only: http://localhost:5173
 
 ```env
 # Required
+PORT=8000
+NODE_ENV=development
+APP_URL=http://localhost:5173
+API_URL=http://localhost:3001
+ALLOWED_ORIGINS=http://localhost:5173
 OPENAI_API_KEY=sk-...
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 INTERNAL_BACKEND_API_KEY=your-secret-key
-PORT=8000
-NODE_ENV=development
 
 # Database backend switch
-USE_SUPABASE_DOCUMENTS_TABLE=true   # false = use Aiven PostgreSQL
+USE_SUPABASE_DOCUMENTS=true   # false = use Aiven PostgreSQL
 
 # Aiven (only if USE_SUPABASE_DOCUMENTS_TABLE=false)
 AIVEN_HOST=
-AIVEN_PORT=22335
+AIVEN_PORT=25060
 AIVEN_DATABASE=defaultdb
 AIVEN_USER=avnadmin
 AIVEN_PASSWORD=
 AIVEN_SSL_MODE=require
-AIVEN_CONNECTION_LIMIT=20
+AIVEN_CONNECTION_LIMIT=10
+# OR use a connection string instead:
+AIVEN_CONNECTION_STRING=postgresql://avnadmin:[password]@host:25060/defaultdb?sslmode=require
+
+# Pool settings (both backends)
+SUPABASE_CONNECTION_LIMIT=10
+
+# Optional
+SCORING_MAX_FREE_TRIES=5
+LOG_LEVEL=info
+API_AUTH_ENABLED=true
+API_KEY=your-api-key
+STRICT_ENV=false
 ```
 
 **Frontend** (`env/.env.frontend`):
 
 ```env
-VITE_API_URL=http://localhost:8000
+VITE_APP_URL=http://localhost:5173
+VITE_API_URL=http://localhost:3001
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
-VITE_APP_URL=http://localhost:5173
-VITE_LOG_LEVEL=debug          # optional
-VITE_ENABLE_ANALYTICS=true    # optional
+VITE_SCORING_MAX_FREE_TRIES=5
 ```
 
 **Important:** `INTERNAL_BACKEND_API_KEY` is **never** a `VITE_` prefixed variable. It lives only in Vercel server-side environment and is injected by `api/proxy.js`.
@@ -356,31 +386,40 @@ VITE_ENABLE_ANALYTICS=true    # optional
 
 ### Assessments
 
-| Method   | Endpoint                              | Auth     | Description                                      |
-| -------- | ------------------------------------- | -------- | ------------------------------------------------ |
-| `POST`   | `/api/assessments`                    | Required | Save completed assessment                        |
-| `GET`    | `/api/assessments`                    | Required | List user's assessments                          |
-| `GET`    | `/api/assessments/stats`              | Required | User aggregate statistics                        |
-| `GET`    | `/api/assessments/public/:publicId`   | None     | Retrieve public/shared assessment                |
-| `GET`    | `/api/assessments/validate/:publicId` | None     | Validate shared assessment id                    |
-| `GET`    | `/api/assessments/compare`            | None     | Compare two assessments (query params: id1, id2) |
-| `GET`    | `/api/assessments/:publicId`          | Required | Fetch specific assessment                        |
-| `PATCH`  | `/api/assessments/:id`                | Required | Update assessment (rename, set is_public)        |
-| `DELETE` | `/api/assessments/:id`                | Required | Delete assessment                                |
+| Method   | Endpoint                              | Auth     | Description                                                   |
+| -------- | ------------------------------------- | -------- | ------------------------------------------------------------- |
+| `POST`   | `/api/assessments`                    | Required | Save completed assessment                                     |
+| `GET`    | `/api/assessments`                    | Required | List user's assessments                                       |
+| `GET`    | `/api/assessments/stats`              | Required | User aggregate statistics                                     |
+| `GET`    | `/api/assessments/public/:publicId`   | Optional | Retrieve public/shared assessment (ownership check with auth) |
+| `GET`    | `/api/assessments/validate/:publicId` | Optional | Validate shared assessment id (ownership check with auth)     |
+| `GET`    | `/api/assessments/compare`            | Optional | Compare two assessments (query params: id1, id2)              |
+| `GET`    | `/api/assessments/:publicId`          | Required | Fetch specific assessment                                     |
+| `PATCH`  | `/api/assessments/:id`                | Required | Update assessment (rename, set is_public)                     |
+| `DELETE` | `/api/assessments/:id`                | Required | Delete assessment                                             |
 
 ### Health & System
 
-| Method | Endpoint            | Auth     | Description                                    |
-| ------ | ------------------- | -------- | ---------------------------------------------- |
-| `GET`  | `/health`           | Optional | Basic health check for load balancers          |
-| `GET`  | `/health/detailed`  | Optional | Comprehensive health check with service status |
-| `GET`  | `/health/database`  | Optional | Database connectivity check                    |
-| `GET`  | `/health/openai`    | Optional | OpenAI API connectivity check                  |
-| `GET`  | `/health/system`    | Optional | System resources health check                  |
-| `GET`  | `/health/config`    | Optional | Configuration validation check                 |
-| `GET`  | `/health/readiness` | Optional | Kubernetes readiness probe                     |
-| `GET`  | `/health/liveness`  | Optional | Kubernetes liveness probe                      |
-| `GET`  | `/health/version`   | Optional | Version and build information                  |
+| Method | Endpoint                 | Auth     | Description                                    |
+| ------ | ------------------------ | -------- | ---------------------------------------------- |
+| `GET`  | `/health`                | Optional | Basic health check for load balancers          |
+| `GET`  | `/health/detailed`       | Optional | Comprehensive health check with service status |
+| `GET`  | `/health/database`       | Optional | Database connectivity check                    |
+| `GET`  | `/health/database/aiven` | Optional | Aiven PostgreSQL database connectivity check   |
+| `GET`  | `/health/openai`         | Optional | OpenAI API connectivity check                  |
+| `GET`  | `/health/system`         | Optional | System resources health check                  |
+| `GET`  | `/health/config`         | Optional | Configuration validation check                 |
+| `GET`  | `/health/readiness`      | Optional | Kubernetes readiness probe                     |
+| `GET`  | `/health/liveness`       | Optional | Kubernetes liveness probe                      |
+| `GET`  | `/health/version`        | Optional | Version and build information                  |
+
+### Uptime Monitor
+
+| Method | Endpoint                          | Auth     | Description                                                 |
+| ------ | --------------------------------- | -------- | ----------------------------------------------------------- |
+| `GET`  | `/api/uptime/count`               | Optional | Get total number of uptime checks (optionally per endpoint) |
+| `GET`  | `/api/uptime/history/:endpointId` | Optional | Retrieve recent checks for specific endpoint (max 10000)    |
+| `POST` | `/api/uptime/checks`              | Optional | Store a single health check result                          |
 
 ### User Profile
 
@@ -402,11 +441,11 @@ VITE_ENABLE_ANALYTICS=true    # optional
 
 ```txt
 1️⃣  RAW SOURCE DATA (datasets/raw/*)
-    ↓ extract_*.js (CSV/PDF/JSON/API) or scrape_*.js (Puppeteer)
+    ↓ extract_*.js or scrape_*.js (35 scripts)
 
 2️⃣  PROCESSED DATASETS (datasets/processed/*.csv)
     Standard columns: id, problem, solution, materials, circular_strategy,
-    category, impact, source_url, metadata_json — 34 total datasets
+    category, impact, source_url, metadata_json — 32 total datasets
 
 3️⃣  MANUAL ENTRIES (datasets/manual_entries/manual_entries.csv)
     User-contributed problem/solution pairs (same column format)
@@ -515,12 +554,16 @@ npm run lint      # ESLint
 ```bash
 npm run dev          # Start both frontend and backend
 npm run lint         # ESLint across workspace
+npm run lint:errors   # ESLint errors only
 npm run lint:fix     # Auto-fix ESLint issues
 npm run format       # Prettier formatting
-npm run fix-all      # Lint fix + format
+npm run knip         # Find unused files and dependencies
+npm run knip:fix     # Auto-fix knip issues
+npm run fix-all      # Lint fix + format + knip fix
 npm run test         # Run all test suites
 npm run build        # Build all packages
 npm run clean        # Clean node_modules across workspace
+npm run rei          # Clean + reinstall all dependencies
 ```
 
 ### Development Workflow
@@ -551,6 +594,13 @@ node --test                                                     # All tests
 node --test tests/services/scoring-logic-enrichment.test.js    # Layer 2 enrichment (33 tests)
 node --test tests/api/assessments-routes.test.js               # Assessment API integration
 node --test tests/api/scoring.rpc.test.js                      # Scoring pipeline
+node --test tests/api/health.test.js                           # Health endpoints
+node --test tests/api/analytics.enhanced.test.js               # Analytics endpoints
+node --test tests/api/api-auth.test.js                         # API authentication
+node --test tests/api/anonymous.test.js                        # Anonymous tracking
+node --test tests/api/apiKeyGuard.test.js                      # API key guard
+node --test tests/database/documents.repository.test.js             # Repository layer
+node --test tests/utils/score-validation.test.js                 # Input validation
 ```
 
 ### Frontend Tests
@@ -788,7 +838,6 @@ npm run embed -- --dry-run  # test locally without API calls
 **CORS errors in browser console:**
 
 - Backend `ALLOWED_ORIGINS` must include `*.vercel.app` and your custom domain
-- Check `PUBLIC_ROUTES` list if a route should be accessible without the header
 
 ### Debug Logging
 
@@ -800,7 +849,7 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 
 ## Datasets Included
 
-**34 processed datasets** from diverse authoritative sources:
+**32 processed datasets** from diverse authoritative sources:
 
 - GreenTechGuardians: 2,286 case studies
 - Ellen MacArthur Foundation: 3,825+ case studies
@@ -817,6 +866,6 @@ For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERE
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 02 May 2026
+**Last Updated:** 09 May 2026
 
 ---

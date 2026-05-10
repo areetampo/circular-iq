@@ -23,7 +23,7 @@ Complete guide for executing the document processing pipeline that transforms CS
 >
 > - View the script file header: `datasets/scripts/scrape_ecesp.js` (lines 1-30)
 > - See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md#dataset-inventory) for complete documentation
-> - Check the [dataset inventory](DATASETS_REFERENCE.md#complete-dataset-inventory-34-datasets) for all 34 registered datasets
+> - Check the [dataset inventory](DATASETS_REFERENCE.md#complete-dataset-inventory-32-datasets) for all 32 registered datasets
 >
 > **Backup & Recovery Mode:** scraper scripts save intermediate results every N pages to `datasets/archives/scrape_backup/<dataset>_scrape_backup.csv`. If a scrape is interrupted (network timeout, user cancellation), you can rebuild the final CSV from saved backup content:
 >
@@ -92,7 +92,7 @@ whatever is in the environment. See individual stage commands below for examples
 
 **Location:** `datasets/processed/`
 
-Contains 32 standardized CSV files from diverse sources:
+Contains 32+ standardized CSV files from diverse sources:
 
 - GreenTechGuardians: 2,286 case studies
 - Ellen MacArthur Foundation: 3,825+ case studies
@@ -189,7 +189,7 @@ MIN_PROBLEM_LENGTH=20
 MIN_SOLUTION_LENGTH=20
 ```
 
-The chunking logic is implemented in `services/chunking.service.js`.
+The chunking logic is implemented in `pipeline/generate_chunks.js`.
 
 ## Stage 3: Embedding Generation
 

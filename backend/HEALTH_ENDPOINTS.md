@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Circular Economy API now includes comprehensive health monitoring endpoints that provide detailed insights into system health, dependencies, and performance metrics.
+The Circular Economy API includes comprehensive health monitoring endpoints that provide detailed insights into system health, dependencies, and performance metrics. The health check system is implemented in `services/health.service.js` and provides multiple levels of health verification from basic load balancer checks to detailed system diagnostics.
 
 ## Base Endpoint: `/health`
 
@@ -69,7 +69,6 @@ GET /health?detailed=true&checks=database,openai
       "status": "healthy",
       "environment": "production",
       "apiAuthEnabled": true,
-      "publicRoutes": ["/health", "/api/score", "/api/score/stream", "/api/assessments/public"],
       "timestamp": "2025-01-19T10:35:00.000Z"
     }
   }
@@ -86,6 +85,15 @@ GET /health/database
 
 **Purpose**: Check database connectivity and performance
 **Response**: Database connection status, type, and response time
+
+### Aiven Database Health
+
+```txt
+GET /health/database/aiven
+```
+
+**Purpose**: Check Aiven PostgreSQL database connectivity and performance
+**Response**: Aiven database connection status, type, and response time
 
 ### OpenAI API Health
 
@@ -208,3 +216,52 @@ The health endpoints are designed to work with:
 - No sensitive information is exposed
 - API keys and secrets are masked in responses
 - Configuration checks only validate presence, not values
+
+## Uptime Monitor Integration
+
+The health endpoints are automatically polled by the uptime monitoring system:
+
+- **Polling Interval**: Every 30 seconds (production only)
+- **Endpoints Monitored**: `/health`, `/health?detailed=true`, `/health/database`, `/health/database/aiven`, `/health/openai`, `/health/system`, `/health/config`, `/health/readiness`, `/health/liveness`, `/health/version`
+- **Data Storage**: Results stored in `uptime_checks` table with 7-day retention
+- **Dashboard**: Real-time visualization available at `/uptime-monitor` in frontend
+- **Cleanup**: Automatic cleanup of records older than 7 days runs daily
+
+### Monitored Metrics
+
+- **Response Time**: Measured for each endpoint in milliseconds
+- **Status**: Boolean `up` flag based on HTTP status and response validation
+- **Payload**: Full JSON response stored for historical analysis
+- **Endpoint Classification**:
+  - `health`: Basic application health endpoint
+  - `detailed`: Comprehensive health check with all subsystems
+  - `database`: Database connectivity and performance
+  - `database-aiven`: Aiven PostgreSQL database connectivity and performance
+  - `openai`: External API connectivity
+  - `system`: System resources and Node.js runtime metrics
+  - `config`: Configuration validation and environment status
+  - `readiness`: Kubernetes readiness probe status
+  - `liveness`: Kubernetes liveness probe status
+  - `version`: Build and version information
+
+### Documentation
+
+The uptime monitoring dashboard is fully documented in:
+
+- `frontend/src/pages/UptimeMonitorPage/README.md` - Complete architecture, components, and usage guide
+
+This includes detailed information about:
+
+- Real-time dashboard components and charts
+- Data aggregation and visualization
+- Export functionality and metrics
+- Frontend refresh intervals and state management
+
+### Configuration
+
+Uptime monitoring is controlled by:
+
+- `BACKEND_CONFIG.uptime.pollingEnabled` (automatically `true` when `NODE_ENV=production`)
+- `BACKEND_CONFIG.uptime.pollIntervalMs` (default: 30000ms)
+- `BACKEND_CONFIG.uptime.retentionDays` (default: 7 days)
+- `BACKEND_CONFIG.uptime.endpoints` array of endpoint paths to monitor
