@@ -3,7 +3,7 @@ import { Lightbulb, MoveRight, Target } from 'lucide-react';
 
 import { BUSINESS_CONTEXT_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 
 export default function BusinessContextHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

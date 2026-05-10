@@ -15,7 +15,7 @@ import {
 import { EVALUATION_PARAMETERS_HEADING_CONTENT } from '@/constants/drawers';
 import { factorDefinitions } from '@/constants/evaluationData';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 
 // Icon mapping for each factor
 const FACTOR_ICONS = {

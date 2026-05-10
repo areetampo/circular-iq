@@ -13,7 +13,7 @@ import React from 'react';
 import { Separator } from '@/components/common';
 import { ASSESSMENT_METHODOLOGY_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 export default function AssessmentMethodologyDrawer() {

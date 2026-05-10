@@ -11,12 +11,10 @@ import {
 import { parameterGroups, parameterLabels } from '@/constants/evaluationData';
 import { GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
-// Helper function to format business context labels and values
-
-export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase, requestSelectCase }) {
+export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   if (!testCase) return null;
 
   const { title, problem, solution, evaluationParameters, businessContext } = testCase;

@@ -3,7 +3,7 @@ import { ClipboardPenLine, Lightbulb } from 'lucide-react';
 
 import { SAMPLE_TEST_CASES_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 
 export default function SampleTestCasesHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

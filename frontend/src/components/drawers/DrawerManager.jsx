@@ -1,17 +1,16 @@
-import {
-  AssessmentMethodologyDrawer,
-  BusinessContextHeadingInfoDrawer,
-  BusinessProblemInfoDrawer,
-  BusinessSolutionInfoDrawer,
-  EvaluationCriteriaDrawer,
-  EvaluationParametersHeadingInfoDrawer,
-  ResultsDatabaseEvidenceDetailsDrawer,
-  SampleTestCasesHeadingInfoDrawer,
-  SpecificEvaluationParameterInfoDrawer,
-  SpecificSampleTestCaseViewDetailsDrawer,
-} from '@/components/drawers';
-import DRAWERS from '@/components/drawers/drawerTypes';
+import DRAWER_TYPES from '@/constants/drawerTypes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
+
+import AssessmentMethodologyDrawer from './AssessmentMethodologyDrawer';
+import BusinessContextHeadingInfoDrawer from './BusinessContextHeadingInfoDrawer';
+import BusinessProblemInfoDrawer from './BusinessProblemInfoDrawer';
+import BusinessSolutionInfoDrawer from './BusinessSolutionInfoDrawer';
+import EvaluationCriteriaDrawer from './EvaluationCriteriaDrawer';
+import EvaluationParametersHeadingInfoDrawer from './EvaluationParametersHeadingInfoDrawer';
+import ResultsDatabaseEvidenceDetailsDrawer from './ResultsDatabaseEvidenceDetailsDrawer';
+import SampleTestCasesHeadingInfoDrawer from './SampleTestCasesHeadingInfoDrawer';
+import SpecificEvaluationParameterInfoDrawer from './SpecificEvaluationParameterInfoDrawer';
+import SpecificSampleTestCaseViewDetailsDrawer from './SpecificSampleTestCaseViewDetailsDrawer';
 
 export default function DrawerManager() {
   const { drawer } = useGlobalDrawer();
@@ -23,39 +22,34 @@ export default function DrawerManager() {
   if (!type) return null;
 
   switch (type) {
-    case DRAWERS.ASSESSMENT_METHODOLOGY:
+    case DRAWER_TYPES.ASSESSMENT_METHODOLOGY:
       return <AssessmentMethodologyDrawer />;
 
-    case DRAWERS.EVALUATION_CRITERIA:
+    case DRAWER_TYPES.EVALUATION_CRITERIA:
       return <EvaluationCriteriaDrawer />;
 
-    case DRAWERS.BUSINESS_PROBLEM_INFO:
+    case DRAWER_TYPES.BUSINESS_PROBLEM_INFO:
       return <BusinessProblemInfoDrawer />;
 
-    case DRAWERS.BUSINESS_SOLUTION_INFO:
+    case DRAWER_TYPES.BUSINESS_SOLUTION_INFO:
       return <BusinessSolutionInfoDrawer />;
 
-    case DRAWERS.BUSINESS_CONTEXT_HEADING_INFO:
+    case DRAWER_TYPES.BUSINESS_CONTEXT_HEADING_INFO:
       return <BusinessContextHeadingInfoDrawer />;
 
-    case DRAWERS.EVALUATION_PARAMETERS_HEADING_INFO:
+    case DRAWER_TYPES.EVALUATION_PARAMETERS_HEADING_INFO:
       return <EvaluationParametersHeadingInfoDrawer />;
 
-    case DRAWERS.SPECIFIC_EVALUATION_PARAMETER_INFO:
+    case DRAWER_TYPES.SPECIFIC_EVALUATION_PARAMETER_INFO:
       return <SpecificEvaluationParameterInfoDrawer paramKey={data?.paramKey} />;
 
-    case DRAWERS.SAMPLE_TEST_CASES_HEADING_INFO:
+    case DRAWER_TYPES.SAMPLE_TEST_CASES_HEADING_INFO:
       return <SampleTestCasesHeadingInfoDrawer />;
 
-    case DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS:
-      return (
-        <SpecificSampleTestCaseViewDetailsDrawer
-          testCase={data?.testCase}
-          requestSelectCase={data?.requestSelectCase}
-        />
-      );
+    case DRAWER_TYPES.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS:
+      return <SpecificSampleTestCaseViewDetailsDrawer testCase={data?.testCase} />;
 
-    case DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS:
+    case DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS:
       return <ResultsDatabaseEvidenceDetailsDrawer data={data || {}} />;
 
     default:

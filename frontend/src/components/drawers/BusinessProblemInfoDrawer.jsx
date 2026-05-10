@@ -3,7 +3,7 @@ import { ClipboardMinus, Globe, Info, MapPin, Target, TrendingUp, Users, Zap } f
 
 import { BUSINESS_PROBLEM_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 
 // Icon mapping for business problem elements
 const ELEMENT_ICONS = {

@@ -16,7 +16,7 @@ import {
 
 import { BUSINESS_SOLUTION_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 
 // Icon mapping for business solution components
 const COMPONENT_ICONS = {

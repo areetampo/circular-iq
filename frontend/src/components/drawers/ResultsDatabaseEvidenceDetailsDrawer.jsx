@@ -16,9 +16,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import { Chip } from '@/components/common';
-import DRAWERS from '@/components/drawers/drawerTypes';
+import DRAWER_TYPES from '@/constants/drawerTypes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 import { getMatchStrength } from '@/utils/content';
 
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
@@ -27,7 +27,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
 
   // Check if this specific drawer is open and matches the expected type
   const isThisDrawerOpen =
-    drawer?.type === DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS && drawer?.isOpen;
+    drawer?.type === DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS && drawer?.isOpen;
 
   // Reusable component for sections with heading and content
   const DetailSection = ({ title, icon, content, fallback = null }) => {

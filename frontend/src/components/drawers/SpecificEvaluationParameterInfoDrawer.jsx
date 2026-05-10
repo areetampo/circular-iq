@@ -5,7 +5,7 @@ import { SPECIFIC_PARAMETER_CONTENT } from '@/constants/drawers';
 import { parameterGuidance, parameterLabels } from '@/constants/evaluationData';
 import { DEFAULT_CONFIG, GROUP_STYLE_CONFIG } from '@/constants/groupStyleConfig';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { useDrawerDirection } from '@/hooks/useDrawerDirection';
+import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
