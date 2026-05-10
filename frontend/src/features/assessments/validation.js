@@ -1,17 +1,60 @@
 import { z } from 'zod';
 
 import { getCharacterCount } from '@/lib/validation';
+import { dominantCharRatio, nonLetterDensity, uniqueWordRatio } from '@/utils/formHelpers';
 
 /**
- * Assessment form validation schema
+ * Evaluation form validation schema
  */
-export const assessmentSchema = z.object({
-  businessProblem: z.string().refine((val) => getCharacterCount(val) >= 200, {
-    message: 'Business problem must be at least 200 characters',
-  }),
-  businessSolution: z.string().refine((val) => getCharacterCount(val) >= 200, {
-    message: 'Business solution must be at least 200 characters',
-  }),
+export const evaluationFormSchema = z.object({
+  businessProblem: z
+    .string()
+    .refine((val) => getCharacterCount(val) >= 200, {
+      message: 'Business problem must be at least 200 characters (excluding spaces)',
+    })
+    .refine((val) => uniqueWordRatio(val) >= 0.3, {
+      message: 'Problem appears repetitive - please add more specific details',
+    })
+    .refine((val) => nonLetterDensity(val) <= 0.25, {
+      message: 'Problem contains too many special characters',
+    })
+    .refine((val) => dominantCharRatio(val) <= 0.5, {
+      message: 'Problem appears to have repetitive character patterns',
+    })
+    .refine(
+      (val) =>
+        !/^[a-z]{1,3}$/i.test(val) &&
+        !/^-{3,}$/.test(val) &&
+        !/^x{3,}$/.test(val) &&
+        !/^(test|lorem|ipsum)/i.test(val),
+      {
+        message: 'Please provide meaningful business problem description',
+      },
+    ),
+  businessSolution: z
+    .string()
+    .refine((val) => getCharacterCount(val) >= 200, {
+      message: 'Business solution must be at least 200 characters (excluding spaces)',
+    })
+    .refine((val) => uniqueWordRatio(val) >= 0.3, {
+      message: 'Solution appears repetitive - please add more specific details',
+    })
+    .refine((val) => dominantCharRatio(val) <= 0.5, {
+      message: 'Solution appears to have repetitive character patterns',
+    })
+    .refine((val) => nonLetterDensity(val) <= 0.25, {
+      message: 'Solution contains too many special characters',
+    })
+    .refine(
+      (val) =>
+        !/^[a-z]{1,3}$/i.test(val) &&
+        !/^-{3,}$/.test(val) &&
+        !/^x{3,}$/.test(val) &&
+        !/^(test|lorem|ipsum)/i.test(val),
+      {
+        message: 'Please provide meaningful business solution description',
+      },
+    ),
   evaluationParameters: z.object({
     public_participation: z
       .number()
@@ -85,9 +128,9 @@ export const assessmentSchema = z.object({
 });
 
 /**
- * Default values for assessment form
+ * Default values for evaluation form
  */
-export const defaultValues = {
+export const evaluationFormDefaults = {
   businessProblem: '',
   businessSolution: '',
   evaluationParameters: {

@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Zod schema for sub_scores validation
  * All parameters must be 0-100 numeric values
  */
-export const SubScoresSchema = z.object({
+const SubScoresSchema = z.object({
   public_participation: z.number().min(0).max(100).optional(),
   infrastructure: z.number().min(0).max(100).optional(),
   market_price: z.number().min(0).max(100).optional(),
@@ -18,7 +18,7 @@ export const SubScoresSchema = z.object({
 /**
  * Zod schema for metadata validation
  */
-export const MetadataSchema = z
+const MetadataSchema = z
   .object({
     industry: z.string().optional(),
     businessModel: z.string().optional(),
@@ -30,20 +30,9 @@ export const MetadataSchema = z
   .passthrough(); // Allow additional properties
 
 /**
- * Zod schema for case summary information
- */
-export const CaseSummarySchema = z.object({
-  case_id: z.string().or(z.number()).optional(),
-  title: z.string().optional(),
-  problem: z.string().optional(),
-  solution: z.string().optional(),
-  similarity: z.number().min(0).max(1).optional(),
-});
-
-/**
  * Zod schema for audit information
  */
-export const AuditSchema = z
+const AuditSchema = z
   .object({
     confidence_score: z.number().min(0).max(100).optional(),
     technical_recommendations: z.array(z.string()).optional(),
@@ -59,7 +48,7 @@ export const AuditSchema = z
 /**
  * Zod schema for result_json structure
  */
-export const ResultJsonSchema = z
+const ResultJsonSchema = z
   .object({
     overall_score: z.number().min(0).max(100),
     confidence_level: z.number().min(0).max(100).optional(),
@@ -93,7 +82,7 @@ export const ResultJsonSchema = z
 /**
  * Complete Assessment schema for database records
  */
-export const AssessmentSchema = z
+const AssessmentSchema = z
   .object({
     id: z.string().uuid().optional().or(z.number().optional()), // Allow both UUID string and number from database
     name: z.string().min(1).optional(),
@@ -138,55 +127,11 @@ export const AssessmentSchema = z
 /**
  * Schema for assessment list response
  */
-export const AssessmentsListSchema = z.object({
+const AssessmentsListSchema = z.object({
   assessments: z.array(AssessmentSchema),
   total: z.number().int().min(0),
   page: z.number().int().min(1).optional(),
   pageSize: z.number().int().min(1).optional(),
-});
-
-/**
- * Schema for single assessment response
- */
-export const AssessmentResponseSchema = z
-  .object({
-    assessment: AssessmentSchema.optional(),
-    error: z.string().optional(),
-  })
-  .passthrough();
-
-/**
- * Schema for market analysis response
- */
-export const MarketAnalysisSchema = z.object({
-  marketData: z.array(
-    z.object({
-      industry: z.string(),
-      avg_score: z.number(),
-      min_score: z.number().optional(),
-      max_score: z.number().optional(),
-      avg_confidence: z.number().optional(),
-      avg_tech_feas: z.number().optional(),
-      avg_econ_viab: z.number().optional(),
-      avg_circ_pot: z.number().optional(),
-      scale: z.string(),
-      count: z.number().int(),
-      r_strategy: z.string().optional(),
-    }),
-  ),
-  stats: z
-    .object({
-      min_score: z.number(),
-      max_score: z.number(),
-      avg_score: z.number(),
-      avg_confidence: z.number().optional(),
-      avg_technical_feasibility: z.number().optional(),
-      avg_economic_viability: z.number().optional(),
-      avg_circularity_potential: z.number().optional(),
-      total_count: z.number().optional(),
-    })
-    .optional(),
-  userScore: z.number().optional(),
 });
 
 /**
@@ -205,35 +150,8 @@ export function validateAssessment(data) {
  * @returns {Object} Validated assessment list
  * @throws {z.ZodError} If validation fails
  */
-export function validateAssessmentsList(data) {
+function validateAssessmentsList(data) {
   return AssessmentsListSchema.parse(data);
-}
-
-/**
- * Validates and parses result_json
- * @param {unknown} data - Raw data to validate
- * @returns {Object} Validated result data
- * @throws {z.ZodError} If validation fails
- */
-export function validateResultJson(data) {
-  return ResultJsonSchema.parse(data);
-}
-
-/**
- * Safe validation that returns null on failure instead of throwing
- * @param {unknown} data - Raw data to validate
- * @returns {Object|null} Validated data or null if validation fails
- */
-export function safeValidateAssessment(data) {
-  try {
-    return validateAssessment(data);
-  } catch (error) {
-    logger.warn(
-      '[VALIDATION_WARNING] Assessment data does not match strict schema, using raw data:',
-      error.message,
-    );
-    return null;
-  }
 }
 
 /**
