@@ -15,7 +15,7 @@
  * @module search.controller
  */
 
-import * as ceCasesRepository from '#database/repositories/ce_cases.repository.js';
+import { searchHybrid, searchKeyword } from '#database/index.js';
 import { createEmbedding } from '#services/embedding.service.js';
 import { logOperation } from '#utils/controller-helpers.js';
 
@@ -45,7 +45,7 @@ function formatResult(row) {
     if (row.source_url) {
       sourceDisplay = new URL(row.source_url).hostname.replace(/^www\./, '');
     }
-  } catch (_) {
+  } catch {
     sourceDisplay = row.source_url;
   }
 
@@ -128,7 +128,7 @@ export function searchCeCases(supabase) {
       let rawResults;
 
       if (mode === 'keyword') {
-        rawResults = await ceCasesRepository.searchKeyword(supabase, query, limit);
+        rawResults = await searchKeyword(supabase, query, limit);
       } else {
         // Hybrid: embed the query first, then pass vector + keyword to RPC
         let queryEmbedding;
@@ -143,13 +143,7 @@ export function searchCeCases(supabase) {
           });
         }
 
-        rawResults = await ceCasesRepository.searchHybrid(
-          supabase,
-          queryEmbedding,
-          query,
-          limit,
-          vectorWeight,
-        );
+        rawResults = await searchHybrid(supabase, queryEmbedding, query, limit, vectorWeight);
       }
 
       // ── 3. Format & respond ───────────────────────────────────────────────
@@ -157,7 +151,7 @@ export function searchCeCases(supabase) {
 
       const processingMs = Date.now() - startTime;
       logger.info({ query, mode, resultCount: results.length, processingMs }, 'Search complete');
-      logOperation('searchCeCases', 'success', processingMs);
+      logOperation('searchCeCases', '/search', 'success', processingMs);
 
       return res.json({
         query,
@@ -172,7 +166,7 @@ export function searchCeCases(supabase) {
     } catch (error) {
       const processingMs = Date.now() - startTime;
       logger.error({ error, query: req.query.q }, 'CE cases search error');
-      logOperation('searchCeCases', 'error', processingMs);
+      logOperation('searchCeCases', '/search', 'error', processingMs);
 
       return res.status(500).json({
         error: error.message || 'Search failed',

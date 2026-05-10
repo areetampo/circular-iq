@@ -25,11 +25,9 @@ import {
 import {
   extractIPAddress,
   getIdentifierFromRequest,
-  MAX_FREE_TRIES,
+  SCORING_MAX_FREE_TRIES,
 } from '#utils/anonymousTracking.js';
 import { logOperation } from '#utils/controller-helpers.js';
-
-const IS_PROD = BACKEND_CONFIG.isProduction;
 
 /**
  * Enforce anonymous usage limits
@@ -48,11 +46,14 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     const authHeader = req.headers.authorization || '';
 
     // If there's no Bearer header but we're running tests, treat as authenticated
+    if (!authHeader.startsWith('Bearer ') && IS_TEST) {
+      logger.info({ isTest: true }, 'Test environment detected - skipping anonymous usage check');
+      return null;
+    }
+
+    // If there's no Bearer header, proceed as anonymous user
     if (!authHeader.startsWith('Bearer ')) {
-      if (IS_TEST) {
-        logger.info({ isTest: true }, 'Test environment detected - skipping anonymous usage check');
-        return null;
-      }
+      logger.info({ authenticated: false }, 'No Bearer token present — treating as anonymous');
     } else {
       const token = authHeader.slice(7).trim();
       const MASTER_API_KEY = BACKEND_CONFIG.app.apiKey;
@@ -131,7 +132,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // Race the database call against the timeout
     const rpcPromise = serviceSupabase.rpc('check_and_increment_anonymous_usage', {
       p_identifier_hash: hash,
-      p_max_tries: MAX_FREE_TRIES,
+      p_max_tries: SCORING_MAX_FREE_TRIES,
       p_ip_hash: ipHash,
       p_user_agent_snippet: uaSnippet,
     });
@@ -181,7 +182,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // 7. Check if limit reached
     if (!is_allowed) {
       logger.info(
-        { currentCount: current_count, limit: MAX_FREE_TRIES },
+        { currentCount: current_count, limit: SCORING_MAX_FREE_TRIES },
         'Anonymous user limit reached',
       );
       return {
@@ -189,17 +190,20 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
         status: 403,
         body: {
           code: 'LIMIT_REACHED',
-          message: `You've used your ${MAX_FREE_TRIES} free evaluations. Create an account to continue assessing your circular economy initiatives!`,
+          message: `You've used your ${SCORING_MAX_FREE_TRIES} free evaluations. Create an account to continue assessing your circular economy initiatives!`,
           remaining: 0,
           currentCount: current_count,
-          limit: MAX_FREE_TRIES,
+          limit: SCORING_MAX_FREE_TRIES,
           scoringRateLimiter: false,
         },
       };
     }
 
     // 8. Allow request
-    logger.info({ currentCount: current_count, limit: MAX_FREE_TRIES }, 'Anonymous user allowed');
+    logger.info(
+      { currentCount: current_count, limit: SCORING_MAX_FREE_TRIES },
+      'Anonymous user allowed',
+    );
     return null;
   } catch (e) {
     logger.error({ e }, 'Anonymous usage check failed');
@@ -661,7 +665,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
               .trim();
           }
         }
-      } catch (_) {
+      } catch {
         // metadata_json parse failed
       }
 
@@ -681,7 +685,7 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
         if (rawSourceUrl) {
           sourceDisplay = new URL(rawSourceUrl).hostname.replace(/^www\./, '');
         }
-      } catch (_) {
+      } catch {
         sourceDisplay = rawSourceUrl;
       }
 
@@ -851,11 +855,11 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
       });
 
     // --- RETURN TO CONTROLLER ---
-    logOperation('performScoring', 'success', Date.now() - startTime);
+    logOperation('performScoring', '/scoring', 'success', Date.now() - startTime);
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
     logger.error({ requestId, error }, 'Scoring request error');
-    logOperation('performScoring', 'error', Date.now() - startTime);
+    logOperation('performScoring', '/scoring', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -1320,7 +1324,7 @@ export async function performScoringWithStream(
               .trim();
           }
         }
-      } catch (_) {
+      } catch {
         // metadata_json parse failed
       }
 
@@ -1340,7 +1344,7 @@ export async function performScoringWithStream(
         if (rawSourceUrl) {
           sourceDisplay = new URL(rawSourceUrl).hostname.replace(/^www\./, '');
         }
-      } catch (_) {
+      } catch {
         sourceDisplay = rawSourceUrl;
       }
 
@@ -1513,11 +1517,11 @@ export async function performScoringWithStream(
     emitter('done', 'Complete!', { result: response });
 
     // --- RETURN TO CONTROLLER ---
-    logOperation('performScoringWithStream', 'success', Date.now() - startTime);
+    logOperation('performScoringWithStream', '/scoring/stream', 'success', Date.now() - startTime);
     return response; // The controller gets this immediately while the .insert() is still in-flight
   } catch (error) {
     logger.error({ requestId, error }, 'Scoring request error (stream)');
-    logOperation('performScoringWithStream', 'error', Date.now() - startTime);
+    logOperation('performScoringWithStream', '/scoring/stream', 'error', Date.now() - startTime);
     throw error;
   }
 }

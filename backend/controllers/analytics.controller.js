@@ -10,54 +10,6 @@ import path from 'path';
 import { safeNumber } from '#utils/analyticsHelpers.js';
 
 /**
- * Parse time range string to extract number of days
- * @param {string} timeRange - Time range string (e.g., "30d", "90d", "all")
- * @returns {number|null} Number of days or null if invalid
- */
-function parseTimeRange(timeRange) {
-  if (!timeRange) return null;
-  const normalized = String(timeRange).trim().toLowerCase();
-  if (!normalized || normalized === 'all') return null;
-  const match = normalized.match(/^(\d+)d$/);
-  if (!match) return null;
-  const days = Number(match[1]);
-  if (!Number.isFinite(days) || days <= 0) return null;
-  return days;
-}
-
-/**
- * Extract overall score from a database row
- * @param {Object} row - Database row containing score information
- * @returns {number} Overall score or 0 if not found
- */
-function getScoreFromRow(row) {
-  if (!row) return 0;
-  if (row.result_json && row.result_json.overall_score != null) {
-    return safeNumber(row.result_json.overall_score);
-  }
-  if (row.overall_score != null) {
-    return safeNumber(row.overall_score);
-  }
-  return 0;
-}
-
-/**
- * Calculate standard deviation of an array of numbers
- * @param {Array<number>} arr - Array of numbers
- * @returns {number} Standard deviation rounded to 2 decimal places
- */
-function computeStdDev(arr) {
-  if (!arr || arr.length === 0) return 0;
-  const n = arr.length;
-  const mean = arr.reduce((s, v) => s + v, 0) / n;
-  const variance =
-    n > 1
-      ? arr.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / (n - 1)
-      : arr.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / n;
-  return Number(Math.sqrt(variance).toFixed(2));
-}
-
-/**
  * Compute ISO week key in format YYYY-Www for a UTC date
  * @param {Date} date - Date object
  * @returns {string|null} ISO week key (e.g., "2024-W01") or null if invalid
