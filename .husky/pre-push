@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 
-# ─── Skip flags ──────────────────────────────────────────────────────
-# GIT_PUSH_OPTION_* is only available in server-side hooks (pre-receive,
-# post-receive), NOT in pre-push. Use environment variables instead:
+# ─── Usage (run these in PowerShell) ─────────────────────────────────
 #
-#   SKIP_BUILD=true git push
-#   SKIP_TESTS=true git push
-#   SKIP_MIGRATION=true git push
+#   Full run (default):
+#     git push
 #
-# Combine as needed:
-#   SKIP_TESTS=true SKIP_MIGRATION=true git push
+#   Skip individual steps:
+#     $env:SKIP_TESTS="true"; git push
+#     $env:SKIP_BUILD="true"; git push
+#     $env:SKIP_MIGRATION="true"; git push
+#
+#   Skip multiple:
+#     $env:SKIP_TESTS="true"; $env:SKIP_BUILD="true"; git push
+#
+#   Skip everything:
+#     $env:SKIP_TESTS="true"; $env:SKIP_BUILD="true"; $env:SKIP_MIGRATION="true"; git push
+#
+# ─────────────────────────────────────────────────────────────────────
 
 SKIP_BUILD="${SKIP_BUILD:-false}"
 SKIP_TESTS="${SKIP_TESTS:-false}"
