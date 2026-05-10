@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { createContext, useContext } from 'react';
 
-import useDrawer from '@/hooks/useDrawer';
+import { useDrawer } from '@/hooks';
 
 const DrawerContext = createContext();
 

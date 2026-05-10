@@ -9,8 +9,9 @@ import PropTypes from 'prop-types';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { FRONTEND_CONFIG } from '@/config';
-import { clearEvaluationState, getSessionId } from '@/lib/storage';
+import { clearEvaluationState } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
+import { getSessionId } from '@/utils/session';
 
 // Create the context
 const AuthContext = createContext(undefined);
