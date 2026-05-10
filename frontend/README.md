@@ -143,7 +143,7 @@ VITE_ENABLE_ANALYTICS=true
 
 Access configuration via `FRONTEND_CONFIG` anywhere in the app:
 
-```javascript
+```js
 import { FRONTEND_CONFIG } from '@/config';
 
 FRONTEND_CONFIG.apiUrl; // Backend URL
@@ -189,7 +189,7 @@ Browser → /api/proxy?path=/api/score → Vercel Function → adds x-api-key �
 
 Always use `buildApiUrl()` for all backend calls:
 
-```javascript
+```js
 import { buildApiUrl } from '@/lib/apiClient';
 
 // Automatic proxy routing in production, direct URL in development
@@ -206,13 +206,13 @@ const response = await fetch(url, {
 
 **Global state** (React Contexts):
 
-```javascript
+```js
 import { useAuth, useDialog, useDrawer } from '@/hooks'; // Supabase user session, dialogs, drawers
 ```
 
 **Server state** (TanStack React Query):
 
-```javascript
+```js
 import { useAssessment, useAssessments, useGlobalStats } from '@/features/assessments/hooks';
 
 const { assessment, isLoading } = useAssessment(id);
@@ -229,7 +229,7 @@ Benefits of React Query:
 
 ### Context Usage
 
-```javascript
+```js
 // Open a dialog
 const { openDeleteAssessmentDialog } = useDialog();
 openDeleteAssessmentDialog({
@@ -266,7 +266,7 @@ import { Card, Skeleton, Chip, Input } from '@heroui/react';
 
 **Custom hooks:**
 
-```javascript
+```js
 const { user, isLoading } = useAuth();
 const { showToast } = useToast();
 const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -323,7 +323,7 @@ const hasEnoughData = data.length >= 2 && data.reduce((s, d) => s + d.value, 0) 
 
 Saved assessments store both promoted scalar columns and a full `result_json` snapshot. Use `reconstructScoringResult()` to get the complete API shape from either source:
 
-```javascript
+```js
 import { reconstructScoringResult } from '@/features/assessments/utils';
 
 // Works with both freshly scored results and saved assessment records
@@ -369,7 +369,7 @@ result.gap_analysis;
 
 ### Key Routes (from AppRoutes.jsx)
 
-```javascript
+```js
 /                           // LandingPage — assessment input
 /auth                       // AuthPage — login/signup
 /guide                      // GuidePage — help & methodology
@@ -385,7 +385,7 @@ result.gap_analysis;
 
 ### Session Management
 
-```javascript
+```js
 import { useSession } from '@/features/session';
 
 const { restoreEvaluation, saveSession, clearSession } = useSession();
@@ -397,7 +397,7 @@ const { restoreEvaluation, saveSession, clearSession } = useSession();
 
 ### Metadata Helpers
 
-```javascript
+```js
 import { getIndustry } from '@/lib/metadata';
 
 // Prefers structured top-level columns over JSONB fallback:
@@ -457,7 +457,7 @@ describe('Button Component', () => {
 
 **Hook test:**
 
-```javascript
+```js
 import { renderHook } from '@testing-library/react';
 import { useDebounce } from '@/hooks';
 
@@ -543,7 +543,7 @@ Key points:
 
 Asynchronous backend data uses TanStack React Query for caching, deduplication, and background refresh:
 
-```javascript
+```js
 import { useAssessment } from '@/features/assessments/hooks';
 
 const { assessment, isLoading, error } = useAssessment(id);
@@ -551,7 +551,7 @@ const { assessment, isLoading, error } = useAssessment(id);
 
 Configure stale times for different data freshness requirements:
 
-```javascript
+```js
 useQuery({
   queryKey: ['global-stats'],
   queryFn: getGlobalStats,
@@ -564,7 +564,7 @@ useQuery({
 
 Complex logic lives in custom hooks, not components:
 
-```javascript
+```js
 export function useExportState() {
   const [isExporting, setIsExporting] = useState(false);
   // All export logic...
@@ -574,7 +574,7 @@ export function useExportState() {
 
 ### Constants Over Magic Values
 
-```javascript
+```js
 // ✓ Good
 import { validKeys, parameterGuidance } from '@/constants/evaluationData';
 if (validKeys.includes(parameterKey)) { ... }
@@ -611,7 +611,7 @@ import { Card, Skeleton, Chip, Input, Drawer } from '@heroui/react';
 
 Always use `cn()` from `@/utils/cn` when combining conditional classes:
 
-```javascript
+```js
 import { cn } from '@/utils/cn';
 
 <div
@@ -816,7 +816,7 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 - `src/utils/session.js` — localStorage key helpers
 - `src/lib/storage.js` — JSON-safe localStorage wrapper
 
-```javascript
+```js
 const { restoreEvaluation, saveSession, clearSession } = useSession();
 ```
 
@@ -850,7 +850,7 @@ All charts use consistent prop APIs — see the [Charts](#charts) section for co
 - `src/components/export/ExportActions.jsx` — export button UI
 - Uses Blob API for client-side generation (no server round-trip)
 
-```javascript
+```js
 import {
   exportAssessmentCSV,
   exportAssessmentPDF,
@@ -868,7 +868,7 @@ await exportComparisonPDF([assessment1, assessment2]); // triggers download
 
 The `documents` table has `industry` as a first-class indexed column. Use the helper that prefers structured columns over JSONB fallback:
 
-```javascript
+```js
 import { getIndustry } from '@/lib/metadata';
 
 const industry = getIndustry(assessment.result_json);
@@ -930,7 +930,7 @@ export default function ResultsPage() {
 
 #### Hooks
 
-```javascript
+```js
 // ✓ Good — custom hook extracts reusable logic
 export function useAssessmentStats({ enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
@@ -946,7 +946,7 @@ export function useAssessmentStats({ enabled = true } = {}) {
 
 #### API Calls
 
-```javascript
+```js
 // ✓ Good — use buildApiUrl for automatic proxy routing
 import { buildApiUrl } from '@/lib/apiClient';
 
@@ -961,7 +961,7 @@ const response = await fetch(url, {
 
 #### Constants
 
-```javascript
+```js
 // ✓ Good — centralised, named constants; no magic values
 import { parameterGuidance, validKeys } from '@/constants/evaluationData';
 
@@ -1085,7 +1085,7 @@ View detailed assessment results (owned by user).
 
 All routes use lazy loading for optimal performance:
 
-```javascript
+```js
 const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 ```
 
@@ -1093,7 +1093,7 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
 
 `SolutionsSearch` uses URL as the single source of truth — no `useState` for any search-derived value. All state is derived from `searchParams` on every render:
 
-```javascript
+```js
 const query = searchParams.get('searchQuery') || '';
 const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
   ? searchParams.get('mode')
@@ -1123,7 +1123,7 @@ Three validation effects run after results load: page clamp, filter value valida
 
 Routes are lazy-loaded automatically by React Router:
 
-```javascript
+```js
 const ResultsPage = lazy(() => import('@/pages/ResultsPage/ResultsPage'));
 ```
 
@@ -1146,7 +1146,7 @@ npm run build -- --analyze
 
 Configure React Query stale times appropriately:
 
-```javascript
+```js
 // Global dashboard stats — stale after 2 minutes, refetch on mount if stale
 useQuery({
   queryKey: ['global-stats'],

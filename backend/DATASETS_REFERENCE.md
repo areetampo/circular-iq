@@ -31,7 +31,7 @@ Each script (`datasets/scripts/scrape_*.js` and `datasets/scripts/extract_*.js`)
 
 Key functions include JSDoc comments:
 
-```javascript
+```js
 /**
  * Fetches and parses data from source
  * @param {string} url - The source URL
@@ -60,7 +60,7 @@ The `utils/datasetsUtils.js` module is the single source of truth for all datase
 
 Used throughout scripts instead of hardcoded relative paths:
 
-```javascript
+```js
 import {
   BACKEND_ROOT,
   DATASETS_DIR,
@@ -96,7 +96,7 @@ import {
 
 **DATASET_LOOKUP:** Quick lookup by key:
 
-```javascript
+```js
 import { DATASET_LOOKUP } from '#utils/datasetsUtils.js';
 const ds = DATASET_LOOKUP['emf'];
 // ds.name → 'EMF Case Studies'
@@ -105,7 +105,7 @@ const ds = DATASET_LOOKUP['emf'];
 
 **DATASET_KEYS:** Constant keys to avoid typos:
 
-```javascript
+```js
 import { DATASET_KEYS } from '#utils/datasetsUtils.js';
 console.log(DATASET_KEYS.c2c); // 'c2c'
 ```
@@ -114,7 +114,7 @@ console.log(DATASET_KEYS.c2c); // 'c2c'
 
 Always use these instead of constructing paths manually:
 
-```javascript
+```js
 // Get raw data directory (auto-creates if needed)
 const rawDir = getDatasetRawDir('epa');
 // → /absolute/path/datasets/raw/epa_tri
@@ -140,7 +140,7 @@ const logsPath = getDatasetScrapeLogsPath('c2c');
 
 **Directory and File Creation:**
 
-```javascript
+```js
 // Create directory recursively
 await ensureDir(dirPath);
 
@@ -154,7 +154,7 @@ ensureFileSync(filePath);
 
 **File Writing with Automatic Locking:**
 
-```javascript
+```js
 // Write CSV (automatically unlocks, writes, re-locks)
 await writeCsv(csvPath, rows, { clear: true });
 // clear: true → truncates file on first write (for batch stages)
@@ -173,7 +173,7 @@ await prepareWrite(filePath, { clear: false });
 
 **Backup Management:**
 
-```javascript
+```js
 // Read backup CSV (for recovery mode)
 const backupRows = await readBackupCsv(key);
 
@@ -189,7 +189,7 @@ await clearLogs(logsPath);
 
 **createBackupHelper():** For batched writes during long scrapes:
 
-```javascript
+```js
 import { createBackupHelper } from '#utils/datasetsUtils.js';
 
 const backup = createBackupHelper(
@@ -209,7 +209,7 @@ await backup.flush(); // Final flush
 
 **isBackupRecoveryMode():** Check for `--use-backup` flag:
 
-```javascript
+```js
 if (isBackupRecoveryMode()) {
   console.log('♻️ BACKUP RECOVERY MODE...');
   // Rebuild from saved backup instead of scraping
@@ -220,7 +220,7 @@ if (isBackupRecoveryMode()) {
 
 ### Text Processing & ID Generation
 
-```javascript
+```js
 import { cleanText, formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
 
 // Sanitize CSV text (remove quotes, newlines, etc.)
@@ -243,7 +243,7 @@ const padding = String(index).padStart(ID_DIGITS, '0');
 
 **CSV_COLUMNS:** Standard header for all datasets:
 
-```javascript
+```js
 import { CSV_COLUMNS, STRINGIFY_OPTIONS } from '#utils/datasetsUtils.js';
 
 // Create header row
@@ -261,7 +261,7 @@ const csv = stringify(rows, STRINGIFY_OPTIONS);
 
 For Puppeteer-based scrapers:
 
-```javascript
+```js
 import {
   getBrowserLaunchOptions,
   getViewportOptions,
@@ -695,7 +695,7 @@ Create either a **scraper script** (for web data) or **extraction script** (for 
 
 **For web scraping:**
 
-```javascript
+```js
 import {
   STRINGIFY_OPTIONS,
   formatId,
@@ -745,7 +745,7 @@ await fs.promises.chmod(OUTPUT_FILE, 0o444); // Read-only
 
 If you want to track dataset metadata for documentation, add an entry to the `DATASETS` array in `utils/datasetsUtils.js`. The object schema has expanded over time and now includes fields for raw folder contents, source URLs, and the backup folder name used by scrapers:
 
-```javascript
+```js
 {
   key: 'xyz',                              // unique short identifier used for prefixes
   name: 'Full Dataset Name',               // human-friendly title

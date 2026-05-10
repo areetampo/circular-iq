@@ -34,7 +34,7 @@ All backend scripts use `utils/datasetsUtils.js` helpers for consistent file han
 
 Before creating scripts, add your dataset to the registry in `backend/utils/datasetsUtils.js`:
 
-```javascript
+```js
 {
   key: 'my_source',           // Unique short identifier
   name: 'My Data Source',      // Human-readable title
@@ -73,7 +73,7 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
 
 2. **Import utilities from datasetsUtils.js:**
 
-   ```javascript
+   ```js
    import puppeteer from 'puppeteer';
    import {
      DATASET_LOOKUP,
@@ -99,7 +99,7 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
 
 3. **Use backup recovery pattern:**
 
-   ```javascript
+   ```js
    async function main() {
      if (isBackupRecoveryMode()) {
        console.log('♻️ BACKUP RECOVERY MODE...');
@@ -135,7 +135,7 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
 
 4. **Puppeteer helper functions:**
 
-   ```javascript
+   ```js
    // All these are imported from datasetsUtils.js
    const browser = await puppeteer.launch(getBrowserLaunchOptions());
    const page = await browser.newPage();
@@ -152,7 +152,7 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
 
 5. **Add file-level JSDoc header:**
 
-   ```javascript
+   ```js
    /**
     * scrape_my_source.js
     *
@@ -200,7 +200,7 @@ node datasets/scripts/scrape_my_source.js --append
 
 2. **Use pdf-parse and utilities:**
 
-   ```javascript
+   ```js
    import pdf from 'pdf-parse';
    import fs from 'fs';
    import {
@@ -262,7 +262,7 @@ node datasets/scripts/extract_my_source.js
 2. **Place raw file:** `datasets/raw/my_source/data.csv` (or .json, .xlsx)
 3. **Create extraction script:** `datasets/scripts/extract_my_source.js`
 
-```javascript
+```js
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -315,7 +315,7 @@ main().catch(console.error);
 
 **When to use:** Data available via REST or GraphQL API
 
-```javascript
+```js
 import axios from 'axios';
 import {
   DATASET_LOOKUP,
@@ -392,7 +392,7 @@ ID,problem,solution,materials,circular_strategy,category,impact,source_url,metad
 
 Use the `formatId()` helper from datasetsUtils.js:
 
-```javascript
+```js
 import { formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
 
 // With ID_DIGITS=5 (default)
@@ -407,7 +407,7 @@ formatId('c2c', 100000); // → 'c2c_100000' (auto-expands beyond 5 digits)
 
 Use `cleanText()` from datasetsUtils.js for CSV compatibility:
 
-```javascript
+```js
 import { cleanText } from '#utils/datasetsUtils.js';
 
 cleanText('Problem: \"Waste\" in\\nSupply chains');
@@ -423,7 +423,7 @@ This removes:
 
 ### CSV Writing with Standard Options
 
-```javascript
+```js
 import { writeCsv, CSV_COLUMNS, STRINGIFY_OPTIONS } from '#utils/datasetsUtils.js';
 
 // Write with automatic formatting
@@ -502,7 +502,7 @@ All stages should complete without errors.
 
 Every script needs a clear header block:
 
-```javascript
+```js
 /**
  * extract_my_source.js
  *
@@ -535,7 +535,7 @@ Every script needs a clear header block:
 
 For key functions, add JSDoc comments:
 
-```javascript
+```js
 /**
  * Scores a record based on data completeness and relevance.
  * @param {Object} record - The data record to score

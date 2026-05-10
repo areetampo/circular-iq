@@ -224,7 +224,7 @@ npm run embed        # write to out/ by default (add -- --archives for archives)
 
 Centralized in `config/embedding.js`:
 
-```javascript
+```js
 EMBEDDING_MODEL = 'text-embedding-3-small';
 EMBEDDING_DIMENSION = 1536;
 EMBEDDING_BATCH_SIZE = 20;
@@ -249,7 +249,7 @@ Write-Host $env:OPENAI_API_KEY.Substring(0, 3)
 
 Script auto-retries. To reduce frequency, edit `config/embedding.js`:
 
-```javascript
+```js
 EMBEDDING_BATCH_SIZE = 10; // Reduce from 20
 EMBEDDING_BATCH_DELAY_MS = 2000; // Increase from 500
 ```
