@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     await fetch(`${baseUrl}/health`);
 
     return res.status(200).json({ status: 'ok' });
-  } catch (err) {
+  } catch {
     return res.status(500).json({ status: 'error' });
   }
 }

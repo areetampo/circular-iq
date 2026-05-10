@@ -32,7 +32,7 @@ class MovingGrid {
       cellSize: 70, // grid spacing
       lineWidth: 0.8,
       strokeStyle: 'var(--color-bg-grid)',
-      globalAlpha: 0.175, // line color opacity
+      globalAlpha: 0.125, // line color opacity
       speedX: -0.25,
       speedY: -0.25,
       segmentGap: 4,

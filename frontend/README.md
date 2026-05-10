@@ -13,10 +13,11 @@ The frontend provides:
 2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
 3. **Solutions Search** — semantic search across 6,000+ real circular economy case studies
 4. **Global Activity** — live analytics from all scoring calls worldwide
-5. **Export Functionality** — PDF reports and CSV data exports
-6. **Assessment History** — save, rename, delete, compare, and share assessments
-7. **Session Management** — automatic save/restore across browser sessions
-8. **Anonymous Usage** — 5 free assessments with IP-based tracking; unlimited for logged-in users
+5. **Uptime Monitoring** — real-time system health dashboard with 30-second polling and 7-day history
+6. **Export Functionality** — PDF reports and CSV data exports
+7. **Assessment History** — save, rename, delete, compare, and share assessments
+8. **Session Management** — automatic save/restore across browser sessions
+9. **Anonymous Usage** — 5 free assessments with IP-based tracking; unlimited for logged-in users
 
 ## Tech Stack
 
@@ -37,268 +38,54 @@ The frontend provides:
 ## Directory Structure
 
 ```txt
-frontend/src/
-│
-├── app/
-│   ├── App.jsx              # Root component with providers and routing
-│   ├── AppRoutes.jsx        # All route definitions
-│   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
-│
-├── pages/
-│   ├── LandingPage/
-│   │   ├── LandingPage.jsx
-│   │   └── components/
-│   │       ├── BusinessContextContainer.jsx    # Optional context fields (model type, stage, geography, etc.)
-│   │       ├── EvaluationParametersContainer.jsx  # Guided mode toggle + 8-parameter scoring inputs
-│   │       ├── LiveCharacterCounter.jsx
-│   │       └── SampleTestCasesContainer.jsx    # Pre-filled example assessments
-│   │
-│   ├── ResultsPage/
-│   │   ├── ResultsPage.jsx
-│   │   └── components/
-│   │       ├── ScoreOverviewSection.jsx        # Overall score + derived metrics row
-│   │       ├── ScoreCategoryBreakdown.jsx      # Access/Embedded/Processing value category cards
-│   │       ├── WeightedScoreCard.jsx           # Per-factor contribution table (Layer 2)
-│   │       ├── CircularEconomyTierCard.jsx     # Tier badge + milestone guidance (Layer 2)
-│   │       ├── ParameterConsistencyCard.jsx    # Consistency score + detected issues (Layer 2)
-│   │       ├── RStrategyAlignmentCard.jsx      # R-strategy profile alignment (Layer 2)
-│   │       ├── AuditSummaryCard.jsx            # Full LLM audit: verdict, gaps, roadmap, SDGs, market opp.
-│   │       ├── DatabaseEvidenceCard.jsx        # Similar cases with drawer integration
-│   │       ├── GapAnalysisCard.jsx             # Benchmark comparison against similar cases
-│   │       ├── CaseSummary.jsx                 # Individual similar case display
-│   │       └── ResultsSkeleton.jsx             # Loading skeleton
-│   │
-│   ├── AssessmentViewPage/
-│   │   └── AssessmentViewPage.jsx              # Saved assessment view (same result sections as ResultsPage)
-│   │
-│   ├── AssessmentComparisonPage/
-│   │   ├── AssessmentComparisonPage.jsx
-│   │   └── components/
-│   │       ├── ComparisonSkeleton.jsx          # Loading skeleton
-│   │       ├── ChangeIndicator.jsx             # +/- change chip component
-│   │       ├── OverviewTab.jsx                 # Input data, key insights, score snapshot, verdict
-│   │       ├── FactorAnalysisTab.jsx           # Radar chart, bar chart, detailed factor table
-│   │       ├── DetailsTab.jsx                  # Project details, gap analysis, enrichment cards
-│   │       └── DatabaseEvidenceTab.jsx         # Side-by-side similar cases with score grids
-│   │
-│   ├── SolutionsPage/
-│   │   ├── SolutionsPage.jsx                    # Solutions search page with URL-as-state
-│   │   └── components/
-│   │       ├── SolutionsSearch.jsx             # Search component with filters + pagination
-│   │       ├── PageHeader.jsx                  # Page header component with title and icon
-│   │       └── index.js                        # Barrel exports
-│   │
-│   ├── GlobalActivityPage/
-│   │   ├── GlobalActivityPage.jsx              # Global activity page wrapper
-│   │   └── components/
-│   │       ├── GlobalActivity.jsx              # Global activity component with all charts
-│   │       ├── GlobalActivityHeader.jsx       # Header with refresh functionality and timestamp
-│   │       ├── StatCard.jsx                    # Metric card with loading skeleton
-│   │       ├── ChartPanel.jsx                  # Chart wrapper with title, loading state, error state
-│   │       ├── SingleValueChart.jsx            # Fallback for single-data-point distributions
-│   │       ├── EmptyChart.jsx                  # Empty state placeholder
-│   │       ├── DashboardSectionHeading.jsx    # Section heading with separator and optional count
-│   │       └── index.js                        # Barrel exports
-│   │
-│   ├── MyAssessmentsPage/
-│   │   ├── MyAssessmentsPage.jsx
-│   │   ├── sortUtils.js                        # Sort helper functions
-│   │   └── components/
-│   │       ├── AssessmentListItem.jsx          # Individual assessment card/row
-│   │       ├── FilterBar.jsx                   # Sort/filter/search controls
-│   │       └── IndustryFilterChip.jsx          # Industry chip filter toggle
-│   │
-│   ├── AuthPage/AuthPage.jsx
-│   ├── ComparePage/ComparePageWrapper.jsx      # Route wrapper → AssessmentComparisonPage
-│   ├── GuidePage/GuidePage.jsx
-│   ├── SharePage/SharePage.jsx                 # Public shared assessment view
-│   └── NotFoundPage/NotFoundPage.jsx
-│
-├── components/                                 # Shared, page-agnostic components
-│   ├── auth/
-│   │   ├── LoginForm.jsx
-│   │   └── SignupForm.jsx
-│   │
-│   ├── background/
-│   │   └── DriftingShapesBackground.jsx        # Animated background component
-│   │
-│   ├── charts/
-│   │   ├── BarChart.jsx      # Props: barConfigs, xAxisKey, height, showGrid, showLegend,
-│   │   │ # tickAngle (number, default 0 — rotates x-axis labels, auto-increases bottom margin),
-│   │   │ # tickAnchor (string, default 'end' — textAnchor when rotated)
-│   │   ├── LineChart.jsx     # Props: lines (each with optional yAxisId: 'left'|'right'),
-│   │   │ # xAxisKey, height, showLegend,
-│   │   │ # yAxisRight ({ tickFormatter, domain, label? }) — renders right Y-axis
-│   │   │ # when provided; backward-compatible (all existing uses default to left axis)
-│   │   ├── PieChart.jsx      # Props: dataKey, nameKey, colors, innerRadius, showLegend
-│   │   ├── RadarChart.jsx
-│   │   └── index.js
-│   │
-│   ├── common/
-│   │   ├── Button.jsx, Brand.jsx, ButtonStages.jsx, Chip.jsx
-│   │   ├── CopyButton.jsx, CopyIcon.jsx, DetailsBadge.jsx
-│   │   ├── DetailsDisplay.jsx, ExpandableText.jsx, SectionHeading.jsx
-│   │   ├── GlobalLoadingBar.jsx, LoaderComponent.jsx, LoaderIcon.jsx
-│   │   ├── ScrollToTop.jsx, Separator.jsx, Spinner.jsx, Tilt3D.jsx
-│   │   ├── TruncatedTextTooltip.jsx, ChartWrapper.jsx
-│   │   └── index.js
-│   │
-│   ├── dialogs/
-│   │   ├── SaveAssessmentDialog.jsx
-│   │   ├── DeleteAssessmentDialog.jsx
-│   │   ├── RenameAssessmentDialog.jsx
-│   │   ├── ResultsRestoreDialog.jsx
-│   │   ├── ConfirmDialog.jsx
-│   │   ├── LimitReachedDialog.jsx
-│   │   ├── ReplaceInputsDialog.jsx
-│   │   ├── DialogManager.jsx
-│   │   ├── dialogTypes.js
-│   │   └── index.js
-│   │   └── README.md         # Comprehensive dialog system documentation
-│   │
-│   ├── drawers/
-│   │   ├── ResultsDatabaseEvidenceDetailsDrawer.jsx  # Single case full detail view
-│   │   ├── AssessmentMethodologyDrawer.jsx
-│   │   ├── BusinessContextHeadingInfoDrawer.jsx
-│   │   ├── BusinessProblemInfoDrawer.jsx
-│   │   ├── BusinessSolutionInfoDrawer.jsx
-│   │   ├── EvaluationCriteriaDrawer.jsx
-│   │   ├── EvaluationParametersHeadingInfoDrawer.jsx
-│   │   ├── SampleTestCasesHeadingInfoDrawer.jsx
-│   │   ├── SpecificEvaluationParameterInfoDrawer.jsx
-│   │   ├── SpecificSampleTestCaseViewDetailsDrawer.jsx
-│   │   ├── DrawerManager.jsx
-│   │   ├── drawerTypes.js
-│   │   └── index.js
-│   │
-│   ├── error-boundaries/
-│   │   ├── GlobalErrorBoundary.jsx
-│   │   ├── PageErrorBoundary.jsx
-│   │   ├── ResultsErrorBoundary.jsx
-│   │   ├── ErrorBoundary.jsx
-│   │   └── index.js
-│   │
-│   ├── export/
-│   │   ├── ExportActions.jsx
-│   │   └── index.js
-│   │
-│   └── layout/
-│       ├── Navbar.jsx, Header.jsx, Footer.jsx, AppContainer.jsx
-│
-├── features/
-│   ├── assessments/
-│   │   ├── api/
-│   │   │   └── assessmentApi.js     # All API functions: scoreAssessment, getAssessments, saveAssessment,
-│   │   │                              #   compareAssessments, getGlobalStats, etc.
-│   │   ├── schemas/
-│   │   │   └── assessmentSchema.js  # Zod response validation schemas
-│   │   │
-│   │   ├── hooks/
-│   │   │   ├── useAssessment.js           # Single assessment fetch (React Query)
-│   │   │   ├── useAssessments.js          # List + delete with optimistic update
-│   │   │   ├── useAssessmentComparison.js # Fetch and compare two assessments
-│   │   │   ├── useAssessmentStats.js      # User aggregate stats (totalAssessments, avgScore, etc.)
-│   │   │   ├── useFeaturedSolutions.js    # Featured solutions with optional semantic search
-│   │   │   └── useGlobalStats.js          # Global dashboard stats — staleTime 2 min, refetchOnMount: 'stale',
-│   │   │ │ # exposes: totalScoringCalls, avgScore, avgConfidence, avgTechFeas,
-│   │   │ │ # avgEconViab, avgCircPot, avgParamConsistency, avgRAlignment,
-│   │   │ │ # scoreDistribution, tierDistribution, riskDistribution,
-│   │   │ │ # industryDistribution, strategyDistribution, materialDistribution,
-│   │   │ │ # geoDistribution, scaleDistribution, junkRate, weeklyTrend,
-│   │   │ │ # marketDataByIndustry, totalSavedAssessments,
-│   │   │ │ # assessmentsByTier, assessmentsByRisk, assessmentsByScale,
-│   │   │ │ # assessmentsByIndustry
-│   │   │
-│   │   ├── utils.js        # reconstructScoringResult(), getAverageScore(), sort helpers
-│   │   ├── utils.test.js
-│   │   ├── validation.js   # Assessment form Zod schema + defaultValues
-│   │   └── index.js        # Barrel re-exports for all hooks and utils
-│   │
-│   ├── export/
-│   │   ├── exportCSV.js    # CSV generation (single assessment + comparison)
-│   │   ├── exportPDF.js    # PDF generation with all enrichment sections
-│   │   └── index.js
-│   │
-│   └── session/
-│       ├── AppSessionManager.jsx   # Auto-save/restore evaluation state on mount/unmount
-│       ├── hooks/useSession.js     # Session read/write hook (save, restore, clear)
-│       └── index.js
-│
-├── hooks/                          # Cross-feature hooks
-│   ├── useAuth.js           # Thin wrapper over AuthContext
-│   ├── useDialog.js         # Open/close dialogs via DialogContext
-│   ├── useDrawer.js         # Open/close drawers via DrawerContext
-│   ├── useDrawerDirection.js # Responsive direction (right on desktop, bottom on mobile)
-│   ├── useExportState.js    # Export progress state (isExporting, progress)
-│   ├── useToast.js          # Toast notification wrapper
-│   ├── useDebounce.js       # Debounce helper for input fields
-│   └── index.js
-│
-├── contexts/
-│   ├── AuthContext.jsx      # Supabase user session (user, isLoading, isAuthenticated)
-│   ├── DialogContext.jsx    # Global dialog state + typed open functions
-│   ├── DrawerContext.jsx    # Global drawer state + typed open functions per drawer type
-│   └── ModalContext.jsx     # Global modal state
-│
-├── lib/
-│   ├── apiClient.js         # buildApiUrl() — routes through Vercel proxy in production
-│   ├── supabase.js          # Supabase client singleton
-│   ├── formatting.js        # formatTimestamp(), getCurrentTimestampFormatted(), formatRelativeTime(), toTitleCase()
-│   ├── metadata.js          # getIndustry(), getCategory() — prefers structured columns over JSONB
-│   ├── scoring.js           # getScoreClass(), getScoreLabel(), formatFactorName(), getSimilarityPercent()
-│   ├── storage.js           # localStorage wrapper with JSON serialisation + error handling
-│   └── validation.js        # Shared Zod schemas and validation helpers
-│
-├── config/
-│   ├── env.schema.js        # Zod schema for VITE_ environment variables
-│   ├── frontend.config.js   # FRONTEND_CONFIG object (apiUrl, supabaseUrl, etc.)
-│   └── index.js
-│
-├── constants/
-│   ├── evaluationData.js    # 8 evaluation parameters with weights, labels, descriptions
-│   ├── industries.js        # Industry list for dropdowns
-│   ├── industryThemes.js    # Industry-to-colour-theme mapping
-│   ├── siteMetadata.js      # SEO metadata (title, description, OG tags)
-│   ├── drawers/             # Drawer content constants (evaluation criteria, parameter info, etc.)
-│   └── index.js
-│
-├── utils/
-│   ├── cn.js                # classnames merge (clsx + tailwind-merge) — use this, not cx
-│   ├── content.js           # extractProblemSolution() for drawer content parsing
-│   ├── session.js           # Session storage helpers (keys, serialisation)
-│   ├── async.js             # Async utilities (sleep, retry, timeout)
-│   ├── ui.js                # UI helpers (truncate, formatPercentage)
-│   └── logger.js            # Logging utility (respects VITE_LOG_LEVEL)
-│
-├── test/                    # Test utilities and configuration
-│   └── test-utils.jsx       # Custom render with providers for testing
-│
-├── types/                   # TypeScript type definitions
-│   └── index.d.ts           # Global type declarations
-│
-├── index.css                # Global styles + Tailwind directives
-├── main.jsx                 # React entry point
-├── setupTests.js            # Vitest global setup
-├── vite.config.js           # Vite configuration with aliases and chunking
-└── package.json             # Dependencies and scripts
+frontend/
+├── api/
+│   └── proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
+├── src/
+│   ├── app/                     # Root component, routes, global providers
+│   │   ├── App.jsx              # Root component with providers and routing
+│   │   ├── AppRoutes.jsx        # All route definitions
+│   │   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
+│   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries (64 items)
+│   ├── contexts/                # React Context providers (Auth, Dialog, Drawer)
+│   ├── features/                # Feature modules: assessments, export, search, session (22 items)
+│   ├── hooks/                   # Custom React hooks (useAuth, useDebounce, etc.) (10 items)
+│   ├── lib/                     # API client, formatting, metadata, scoring, storage, supabase, validation (11 items)
+│   ├── pages/                   # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (91+ items)
+│   ├── config/                   # Frontend configuration with route definitions and query parameters (3 items)
+│   ├── constants/               # Evaluation data, industries, drawer constants (19 items)
+│   ├── index.css                # Global styles + Tailwind directives
+│   ├── main.jsx                 # React entry point
+│   ├── setupTests.js            # Vitest global setup
+│   ├── test/                    # Test files (4 items)
+│   ├── types/                   # TypeScript type definitions (1 item)
+│   └── utils/                   # Utility functions (12 items)
+├── public/                       # Static assets (app-bg.svg, site-logo images)
+├── vite.config.js               # Vite configuration with aliases and chunking
+├── vercel.json                  # Vercel deployment configuration
+├── vitest.config.js             # Vitest test configuration
+├── tsconfig.json                # TypeScript configuration
+├── tsconfig.node.json           # Node.js TypeScript configuration
+└── package.json                 # Frontend dependencies and scripts
 ```
 
 ## Routes
 
-| Path                                   | Component                  | Auth | Description                            |
-| -------------------------------------- | -------------------------- | ---- | -------------------------------------- |
-| `/`                                    | `LandingPage`              | No   | Assessment input form with guided mode |
-| `/auth`                                | `AuthPage`                 | No   | Login / signup                         |
-| `/guide`                               | `GuidePage`                | No   | Help & methodology documentation       |
-| `/results`                             | `ResultsPage`              | No   | Results for session-based scoring      |
-| `/assessments`                         | `MyAssessmentsPage`        | No   | Saved assessment history               |
-| `/assessments/:publicId`               | `ResultsPage`              | Yes  | View single saved assessment           |
-| `/assessments/share?id=`               | `SharePage`                | No   | Public shared assessment view          |
-| `/assessments/compare`                 | `ComparePageWrapper`       | No   | Comparison form                        |
-| `/assessments/compare?id1=...&id2=...` | `AssessmentComparisonPage` | No   | Side-by-side assessment comparison     |
-| `/solutions`                           | `SolutionsPage`            | No   | Search circular economy solutions      |
-| `/global-activity`                     | `GlobalActivityPage`       | No   | Global activity analytics              |
-| `*`                                    | `NotFoundPage`             | —    | 404                                    |
+| Path                                     | Component            | Auth | Description                   |
+| ---------------------------------------- | -------------------- | ---- | ----------------------------- |
+| `/`                                      | LandingPage          | No   | Assessment input form         |
+| `/results`                               | ResultsPage          | No   | Interactive results display   |
+| `/assessments`                           | MyAssessmentsPage    | Yes  | User's assessment history     |
+| `/assessments/:id`                       | AssessmentViewPage   | Yes  | View/edit single assessment   |
+| `/assessments/share`                     | SharePage            | No   | Share assessment form         |
+| `/assessments/share/:id`                 | AssessmentViewPage   | No   | Direct shared assessment view |
+| `/assessments/compare`                   | ComparePage          | No   | Compare two assessments       |
+| `/assessments/compare?id1=:id1&id2=:id2` | ComparePage          | No   | Direct comparison link        |
+| `/export/csv`                            | ExportCSV            | No   | CSV export (anonymous)        |
+| `/export/pdf`                            | ExportPDF            | No   | PDF export (anonymous)        |
+| `/global-activity`                       | `GlobalActivityPage` | No   | Global activity analytics     |
+| `/uptime-monitor`                        | `UptimeMonitorPage`  | No   | System uptime monitoring      |
+| `*`                                      | `NotFoundPage`       | —    | 404                           |
 
 ## Setup & Installation
 
@@ -373,7 +160,7 @@ FRONTEND_CONFIG.appUrl; // Frontend URL
 npm run dev         # Development server at http://localhost:5173 (HMR enabled)
 npm run build       # Production build → dist/
 npm run preview     # Serve dist/ locally for production preview
-npm test            # Run Vitest test suite
+npm run test        # Run Vitest test suite
 npm run test:watch  # Watch mode
 npm run test:run    # Run tests once
 npm run lint        # ESLint
@@ -420,16 +207,13 @@ const response = await fetch(url, {
 **Global state** (React Contexts):
 
 ```javascript
-import { useAuth } from '@/hooks/useAuth'; // Supabase user session
-import { useDialog } from '@/hooks/useDialog'; // Global confirmation dialogs
-import { useDrawer } from '@/hooks/useDrawer'; // Global side drawers
-import { useToast } from '@/hooks/useToast'; // Toast notifications
+import { useAuth, useDialog, useDrawer } from '@/hooks'; // Supabase user session, dialogs, drawers
 ```
 
 **Server state** (TanStack React Query):
 
 ```javascript
-import { useAssessment, useAssessments, useGlobalStats } from '@/features/assessments';
+import { useAssessment, useAssessments, useGlobalStats } from '@/features/assessments/hooks';
 
 const { assessment, isLoading } = useAssessment(id);
 const { assessments, deleteAssessment } = useAssessments();
@@ -447,8 +231,11 @@ Benefits of React Query:
 
 ```javascript
 // Open a dialog
-const { openDialog } = useDialog();
-openDialog({ type: 'deleteAssessment', payload: { id } });
+const { openDeleteAssessmentDialog } = useDialog();
+openDeleteAssessmentDialog({
+  assessmentName: 'My Assessment',
+  assessmentId: '123',
+});
 
 // Open a drawer
 const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
@@ -577,7 +364,7 @@ result.gap_analysis;
     │
     ├── Save Assessment → POST /api/assessments
     ├── Export → exportCSV.js or exportPDF.js
-    └── Share → generates public_id link → /assessments/share?id=
+    └── Share → generates public_id link → /assessments/share/:id
 ```
 
 ### Key Routes (from AppRoutes.jsx)
@@ -589,7 +376,8 @@ result.gap_analysis;
 /results                    // ResultsPage — freshly scored result (session-based)
 /assessments                // MyAssessmentsPage — saved history (auth required)
 /assessments/:id            // AssessmentViewPage — view saved assessment
-/assessments/share?id= // SharePage — public shared view (no auth)
+/assessments/share          // SharePage — share form (no auth)
+/assessments/share/:id       // AssessmentViewPage — public shared view (no auth)
 /compare?id1=X&id2=Y        // ComparePageWrapper → AssessmentComparisonPage
 /solutions                   // SolutionsPage — search solutions
 /global-activity             // GlobalActivityPage — global analytics
@@ -610,11 +398,10 @@ const { restoreEvaluation, saveSession, clearSession } = useSession();
 ### Metadata Helpers
 
 ```javascript
-import { getIndustry, getCategory } from '@/lib/metadata';
+import { getIndustry } from '@/lib/metadata';
 
 // Prefers structured top-level columns over JSONB fallback:
 const industry = getIndustry(assessment.result_json);
-const category = getCategory(assessment.result_json);
 ```
 
 ## Testing
@@ -641,7 +428,6 @@ npm test src/pages/MyAssessmentsPage/sortUtils.test.js       # Sort utilities
 | `features/session/AppSessionManager.test.jsx`                    | —     | Session persistence                                                                                                                            |
 | `components/common/Button.test.jsx`                              | —     | Button rendering and interactions                                                                                                              |
 | `components/common/Switch.test.jsx`                              | —     | Switch toggle                                                                                                                                  |
-| `components/common/ChartWrapper.test.jsx`                        | —     | Chart wrapper                                                                                                                                  |
 | `components/charts/LineChart.test.jsx`                           | —     | LineChart rendering                                                                                                                            |
 | `components/charts/PieChart.test.jsx`                            | —     | PieChart rendering + snapshots                                                                                                                 |
 | `components/dialogs/ResultsRestoreDialog.test.jsx`               | —     | Dialog component                                                                                                                               |
@@ -673,7 +459,7 @@ describe('Button Component', () => {
 
 ```javascript
 import { renderHook } from '@testing-library/react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from '@/hooks';
 
 test('debounces value', async () => {
   const { result, rerender } = renderHook(({ value }) => useDebounce(value, 300), {
@@ -758,7 +544,7 @@ Key points:
 Asynchronous backend data uses TanStack React Query for caching, deduplication, and background refresh:
 
 ```javascript
-import { useAssessment } from '@/features/assessments';
+import { useAssessment } from '@/features/assessments/hooks';
 
 const { assessment, isLoading, error } = useAssessment(id);
 ```
@@ -790,8 +576,8 @@ export function useExportState() {
 
 ```javascript
 // ✓ Good
-import { EVALUATION_PARAMETERS } from '@/constants/evaluationData';
-if (score >= EVALUATION_PARAMETERS.resource_efficiency.threshold) { ... }
+import { validKeys, parameterGuidance } from '@/constants/evaluationData';
+if (validKeys.includes(parameterKey)) { ... }
 
 // ✗ Avoid
 if (score >= 75) { ... }
@@ -877,7 +663,6 @@ import { cn } from '@/utils/cn';
 ### "CORS errors in browser console"
 
 - Backend `ALLOWED_ORIGINS` must include your Vercel domain (`*.vercel.app`)
-- Check whether the route is in `PUBLIC_ROUTES` (CORS-exempt)
 - Verify `vercel.json` routes `/api/*` to serverless functions (not SPA)
 
 ### "Session not restoring after reload"
@@ -998,11 +783,13 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 /results                    → ResultsPage          (session-based scoring results)
 /assessments                → MyAssessmentsPage    (saved history, public)
 /assessments/:publicId      → ResultsPage          (view saved assessment, auth required)
-/assessments/share?id=      → SharePage           (public shared view, no auth)
+/assessments/share           → SharePage           (share form, no auth)
+/assessments/share/:id        → AssessmentViewPage  (public shared view, no auth)
 /assessments/compare         → ComparePageWrapper  (comparison form & results, public)
 /assessments/compare?id1=...&id2=... → AssessmentComparisonPage (side-by-side comparison, public)
 /solutions                  → SolutionsPage        (solutions overview)
 /global-activity            → GlobalActivityPage   (global analytics)
+/uptime-monitor             → UptimeMonitorPage   (system uptime monitoring)
 *                           → NotFoundPage
 ```
 
@@ -1064,23 +851,28 @@ All charts use consistent prop APIs — see the [Charts](#charts) section for co
 - Uses Blob API for client-side generation (no server round-trip)
 
 ```javascript
-import { exportAssessmentCSV, exportAssessmentPDF } from '@/features/export';
+import {
+  exportAssessmentCSV,
+  exportAssessmentPDF,
+  exportComparisonCSV,
+  exportComparisonPDF,
+} from '@/features/export';
 
 await exportAssessmentCSV(assessment); // triggers download
 await exportAssessmentPDF(assessment); // triggers download
+await exportComparisonCSV([assessment1, assessment2]); // triggers download
+await exportComparisonPDF([assessment1, assessment2]); // triggers download
 ```
 
 ### 6. Metadata & Structured Data
 
-The `documents` table has `industry` and `category` as first-class indexed columns. Use the helpers that prefer structured columns over JSONB fallback:
+The `documents` table has `industry` as a first-class indexed column. Use the helper that prefers structured columns over JSONB fallback:
 
 ```javascript
-import { getIndustry, getCategory } from '@/lib/metadata';
+import { getIndustry } from '@/lib/metadata';
 
 const industry = getIndustry(assessment.result_json);
 // Priority: result_json.metadata.industry → result_json.industry → column value
-
-const category = getCategory(assessment.result_json);
 ```
 
 Used in: `ResultsPage`, `AssessmentViewPage`, `AssessmentComparisonPage`.
@@ -1171,24 +963,24 @@ const response = await fetch(url, {
 
 ```javascript
 // ✓ Good — centralised, named constants; no magic values
-import { EVALUATION_PARAMETERS } from '@/constants/evaluationData';
+import { parameterGuidance, validKeys } from '@/constants/evaluationData';
 
-const weight = EVALUATION_PARAMETERS.resource_efficiency.weight;
-const label = EVALUATION_PARAMETERS.resource_efficiency.label;
+const guidance = parameterGuidance[parameterKey];
+const isValidParameter = validKeys.includes(parameterKey);
 ```
 
 ## Components Reference
 
 ### Available Components
 
-- **Common**: Button, Brand, Switch, DetailsDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop, ChartWrapper
+- **Common**: Button, Brand, Switch, DetailsDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop
 - **Charts**: BarChart, LineChart, PieChart, RadarChart
 - **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, ResultsRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
 - **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases
-- **Layout**: Navbar, Header, Footer, AppContainer
+- **Layout**: Navbar, Footer, AppContainer
 - **Auth**: LoginForm, SignupForm
 - **Export**: ExportActions
-- **Error Boundaries**: GlobalErrorBoundary, PageErrorBoundary, ResultsErrorBoundary
+- **Error Boundaries**: GlobalErrorBoundary, PageErrorBoundary
 
 ### Dialog System
 
@@ -1200,14 +992,14 @@ The application uses React Router v6 with lazy-loaded components. All routes are
 
 ### Public Routes (No Authentication Required)
 
-| Path                 | Description                                      | Query Parameters                          |
-| -------------------- | ------------------------------------------------ | ----------------------------------------- |
-| `/`                  | Main landing page with app overview              | None                                      |
-| `/auth`              | Login and signup page                            | None                                      |
-| `/guide`             | Comprehensive user guide and documentation       | None                                      |
-| `/results`           | Assessment results from session/navigation state | None (uses React Router state)            |
-| `/share/:publicId`   | Legacy share URL redirect                        | None (redirects to `/assessments/share`)  |
-| `/assessments/share` | Public assessment share gateway                  | `id` - Assessment public ID (UUID format) |
+| Path                     | Description                                      | Query Parameters                          |
+| ------------------------ | ------------------------------------------------ | ----------------------------------------- |
+| `/`                      | Main landing page with app overview              | None                                      |
+| `/auth`                  | Login and signup page                            | None                                      |
+| `/guide`                 | Comprehensive user guide and documentation       | None                                      |
+| `/results`               | Assessment results from session/navigation state | None (uses React Router state)            |
+| `/assessments/share`     | Public assessment share gateway form             | None                                      |
+| `/assessments/share/:id` | Public assessment share gateway                  | `id` - Assessment public ID (UUID format) |
 
 ### Protected Routes (Authentication Required)
 
