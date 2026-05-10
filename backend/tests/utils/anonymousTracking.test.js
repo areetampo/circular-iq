@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  createIdentifierHash,
   extractIPAddress,
   extractUserAgent,
-  createIdentifierHash,
   getIdentifierFromRequest,
-  MAX_FREE_TRIES,
+  SCORING_MAX_FREE_TRIES,
 } from '#utils/anonymousTracking.js';
 
-test('MAX_FREE_TRIES constant', () => {
-  assert.strictEqual(typeof MAX_FREE_TRIES, 'number');
-  assert.ok(MAX_FREE_TRIES > 0);
+test('SCORING_MAX_FREE_TRIES constant', () => {
+  assert.strictEqual(typeof SCORING_MAX_FREE_TRIES, 'number');
+  assert.ok(SCORING_MAX_FREE_TRIES > 0);
 });
 
 test('extractIPAddress', () => {

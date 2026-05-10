@@ -1,7 +1,9 @@
-import { after, before } from 'node:test';
+import assert from 'node:assert';
+import { after, before, test } from 'node:test';
 
-import { closeAllPools } from '#database/client.js';
+import { closeAllPools } from '#database/index.js';
 import { stopServer } from '#server/index.js';
+import { logger } from '#utils/logger.js';
 
 let app;
 
@@ -10,8 +12,14 @@ before(async () => {
   app = mod.default || mod.app || mod;
 });
 
+// Add a basic test to make this file valid
+test('misc endpoints setup test', async () => {
+  // Basic test to ensure file loads properly
+  assert.ok(app, 'App should be loaded');
+});
+
 after(async () => {
-  console.log('🧹 Starting test cleanup...');
+  logger.info('🧹 Starting test cleanup...');
 
   // Force cleanup with timeout
   const cleanupPromises = [];
@@ -24,7 +32,7 @@ after(async () => {
     ]);
     cleanupPromises.push(serverStop);
   } catch (err) {
-    console.warn('⚠️  Server stop error:', err.message);
+    logger.warn('⚠️  Server stop error:', err.message);
   }
 
   try {
@@ -37,7 +45,7 @@ after(async () => {
     ]);
     cleanupPromises.push(dbClose);
   } catch (err) {
-    console.warn('⚠️  Database close error:', err.message);
+    logger.warn('⚠️  Database close error:', err.message);
   }
 
   // Wait for cleanup with timeout
@@ -46,14 +54,14 @@ after(async () => {
       Promise.allSettled(cleanupPromises),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Cleanup timeout')), 10000)),
     ]);
-    console.log('✅ Test cleanup completed');
+    logger.info('✓ Test cleanup completed');
   } catch (err) {
-    console.warn('⚠️  Cleanup timeout/error:', err.message);
+    logger.warn('⚠️  Cleanup timeout/error:', err.message);
   }
 
   // Force exit if still hanging
   setTimeout(() => {
-    console.log('🚀 Force exiting test process');
+    logger.info('🚀 Force exiting test process');
     process.exit(0);
   }, 2000);
 });

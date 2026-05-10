@@ -4,11 +4,9 @@ import { after, before, test } from 'node:test';
 import express from 'express';
 import request from 'supertest';
 
-import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
+import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
 
 let BACKEND_CONFIG;
-let scoringController;
-let createScoringRouter;
 let setOpenAIClient;
 
 // Dynamically import modules that depend on environment configuration.
@@ -21,9 +19,7 @@ before(async () => {
   const { setOpenAIClient: setServiceOpenAIClient } = await import('#services/scoring.service.js');
   setServiceOpenAIClient(mockOpenAI);
 
-  scoringController = await import('#controllers/scoring.controller.js');
   const routesMod = await import('#routes/scoring.routes.js');
-  createScoringRouter = routesMod.default;
   setOpenAIClient = routesMod.setOpenAIClient;
 });
 
@@ -34,25 +30,12 @@ after(async () => {
 
 // Minimal mock supabase for scoring that returns controlled RPC data
 const mockSupabase = {
-  rpc: async (name, params) => ({ data: [], error: null }),
+  rpc: async () => ({ data: [], error: null }),
 };
 
-function makeMockSupabase(searchResults = [], industryResults = []) {
-  mockSupabase.rpc = async (name, params) => {
-    if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid) {
-      return { data: searchResults, error: null };
-    }
-    if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid_filtered) {
-      return { data: searchResults, error: null };
-    }
-    if (name === BACKEND_CONFIG.db.functions.search_documents_by_industry) {
-      return { data: industryResults, error: null };
-    }
-    if (name === 'check_and_increment_anonymous_usage') {
-      // Mock anonymous usage check - always allow for testing
-      return { data: [{ current_count: 1, is_allowed: true }], error: null };
-    }
-    return { data: [], error: null };
+function makeMockSupabase(searchResults = []) {
+  mockSupabase.rpc = async () => {
+    return { data: searchResults, error: null };
   };
   return mockSupabase;
 }
@@ -64,11 +47,6 @@ const mockOpenAI = {
 };
 
 // Mock the documents repository to prevent real database calls
-const mockDocumentsRepository = {
-  searchHybrid: async () => [],
-  searchByIndustry: async () => [],
-  callFunction: async () => [],
-};
 
 // helper for running an express app with mock scoring router
 function makeApp(supabase, mockRouter) {
@@ -246,9 +224,14 @@ test('POST /api/score returns similar_cases with structured fields', async () =>
   const app = makeApp(supabase, createMockScoringRouter());
 
   // Ensure field names match controller expectations
+  const validProblem =
+    'Our company is struggling with plastic waste management in our manufacturing process. We generate tons of plastic waste monthly that ends up in landfills. This is not only environmentally harmful but also costly in terms of waste disposal fees and lost material value. We need a comprehensive solution that can help us reduce, reuse, or recycle this plastic waste more effectively.';
+  const validSolution =
+    'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
+
   const payload = {
-    businessProblem: 'P'.repeat(200), // Minimum 200 characters
-    businessSolution: 'S'.repeat(200), // Minimum 200 characters
+    businessProblem: validProblem, // Minimum 200 characters
+    businessSolution: validSolution, // Minimum 200 characters
     evaluationParameters: {
       public_participation: 50,
       infrastructure: 50,

@@ -3,10 +3,10 @@
  * Tests for comprehensive health check functionality
  */
 
-import test from 'node:test';
+import { closeAllPools } from '#database/index.js';
 import assert from 'node:assert';
+import test from 'node:test';
 import request from 'supertest';
-import { closeAllPools } from '#database/client.js';
 
 let app;
 
@@ -100,6 +100,15 @@ test('GET /health/database returns database health', async () => {
   const res = await request(app).get('/health/database');
 
   assert.strictEqual(res.status, 200);
+  assert(res.body.status);
+  assert(res.body.type);
+  assert(res.body.timestamp);
+});
+
+test('GET /health/database/aiven returns Aiven database health', async () => {
+  const res = await request(app).get('/health/database/aiven');
+
+  assert(res.status === 200 || res.status === 503); // May be disabled or unhealthy
   assert(res.body.status);
   assert(res.body.type);
   assert(res.body.timestamp);

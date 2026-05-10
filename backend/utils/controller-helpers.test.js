@@ -1,17 +1,22 @@
-import { describe, it, expect } from 'node:test';
+import { describe, expect, it } from 'node:test';
 
 import {
+  errorResponse,
+  extractUserInfo,
   logOperation,
   successResponse,
-  errorResponse,
   validateRequiredFields,
-  extractUserInfo,
 } from './controller-helpers.js';
 
 describe('controller-helpers', () => {
   describe('logOperation', () => {
     it('should be a function', () => {
       expect(typeof logOperation).toBe('function');
+    });
+
+    it('should accept operation, path, status, and duration parameters', () => {
+      // This test ensures the function accepts the new signature
+      expect(() => logOperation('testOp', '/test/path', 'success', 100)).not.toThrow();
     });
   });
 

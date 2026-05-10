@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { setDatabaseClientOverride } from '#database/client.js';
+import { setDatabaseClientOverride } from '#database/index.js';
 import { DocumentsRepository } from '#database/repositories/documents.repository.js';
 
 // Helpers to reset overrides after each test

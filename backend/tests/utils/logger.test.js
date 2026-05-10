@@ -16,5 +16,5 @@ test('logOperation method', () => {
   assert.strictEqual(typeof logger.logOperation, 'function');
 
   // Call it to ensure it works without errors
-  logger.logOperation('test', 'success', 100);
+  logger.logOperation('test', '/test-path', 'success', 100);
 });
