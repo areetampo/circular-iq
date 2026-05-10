@@ -84,21 +84,23 @@ backend/
 │   └── validation.middleware.js  # Zod-based request body validation
 │
 ├── database/
-│   ├── client.js                         # Dual-backend client factory (returns Supabase or Aiven client)
-│   ├── index.js                          # Exports documentsRepository singleton
-│   ├── supabase.client.js                # Supabase client initialisation (anon + service-role)
-│   ├── queries/                          # Database query definitions (3 files)
+│   ├── client.js                          # Dual-backend client factory (returns Supabase or Aiven client)
+│   ├── index.js                           # Exports documentsRepository singleton
+│   ├── supabase.client.js                 # Supabase client initialisation (anon + service-role)
+│   ├── diagnostics/                       # Read-only monitoring queries (sizes, performance, health, schema, vector)
+│   ├── queries/                           # Stable reusable read queries called by app code
+│   ├── scripts/                           # Manual one-off operational SQL (backfills, repairs)
 │   ├── repositories/
 │   │   ├── ce_cases.repository.js         # CE cases search functions
-│   │   └── documents.repository.js       # All documents table access (matchDocuments, searchHybrid, etc.)
-│   └── migrations/                        # SQL migration files — run in Supabase SQL editor in order
-│       ├── 01_vector_infrastructure.sql  # pgvector + halfvec extension, documents table + HNSW index
-│       ├── 02_user_profiles.sql          # user_profiles table
-│       ├── 03_user_assessments.sql       # assessments table (v3) + get_market_data/get_assessment_statistics RPCs
-│       ├── 04_anonymous_usage.sql        # anonymous_usage table + rate limiting logic
-│       ├── 05_results_logs.sql           # scoring_results_log table (append-only audit log)
-│       ├── 06_ce_cases.sql               # ce_cases table with hybrid search functions
-│       └── 07_uptime_monitor.sql        # uptime_checks table for monitoring history
+│   │   └── documents.repository.js        # All documents table access (matchDocuments, searchHybrid, etc.)
+│   └── migrations/                        # Run in Supabase SQL editor in order
+│       ├── 01_vector_infrastructure.sql   # pgvector + halfvec extension, documents table + HNSW index
+│       ├── 02_user_profiles.sql           # user_profiles table
+│       ├── 03_user_assessments.sql        # assessments table (v3) + get_market_data/get_assessment_statistics RPCs
+│       ├── 04_anonymous_usage.sql         # anonymous_usage table + rate limiting logic
+│       ├── 05_results_logs.sql            # scoring_results_log table (append-only audit log)
+│       ├── 06_ce_cases.sql                # ce_cases table with hybrid search functions
+│       └── 07_uptime_monitor.sql          # uptime_checks table for monitoring history
 │
 ├── pipeline/ # Data processing stages (10 scripts)
 │ ├── create_samples.js # Generate test/sample data for development
@@ -114,9 +116,7 @@ backend/
 │ └── datasetsUtils.js # DATASETS registry, path constants, formatId() helper
 │
 ├── utils/
-│ ├── analyticsHelpers.js # Analytics helper functions
 │ ├── anonymousTracking.js # IP hashing, identifier generation (no PII stored)
-│ ├── controller-helpers.js # Helper functions for controllers
 │ ├── datasetsUtils.js # DATASETS registry, path constants, formatId() helper
 │ ├── formatting.js # Text formatting utilities
 │ └── logger.js # Logging utilities
@@ -171,16 +171,18 @@ The backend includes a comprehensive uptime monitoring system that tracks health
 - **Health Checks**: Monitors `/health`, `/health/database`, `/health/openai`, and other endpoints
 - **Data Storage**: Stores results in `uptime_checks` table with 7-day retention
 - **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`
-- **Pre-push Migration**: Git hook automatically resets table schema on each push
+- **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
 
 ### Configuration
 
-```javascript
+```js
 // backend.config.js
 uptime: {
   pollingEnabled: env.NODE_ENV === 'production', // Production-only polling
-  pollIntervalMs: 30000, // 30 seconds
+  pollIntervalMs: 30 * 1000, // 30 seconds
   retentionDays: 7, // Data retention period
+  cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
+  cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
   endpoints: [
     { id: 'health', path: '/health' },
     { id: 'database', path: '/health/database' },
@@ -190,16 +192,15 @@ uptime: {
 }
 ```
 
-### Pre-push Migration
+### Environment-Controlled Cleanup
 
-The `.husky/pre-push` hook ensures fresh monitoring data:
+The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable:
 
-```bash
-echo "⫸ Running uptime schema migration..."
-psql "$SUPABASE_CONNECTION_STRING" -f backend/database/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
-```
+- **Default**: `true` - wipes the `uptime_checks` table on server start
+- **Set to `false`**: preserves existing uptime data across server restarts
+- **Location**: Configured in `backend.config.js` under `uptime.cleanupOnStart`
 
-This wipes and rebuilds the `uptime_checks` table on every push, ensuring clean monitoring data for production.
+This replaces the previous pre-push hook approach, giving you more control over when the uptime table is reset.
 
 ### API Endpoints
 
@@ -437,7 +438,7 @@ Every document across all datasets has a unique ID: `prefix_NNNNN`
 
 Use the `formatId()` helper from `utils/datasetsUtils.js` for consistency:
 
-```javascript
+```js
 import { formatId, ID_DIGITS } from '#utils/datasetsUtils.js';
 
 formatId('c2c', 1); // → 'c2c_00001'
@@ -663,7 +664,7 @@ Get the authenticated user's profile information. Requires authentication.
 
 The master API key authentication uses `crypto.timingSafeEqual()` to prevent timing attacks:
 
-```javascript
+```js
 const tokenBuf = Buffer.from(token);
 const keyBuf = Buffer.from(MASTER_API_KEY);
 if (tokenBuf.length === keyBuf.length && crypto.timingSafeEqual(tokenBuf, keyBuf)) {
@@ -737,7 +738,7 @@ cp env/.env.example env/.env.backend
 
 All backend imports use `#`-prefixed canonical aliases defined in `package.json` `imports`. Never use relative paths.
 
-```javascript
+```js
 // ✓ CORRECT (use canonical aliases)
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getDatabaseClient } from '#database/client.js';
@@ -775,7 +776,7 @@ The `documents` table has `industry` and `category` as first-class indexed colum
 
 The ingestion pipeline (`pipeline/store_embeddings.js`) automatically populates both:
 
-```javascript
+```js
 await supabase.from('documents').insert({
   content: chunk.content,
   embedding: vectorArray,
@@ -795,7 +796,7 @@ await supabase.from('documents').insert({
 
 ### Querying Strategy
 
-```javascript
+```js
 // ✓ FAST — uses B-tree indexes
 const results = await supabase
   .from('documents')
@@ -958,7 +959,7 @@ All dataset extraction scripts follow comprehensive documentation conventions:
 
 Every script includes a JSDoc block (lines 1–30):
 
-```javascript
+```js
 /**
  * scrape_my_dataset.js
  *
@@ -991,7 +992,7 @@ Every script includes a JSDoc block (lines 1–30):
 
 ### Function Documentation
 
-```javascript
+```js
 /**
  * Scores a data record based on completeness and relevance.
  * @param {Object} record - The data record to score

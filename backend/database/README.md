@@ -196,6 +196,24 @@ Documents are public reference data. A single `documents_access_policy` allows a
 
 ---
 
+## Migration 02 — User Profiles
+
+**File:** `02_user_profiles.sql`
+
+User profiles are tightly coupled to Supabase auth. The `profiles.id` is a direct foreign key to `auth.users(id)`.
+
+### The `profiles` Table
+
+**Key fields:**
+
+- `username` — unique, 3–30 characters, must contain at least one letter, no `@` signs, only alphanumeric + `_` and `-`
+- `display_name`, `avatar_url`, `bio`, `preferred_industry` — optional profile enrichment
+- `assessment_count`, `last_assessment_at` — denormalized counters kept in sync via trigger (avoids expensive `COUNT(*)` queries in dashboard)
+
+A `BEFORE INSERT OR UPDATE` trigger validates username format and fires a separate trigger after assessment inserts/deletes to keep `assessment_count` accurate on the profiles row.
+
+---
+
 ## Migration 03 — User Assessments
 
 **File:** `03_user_assessments.sql`
@@ -234,28 +252,6 @@ The table is intentionally wide. Rather than normalizing scoring results into se
 
 - `is_public` (default TRUE), `public_id` (UUID, unique) — control public sharing
 - `contribute_to_global_benchmarks` (default TRUE)
-
-### Analytics Function — `get_assessment_statistics(user_uuid)`
-
-Defined in `queries/get_assessment_statistics_BUG.sql`. Returns aggregated statistics across all assessments (or a single user's) including mean/median/min/max scores, averages across all derived metrics, and breakdowns by industry, risk level, scale, and circular economy tier. The `user_uuid` parameter is optional — `NULL` returns global stats.
-
----
-
-## Migration 02 — User Profiles
-
-**File:** `02_user_profiles.sql`
-
-User profiles are tightly coupled to Supabase auth. The `profiles.id` is a direct foreign key to `auth.users(id)`.
-
-### The `profiles` Table
-
-**Key fields:**
-
-- `username` — unique, 3–30 characters, must contain at least one letter, no `@` signs, only alphanumeric + `_` and `-`
-- `display_name`, `avatar_url`, `bio`, `preferred_industry` — optional profile enrichment
-- `assessment_count`, `last_assessment_at` — denormalized counters kept in sync via trigger (avoids expensive `COUNT(*)` queries in dashboard)
-
-A `BEFORE INSERT OR UPDATE` trigger validates username format and fires a separate trigger after assessment inserts/deletes to keep `assessment_count` accurate on the profiles row.
 
 ---
 
@@ -404,16 +400,15 @@ CE cases are read-only reference data for authenticated and anonymous users. Onl
 
 Creates the uptime monitoring infrastructure for tracking backend health check history. The backend polls endpoints every 30 seconds and stores results in this table with a 7-day retention policy.
 
-### Pre-push Migration Hook
+### Environment-Controlled Cleanup
 
-**Important**: This migration is automatically run on every git push via the `.husky/pre-push` hook:
+**Important**: The uptime table cleanup is now controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`):
 
-```bash
-echo "⫸ Running uptime schema migration..."
-psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
-```
+- **Default**: `true` - wipes the `uptime_checks` table on server start
+- **Set to `false`**: preserves existing uptime data across server restarts
+- **Location**: Configured in `backend.config.js` under `uptime.cleanupOnStart`
 
-This ensures the `uptime_checks` table is wiped clean and rebuilt on each push, providing fresh monitoring data for production deployments.
+This replaces the previous pre-push hook approach, giving you more control over when the uptime table is reset for production deployments.
 
 ### The `uptime_checks` Table
 
@@ -453,12 +448,15 @@ Table is configured with reduced autovacuum thresholds to prevent bloat from hig
 
 The uptime monitoring system is designed to run **only in production** environments:
 
-```javascript
+```js
 // backend.config.js
 uptime: {
-  pollingEnabled: env.NODE_ENV === 'production', // Only run in production
-  pollIntervalMs: 30000, // 30 seconds
-  retentionDays: 7,
+  pollIntervalMs: 30 * 1000, // 30 seconds
+  retentionDays: 7, // 7 days
+  pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
+  cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
+  cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
+  endpoints: UPTIME_ENDPOINTS.map((endpoint) => endpoint.path),
 }
 ```
 
@@ -565,7 +563,7 @@ Both functions throw on error (no silent returns) and return an empty array if `
 
 ### Usage Example
 
-```javascript
+```js
 import { documentsRepository } from '#database/index.js';
 import { searchKeyword, searchHybrid } from '#database/repositories/ce_cases_repository.js';
 import { getSupabaseClient } from '#database/client.js';
@@ -621,7 +619,7 @@ The Aiven pool supports two auth modes: individual `host/port/user/password/ssl.
 
 ### Test Overrides
 
-```javascript
+```js
 import { setDatabaseClientOverride } from '#database/client.js';
 
 const mockClient = {

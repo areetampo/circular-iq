@@ -262,6 +262,8 @@ This includes detailed information about:
 Uptime monitoring is controlled by:
 
 - `BACKEND_CONFIG.uptime.pollingEnabled` (automatically `true` when `NODE_ENV=production`)
-- `BACKEND_CONFIG.uptime.pollIntervalMs` (default: 30000ms)
+- `BACKEND_CONFIG.uptime.pollIntervalMs` (default: 30000ms - 30s)
 - `BACKEND_CONFIG.uptime.retentionDays` (default: 7 days)
+- `BACKEND_CONFIG.uptime.cleanupOnStart` (controlled by `UPTIME_CHECKS_CLEANUP_ON_START` env var, default: `true`)
+- `BACKEND_CONFIG.uptime.cleanupIntervalDurationMs` (default: 86400000ms - daily)
 - `BACKEND_CONFIG.uptime.endpoints` array of endpoint paths to monitor

@@ -2,7 +2,7 @@
 
 A real‑time health monitoring dashboard that continuously checks backend API health. The backend polls endpoints every 30 seconds **only in production**, stores results in Supabase, and the frontend reads this data to display uptime percentages, latency trends, and a detailed health distribution.
 
-> **Important**: The `uptime_checks` table is automatically reset on every git push via the `.husky/pre-push` hook, ensuring fresh monitoring data for production deployments.
+> **Important**: The `uptime_checks` table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`), ensuring fresh monitoring data for production deployments.
 
 ---
 
@@ -12,7 +12,7 @@ A real‑time health monitoring dashboard that continuously checks backend API h
 
 2. **Storage** – Each result is inserted into the `uptime_checks` table in Supabase using the `service_role` key. No frontend writes are involved.
 
-3. **Pre-push Migration** – On every git push, the `.husky/pre-push` hook automatically runs the `07_uptime_monitor.sql` migration, which **wipes clean and rebuilds** the `uptime_checks` table. This ensures fresh monitoring data for each deployment.
+3. **Environment-Controlled Cleanup** – The `UPTIME_CHECKS_CLEANUP_ON_START` environment variable controls whether the `uptime_checks` table is wiped clean on server start (default: `true`). This ensures fresh monitoring data for each deployment when enabled.
 
 4. **Frontend display** – The React page reads historical data via `GET /api/uptime/history/:endpointId` and refreshes every 30 seconds (matching the backend poll interval). All charts and metrics are derived from stored data.
 
@@ -93,6 +93,17 @@ Table: `uptime_checks`
 
 ### Backend (in `BACKEND_CONFIG.uptime`)
 
+```js
+ uptime: {
+    pollIntervalMs: 30 * 1000, // 30 seconds
+    retentionDays: 7, // 7 days
+    pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
+    cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
+    cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
+    endpoints: UPTIME_ENDPOINTS.map((endpoint) => endpoint.path),
+  },
+```
+
 | Variable         | Default                              | Description                                     |
 | ---------------- | ------------------------------------ | ----------------------------------------------- |
 | `pollingEnabled` | `true` only if `NODE_ENV=production` | When `false`, polling and cleanup are disabled. |
@@ -104,19 +115,19 @@ The backend config `BACKEND_CONFIG.uptime` contains:
 - `pollingEnabled`: derived from `NODE_ENV` (production only)
 - `endpoints`: list of health paths to poll
 
-### Pre-push Migration Hook
+### Environment-Controlled Cleanup
 
-```bash
-# .husky/pre-push
-echo "⫸ Running uptime schema migration..."
-psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
-```
+The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`):
 
-This ensures the monitoring table is fresh for each production deployment.
+- **Default**: `true` - wipes the `uptime_checks` table on server start
+- **Set to `false`**: preserves existing uptime data across server restarts
+- **Location**: Configured in `backend.config.js` under `uptime.cleanupOnStart`
+
+This replaces the previous pre-push hook approach, giving you more control over when the monitoring table is fresh for production deployments.
 
 ### Frontend (build‑time config via `frontend.config.js`)
 
-```javascript
+```js
 uptime: {
   refetchIntervalMs: 30_000,
 },

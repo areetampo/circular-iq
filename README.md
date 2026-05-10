@@ -101,7 +101,7 @@ The application includes a comprehensive uptime monitoring system that tracks ba
 - **Automated Health Checks**: Backend polls endpoints every 30 seconds in production
 - **Database Storage**: Results stored in `uptime_checks` table with 7-day retention
 - **Real-time Dashboard**: Frontend displays live uptime metrics, response times, and health distribution
-- **Pre-push Migration**: Automatic table reset on each git push via `.husky/pre-push` hook
+- **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
 
 ### Deployment Architecture
 
@@ -202,12 +202,14 @@ Global Activity includes manual refresh button with "updated N minutes ago" time
 │   │   ├── scoring.controller.js     # Full scoring pipeline orchestration + log
 │   │   └── search.controller.js      # ce_cases search functionality
 │   ├── database/
+│   │   ├── diagnostics/             # Read-only monitoring queries (sizes, performance, health, schema, vector)
 │   │   ├── migrations/              # SQL migration files 01–07 (run in Supabase SQL editor)
-│   │   ├── queries/                 # Database query definitions
-│   │   ├── repositories/            # Data access layer (documents.repository.js, ce_cases_repository.js)
+│   │   ├── queries/                 # Stable reusable read queries called by app code
+│   │   ├── scripts/                 # Manual one-off operational SQL (backfills, repairs)
+│   │   ├── repositories/            # Data access layer (documents.repository.js, ce_cases.repository.js)
 │   │   ├── client.js                # Dual-backend DB client factory (Supabase or Aiven)
 │   │   ├── supabase.client.js       # Supabase client factory (anon + service-role)
-│   │   └─ README.md               # Database layer documentation
+│   │   └── README.md                # Database layer documentation
 │   ├── middleware/                  # Auth guard (API key + JWT) + Zod validation
 │   ├── pipeline/                    # Data processing stages (10+ pipeline scripts)
 │   │   ├── create_samples.js         # Generate test/sample data for development
@@ -604,19 +606,7 @@ npm run rei          # Clean + reinstall all dependencies
 3. Implement following existing patterns and architecture
 4. Update relevant README sections
 5. Run tests: `npm test` (both backend and frontend)
-6. **Pre-push Hook**: Automatically runs uptime schema migration - table is wiped clean and rebuilt
-7. Submit PR with description of changes
-
-### Pre-push Migration Hook
-
-The `.husky/pre-push` hook automatically runs the uptime monitoring migration on each push:
-
-```bash
-echo "⫸ Running uptime schema migration..."
-psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
-```
-
-This ensures the `uptime_checks` table is always fresh and properly structured for production monitoring.
+6. Submit PR with description of changes
 
 ### Architecture Principles
 
