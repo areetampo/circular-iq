@@ -8,7 +8,8 @@ import rateLimit from 'express-rate-limit';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as scoringController from '#controllers/scoring.controller.js';
-import { createSupabaseClient } from '#database/supabase.client.js';
+import { createSupabaseClient } from '#database/index.js';
+import { extractUserId } from '#services/auth.service.js';
 import { setOpenAIClient as setServiceOpenAIClient } from '#services/scoring.service.js';
 import { extractIPAddress } from '#utils/anonymousTracking.js';
 
@@ -29,31 +30,6 @@ function logRequest(method, path, status, duration) {
       'Route request complete',
     );
   }
-}
-
-/**
- * Extract user ID from authorization header
- * @param {Object} req - Express request object
- * @param {Object} supabase - Supabase client
- * @returns {Promise<string|null>} User ID or null if anonymous
- */
-async function extractUserId(req, supabase) {
-  const authHeader = req.headers.authorization || '';
-  if (!authHeader.startsWith('Bearer ')) {
-    return null;
-  }
-  const token = authHeader.slice(7).trim();
-  if (!token) return null;
-
-  try {
-    const { data, error } = await supabase.auth.getUser(token);
-    if (!error && data?.user) {
-      return data.user.id;
-    }
-  } catch (err) {
-    logger.warn({ err }, 'extractUserId failed');
-  }
-  return null;
 }
 
 export default function createScoringRouter(openai, supabase) {
@@ -174,8 +150,8 @@ export default function createScoringRouter(openai, supabase) {
           try {
             res.write(': heartbeat\n\n');
             if (typeof res.flush === 'function') res.flush();
-          } catch (_) {
-            // Ignore heartbeat errors
+          } catch (err) {
+            logger.error({ err }, 'Failed to send heartbeat to SSE stream');
           }
         }
       }, 5000);
