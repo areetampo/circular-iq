@@ -1,4 +1,14 @@
 /**
+ * Convert value to safe number, defaulting to 0 for invalid values
+ * @param {*} value - Value to convert
+ * @returns {number} - Safe number
+ */
+export function safeNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+/**
  * Formats a timestamp into a human-readable string.
  * @param {number|string|Date} timestamp - The value to format.
  * @param {Object} [options={}] - Configuration for the output format.

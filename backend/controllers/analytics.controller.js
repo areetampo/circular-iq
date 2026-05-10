@@ -7,7 +7,7 @@
 import { spawn } from 'child_process';
 import path from 'path';
 
-import { safeNumber } from '#utils/analyticsHelpers.js';
+import { safeNumber } from '#utils/formatting.js';
 
 /**
  * Compute ISO week key in format YYYY-Www for a UTC date
