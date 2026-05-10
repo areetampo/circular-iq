@@ -11,14 +11,44 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { DrawerProvider } from '@/contexts/DrawerContext';
 
+// Set of error message strings to skip showing toast notifications
+const SKIPPED_TOASTS = {
+  // Filter out pagination-related errors that we handle silently
+  'Requested range not satisfiable': "Don't show toast for pagination errors",
+
+  // Filter out compare/share validation errors that are handled by DetailsBadge
+  'Invalid assessment ID': "Don't show toast for validation errors handled by forms",
+  'One or more ids incorrect': "Don't show toast for validation errors handled by forms",
+  'not public': "Don't show toast for validation errors handled by forms",
+  'Validation failed': "Don't show toast for validation errors handled by forms",
+
+  // Filter out assessment view page errors that are handled by DetailsDisplay
+  'Failed to load shared assessment':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+  'Failed to load assessment':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+  'Assessment not publicly available':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+  'One or more assessments not public':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+  'Public assessment ID is required':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+  'Both assessment ids are required and must be valid strings':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+  'Assessment id is required':
+    "Don't show toast for errors handled by DetailsDisplay on view pages",
+};
+
 // Initialize QueryClient with global error handling
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
-      // Filter out pagination-related errors that we handle silently
-      if (error?.message?.includes('Requested range not satisfiable')) {
-        return; // Don't show toast for pagination errors
+      // Check if error message should be skipped
+      const errorMsg = error?.message;
+      if (errorMsg && Object.keys(SKIPPED_TOASTS).some((skipMsg) => errorMsg.includes(skipMsg))) {
+        return;
       }
+
       const errorMessage = error?.message || 'An error occurred while fetching data';
       toast.danger(errorMessage);
     },
