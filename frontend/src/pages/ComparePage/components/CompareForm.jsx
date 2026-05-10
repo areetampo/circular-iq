@@ -1,43 +1,64 @@
 import { FieldError, Input, Label, TextField } from '@heroui/react';
-import { MoveLeft } from 'lucide-react';
+import { Files, MoveLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/common';
+import { Button, DetailsBadge, Spinner } from '@/components/common';
+import { useAssessmentValidation } from '@/features/assessments/hooks';
+import { clearCompareFormState, loadCompareFormState, saveCompareFormState } from '@/lib/storage';
 import { isValidUUID } from '@/lib/validation';
 import { useSafeBack } from '@/utils/navigation';
-
-const STORAGE_KEY = 'comparePageInputs';
 
 export default function CompareForm() {
   const navigate = useNavigate();
   const goBackSafely = useSafeBack();
 
-  const [publicId1, setPublicId1] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved).id1 : '';
-    } catch {
-      return '';
-    }
-  });
-  const [publicId2, setPublicId2] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved).id2 : '';
-    } catch {
-      return '';
-    }
-  });
+  const [publicId1, setPublicId1] = useState('');
+  const [publicId2, setPublicId2] = useState('');
 
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [showEmptyError, setShowEmptyError] = useState({ id1: false, id2: false });
+  const [validating, setValidating] = useState(false);
+  const [validationMessage, setValidationMessage] = useState(null);
+  const [validationData, setValidationData] = useState(null);
 
-  // Save to sessionStorage whenever inputs change
+  // Save form state to sessionStorage whenever publicId1 or publicId2 changes
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ id1: publicId1, id2: publicId2 }));
+    // Only save if there are values
+    if (publicId1.trim() || publicId2.trim()) {
+      saveCompareFormState(publicId1, publicId2);
+    }
   }, [publicId1, publicId2]);
+
+  // Load saved state from sessionStorage when component mounts
+  useEffect(() => {
+    const saved = loadCompareFormState();
+    if (saved) {
+      if (saved.publicId1 && isValidUUID(saved.publicId1)) {
+        setPublicId1(saved.publicId1);
+      }
+      if (saved.publicId2 && isValidUUID(saved.publicId2)) {
+        setPublicId2(saved.publicId2);
+      }
+    }
+  }, []);
+
+  // Call the hook at the top level of the component, but only enable when both IDs are valid UUIDs
+  const { validate, validationQuery } = useAssessmentValidation(
+    isValidUUID(publicId1) ? publicId1 : null,
+    isValidUUID(publicId2) ? publicId2 : null,
+  );
+
+  // Sync error state and validation data from validation query to local state
+  useEffect(() => {
+    if (validationQuery.error) {
+      setError(validationQuery.error.message || 'Validation failed');
+      setValidationData(null);
+    } else if (validationQuery.data) {
+      setError(null);
+      setValidationData(validationQuery.data);
+    }
+  }, [validationQuery.error, validationQuery.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,12 +84,10 @@ export default function CompareForm() {
     if (!isId1Valid || !isId2Valid) {
       // Set specific empty error for invalid fields to trigger inline error messages
       setShowEmptyError({
-        id1: !isId1Valid,
-        id2: !isId2Valid,
+        id1: !isEmpty1 && !isId1Valid,
+        id2: !isEmpty2 && !isId2Valid,
       });
-      setError(
-        `Incorrect assessment ID format.\nExample format: 123e4567-e89b-12d3-a456-426614174000`,
-      );
+      setError('Incorrect assessment ID format');
       return;
     }
 
@@ -77,40 +96,42 @@ export default function CompareForm() {
       return;
     }
 
-    setLoading(true);
+    setValidating(true);
+    setValidationMessage('Validating assessments...');
+
+    // Force a re-render to show the validation message
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Update validation message to show we're making API calls
+    setValidationMessage('Checking assessment availability...');
+
     try {
-      // Validate both IDs (they must be your own assessments or public)
-      const [res1, res2] = await Promise.all([
-        fetch(`/api/assessments/validate/${encodeURIComponent(id1)}`),
-        fetch(`/api/assessments/validate/${encodeURIComponent(id2)}`),
-      ]);
+      // Use the validate function from the hook
+      await validate();
 
-      // Check if either ID is invalid
-      if (res1.status === 404 || res2.status === 404) {
-        setError('One or more ids incorrect');
+      // Check for validation error after the validate call
+      if (validationQuery.error) {
+        setValidating(false);
+        setValidationMessage(null);
+        setError(validationQuery.error.message || 'One or more ids incorrect');
         return;
       }
 
-      if (res1.status === 403 || res2.status === 403) {
-        setError('One or more assessments are not public');
-        return;
-      }
+      // If validation passes, redirect
+      setValidating(false);
+      setValidationMessage('Validation successful! Redirecting...');
 
-      if (!res1.ok || !res2.ok) {
-        const body1 = await res1.json().catch(() => ({}));
-        const body2 = await res2.json().catch(() => ({}));
-        setError(body1.error || body2.error || 'Failed to validate assessment IDs');
-        return;
-      }
+      // Brief delay to show success message
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Valid - clear saved inputs and navigate to comparison page
-      sessionStorage.removeItem(STORAGE_KEY);
+      // Clear validation state and navigate
+      setValidationMessage(null);
       navigate(`/assessments/compare?id1=${id1}&id2=${id2}`);
     } catch (err) {
       logger.error(err);
-      setError('One or more ids incorrect');
-    } finally {
-      setLoading(false);
+      setValidating(false);
+      setValidationMessage(null);
+      setError(err.message || 'One or more ids incorrect');
     }
   };
 
@@ -119,6 +140,10 @@ export default function CompareForm() {
     setPublicId2('');
     setError(null);
     setShowEmptyError({ id1: false, id2: false });
+    setValidating(false);
+    setValidationMessage(null);
+    setValidationData(null);
+    clearCompareFormState();
   };
 
   const handleInputChange = (setter, field) => (e) => {
@@ -127,15 +152,21 @@ export default function CompareForm() {
     if (e.target.value.trim()) {
       setShowEmptyError((prev) => ({ ...prev, [field]: false }));
       setError(null);
+      setValidating(false);
+      setValidationMessage(null);
+      setValidationData(null);
     } else {
       // If field becomes empty, clear UUID format error but set empty error for validation
       setShowEmptyError((prev) => ({ ...prev, [field]: true }));
       setError(null);
+      setValidating(false);
+      setValidationMessage(null);
+      setValidationData(null);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
       <div>
         <h1 className="font-sans text-3xl/tight font-medium text-(--color-text-primary)">
           Compare Assessments
@@ -157,7 +188,7 @@ export default function CompareForm() {
               <div>
                 <Label>First Assessment ID</Label>
                 {showEmptyError.id1 && (
-                  <FieldError>
+                  <FieldError className="hidden">
                     {!publicId1.trim() ? 'is required' : 'has invalid format'}
                   </FieldError>
                 )}
@@ -182,7 +213,7 @@ export default function CompareForm() {
               <div>
                 <Label>Second Assessment ID</Label>
                 {showEmptyError.id2 && (
-                  <FieldError>
+                  <FieldError className="hidden">
                     {!publicId2.trim() ? 'is required' : 'has invalid format'}
                   </FieldError>
                 )}
@@ -200,7 +231,7 @@ export default function CompareForm() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button type="submit" variant="primary" isLoading={loading}>
+            <Button type="submit" variant="primary" isLoading={validating}>
               Compare
             </Button>
             <Button variant="ghost" onPress={handleClear}>
@@ -208,15 +239,26 @@ export default function CompareForm() {
             </Button>
           </div>
           <div>
-            <Button variant="info-soft" as={Link} to="/assessments">
-              Compare your assessments
-            </Button>
+            {/* Validation message display - show when validating and no error */}
+            {validating && validationMessage && !error && (
+              <DetailsBadge variant="info" message={validationMessage} icon={Spinner} />
+            )}
+            {/* Loading state from validation query - show when auto-fetching */}
+            {validationQuery.isLoading && !validating && !error && (
+              <DetailsBadge variant="info" message="Validating assessment IDs..." icon={Spinner} />
+            )}
+            {/* Success state after auto-fetching completes - show ready message */}
+            {!validating && !error && validationData && !validationMessage && (
+              <DetailsBadge variant="success" message="Assessments validated! Ready to compare." />
+            )}
+            {/* Error display - show when not validating and has error */}
+            {!validating && error && <DetailsBadge variant="error" message={error} />}
           </div>
         </div>
       </form>
 
       {/* Info box */}
-      <div className="mt-8 rounded-xl border-3 border-dashed border-(--color-border-ui) bg-transparent p-4">
+      <div className="mt-6 rounded-xl border-3 border-dashed border-(--color-border-ui) bg-transparent p-4">
         <p className="mb-2 text-xs font-semibold tracking-wide text-(--color-text-muted) uppercase">
           About Comparison
         </p>
@@ -242,10 +284,14 @@ export default function CompareForm() {
         </ul>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-3">
         <Button type="button" variant="ghost" onPress={goBackSafely}>
           <MoveLeft size={14} />
           Back
+        </Button>
+        <Button variant="info-soft" as={Link} to="/assessments">
+          <Files size={18} strokeWidth={1.6} />
+          Compare your assessments
         </Button>
       </div>
     </div>
