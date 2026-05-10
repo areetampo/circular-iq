@@ -435,7 +435,6 @@ VITE_SCORING_MAX_FREE_TRIES=5
 | ------ | --------------------------------- | -------- | ----------------------------------------------------------- |
 | `GET`  | `/api/uptime/count`               | Optional | Get total number of uptime checks (optionally per endpoint) |
 | `GET`  | `/api/uptime/history/:endpointId` | Optional | Retrieve recent checks for specific endpoint (max 10000)    |
-| `POST` | `/api/uptime/checks`              | Optional | Store a single health check result                          |
 
 ### User Profile
 

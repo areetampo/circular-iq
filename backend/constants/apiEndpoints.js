@@ -108,9 +108,4 @@ export default [
     endpoint: '/api/uptime/history/:endpointId',
     description: 'Retrieve recent checks for specific endpoint (max 10000)',
   },
-  {
-    method: 'POST',
-    endpoint: '/api/uptime/checks',
-    description: 'Store a single health check result',
-  },
 ];

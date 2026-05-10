@@ -206,7 +206,6 @@ This wipes and rebuilds the `uptime_checks` table on every push, ensuring clean 
 | ------ | --------------------------------- | ---------------------------- |
 | GET    | `/api/uptime/count`               | Total uptime checks count    |
 | GET    | `/api/uptime/history/:endpointId` | Historical data for endpoint |
-| POST   | `/api/uptime/checks`              | Store health check result    |
 
 ### Each Layer's Responsibilities
 
@@ -593,7 +592,6 @@ Validate assessment ID exists and is shareable. Supports user access to their ow
 | ------ | --------------------------------- | ---- | ----------------------------------------------------------- |
 | `GET`  | `/api/uptime/count`               | None | Get total number of uptime checks (optionally per endpoint) |
 | `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 10000)    |
-| `POST` | `/api/uptime/checks`              | None | Store a single health check result                          |
 
 #### GET `/api/uptime/count`
 
@@ -638,31 +636,6 @@ Retrieve recent uptime checks for a specific endpoint.
       "createdAt": "2026-01-15T10:30:00.000Z"
     }
   ]
-}
-```
-
-#### POST `/api/uptime/checks`
-
-Store a single health check result.
-
-**Request Body:**
-
-```json
-{
-  "endpointId": "health",
-  "status": "ok",
-  "up": true,
-  "responseTimeMs": 45,
-  "payload": {...}
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "id": "uuid"
 }
 ```
 
