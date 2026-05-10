@@ -97,17 +97,19 @@ export function getHealthDistribution(history, endpoints) {
 
 /**
  * Global average response time over time (hourly buckets)
+ * Now correctly checks only checks within each hour.
  */
 export function getGlobalResponseTrend(history, endpoints) {
   const now = Date.now();
   const hours = [];
   for (let i = 23; i >= 0; i--) {
     const hourStart = now - (i + 1) * 3600000;
+    const hourEnd = now - i * 3600000;
     let totalMs = 0;
     let count = 0;
     for (const ep of endpoints) {
       const checks = history[ep.id] || [];
-      const checksInHour = checks.filter((c) => c.ts >= hourStart);
+      const checksInHour = checks.filter((c) => c.ts >= hourStart && c.ts < hourEnd);
       const avgMs =
         checksInHour.reduce((sum, c) => sum + (c.ms || 0), 0) / (checksInHour.length || 1);
       if (checksInHour.length > 0) {
