@@ -30,7 +30,7 @@ export default function AuthLeftPanel() {
             key={text}
             className="flex items-center gap-3 text-[0.9375rem] text-(--color-text-secondary)"
           >
-            <div className="size-2 rounded-full bg-(--color-accent) opacity-60"></div>
+            <Icon size={16} strokeWidth={2} className="text-(--color-success)/75" />
             {text}
           </li>
         ))}

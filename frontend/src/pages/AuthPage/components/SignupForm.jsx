@@ -339,13 +339,9 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
       </p>
 
       {/* Error display */}
-      <div className="relative mt-4 flex min-h-10 items-center justify-center">
+      <div className="relative mt-4 min-h-10">
         {submitError && (
-          <DetailsBadge
-            variant="error"
-            message={submitError}
-            className="absolute inset-x-0 w-full"
-          />
+          <DetailsBadge variant="error" message={submitError} className="absolute inset-x-0" />
         )}
       </div>
     </div>

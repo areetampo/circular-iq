@@ -73,7 +73,7 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
 
       toast.success(`Welcome back ${username}!`, {
         description: 'You have successfully signed in.',
-        timeout: 3000,
+        timeout: 2000,
       });
 
       reset();
@@ -184,15 +184,9 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
         </Button>
       </p>
 
-      <div className="relative mt-4 flex min-h-10 items-center justify-center">
+      <div className="relative mt-4 min-h-10">
         {/* Error display */}
-        {submitError && (
-          <DetailsBadge
-            variant="error"
-            message={submitError}
-            className="absolute inset-x-0 w-full"
-          />
-        )}
+        {submitError && <DetailsBadge variant="error" message={submitError} />}
 
         {/* test login credentials */}
         <div className="absolute inset-x-0 top-16 flex animate-in flex-col items-center justify-center gap-1 rounded-xl bg-(--color-info-soft-ui) px-3 py-2 text-sm font-medium text-(--color-info)">

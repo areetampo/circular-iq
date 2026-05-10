@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 
 import { cn } from '@/utils/cn';
 
-import { AuthBrandHeader, LoginForm, SignupForm } from './index';
+import AuthBrandHeader from './AuthBrandHeader';
+import LoginForm from './LoginForm';
+import SignupForm from './SignupForm';
 
 export default function AuthRightPanel({ view, setView }) {
   const formRef = useRef(null);
