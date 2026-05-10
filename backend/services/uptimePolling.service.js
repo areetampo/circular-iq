@@ -61,23 +61,26 @@ async function runPoll() {
     const supabase = getSupabaseClient();
     const results = await Promise.all(UPTIME_ENDPOINTS.map((ep) => pingEndpoint(ep.id, ep.path)));
 
-    // Insert all results in parallel (each insert is independent)
-    const inserts = results.map((result) =>
-      supabase.from('uptime_checks').insert({
-        endpoint_id: result.endpointId,
-        status: result.status,
-        up: result.up,
-        response_time_ms: result.responseTimeMs,
-        payload: result.payload,
-      }),
-    );
-    await Promise.all(inserts);
+    // single batch insert
+    const rows = results.map((result) => ({
+      endpoint_id: result.endpointId,
+      status: result.status,
+      up: result.up,
+      response_time_ms: result.responseTimeMs,
+      payload: result.payload,
+    }));
 
+    const { error } = await supabase.from('uptime_checks').insert(rows);
     const duration = Date.now() - startTime;
-    logger.info(
-      { timeTookMs: duration, endpointsStored: results.length },
-      '[UptimePoll] Poll completed',
-    );
+
+    if (error) {
+      logger.error({ error, timeTookMs: duration }, '[UptimePoll] Insert failed');
+    } else {
+      logger.info(
+        { timeTookMs: duration, endpointsStored: results.length },
+        '[UptimePoll] Poll completed',
+      );
+    }
   } catch (err) {
     logger.error({ err }, '[UptimePoll] Poll cycle failed');
   } finally {

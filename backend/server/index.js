@@ -171,33 +171,55 @@ export function startServer() {
       }
     };
 
+    const { retentionDays, pollingEnabled, cleanupOnStart, cleanupIntervalDurationMs } =
+      BACKEND_CONFIG.uptime;
+
     // Only start uptime background tasks if pollingEnabled is true
-    if (BACKEND_CONFIG.uptime.pollingEnabled) {
-      // Start cleanup interval (daily)
-      uptimeCleanupInterval = setInterval(
-        async () => {
+    if (pollingEnabled) {
+      const runCleanup = async () => {
+        try {
+          const supabase = getSupabaseClient();
+          const days = retentionDays;
+          const { data, error } = await supabase.rpc('cleanup_old_uptime_checks', { days });
+          if (error) throw error;
+          logger.info(
+            { retentionDays: days, deletedRows: data },
+            'Uptime history cleanup completed',
+          );
+        } catch (err) {
+          logger.error({ err }, 'Uptime cleanup failed');
+        }
+      };
+
+      const startMonitoring = () => {
+        uptimeCleanupInterval = setInterval(runCleanup, cleanupIntervalDurationMs);
+        startUptimePolling();
+        logger.info(
+          { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled },
+          'Uptime monitoring (polling + cleanup) started',
+        );
+      };
+
+      if (cleanupOnStart) {
+        (async () => {
           try {
             const supabase = getSupabaseClient();
-            const days = BACKEND_CONFIG.uptime.retentionDays;
-            await supabase.rpc('cleanup_old_uptime_checks', { days });
-            logger.info({ retentionDays: days }, 'Uptime history cleanup completed');
+            const { error } = await supabase.rpc('cleanup_old_uptime_checks', { days: 0 });
+            if (error) throw error;
+            logger.info('Uptime table truncated on server start');
           } catch (err) {
-            logger.error({ err }, 'Uptime cleanup failed');
+            logger.error({ err }, 'Uptime table truncation on start failed');
+          } finally {
+            startMonitoring(); // polling only begins after truncation resolves
           }
-        },
-        24 * 60 * 60 * 1000,
-      );
-
-      // Start polling service
-      startUptimePolling();
-
-      logger.info(
-        { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled: BACKEND_CONFIG.uptime.pollingEnabled },
-        'Uptime monitoring (polling + cleanup) started',
-      );
+        })();
+      } else {
+        runCleanup();
+        startMonitoring();
+      }
     } else {
       logger.info(
-        { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled: BACKEND_CONFIG.uptime.pollingEnabled },
+        { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled: pollingEnabled },
         'Uptime monitoring is disabled',
       );
     }
