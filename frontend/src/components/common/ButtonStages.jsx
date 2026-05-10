@@ -2,8 +2,10 @@
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button, LoaderIcon } from '@/components/common';
 import { cn } from '@/utils/cn';
+
+import Button from './Button';
+import LoaderIcon from './LoaderIcon';
 
 /**
  * ButtonStages - A button component that handles different states with loading animations

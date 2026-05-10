@@ -243,7 +243,7 @@ const getColorOverrides = (variant, color, active) => {
 };
 
 /**
- * Custom Chip component with luxury minimal variant system
+ * Custom Chip component with minimal variant system
  * Pure custom implementation without HeroUI dependencies
  *
  * All CSS that was previously in index.css under the CHIP section is
@@ -261,7 +261,7 @@ const getColorOverrides = (variant, color, active) => {
  * @param {string} props.className - Additional CSS classes
  * @param {ReactNode} props.children - Chip content
  */
-export const Chip = forwardRef(function Chip(
+const Chip = forwardRef(function Chip(
   {
     className,
     variant = 'info',
@@ -334,7 +334,7 @@ export const Chip = forwardRef(function Chip(
       {...props}
     >
       {iconContent && iconContent}
-      <TruncatedTextTooltip limit={limit} tooltipDelay={250}>
+      <TruncatedTextTooltip limit={limit} tooltipDelay={100}>
         {textContent}
       </TruncatedTextTooltip>
     </span>

@@ -16,7 +16,7 @@ import { FRONTEND_CONFIG } from '@/config/frontend.config';
  * typically in AppProvider or AppRoutes wrapper.
  */
 export default function ScrollToTop() {
-  logger.info('ScrollToTop: === COMPONENT RENDER ===');
+  // logger.info('ScrollToTop: === COMPONENT RENDER ===');
   const { pathname, state } = useLocation();
   const isPopStateRef = useRef(false);
   const previousPathnameRef = useRef(null);
@@ -27,22 +27,22 @@ export default function ScrollToTop() {
   // Add a render counter to track component updates
   const renderCountRef = useRef(0);
   renderCountRef.current += 1;
-  logger.info(`ScrollToTop: Render #${renderCountRef.current}`);
-  logger.info('ScrollToTop: Current pathname:', pathname);
-  logger.info('ScrollToTop: Current state:', state);
-  logger.info('ScrollToTop: State keys:', state ? Object.keys(state) : 'no state');
-  logger.info('ScrollToTop: Has result in state:', !!state?.result);
-  logger.info(
-    'ScrollToTop: Result sample:',
-    state?.result
-      ? {
-          hasOverallScore: !!state.result.overall_score,
-          hasProcessingInfo: !!state.result.processing_info,
-          score: state.result.overall_score,
-          keys: Object.keys(state.result),
-        }
-      : 'no result',
-  );
+  // logger.info(`ScrollToTop: Render #${renderCountRef.current}`);
+  // logger.info('ScrollToTop: Current pathname:', pathname);
+  // logger.info('ScrollToTop: Current state:', state);
+  // logger.info('ScrollToTop: State keys:', state ? Object.keys(state) : 'no state');
+  // logger.info('ScrollToTop: Has result in state:', !!state?.result);
+  // logger.info(
+  //   'ScrollToTop: Result sample:',
+  //   state?.result
+  //     ? {
+  //         hasOverallScore: !!state.result.overall_score,
+  //         hasProcessingInfo: !!state.result.processing_info,
+  //         score: state.result.overall_score,
+  //         keys: Object.keys(state.result),
+  //       }
+  //     : 'no result',
+  // );
 
   // Track popstate events (back/forward button presses)
   useEffect(() => {
@@ -59,23 +59,23 @@ export default function ScrollToTop() {
 
   // Generate a unique identifier for results to detect new vs existing
   const getResultId = (result) => {
-    logger.info('ScrollToTop: getResultId called with result:', result);
+    // logger.info('ScrollToTop: getResultId called with result:', result);
 
     if (!result) {
-      logger.info('ScrollToTop: No result provided');
+      // logger.info('ScrollToTop: No result provided');
       return null;
     }
 
     // Handle the case where result might be nested (result.result)
     const actualResult = result?.result || result;
-    logger.info('ScrollToTop: Using actualResult:', actualResult);
+    // logger.info('ScrollToTop: Using actualResult:', actualResult);
 
     // For /results page, use request_id from processing_info
     if (actualResult?.processing_info?.request_id) {
-      logger.info(
-        'ScrollToTop: Using processing_info.request_id:',
-        actualResult.processing_info.request_id,
-      );
+      // logger.info(
+      //   'ScrollToTop: Using processing_info.request_id:',
+      //   actualResult.processing_info.request_id,
+      // );
       return actualResult.processing_info.request_id;
     }
 
@@ -89,7 +89,7 @@ export default function ScrollToTop() {
 
     for (const id of possibleIds) {
       if (id) {
-        logger.info('ScrollToTop: Using fallback ID:', id);
+        // logger.info('ScrollToTop: Using fallback ID:', id);
         return id;
       }
     }
@@ -109,7 +109,7 @@ export default function ScrollToTop() {
 
     // Create a stable hash from the actual result content
     const contentHash = `${score}_${confidence}_${problemHash}_${solutionHash}_${categoryScores}`;
-    logger.info('ScrollToTop: Using stable content hash ID:', contentHash);
+    // logger.info('ScrollToTop: Using stable content hash ID:', contentHash);
     return contentHash;
   };
 
@@ -166,35 +166,35 @@ export default function ScrollToTop() {
 
   // Simple direct approach: force scroll to top on results page when coming from landing page
   useEffect(() => {
-    logger.info('ScrollToTop: === ROUTE CHANGE DETECTED ===', {
-      pathname,
-      previousPathname: previousPathnameRef.current,
-      state,
-      isInitialLoad: previousPathnameRef.current === null,
-      timestamp: new Date().toISOString(),
-    });
+    // logger.info('ScrollToTop: === ROUTE CHANGE DETECTED ===', {
+    //   pathname,
+    //   previousPathname: previousPathnameRef.current,
+    //   state,
+    //   isInitialLoad: previousPathnameRef.current === null,
+    //   timestamp: new Date().toISOString(),
+    // });
 
     // Skip scroll on initial load
     if (previousPathnameRef.current === null) {
-      logger.info('ScrollToTop: Initial load, setting previous pathname');
+      // logger.info('ScrollToTop: Initial load, setting previous pathname');
       previousPathnameRef.current = pathname;
       return;
     }
 
     // If the pathname changed
     if (pathname !== previousPathnameRef.current) {
-      logger.info(
-        'ScrollToTop: Pathname changed from',
-        previousPathnameRef.current,
-        'to',
-        pathname,
-      );
-      logger.info('ScrollToTop: Location state details:', {
-        hasState: !!state,
-        hasResult: !!state?.result,
-        resultKeys: state?.result ? Object.keys(state.result) : [],
-        isRestored: state?.isRestored,
-      });
+      // logger.info(
+      //   'ScrollToTop: Pathname changed from',
+      //   previousPathnameRef.current,
+      //   'to',
+      //   pathname,
+      // );
+      // logger.info('ScrollToTop: Location state details:', {
+      //   hasState: !!state,
+      //   hasResult: !!state?.result,
+      //   resultKeys: state?.result ? Object.keys(state.result) : [],
+      //   isRestored: state?.isRestored,
+      // });
 
       // SIMPLIFIED LOGIC: Force scroll to top for all results and assessments page navigation
       const isAssessmentRoute = pathname.startsWith('/assessments/');
@@ -206,24 +206,24 @@ export default function ScrollToTop() {
         (hasResultData || isAssessmentRoute) &&
         isNotRestored
       ) {
-        logger.info('ScrollToTop: SIMPLIFIED - Forcing scroll to top for results/assessments', {
-          hasResultData,
-          isAssessmentRoute,
-        });
+        // logger.info('ScrollToTop: SIMPLIFIED - Forcing scroll to top for results/assessments', {
+        //   hasResultData,
+        //   isAssessmentRoute,
+        // });
 
         // Multiple attempts to scroll to top
         const scrollToTopMultiple = () => {
-          logger.info('ScrollToTop: Attempting scroll to top - current position:', window.scrollY);
+          // logger.info('ScrollToTop: Attempting scroll to top - current position:', window.scrollY);
           window.scrollTo(0, 0);
 
           // Check if scroll worked
           setTimeout(() => {
-            logger.info('ScrollToTop: After scroll attempt - position:', window.scrollY);
+            // logger.info('ScrollToTop: After scroll attempt - position:', window.scrollY);
             if (window.scrollY > 10) {
-              logger.warn('ScrollToTop: Scroll failed, trying again');
+              // logger.warn('ScrollToTop: Scroll failed, trying again');
               window.scrollTo(0, 0);
               setTimeout(() => {
-                logger.info('ScrollToTop: Second attempt - position:', window.scrollY);
+                // logger.info('ScrollToTop: Second attempt - position:', window.scrollY);
               }, 100);
             }
           }, 100);
@@ -239,53 +239,53 @@ export default function ScrollToTop() {
         // Use original logic for other cases
         const scrollAction = getScrollAction(pathname, state, previousPathnameRef.current);
 
-        logger.info('ScrollToTop: === SCROLL DECISION ===', {
-          action: scrollAction.action,
-          scrollY: scrollAction.scrollY,
-          pathname,
-          hasResult: !!state?.result,
-          resultId: state?.result ? getResultId(state.result) : 'no-result',
-        });
+        // logger.info('ScrollToTop: === SCROLL DECISION ===', {
+        //   action: scrollAction.action,
+        //   scrollY: scrollAction.scrollY,
+        //   pathname,
+        //   hasResult: !!state?.result,
+        //   resultId: state?.result ? getResultId(state.result) : 'no-result',
+        // });
 
         // Execute the determined scroll action
         window.requestAnimationFrame(() => {
-          logger.info('ScrollToTop: === EXECUTING SCROLL ACTION ===', scrollAction.action);
+          // logger.info('ScrollToTop: === EXECUTING SCROLL ACTION ===', scrollAction.action);
           switch (scrollAction.action) {
             case 'scrollToTop':
-              logger.info(
-                'ScrollToTop: EXECUTING scroll to top - current position:',
-                window.scrollY,
-              );
+              // logger.info(
+              //   'ScrollToTop: EXECUTING scroll to top - current position:',
+              //   window.scrollY,
+              // );
 
               // Immediate scroll
               window.scrollTo(0, 0);
-              logger.info('ScrollToTop: After immediate scrollTo(0,0) - position:', window.scrollY);
+              // logger.info('ScrollToTop: After immediate scrollTo(0,0) - position:', window.scrollY);
 
               // Delayed scroll to handle async content loading
               setTimeout(() => {
-                logger.info('ScrollToTop: Delayed scroll check - position:', window.scrollY);
+                // logger.info('ScrollToTop: Delayed scroll check - position:', window.scrollY);
                 if (window.scrollY > 10) {
-                  logger.warn('ScrollToTop: Page moved down, scrolling to top again');
+                  // logger.warn('ScrollToTop: Page moved down, scrolling to top again');
                   window.scrollTo(0, 0);
                   setTimeout(() => {
-                    logger.info('ScrollToTop: Final scroll check - position:', window.scrollY);
+                    // logger.info('ScrollToTop: Final scroll check - position:', window.scrollY);
                   }, 100);
                 }
               }, 300);
 
               break;
             case 'restorePosition':
-              logger.info(
-                'ScrollToTop: EXECUTING restore position to:',
-                scrollAction.scrollY,
-                '- current:',
-                window.scrollY,
-              );
+              // logger.info(
+              //   'ScrollToTop: EXECUTING restore position to:',
+              //   scrollAction.scrollY,
+              //   '- current:',
+              //   window.scrollY,
+              // );
               window.scrollTo(0, scrollAction.scrollY);
-              logger.info('ScrollToTop: After restore - position:', window.scrollY);
+              // logger.info('ScrollToTop: After restore - position:', window.scrollY);
               break;
             case 'noScroll':
-              logger.info('ScrollToTop: EXECUTING no scroll - current position:', window.scrollY);
+              // logger.info('ScrollToTop: EXECUTING no scroll - current position:', window.scrollY);
               break;
           }
         });
@@ -294,48 +294,48 @@ export default function ScrollToTop() {
       // Reset the popstate flag after handling
       isPopStateRef.current = false;
       previousPathnameRef.current = pathname;
-      logger.info('ScrollToTop: Updated previous pathname to:', pathname);
+      // logger.info('ScrollToTop: Updated previous pathname to:', pathname);
     } else {
-      logger.info('ScrollToTop: Pathname did not change, skipping scroll logic');
+      // logger.info('ScrollToTop: Pathname did not change, skipping scroll logic');
     }
   }, [pathname, state]);
 
   // Determine scroll action based on route, navigation type, and scroll memory
   const getScrollAction = (currentPath, locationState, previousPath) => {
-    logger.info('ScrollToTop: getScrollAction called', {
-      currentPath,
-      previousPath,
-      hasResult: !!locationState?.result,
-      isRestored: locationState?.isRestored,
-      isPopState: isPopStateRef.current,
-      lastResultId: lastResultIdRef.current,
-    });
+    // logger.info('ScrollToTop: getScrollAction called', {
+    //   currentPath,
+    //   previousPath,
+    //   hasResult: !!locationState?.result,
+    //   isRestored: locationState?.isRestored,
+    //   isPopState: isPopStateRef.current,
+    //   lastResultId: lastResultIdRef.current,
+    // });
 
     // Don't scroll on popstate (back/forward button navigation) - restore position if available
     if (isPopStateRef.current) {
-      logger.info('ScrollToTop: Detected popstate navigation');
+      // logger.info('ScrollToTop: Detected popstate navigation');
       const scrollMemory = scrollMemoryRef.current.get(currentPath);
       if (scrollMemory && Date.now() - scrollMemory.timestamp < 3 * 60 * 1000) {
-        logger.info('ScrollToTop: Restoring scroll position from memory (popstate)', scrollMemory);
+        // logger.info('ScrollToTop: Restoring scroll position from memory (popstate)', scrollMemory);
         return { action: 'restorePosition', scrollY: scrollMemory.scrollY };
       }
-      logger.info('ScrollToTop: No scroll position memory available (popstate)');
+      // logger.info('ScrollToTop: No scroll position memory available (popstate)');
       return { action: 'noScroll' };
     }
 
     // For results and assessments page, scroll to top for new evaluations only
     if (currentPath.startsWith('/results') || currentPath.startsWith('/assessments/')) {
-      logger.info('ScrollToTop: Processing results/assessments page navigation');
+      // logger.info('ScrollToTop: Processing results/assessments page navigation');
       const result = locationState?.result;
       const resultId = getResultId(result);
       const isRestored = locationState?.isRestored;
 
-      logger.info('ScrollToTop: Results page details', {
-        hasResult: !!result,
-        resultId,
-        isRestored,
-        lastResultId: lastResultIdRef.current,
-      });
+      // logger.info('ScrollToTop: Results page details', {
+      //   hasResult: !!result,
+      //   resultId,
+      //   isRestored,
+      //   lastResultId: lastResultIdRef.current,
+      // });
 
       // Special handling for assessment routes that don't have navigation state
       const isAssessmentDetailRoute =
@@ -353,62 +353,62 @@ export default function ScrollToTop() {
         !isRestored &&
         !result
       ) {
-        logger.info('ScrollToTop: ASSESSMENT ROUTE - No navigation state, forcing scroll to top', {
-          isAssessmentDetailRoute,
-          isAssessmentShareRoute,
-          isAssessmentCompareRoute,
-        });
+        // logger.info('ScrollToTop: ASSESSMENT ROUTE - No navigation state, forcing scroll to top', {
+        //   isAssessmentDetailRoute,
+        //   isAssessmentShareRoute,
+        //   isAssessmentCompareRoute,
+        // });
         return { action: 'scrollToTop' };
       }
 
       // If we have a result and it's different from the last one, scroll to top
       if (result && resultId) {
         const isNewResult = resultId !== lastResultIdRef.current;
-        logger.info('ScrollToTop: Results page evaluation', {
-          resultId,
-          lastResultId: lastResultIdRef.current,
-          isNewResult,
-          isRestored,
-        });
+        // logger.info('ScrollToTop: Results page evaluation', {
+        //   resultId,
+        //   lastResultId: lastResultIdRef.current,
+        //   isNewResult,
+        //   isRestored,
+        // });
 
         if (isNewResult && !isRestored) {
           lastResultIdRef.current = resultId;
-          logger.info('ScrollToTop: NEW RESULT DETECTED - Scrolling to top');
+          // logger.info('ScrollToTop: NEW RESULT DETECTED - Scrolling to top');
           return { action: 'scrollToTop' };
         } else {
-          logger.info('ScrollToTop: Not a new result or is restored - checking scroll memory');
+          // logger.info('ScrollToTop: Not a new result or is restored - checking scroll memory');
         }
       } else {
-        logger.info('ScrollToTop: No result or resultId available - checking scroll memory');
+        // logger.info('ScrollToTop: No result or resultId available - checking scroll memory');
       }
 
       // For results page without new result data, check if we have scroll memory
       const scrollMemory = scrollMemoryRef.current.get(currentPath);
       if (scrollMemory && Date.now() - scrollMemory.timestamp < 3 * 60 * 1000) {
-        logger.info('ScrollToTop: Restoring scroll position for existing results', scrollMemory);
+        // logger.info('ScrollToTop: Restoring scroll position for existing results', scrollMemory);
         return { action: 'restorePosition', scrollY: scrollMemory.scrollY };
       }
 
-      logger.info('ScrollToTop: No scroll memory for results page - not scrolling');
+      // logger.info('ScrollToTop: No scroll memory for results page - not scrolling');
       return { action: 'noScroll' };
     }
 
     // For other pages, check if we have scroll memory and it's not expired
-    logger.info('ScrollToTop: Processing non-results page navigation');
+    // logger.info('ScrollToTop: Processing non-results page navigation');
     const scrollMemory = scrollMemoryRef.current.get(currentPath);
     if (scrollMemory && Date.now() - scrollMemory.timestamp < 3 * 60 * 1000) {
-      logger.info('ScrollToTop: Restoring scroll position for visited page', scrollMemory);
+      // logger.info('ScrollToTop: Restoring scroll position for visited page', scrollMemory);
       return { action: 'restorePosition', scrollY: scrollMemory.scrollY };
     }
 
     // First visit to this route or memory expired, scroll to top
-    logger.info('ScrollToTop: First visit or expired memory, scrolling to top');
+    // logger.info('ScrollToTop: First visit or expired memory, scrolling to top');
     return { action: 'scrollToTop' };
   };
 
   // Add immediate scroll check for results and assessments page with different approach
   useEffect(() => {
-    logger.info('ScrollToTop: DIRECT CHECK - pathname:', pathname, 'has result:', !!state?.result);
+    // logger.info('ScrollToTop: DIRECT CHECK - pathname:', pathname, 'has result:', !!state?.result);
 
     const isAssessmentRoute = pathname.startsWith('/assessments/');
     const hasResultData = state?.result;
@@ -419,14 +419,14 @@ export default function ScrollToTop() {
       (hasResultData || isAssessmentRoute) &&
       isNotRestored
     ) {
-      logger.info(
-        'ScrollToTop: DIRECT CHECK - Results/Assessments page detected, using multiple methods',
-        { hasResultData, isAssessmentRoute },
-      );
+      // logger.info(
+      //   'ScrollToTop: DIRECT CHECK - Results/Assessments page detected, using multiple methods',
+      //   { hasResultData, isAssessmentRoute },
+      // );
 
       // Method 1: Direct DOM manipulation
       const scrollDirect = () => {
-        logger.info('ScrollToTop: Direct scroll - before:', window.scrollY);
+        // logger.info('ScrollToTop: Direct scroll - before:', window.scrollY);
 
         // Try multiple scroll methods
         window.scrollTo(0, 0);
@@ -442,7 +442,7 @@ export default function ScrollToTop() {
         document.documentElement.style.scrollBehavior = 'auto';
         document.body.style.scrollBehavior = 'auto';
 
-        logger.info('ScrollToTop: Direct scroll - after:', window.scrollY);
+        // logger.info('ScrollToTop: Direct scroll - after:', window.scrollY);
       };
 
       // Execute immediately and multiple times
@@ -452,7 +452,7 @@ export default function ScrollToTop() {
       let attempts = 0;
       const intervalId = setInterval(() => {
         attempts++;
-        logger.info(`ScrollToTop: Interval attempt ${attempts} - position:`, window.scrollY);
+        // logger.info(`ScrollToTop: Interval attempt ${attempts} - position:`, window.scrollY);
 
         if (window.scrollY > 10) {
           scrollDirect();
@@ -461,7 +461,7 @@ export default function ScrollToTop() {
         if (attempts >= 20) {
           // Stop after 20 attempts (2 seconds)
           clearInterval(intervalId);
-          logger.warn('ScrollToTop: Stopping interval attempts after max retries');
+          // logger.warn('ScrollToTop: Stopping interval attempts after max retries');
         }
       }, 100);
 
@@ -487,14 +487,14 @@ export default function ScrollToTop() {
           display: 'none',
         }}
         onClick={() => {
-          logger.info('ScrollToTop: TEST BUTTON CLICKED');
-          logger.info('ScrollToTop: Current scroll position before:', window.scrollY);
+          // logger.info('ScrollToTop: TEST BUTTON CLICKED');
+          // logger.info('ScrollToTop: Current scroll position before:', window.scrollY);
           window.scrollTo(0, 0);
-          logger.info('ScrollToTop: Current scroll position after:', window.scrollY);
+          // logger.info('ScrollToTop: Current scroll position after:', window.scrollY);
 
           // Test navigation to results page with mock data
           setTimeout(() => {
-            logger.info('ScrollToTop: Testing navigation to /results with mock result');
+            // logger.info('ScrollToTop: Testing navigation to /results with mock result');
             const mockResult = {
               overall_score: 75,
               business_problem: 'Test problem',

@@ -10,19 +10,16 @@ import { cn } from '@/utils/cn';
  */
 export default function GlobalLoadingBar() {
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // Trigger loading on route change or initial load
-    setIsLoading(true);
     setProgress(10);
 
     // Simulate loading completion after a short delay
     const timer = setTimeout(() => {
       setProgress(100);
       setTimeout(() => {
-        setIsLoading(false);
         setProgress(0);
       }, 300);
     }, 500);

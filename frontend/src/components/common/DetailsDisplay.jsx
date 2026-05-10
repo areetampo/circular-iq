@@ -4,8 +4,10 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
-import { Button, CopyButton } from '@/components/common';
 import { cn } from '@/utils/cn';
+
+import Button from './Button';
+import CopyButton from './CopyButton';
 
 // Variant-specific styling
 const variants = {
@@ -222,8 +224,9 @@ export default function DetailsDisplay({
                   variant={action.variant || 'ghost'}
                   className={cn('gap-2', action.className)}
                 >
-                  {ActionIcon && <ActionIcon size={15} />}
+                  {ActionIcon && !action.iconRight && <ActionIcon size={15} />}
                   {action.label}
+                  {ActionIcon && action.iconRight && <ActionIcon size={15} />}
                 </Button>
               );
             })}

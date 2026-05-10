@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import { forwardRef, useRef } from 'react';
 import { mergeProps, useButton } from 'react-aria';
 
-import { Spinner } from '@/components/common';
 import { cn } from '@/utils/cn';
+
+import Spinner from './Spinner';
 
 const variantStyles = {
   primary:
@@ -61,7 +62,7 @@ const spinnerSizeMap = {
 const getSpinnerColor = (variant) => spinnerColorMap[variant] || '#ffffff';
 const getSpinnerSize = (size) => spinnerSizeMap[size] || 16;
 
-export const Button = forwardRef(function Button(
+const Button = forwardRef(function Button(
   {
     className,
     variant = 'primary',
@@ -131,7 +132,7 @@ export const Button = forwardRef(function Button(
   const spinnerColor = getSpinnerColor(variant);
   const spinnerSize = getSpinnerSize(size);
 
-  // ✅ Content rendering: original content always keeps its layout (icon + text side by side)
+  // ✓ Content rendering: original content always keeps its layout (icon + text side by side)
   // The wrapper span always has the same classes – only its visibility changes.
   // Spinner is absolutely positioned over the same area, does not affect button size.
   const content = (
