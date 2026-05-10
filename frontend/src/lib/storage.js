@@ -1,97 +1,21 @@
 /** LocalStorage helpers with JSON serialisation.
  *
- * Storage Key Naming Convention:
- * All keys use 'ce_' prefix (Circular Economy) for consistency and clarity
- * - ce_session_id: Unique identifier for this browser session (persisted across page reloads)
- * - ce_session_evaluation_state: Current evaluation form state + unsaved results
- * - ce_assessments: Locally saved assessments (offline capability)
- * - ce_anonymous_session: (see session.js) Anonymous user full session with inputs and results
+ * Storage Keys:
+ * - session_id: Unique identifier for this browser session
+ * - session_evaluation_state: Current evaluation form state + unsaved results
  *
  * Location: src/lib/storage.js
  */
 
 // ============================================================================
-// Session Management
+// Evaluation State Management
 // ============================================================================
 
-// Simplified storage keys
-const SESSION_ID_KEY = 'session_id';
-const session_evaluation_state_KEY = 'session_evaluation_state';
+// Storage keys
+const SESSION_EVALUATION_STATE_KEY = 'session_evaluation_state';
 
 // Session expiry
 const SESSION_EXPIRY_DAYS = 30;
-
-/**
- * Get or create session ID for user tracking
- * @param {boolean} forceRenew - Force creation of new session ID even if one exists
- * @returns {string} Session ID
- */
-export function getSessionId(forceRenew = false) {
-  try {
-    const legacyKey = 'gtg_session_id';
-    const oldCeKey = 'ce_session_id';
-
-    // If force renew is requested, skip all existing IDs and create new one
-    if (!forceRenew) {
-      // Prefer the new key, but fallback to legacy keys and migrate if present
-      let sid = localStorage.getItem(SESSION_ID_KEY);
-      if (sid) return sid;
-
-      // Try old ce_session_id key
-      const oldSid = localStorage.getItem(oldCeKey);
-      if (oldSid) {
-        try {
-          localStorage.setItem(SESSION_ID_KEY, oldSid);
-          localStorage.removeItem(oldCeKey);
-        } catch (e) {
-          logger.warn('Failed to migrate old session ID:', e);
-        }
-        return oldSid;
-      }
-
-      // Try legacy key
-      const legacySid = localStorage.getItem(legacyKey);
-      if (legacySid) {
-        try {
-          localStorage.setItem(SESSION_ID_KEY, legacySid);
-          localStorage.removeItem(legacyKey);
-        } catch (e) {
-          logger.warn('Failed to migrate legacy session ID:', e);
-        }
-        return legacySid;
-      }
-    }
-
-    // Create new session ID (either when none present or when force renewing)
-    const sid = generateSimpleUUID();
-    try {
-      localStorage.setItem(SESSION_ID_KEY, sid);
-    } catch (e) {
-      logger.warn('Failed to save session ID:', e);
-    }
-    return sid;
-  } catch {
-    // Fallback: in environments without localStorage
-    return generateSimpleUUID();
-  }
-}
-
-/**
- * Generate a simple UUID-like identifier
- * @private
- * @returns {string} UUID-like string
- */
-function generateSimpleUUID() {
-  const s4 = () =>
-    Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
-}
-
-// ============================================================================
-// Evaluation State Management
-// ============================================================================
 
 /**
  * Save evaluation state with unified structure
@@ -182,7 +106,7 @@ export function saveEvaluationState(state) {
       expiresAt: expiresAt.toISOString(),
     };
 
-    localStorage.setItem(session_evaluation_state_KEY, JSON.stringify(stateToSave));
+    localStorage.setItem(SESSION_EVALUATION_STATE_KEY, JSON.stringify(stateToSave));
     return true;
   } catch (error) {
     logger.error('Failed to save evaluation state:', error);
@@ -196,36 +120,7 @@ export function saveEvaluationState(state) {
  */
 export function loadEvaluationState() {
   try {
-    const legacyKey = 'gtg_eval_state';
-    const oldCeKey = 'ce_session_evaluation_state';
-
-    let stored = localStorage.getItem(session_evaluation_state_KEY);
-
-    // Try old ce_session_evaluation_state key
-    if (!stored) {
-      stored = localStorage.getItem(oldCeKey);
-      if (stored) {
-        try {
-          localStorage.setItem(session_evaluation_state_KEY, stored);
-          localStorage.removeItem(oldCeKey);
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
-
-    // Try legacy key
-    if (!stored) {
-      stored = localStorage.getItem(legacyKey);
-      if (stored) {
-        try {
-          localStorage.setItem(session_evaluation_state_KEY, stored);
-          localStorage.removeItem(legacyKey);
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
+    const stored = localStorage.getItem(SESSION_EVALUATION_STATE_KEY);
 
     if (!stored) return null;
 
@@ -249,7 +144,7 @@ export function loadEvaluationState() {
  */
 export function clearEvaluationState() {
   try {
-    localStorage.removeItem(session_evaluation_state_KEY);
+    localStorage.removeItem(SESSION_EVALUATION_STATE_KEY);
     return true;
   } catch (error) {
     logger.error('Failed to clear evaluation state:', error);
@@ -277,191 +172,124 @@ export function hasEvaluationContent() {
 }
 
 // ============================================================================
-// Assessment Storage (for My Assessments page)
+// Form Persistence Management
 // ============================================================================
 
-/**
- * Save assessment to local storage
- * @param {Object} assessment - Assessment data
- * @returns {string} Assessment ID
- */
-export function saveAssessmentLocal(assessment) {
-  try {
-    const assessments = loadAssessmentsLocal();
-    const id = assessment.id || generateSimpleUUID();
-    const timestamp = new Date().toISOString();
+// Storage keys for form persistence
+const SHARE_FORM_KEY = 'share_form_state';
+const COMPARE_FORM_KEY = 'compare_form_state';
+const FORM_EXPIRY_HOURS = 24; // Forms persist for 24 hours
 
-    const assessmentWithMeta = {
-      ...assessment,
-      id,
-      savedAt: timestamp,
-      updatedAt: timestamp,
+/**
+ * Save share form state to sessionStorage
+ * @param {string} publicId - The assessment ID to persist
+ */
+export function saveShareFormState(publicId) {
+  try {
+    const state = {
+      publicId: publicId?.trim() || '',
+      timestamp: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + FORM_EXPIRY_HOURS * 60 * 60 * 1000).toISOString(),
     };
-
-    assessments[id] = assessmentWithMeta;
-    localStorage.setItem('ce_assessments', JSON.stringify(assessments));
-
-    return id;
-  } catch (error) {
-    logger.error('Failed to save assessment:', error);
-    throw error;
-  }
-}
-
-/**
- * Load all assessments from local storage
- * @returns {Object} Object with assessment IDs as keys
- */
-export function loadAssessmentsLocal() {
-  try {
-    const key = 'ce_assessments';
-    const legacyKey = 'gtg_assessments';
-    let raw = localStorage.getItem(key);
-    if (!raw) {
-      raw = localStorage.getItem(legacyKey);
-      if (raw) {
-        try {
-          localStorage.setItem(key, raw);
-          localStorage.removeItem(legacyKey);
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
-    return raw ? JSON.parse(raw) : {};
-  } catch (error) {
-    logger.warn('Failed to load assessments:', error);
-    return {};
-  }
-}
-
-/**
- * Load single assessment by ID
- * @param {string} id - Assessment ID
- * @returns {Object|null} Assessment or null
- */
-export function loadAssessmentLocal(id) {
-  try {
-    const assessments = loadAssessmentsLocal();
-    return assessments[id] || null;
-  } catch (error) {
-    logger.warn('Failed to load assessment:', error);
-    return null;
-  }
-}
-
-/**
- * Delete assessment from local storage
- * @param {string} id - Assessment ID
- * @returns {boolean} Success
- */
-export function deleteAssessmentLocal(id) {
-  try {
-    const assessments = loadAssessmentsLocal();
-    delete assessments[id];
-    localStorage.setItem('ce_assessments', JSON.stringify(assessments));
+    sessionStorage.setItem(SHARE_FORM_KEY, JSON.stringify(state));
     return true;
   } catch (error) {
-    logger.error('Failed to delete assessment:', error);
+    logger.error('Failed to save share form state:', error);
     return false;
   }
 }
 
 /**
- * Update existing assessment
- * @param {string} id - Assessment ID
- * @param {Object} updates - Fields to update
- * @returns {Object|null} Updated assessment or null
+ * Load share form state from sessionStorage
+ * Returns null if expired or not found
  */
-export function updateAssessmentLocal(id, updates) {
+export function loadShareFormState() {
   try {
-    const assessments = loadAssessmentsLocal();
-    if (!assessments[id]) return null;
+    const stored = sessionStorage.getItem(SHARE_FORM_KEY);
+    if (!stored) return null;
 
-    assessments[id] = {
-      ...assessments[id],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
+    const state = JSON.parse(stored);
 
-    localStorage.setItem('ce_assessments', JSON.stringify(assessments));
-    return assessments[id];
+    // Check expiry
+    if (state.expiresAt && new Date(state.expiresAt) < new Date()) {
+      sessionStorage.removeItem(SHARE_FORM_KEY);
+      return null;
+    }
+
+    return state;
   } catch (error) {
-    logger.error('Failed to update assessment:', error);
+    logger.error('Failed to load share form state:', error);
     return null;
   }
 }
 
-// ============================================================================
-// Generic Storage Helpers
-// ============================================================================
+/**
+ * Clear share form state from sessionStorage
+ */
+export function clearShareFormState() {
+  try {
+    sessionStorage.removeItem(SHARE_FORM_KEY);
+    return true;
+  } catch (error) {
+    logger.error('Failed to clear share form state:', error);
+    return false;
+  }
+}
 
 /**
- * Generic localStorage wrapper with error handling
+ * Save compare form state to sessionStorage
+ * @param {string} publicId1 - First assessment ID
+ * @param {string} publicId2 - Second assessment ID
  */
-export const storage = {
-  /**
-   * Save value to localStorage
-   * @param {string} key - Storage key
-   * @param {any} value - Value to store (will be JSON stringified)
-   */
-  save: (key, value) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      logger.error('Storage save error:', error);
-    }
-  },
+export function saveCompareFormState(publicId1, publicId2) {
+  try {
+    const state = {
+      publicId1: publicId1?.trim() || '',
+      publicId2: publicId2?.trim() || '',
+      timestamp: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + FORM_EXPIRY_HOURS * 60 * 60 * 1000).toISOString(),
+    };
+    sessionStorage.setItem(COMPARE_FORM_KEY, JSON.stringify(state));
+    return true;
+  } catch (error) {
+    logger.error('Failed to save compare form state:', error);
+    return false;
+  }
+}
 
-  /**
-   * Load value from localStorage
-   * @param {string} key - Storage key
-   * @param {any} defaultValue - Default value if key doesn't exist
-   * @returns {any} Parsed value or default
-   */
-  load: (key, defaultValue = null) => {
-    try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : defaultValue;
-    } catch (error) {
-      logger.error('Storage load error:', error);
-      return defaultValue;
-    }
-  },
+/**
+ * Load compare form state from sessionStorage
+ * Returns null if expired or not found
+ */
+export function loadCompareFormState() {
+  try {
+    const stored = sessionStorage.getItem(COMPARE_FORM_KEY);
+    if (!stored) return null;
 
-  /**
-   * Remove value from localStorage
-   * @param {string} key - Storage key
-   */
-  remove: (key) => {
-    try {
-      localStorage.removeItem(key);
-    } catch (error) {
-      logger.error('Storage remove error:', error);
-    }
-  },
+    const state = JSON.parse(stored);
 
-  /**
-   * Clear all localStorage
-   */
-  clear: () => {
-    try {
-      localStorage.clear();
-    } catch (error) {
-      logger.error('Storage clear error:', error);
+    // Check expiry
+    if (state.expiresAt && new Date(state.expiresAt) < new Date()) {
+      sessionStorage.removeItem(COMPARE_FORM_KEY);
+      return null;
     }
-  },
 
-  /**
-   * Check if key exists
-   * @param {string} key - Storage key
-   * @returns {boolean} True if key exists
-   */
-  has: (key) => {
-    try {
-      return localStorage.getItem(key) !== null;
-    } catch {
-      return false;
-    }
-  },
-};
+    return state;
+  } catch (error) {
+    logger.error('Failed to load compare form state:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear compare form state from sessionStorage
+ */
+export function clearCompareFormState() {
+  try {
+    sessionStorage.removeItem(COMPARE_FORM_KEY);
+    return true;
+  } catch (error) {
+    logger.error('Failed to clear compare form state:', error);
+    return false;
+  }
+}
