@@ -1,35 +1,31 @@
 #!/usr/bin/env bash
 
-echo "⫸ Checking builds in all workspaces..."
+# ─── Skip flags ──────────────────────────────────────────────────────
+# GIT_PUSH_OPTION_* is only available in server-side hooks (pre-receive,
+# post-receive), NOT in pre-push. Use environment variables instead:
+#
+#   SKIP_BUILD=true git push
+#   SKIP_TESTS=true git push
+#   SKIP_MIGRATION=true git push
+#
+# Combine as needed:
+#   SKIP_TESTS=true SKIP_MIGRATION=true git push
 
-# ─── Parse push options ──────────────────────────────────────────────
-# Usage: git push -o skip-build -o skip-tests -o skip-migration
-# Options can be combined, e.g. git push -o skip-build -o skip-tests
-SKIP_BUILD=false
-SKIP_TESTS=false
-SKIP_MIGRATION=false
-
-if [ -n "$GIT_PUSH_OPTION_COUNT" ]; then
-  for i in $(seq 0 $((GIT_PUSH_OPTION_COUNT - 1))); do
-    opt="GIT_PUSH_OPTION_$i"
-    case "${!opt}" in
-      skip-build)      SKIP_BUILD=true ;;
-      skip-tests)      SKIP_TESTS=true ;;
-      skip-migration)  SKIP_MIGRATION=true ;;
-    esac
-  done
-fi
+SKIP_BUILD="${SKIP_BUILD:-false}"
+SKIP_TESTS="${SKIP_TESTS:-false}"
+SKIP_MIGRATION="${SKIP_MIGRATION:-false}"
 
 # ─── Build ───────────────────────────────────────────────────────────
 if [ "$SKIP_BUILD" = true ]; then
-  echo "⫸ Skipping build (push option: skip-build)"
+  echo "⫸ Skipping build (SKIP_BUILD=true)"
 else
+  echo "⫸ Checking builds in all workspaces..."
   npm run build || { echo "✕ Build failed! Check your code before pushing."; exit 1; }
 fi
 
 # ─── Tests ───────────────────────────────────────────────────────────
 if [ "$SKIP_TESTS" = true ]; then
-  echo "⫸ Skipping tests (push option: skip-tests)"
+  echo "⫸ Skipping tests (SKIP_TESTS=true)"
 else
   echo "⫸ Running test suites..."
   npm test || { echo "✕ Tests failed! Push aborted."; exit 1; }
@@ -37,7 +33,7 @@ fi
 
 # ─── Migration ───────────────────────────────────────────────────────
 if [ "$SKIP_MIGRATION" = true ]; then
-  echo "⫸ Skipping migration (push option: skip-migration)"
+  echo "⫸ Skipping migration (SKIP_MIGRATION=true)"
 else
   echo "⫸ Running uptime schema migration..."
 
