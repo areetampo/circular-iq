@@ -57,7 +57,7 @@ console.warn = (...args) => {
       'useAuth called outside AuthProvider — wrap with AuthProvider or mock `useAuth` in tests',
     );
   }
-  // Suppress MUI chart and HeroUI event handler warnings in tests
+  // Suppress HeroUI event handler warnings in tests
   if (
     typeof msg === 'string' &&
     (msg.includes('React does not recognize the `') ||
@@ -468,35 +468,3 @@ vi.mock('recharts', async () => {
       React.createElement('div', { 'data-testid': 'pie-chart', ...props }, children),
   };
 });
-
-// Mock @mui/x-charts
-vi.mock('@mui/x-charts/LineChart', () => ({
-  LineChart: ({ ...props }) =>
-    React.createElement('div', { 'data-testid': 'line-chart', ...props }, 'Mock LineChart'),
-}));
-vi.mock('@mui/x-charts/PieChart', () => ({
-  PieChart: ({ ...props }) =>
-    React.createElement('div', { 'data-testid': 'pie-chart', ...props }, 'Mock PieChart'),
-}));
-
-// Mock @mui/material
-vi.mock('@mui/material', () => ({
-  Box: ({ children, ...props }) => React.createElement('div', props, children),
-  Paper: ({ children, ...props }) => React.createElement('div', props, children),
-  Typography: ({ children, ...props }) => React.createElement('span', props, children),
-  Chip: ({ children, ...props }) => React.createElement('span', props, children),
-  InputAdornment: ({ children, ...props }) => React.createElement('div', props, children),
-  TextField: ({ children, ...props }) => React.createElement('input', props, children),
-  Grid: ({ children, ...props }) => React.createElement('div', props, children),
-  Alert: ({ children, ...props }) => React.createElement('div', props, children),
-  useTheme: () => ({
-    palette: {
-      primary: { main: '#1976d2' },
-      secondary: { main: '#dc004e' },
-      success: { main: '#388e3c' },
-      warning: { main: '#f57c00' },
-      error: { main: '#d32f2f' },
-      info: { main: '#0288d1' },
-    },
-  }),
-}));
