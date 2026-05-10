@@ -90,10 +90,26 @@ The platform guides users through a structured assessment and returns a complete
 | **AI — Reasoning** | GPT-4o-mini | LLM audit, enrichment, metadata extraction |
 | **State** | TanStack React Query | Server state, caching, background refetch |
 | **Auth** | Supabase Auth | User authentication + Row Level Security |
-| **Deployment** | Vercel (frontend) + Render (backend) | Hosting platforms |
-| **Testing** | Vitest (frontend) · Node test runner (backend) | Test frameworks |
-| **Package Manager** | npm (workspaces) | Monorepo dependency management |
-| **Code Quality** | ESLint + Prettier + Husky | Linting, formatting, and git hooks |
+| **Monitoring & Deployment** | UptimeRobot, Vercel Serverless Ping Function, Github Workflows | Monitoring and deployment |
+
+## Monitoring & Deployment
+
+### Uptime Monitoring System
+
+The application includes a comprehensive uptime monitoring system that tracks backend health:
+
+- **Automated Health Checks**: Backend polls endpoints every 30 seconds in production
+- **Database Storage**: Results stored in `uptime_checks` table with 7-day retention
+- **Real-time Dashboard**: Frontend displays live uptime metrics, response times, and health distribution
+- **Pre-push Migration**: Automatic table reset on each git push via `.husky/pre-push` hook
+
+### Deployment Architecture
+
+- **Frontend**: Vercel (serverless deployment)
+- **Backend**: Render (Node.js service)
+- **Database**: Supabase PostgreSQL with pgvector
+- **Monitoring**: UptimeRobot + built-in uptime monitoring
+- **CI/CD**: GitHub workflows with automated migration on push
 
 ## Key Features
 
@@ -566,14 +582,26 @@ npm run clean        # Clean node_modules across workspace
 npm run rei          # Clean + reinstall all dependencies
 ```
 
-### Development Workflow
+## Development Workflow
 
 1. Create feature branch: `git checkout -b feature/your-feature`
 2. Write tests for new functionality
 3. Implement following existing patterns and architecture
 4. Update relevant README sections
 5. Run tests: `npm test` (both backend and frontend)
-6. Submit PR with description of changes
+6. **Pre-push Hook**: Automatically runs uptime schema migration - table is wiped clean and rebuilt
+7. Submit PR with description of changes
+
+### Pre-push Migration Hook
+
+The `.husky/pre-push` hook automatically runs the uptime monitoring migration on each push:
+
+```bash
+echo "⫸ Running uptime schema migration..."
+psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
+```
+
+This ensures the `uptime_checks` table is always fresh and properly structured for production monitoring.
 
 ### Architecture Principles
 

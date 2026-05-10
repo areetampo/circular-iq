@@ -1,22 +1,24 @@
 # Uptime Monitor – Architecture & Usage
 
-A real‑time health monitoring dashboard that continuously checks backend API health. The backend polls endpoints every 30 seconds, stores results in Supabase, and the frontend reads this data to display uptime percentages, latency trends, and a detailed health distribution.
+A real‑time health monitoring dashboard that continuously checks backend API health. The backend polls endpoints every 30 seconds **only in production**, stores results in Supabase, and the frontend reads this data to display uptime percentages, latency trends, and a detailed health distribution.
 
-> **Note:** Polling runs **only in production** (`NODE_ENV=production`) to avoid duplicate data during development.
+> **Important**: The `uptime_checks` table is automatically reset on every git push via the `.husky/pre-push` hook, ensuring fresh monitoring data for production deployments.
 
 ---
 
 ## How It Works
 
-1. **Backend polling** – When the server starts in production, a polling service runs every 30 seconds. It calls each health endpoint (e.g., `/health`, `/health/database`, `/health/database/aiven`), measures response time, and captures the JSON response.
+1. **Backend polling** – When the server starts in **production only**, a polling service runs every 30 seconds. It calls each health endpoint (e.g., `/health`, `/health/database`, `/health/database/aiven`), measures response time, and captures the JSON response.
 
 2. **Storage** – Each result is inserted into the `uptime_checks` table in Supabase using the `service_role` key. No frontend writes are involved.
 
-3. **Frontend display** – The React page reads historical data via `GET /api/uptime/history/:endpointId` and refreshes every 30 seconds (matching the backend poll interval). All charts and metrics are derived from stored data.
+3. **Pre-push Migration** – On every git push, the `.husky/pre-push` hook automatically runs the `07_uptime_monitor.sql` migration, which **wipes clean and rebuilds** the `uptime_checks` table. This ensures fresh monitoring data for each deployment.
 
-4. **Cleanup** – A daily background job deletes records older than **7 days** (retention policy). This is also run only in production.
+4. **Frontend display** – The React page reads historical data via `GET /api/uptime/history/:endpointId` and refreshes every 30 seconds (matching the backend poll interval). All charts and metrics are derived from stored data.
 
-5. **UI** – The page shows:
+5. **Cleanup** – A daily background job deletes records older than **7 days** (retention policy). This is also run only in production.
+
+6. **UI** – The page shows:
    - Summary stats (overall uptime, total checks, next refresh countdown)
    - Four charts in a 2×2 grid:
      - Health distribution (pie)
@@ -99,8 +101,18 @@ The backend config `BACKEND_CONFIG.uptime` contains:
 
 - `pollIntervalMs`: 30 000 (30 seconds)
 - `retentionDays`: 7
-- `pollingEnabled`: derived from `NODE_ENV`
+- `pollingEnabled`: derived from `NODE_ENV` (production only)
 - `endpoints`: list of health paths to poll
+
+### Pre-push Migration Hook
+
+```bash
+# .husky/pre-push
+echo "⫸ Running uptime schema migration..."
+psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
+```
+
+This ensures the monitoring table is fresh for each production deployment.
 
 ### Frontend (build‑time config via `frontend.config.js`)
 

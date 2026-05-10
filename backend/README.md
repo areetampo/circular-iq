@@ -99,65 +99,114 @@ backend/
 │       ├── 06_ce_cases.sql               # ce_cases table with hybrid search functions
 │       └── 07_uptime_monitor.sql        # uptime_checks table for monitoring history
 │
-├── pipeline/                 # Data processing stages (10 scripts)
-│   ├── create_samples.js         # Generate test/sample data for development
-│   ├── embed_ce_cases.js         # Embed ce_cases knowledge base
-│   ├── generate_chunks.js        # Stage 2: semantic chunking → chunks.json
-│   ├── generate_embeddings.js    # Stage 3: OpenAI embeddings → embedded_chunks.json
-│   ├── generate_test_inputs.js   # Generate test assessment inputs
-│   ├── ingest_ce_cases.js        # Ingest ce_cases data
-│   ├── merge_datasets.js         # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
-│   ├── run_datasets_scripts.js   # Orchestrate all dataset extraction scripts in sequence
-│   ├── run_test_assessments.js   # Run test assessments
-│   ├── store_embeddings.js       # Stage 4: store vectors in documents table (Supabase or Aiven)
-│   └── datasetsUtils.js          # DATASETS registry, path constants, formatId() helper
+├── pipeline/ # Data processing stages (10 scripts)
+│ ├── create_samples.js # Generate test/sample data for development
+│ ├── embed_ce_cases.js # Embed ce_cases knowledge base
+│ ├── generate_chunks.js # Stage 2: semantic chunking → chunks.json
+│ ├── generate_embeddings.js # Stage 3: OpenAI embeddings → embedded_chunks.json
+│ ├── generate_test_inputs.js # Generate test assessment inputs
+│ ├── ingest_ce_cases.js # Ingest ce_cases data
+│ ├── merge_datasets.js # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
+│ ├── run_datasets_scripts.js # Orchestrate all dataset extraction scripts in sequence
+│ ├── run_test_assessments.js # Run test assessments
+│ ├── store_embeddings.js # Stage 4: store vectors in documents table (Supabase or Aiven)
+│ └── datasetsUtils.js # DATASETS registry, path constants, formatId() helper
 │
 ├── utils/
-│   ├── analyticsHelpers.js     # Analytics helper functions
-│   ├── anonymousTracking.js   # IP hashing, identifier generation (no PII stored)
-│   ├── controller-helpers.js   # Helper functions for controllers
-│   ├── datasetsUtils.js        # DATASETS registry, path constants, formatId() helper
-│   ├── formatting.js           # Text formatting utilities
-│   └── logger.js               # Logging utilities
-├── constants/                   # API endpoints, uptime endpoints constants
-│   ├── apiEndpoints.js         # Centralized API endpoint definitions
-│   ├── index.js               # Constants barrel export
-│   └── uptimeEndpoints.js      # Uptime monitoring endpoint definitions
+│ ├── analyticsHelpers.js # Analytics helper functions
+│ ├── anonymousTracking.js # IP hashing, identifier generation (no PII stored)
+│ ├── controller-helpers.js # Helper functions for controllers
+│ ├── datasetsUtils.js # DATASETS registry, path constants, formatId() helper
+│ ├── formatting.js # Text formatting utilities
+│ └── logger.js # Logging utilities
+├── constants/ # API endpoints, uptime endpoints constants
+│ ├── apiEndpoints.js # Centralized API endpoint definitions
+│ ├── index.js # Constants barrel export
+│ └── uptimeEndpoints.js # Uptime monitoring endpoint definitions
 │
-├── config/                      # Centralised config, env schema, embedding constants, chunk config
-├── middleware/                  # Auth guard (API key + JWT) + Zod validation
-├── pipeline/                    # Data processing stages (10 scripts)
-├── routes/                      # Thin Express wrappers — HTTP definition only
-├── server/                      # Entry point (index.js), app factory (app.js), bootstrap
-├── services/                    # Business logic: scoring.service, scoring.logic, embedding.service, health.service, uptimePolling.service
-├── tests/                       # Backend test suite
-│   ├── api/                    # API endpoint tests (10 test files)
-│   │   ├── analytics-missing-endpoints.test.js
-│   │   ├── analytics.enhanced.test.js
-│   │   ├── analytics.featured.test.js
-│   │   ├── anonymous.test.js
-│   │   ├── api-auth.test.js
-│   │   ├── apiKeyGuard.test.js
-│   │   ├── assessments-routes.test.js
-│   │   ├── health.test.js
-│   │   ├── misc-endpoints.test.js
-│   │   └── scoring.rpc.test.js
-│   ├── database/               # Database tests (1 test file)
-│   ├── services/               # Service layer tests (2 test files)
-│   │   ├── score-validation.test.js
-│   │   └── scoring-logic-enrichment.test.js
-│   ├── utils/                  # Utility tests (2 test files)
-│   ├── run-tests.js            # Main test runner
-│   ├── run-tests-simple.js     # Simple test runner
-│   └── setup.js                # Test setup and configuration
-├── DATASETS_REFERENCE.md    ## Complete inventory of all 32 datasets
-├── HEALTH_ENDPOINTS.md      # Health check endpoints documentation
-├── PIPELINE_ADDING_DATASETS.md  # How to add new dataset sources
-├── PIPELINE_RUNNING.md      # How to run data processing pipeline
+├── config/ # Centralised config, env schema, embedding constants, chunk config
+├── middleware/ # Auth guard (API key + JWT) + Zod validation
+├── pipeline/ # Data processing stages (10 scripts)
+├── routes/ # Thin Express wrappers — HTTP definition only
+├── server/ # Entry point (index.js), app factory (app.js), bootstrap
+├── services/ # Business logic: scoring.service, scoring.logic, embedding.service, health.service, uptimePolling.service
+├── tests/ # Backend test suite
+│ ├── api/ # API endpoint tests (10 test files)
+│ │ ├── analytics-missing-endpoints.test.js
+│ │ ├── analytics.enhanced.test.js
+│ │ ├── analytics.featured.test.js
+│ │ ├── anonymous.test.js
+│ │ ├── api-auth.test.js
+│ │ ├── apiKeyGuard.test.js
+│ │ ├── assessments-routes.test.js
+│ │ ├── health.test.js
+│ │ ├── misc-endpoints.test.js
+│ │ └── scoring.rpc.test.js
+│ ├── database/ # Database tests (1 test file)
+│ ├── services/ # Service layer tests (2 test files)
+│ │ ├── score-validation.test.js
+│ │ └── scoring-logic-enrichment.test.js
+│ ├── utils/ # Utility tests (2 test files)
+│ ├── run-tests.js # Main test runner
+│ ├── run-tests-simple.js # Simple test runner
+│ └── setup.js # Test setup and configuration
+├── DATASETS_REFERENCE.md ## Complete inventory of all 32 datasets
+├── HEALTH_ENDPOINTS.md # Health check endpoints documentation
+├── PIPELINE_ADDING_DATASETS.md # How to add new dataset sources
+├── PIPELINE_RUNNING.md # How to run data processing pipeline
 ├── .gitignore, .renderignore
 ├── requirements-dev.txt, package.json
 └── README.md
+
 ```
+
+## Uptime Monitoring System
+
+The backend includes a comprehensive uptime monitoring system that tracks health endpoint status:
+
+### Architecture
+
+- **Polling Service**: Runs every 30 seconds in production (`NODE_ENV=production` only)
+- **Health Checks**: Monitors `/health`, `/health/database`, `/health/openai`, and other endpoints
+- **Data Storage**: Stores results in `uptime_checks` table with 7-day retention
+- **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`
+- **Pre-push Migration**: Git hook automatically resets table schema on each push
+
+### Configuration
+
+```javascript
+// backend.config.js
+uptime: {
+  pollingEnabled: env.NODE_ENV === 'production', // Production-only polling
+  pollIntervalMs: 30000, // 30 seconds
+  retentionDays: 7, // Data retention period
+  endpoints: [
+    { id: 'health', path: '/health' },
+    { id: 'database', path: '/health/database' },
+    { id: 'openai', path: '/health/openai' },
+    // ... more endpoints
+  ]
+}
+```
+
+### Pre-push Migration
+
+The `.husky/pre-push` hook ensures fresh monitoring data:
+
+```bash
+echo "⫸ Running uptime schema migration..."
+psql "$SUPABASE_CONNECTION_STRING" -f backend/database/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
+```
+
+This wipes and rebuilds the `uptime_checks` table on every push, ensuring clean monitoring data for production.
+
+### API Endpoints
+
+| Method | Endpoint                          | Description                  |
+| ------ | --------------------------------- | ---------------------------- |
+| GET    | `/api/uptime/count`               | Total uptime checks count    |
+| GET    | `/api/uptime/history/:endpointId` | Historical data for endpoint |
+| POST   | `/api/uptime/checks`              | Store health check result    |
 
 ### Each Layer's Responsibilities
 
@@ -212,6 +261,43 @@ backend/
 
 ## Database Tables
 
+### `documents`
+
+Vector-searchable knowledge base. Key columns: `content`, `embedding` (halfvec 1536), `industry`, `category`, `source`, `metadata` (JSONB: r_strategy, scale, primary_material, geographic_focus, fields, word_count, chunk_type, source_id, source_row).
+
+**Architecture note:** All `documents` table access goes through `DocumentsRepository` — never direct Supabase or Aiven client calls. This enforces the dual-backend abstraction.
+
+#### `documents` table schema
+
+```sql
+CREATE TABLE documents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  content text NOT NULL,
+  embedding extensions.halfvec(1536),
+  title text,
+  industry text,
+  category text,
+  source text,
+  word_count integer,
+  metadata jsonb,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+-- Indexes
+CREATE INDEX idx_documents_industry ON documents(industry);
+CREATE INDEX idx_documents_category ON documents(category);
+CREATE INDEX idx_documents_source ON documents(source);
+CREATE INDEX idx_documents_industry_category ON documents(industry, category);
+CREATE INDEX idx_documents_embedding ON documents
+  USING hnsw(embedding extensions.halfvec_cosine_ops);
+CREATE INDEX idx_documents_created_at ON documents(created_at);
+```
+
+### `user_profiles`
+
+User profile data linked to Supabase Auth. Stores user preferences, display information, and assessment statistics. Key columns: `username`, `display_name`, `avatar_url`, `bio`, `assessment_count`, `last_assessment_at`.
+
 ### `user_assessments`
 
 User-saved assessments. Fully aligned with the scoring API response — all promoted scalar columns mirror the result object so the full response can be reconstructed from columns without parsing `result_json`.
@@ -251,6 +337,10 @@ User-saved assessments. Fully aligned with the scoring API response — all prom
 - `get_assessment_statistics(user_uuid)` — per-user or global aggregate stats
 - `get_market_data()` — per-industry/scale/strategy benchmarks from opted-in public assessments
 
+### `anonymous_usage`
+
+Enables free-tier rate limiting without storing PII. Uses SHA-256 fingerprinting of (IP + User-Agent) for device identification. Key columns: `identifier_hash`, `usage_count`, `last_blocked_at`.
+
 ### `scoring_results_log`
 
 Immutable append-only log of every scoring API call. Same column set as `assessments` minus user-facing fields (`title`, `is_public`, `user_uuid`). Additional log-only columns: `request_id`, `ip_hash`, `identifier_hash`, `user_agent_snippet`, `business_problem_len`, `business_solution_len`, `processing_time_ms`, `timings` (JSONB).
@@ -263,18 +353,6 @@ Access rules:
 
 Used by `GET /api/analytics/global-stats` for Dashboard data — wider coverage than `assessments` since it includes all anonymous and unsaved calls.
 
-### `uptime_checks`
-
-Stores health check monitoring data for the uptime monitoring system. Key columns: `endpoint_id`, `status`, `up`, `response_time_ms`, `payload` (JSONB), `checked_at`.
-
-**Features:**
-
-- 7-day automatic data retention
-- Real-time polling every 30 seconds in production
-- Historical analysis with 30-minute buckets
-- CSV export capabilities
-- Production-only polling to avoid duplicate development data
-
 ### `ce_cases`
 
 Circular economy case studies knowledge base for search functionality. Key columns: `title`, `problem`, `solution`, `impact`, `materials`, `circular_strategy`, `category`, `company_name`, `source_url`, `metadata` (JSONB).
@@ -286,38 +364,29 @@ Circular economy case studies knowledge base for search functionality. Key colum
 - Hybrid search combining both approaches
 - Metadata filtering by strategy, category, source
 
-### `documents`
+### `uptime_checks`
 
-Vector-searchable knowledge base. Key columns: `content`, `embedding` (halfvec 1536), `industry`, `category`, `source`, `metadata` (JSONB: r_strategy, scale, primary_material, geographic_focus, fields, word_count, chunk_type, source_id, source_row).
+Stores health check monitoring data with automatic cleanup and production-only polling:
 
-**Architecture note:** All `documents` table access goes through `DocumentsRepository` — never direct Supabase or Aiven client calls. This enforces the dual-backend abstraction.
+**Key columns:**
 
-#### `documents` table schema
+| Column             | Type        | Description                |
+| ------------------ | ----------- | -------------------------- |
+| `endpoint_id`      | TEXT        | Health endpoint identifier |
+| `status`           | TEXT        | Response status string     |
+| `up`               | BOOLEAN     | Endpoint availability      |
+| `response_time_ms` | INTEGER     | Latency measurement        |
+| `payload`          | JSONB       | Full health check response |
+| `created_at`       | TIMESTAMPTZ | Check timestamp            |
 
-```sql
-CREATE TABLE documents (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  content text NOT NULL,
-  embedding extensions.halfvec(1536),
-  title text,
-  industry text,
-  category text,
-  source text,
-  word_count integer,
-  metadata jsonb,
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
-);
+**Features:**
 
--- Indexes
-CREATE INDEX idx_documents_industry ON documents(industry);
-CREATE INDEX idx_documents_category ON documents(category);
-CREATE INDEX idx_documents_source ON documents(source);
-CREATE INDEX idx_documents_industry_category ON documents(industry, category);
-CREATE INDEX idx_documents_embedding ON documents
-  USING hnsw(embedding extensions.halfvec_cosine_ops);
-CREATE INDEX idx_documents_created_at ON documents(created_at);
-```
+- 7-day automatic data retention
+- Production-only polling to avoid dev data duplication
+- Optimized indexes for time-series queries
+- Autovacuum tuning for high-frequency inserts
+
+**Cleanup Function:** `cleanup_old_uptime_checks(days)` - removes old records
 
 ### RPC Functions
 

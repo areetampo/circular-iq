@@ -404,6 +404,17 @@ CE cases are read-only reference data for authenticated and anonymous users. Onl
 
 Creates the uptime monitoring infrastructure for tracking backend health check history. The backend polls endpoints every 30 seconds and stores results in this table with a 7-day retention policy.
 
+### Pre-push Migration Hook
+
+**Important**: This migration is automatically run on every git push via the `.husky/pre-push` hook:
+
+```bash
+echo "⫸ Running uptime schema migration..."
+psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
+```
+
+This ensures the `uptime_checks` table is wiped clean and rebuilt on each push, providing fresh monitoring data for production deployments.
+
 ### The `uptime_checks` Table
 
 Stores historical health check results from backend-side polling with efficient querying by endpoint and time.
@@ -437,6 +448,21 @@ Table is configured with reduced autovacuum thresholds to prevent bloat from hig
 
 - `autovacuum_vacuum_scale_factor = 0.02`
 - `autovacuum_analyze_scale_factor = 0.01`
+
+### Production-Only Polling
+
+The uptime monitoring system is designed to run **only in production** environments:
+
+```javascript
+// backend.config.js
+uptime: {
+  pollingEnabled: env.NODE_ENV === 'production', // Only run in production
+  pollIntervalMs: 30000, // 30 seconds
+  retentionDays: 7,
+}
+```
+
+This prevents duplicate data during development and ensures clean monitoring data in production.
 
 ### Cleanup Function
 
