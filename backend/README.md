@@ -58,8 +58,9 @@ backend/
 │
 ├── routes/                   # Thin Express wrappers — HTTP definition only
 │   ├── analytics.routes.js   # GET /api/analytics/...
-│   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/... (including validate, share, compare)
+│   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/...
 │   ├── health.routes.js      # GET /health/* endpoints
+│   ├── profile.routes.js     # GET /api/profile endpoint
 │   ├── scoring.routes.js     # POST /api/score
 │   ├── search.routes.js      # GET /api/search/ce-cases
 │   └── uptime.routes.js     # GET/POST /api/uptime/* endpoints
@@ -656,6 +657,22 @@ Get the authenticated user's profile information. Requires authentication.
 }
 ```
 
+## Security Features
+
+### Timing-Safe API Key Comparison
+
+The master API key authentication uses `crypto.timingSafeEqual()` to prevent timing attacks:
+
+```javascript
+const tokenBuf = Buffer.from(token);
+const keyBuf = Buffer.from(MASTER_API_KEY);
+if (tokenBuf.length === keyBuf.length && crypto.timingSafeEqual(tokenBuf, keyBuf)) {
+  // Authentication successful
+}
+```
+
+This ensures that the comparison time is constant regardless of how many characters match, preventing attackers from inferring the key through timing analysis.
+
 ## Environment Configuration
 
 ### Required Variables (`.env.backend`)
@@ -1140,4 +1157,4 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 02 May 2026
+**Last Updated:** 10 May 2026

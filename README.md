@@ -442,6 +442,21 @@ VITE_SCORING_MAX_FREE_TRIES=5
 | ------ | -------------- | -------- | -------------------------- |
 | `GET`  | `/api/profile` | Required | Authenticated user profile |
 
+#### GET `/api/profile`
+
+Get the authenticated user's profile information. Requires authentication.
+
+**Response:**
+
+```json
+{
+  "id": "user-uuid",
+  "username": "john_doe",
+  "created_at": "2026-01-15T10:30:00.000Z",
+  "updated_at": "2026-01-20T14:22:00.000Z"
+}
+```
+
 ## Authentication
 
 - **Anonymous Users** — 5 free assessments with IP-based usage tracking
@@ -449,6 +464,7 @@ VITE_SCORING_MAX_FREE_TRIES=5
 - **Session Management** — Automatic persistence across page reloads via localStorage
 - **Public Sharing** — Assessment results shareable via opaque `public_id` links
 - **Service Role** — Used server-side for `scoring_results_log` writes and analytics queries; never exposed to client
+- **Security** — Master API key comparison uses timing-safe comparison to prevent timing attacks
 
 ## Data Pipeline
 
@@ -893,6 +909,6 @@ For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERE
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 09 May 2026
+**Last Updated:** 10 May 2026
 
 ---
