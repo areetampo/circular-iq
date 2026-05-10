@@ -20,7 +20,7 @@ import { useUptimeMonitor } from './hooks/useUptimeMonitor';
 import {
   getGlobalResponseTrend,
   getHealthDistribution,
-  getLast24hStatus30min,
+  getLast24hStatus5min,
   getUptimeOverTime,
 } from './utils/uptimeCharts';
 
@@ -67,7 +67,7 @@ export default function UptimeMonitorPage() {
   const healthDist = getHealthDistribution(history, ENDPOINTS);
   const globalTrend = getGlobalResponseTrend(history, ENDPOINTS);
   const uptimeOverTime = getUptimeOverTime(history, ENDPOINTS);
-  const heatmapData = getLast24hStatus30min(history, ENDPOINTS);
+  const heatmapData = getLast24hStatus5min(history, ENDPOINTS);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 sm:px-6">
