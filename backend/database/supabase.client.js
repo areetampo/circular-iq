@@ -34,29 +34,3 @@ export function createSupabaseAnonClient() {
 
   return createClient(BACKEND_CONFIG.supabase.url, BACKEND_CONFIG.supabase.anonKey);
 }
-
-/**
- * Create a Supabase client with custom auth token
- * @param {string} authToken - Custom authentication token
- * @returns {ReturnType<typeof createClient>}
- */
-export function createSupabaseClientWithAuth(authToken) {
-  if (!BACKEND_CONFIG.supabase.url) {
-    return {
-      rpc: async () => ({ data: [], error: null }),
-      from: () => ({ select: async () => ({ data: [], error: null }) }),
-      auth: { getUser: async () => ({ data: { user: null }, error: null }) },
-    };
-  }
-
-  return createClient(BACKEND_CONFIG.supabase.url, BACKEND_CONFIG.supabase.anonKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    },
-  });
-}
-
-// Default export for convenience
-export default createSupabaseClient();

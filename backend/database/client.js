@@ -98,7 +98,7 @@ export function getDatabaseClient() {
     return _overrideClient;
   }
 
-  if (BACKEND_CONFIG.useSupabaseDocuments) {
+  if (BACKEND_CONFIG.scoring.useSupabaseDocuments) {
     return getSupabaseClient();
   }
   // For Postgres we return the pool itself; callers will use pool.query
@@ -112,7 +112,7 @@ export function getDatabaseClient() {
  */
 export function getDatabaseType() {
   if (_overrideClient) return _overrideType || 'supabase';
-  return BACKEND_CONFIG.useSupabaseDocuments ? 'supabase' : 'postgres';
+  return BACKEND_CONFIG.scoring.useSupabaseDocuments ? 'supabase' : 'postgres';
 }
 
 /**
@@ -120,7 +120,7 @@ export function getDatabaseType() {
  * This prevents open handles from hanging the test runner.
  */
 export async function closeAllPools() {
-  logger.log('🔌 Closing all database connections...');
+  logger.info('🔌 Closing all database connections...');
   const promises = [];
 
   if (_aivenPgPool) {
@@ -155,11 +155,11 @@ export async function closeAllPools() {
           setTimeout(() => reject(new Error('Database close timeout')), 3000),
         ),
       ]);
-      logger.log('✅ Database connections closed');
+      logger.info('✓ Database connections closed');
     } catch (err) {
       logger.warn({ err }, '⚠️ Database close timeout/error');
     }
   } else {
-    logger.log('✅ No database connections to close');
+    logger.info('✓ No database connections to close');
   }
 }
