@@ -2,9 +2,12 @@ import { Tooltip } from '@heroui/react';
 
 import { cn } from '@/utils/cn';
 
+// Number of recent checks to display in the history bar
+const HISTORY_BAR_COUNT = 100;
+
 export default function HistoryBar({ checks }) {
-  const last = checks.slice(-40);
-  const emptyCount = Math.max(0, 40 - last.length);
+  const last = checks.slice(-HISTORY_BAR_COUNT);
+  const emptyCount = Math.max(0, HISTORY_BAR_COUNT - last.length);
 
   return (
     <div className="flex h-5 items-end gap-px">
