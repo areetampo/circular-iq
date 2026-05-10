@@ -32,7 +32,7 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  *   variant: 'destructive',
  * });
  */
-export function ConfirmDialog({
+export default function ConfirmDialog({
   title = 'Confirm',
   description = 'Confirm your action',
   confirmText = 'Confirm',
@@ -44,8 +44,6 @@ export function ConfirmDialog({
   const { isDialogOpen, onClose } = useGlobalDialog();
 
   const status = variant === 'destructive' ? 'danger' : 'accent';
-  const buttonVariant = variant === 'destructive' ? 'danger' : 'primary';
-  const icon = variant === 'destructive' ? <TriangleAlert /> : <AlertCircle />;
   const isClosingRef = useRef(false);
 
   // Reset closing flag when dialog opens
@@ -116,7 +114,7 @@ export function ConfirmDialog({
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>
-            {({ close }) => (
+            {() => (
               <>
                 <AlertDialog.Header>
                   <AlertDialog.Icon

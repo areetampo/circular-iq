@@ -17,7 +17,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock the entire ResultsRestoreDialog component to isolate the test
 vi.mock('./ResultsRestoreDialog', () => ({
-  ResultsRestoreDialog: () => {
+  default: () => {
     let clearResults = false;
 
     const handleCheckboxChange = (e) => {
@@ -51,7 +51,7 @@ vi.mock('./ResultsRestoreDialog', () => ({
   },
 }));
 
-import { ResultsRestoreDialog } from './ResultsRestoreDialog';
+import ResultsRestoreDialog from './ResultsRestoreDialog';
 
 describe('ResultsRestoreDialog - Simple Tests', () => {
   beforeEach(() => {

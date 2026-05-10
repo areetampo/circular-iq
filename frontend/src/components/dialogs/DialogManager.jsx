@@ -24,17 +24,16 @@
 
 import React from 'react';
 
-import {
-  ConfirmDialog,
-  DeleteAssessmentDialog,
-  LimitReachedDialog,
-  RenameAssessmentDialog,
-  ReplaceInputsDialog,
-  ResultsRestoreDialog,
-  SaveAssessmentDialog,
-} from '@/components/dialogs';
-import DIALOGS from '@/components/dialogs/dialogTypes';
+import DIALOG_TYPES from '@/constants/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+
+import ConfirmDialog from './ConfirmDialog';
+import DeleteAssessmentDialog from './DeleteAssessmentDialog';
+import LimitReachedDialog from './LimitReachedDialog';
+import RenameAssessmentDialog from './RenameAssessmentDialog';
+import ReplaceInputsDialog from './ReplaceInputsDialog';
+import ResultsRestoreDialog from './ResultsRestoreDialog';
+import SaveAssessmentDialog from './SaveAssessmentDialog';
 
 function DialogManagerContent() {
   // Get dialog state directly from context instead of props
@@ -46,24 +45,24 @@ function DialogManagerContent() {
   const { type, data } = dialog;
 
   switch (type) {
-    case DIALOGS.DELETE_ASSESSMENT:
+    case DIALOG_TYPES.DELETE_ASSESSMENT:
       return <DeleteAssessmentDialog assessmentName={data?.assessmentName} />;
 
-    case DIALOGS.SAVE_ASSESSMENT:
+    case DIALOG_TYPES.SAVE_ASSESSMENT:
       return (
         <SaveAssessmentDialog defaultName={data?.defaultName} scoringResult={data?.scoringResult} />
       );
 
-    case DIALOGS.RENAME_ASSESSMENT:
+    case DIALOG_TYPES.RENAME_ASSESSMENT:
       return <RenameAssessmentDialog defaultName={data?.defaultName} />;
 
-    case DIALOGS.REPLACE_INPUTS:
+    case DIALOG_TYPES.REPLACE_INPUTS:
       return <ReplaceInputsDialog />;
 
-    case DIALOGS.LIMIT_REACHED:
-      return <LimitReachedDialog limit={data?.limit} message={data?.message} />;
+    case DIALOG_TYPES.LIMIT_REACHED:
+      return <LimitReachedDialog />;
 
-    case DIALOGS.CONFIRM:
+    case DIALOG_TYPES.CONFIRM:
       return (
         <ConfirmDialog
           title={data?.title}
@@ -76,7 +75,7 @@ function DialogManagerContent() {
         />
       );
 
-    case DIALOGS.SESSION_RESULTS_RESTORE:
+    case DIALOG_TYPES.SESSION_RESULTS_RESTORE:
       return <ResultsRestoreDialog sessionData={data?.sessionData} onDismiss={data?.onDismiss} />;
 
     default:
@@ -91,5 +90,3 @@ const DialogManager = React.memo(DialogManagerContent);
 DialogManager.propTypes = {};
 
 export default DialogManager;
-
-export { DialogManager };

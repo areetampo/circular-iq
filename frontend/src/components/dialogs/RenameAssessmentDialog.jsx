@@ -29,7 +29,7 @@ import { useGlobalDialog } from '@/contexts/DialogContext';
  *
  * Gets data from centralized dialog state (DialogManager passes defaultName prop)
  */
-export function RenameAssessmentDialog({ defaultName = '' }) {
+export default function RenameAssessmentDialog({ defaultName = '' }) {
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
   const [name, setName] = useState(defaultName);
@@ -58,8 +58,8 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
       return 'must be at least 3 characters';
     }
 
-    if (trimmed.length > 100) {
-      return 'must be less than 100 characters';
+    if (trimmed.length > 50) {
+      return 'must be less than 50 characters';
     }
 
     return null;
@@ -127,15 +127,22 @@ export function RenameAssessmentDialog({ defaultName = '' }) {
                       id="assessment-name"
                       value={name}
                       onChange={(e) => {
-                        setName(e.target.value);
-                        setError('');
+                        const value = e.target.value;
+                        // Allow up to 50 characters + whitespace for trimming
+                        if (value.length <= 50) {
+                          setName(value);
+                          setError('');
+                        }
                       }}
                       placeholder="Enter assessment name"
-                      maxLength={100}
+                      maxLength={50}
                       spellCheck={false}
                       autoCapitalize="none"
                       autoCorrect="off"
                     />
+                    <div className="mt-1 pl-2 text-[0.65rem] font-medium text-(--color-text-muted)">
+                      {name.trim().length}/50 characters (min req: 3)
+                    </div>
                   </TextField>
                 </AlertDialog.Body>
 

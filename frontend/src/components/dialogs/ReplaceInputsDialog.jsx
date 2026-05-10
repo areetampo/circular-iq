@@ -166,7 +166,7 @@ function ReplaceInputsDialogContent() {
 const MemoizedContent = React.memo(ReplaceInputsDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
-export const ReplaceInputsDialog = React.memo(function ReplaceInputsDialog() {
+const ReplaceInputsDialog = React.memo(function ReplaceInputsDialog() {
   const { isDialogOpen } = useGlobalDialog();
 
   // Return null when closed - this is critical for preventing double-render issues
@@ -178,3 +178,5 @@ export const ReplaceInputsDialog = React.memo(function ReplaceInputsDialog() {
 });
 
 ReplaceInputsDialog.propTypes = {};
+
+export default ReplaceInputsDialog;

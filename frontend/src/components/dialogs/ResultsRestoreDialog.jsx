@@ -284,7 +284,7 @@ function ResultsRestoreDialogContent() {
 const MemoizedContent = React.memo(ResultsRestoreDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
-export const ResultsRestoreDialog = React.memo(function ResultsRestoreDialog() {
+const ResultsRestoreDialog = React.memo(function ResultsRestoreDialog() {
   const { isDialogOpen } = useGlobalDialog();
 
   // Return null when closed - this is critical for preventing double-render issues

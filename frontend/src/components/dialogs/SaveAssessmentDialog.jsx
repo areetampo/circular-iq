@@ -60,18 +60,20 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
 
   const handleSubmit = useCallback(
     async (close) => {
-      if (!name.trim()) {
+      const trimmedName = name.trim();
+
+      if (!trimmedName) {
         setError('please enter an assessment name');
         return;
       }
 
-      if (name.trim().length < 3) {
+      if (trimmedName.length < 3) {
         setError('must be at least 3 characters');
         return;
       }
 
-      if (name.trim().length > 100) {
-        setError('must be less than 100 characters');
+      if (trimmedName.length > 50) {
+        setError('must be less than 50 characters');
         return;
       }
 
@@ -81,7 +83,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
         if (onSave) {
           // Let caller throw on validation/server errors so we can show message in-dialog
           await onSave({
-            name: name.trim(),
+            name: trimmedName,
             industry,
             isPublic: true,
             contributeToGlobalBenchmarks: true,
@@ -138,14 +140,21 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
                       placeholder="e.g., Recycled Plastic Packaging Project"
                       value={name}
                       onChange={(e) => {
-                        setName(e.target.value);
-                        setError('');
+                        const value = e.target.value;
+                        // Allow up to 50 characters + whitespace for trimming
+                        if (value.length <= 50) {
+                          setName(value);
+                          setError('');
+                        }
                       }}
-                      maxLength={100}
+                      maxLength={50}
                       spellCheck={false}
                       autoCapitalize="none"
                       autoCorrect="off"
                     />
+                    <div className="mt-1 pl-2 text-[0.65rem] font-medium text-(--color-text-muted)">
+                      {name.trim().length}/50 characters (min req: 3)
+                    </div>
                   </TextField>
                 </AlertDialog.Body>
 
@@ -191,7 +200,7 @@ SaveAssessmentDialogContent.propTypes = {
 const MemoizedContent = React.memo(SaveAssessmentDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
-export function SaveAssessmentDialog({ defaultName = '', scoringResult = null }) {
+export default function SaveAssessmentDialog({ defaultName = '', scoringResult = null }) {
   const { isDialogOpen } = useGlobalDialog();
 
   // Return null when closed to prevent AlertDialog from mounting
@@ -212,5 +221,3 @@ SaveAssessmentDialog.propTypes = {
   defaultName: PropTypes.string,
   scoringResult: PropTypes.object,
 };
-
-export default SaveAssessmentDialog;

@@ -100,9 +100,7 @@ DeleteAssessmentDialogContent.propTypes = {
 const MemoizedContent = React.memo(DeleteAssessmentDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
-export const DeleteAssessmentDialog = React.memo(function DeleteAssessmentDialog({
-  assessmentName = '',
-}) {
+const DeleteAssessmentDialog = React.memo(function DeleteAssessmentDialog({ assessmentName = '' }) {
   const { isDialogOpen } = useGlobalDialog();
 
   // Return null when closed to prevent dialog from mounting
@@ -116,3 +114,5 @@ export const DeleteAssessmentDialog = React.memo(function DeleteAssessmentDialog
 DeleteAssessmentDialog.propTypes = {
   assessmentName: PropTypes.string,
 };
+
+export default DeleteAssessmentDialog;

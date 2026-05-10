@@ -1,21 +1,21 @@
 import { AlertDialog } from '@heroui/react';
 import { Angry, FileDown, InfinityIcon, Orbit, Save, Share, TextSearch } from 'lucide-react';
-import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-export function LimitReachedDialog(props) {
-  const { limit: propLimit, message: propMessage, isOpen: propIsOpen } = props || {};
-  const { isDialogOpen, dialog, onClose } = useGlobalDialog();
+
+export default function LimitReachedDialog() {
+  const { isDialogOpen, onClose } = useGlobalDialog();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const usingProps = typeof propIsOpen !== 'undefined' || propLimit || propMessage;
-  const isOpen = usingProps ? Boolean(propIsOpen ?? true) : isDialogOpen;
+  const limit = FRONTEND_CONFIG.scoring.maxFreeTries;
 
-  const limit = usingProps ? propLimit : dialog?.data?.limit;
-  const message = usingProps ? propMessage : dialog?.data?.message;
+  if (!isDialogOpen) {
+    return null;
+  }
 
   const handleSignUp = () => {
     onClose();
@@ -38,7 +38,7 @@ export function LimitReachedDialog(props) {
   return (
     <AlertDialog>
       <AlertDialog.Backdrop
-        isOpen={isOpen}
+        isOpen={true}
         onOpenChange={(open) => {
           if (!open) onClose();
         }}
@@ -46,7 +46,7 @@ export function LimitReachedDialog(props) {
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>
-            {({ close }) => (
+            {() => (
               <>
                 <AlertDialog.Header>
                   <AlertDialog.Icon
@@ -77,24 +77,10 @@ export function LimitReachedDialog(props) {
                   </ul>
                 </AlertDialog.Body>
                 <AlertDialog.Footer>
-                  <Button
-                    variant="ghost"
-                    onPress={() => {
-                      handleCancel();
-                      close();
-                    }}
-                    className="flex-1"
-                  >
+                  <Button variant="ghost" onPress={handleCancel} className="flex-1">
                     Cancel
                   </Button>
-                  <Button
-                    variant="teal"
-                    onPress={() => {
-                      handleSignUp();
-                      close();
-                    }}
-                    className="flex-1"
-                  >
+                  <Button variant="teal" onPress={handleSignUp} className="flex-1">
                     Sign In
                   </Button>
                 </AlertDialog.Footer>
@@ -106,9 +92,3 @@ export function LimitReachedDialog(props) {
     </AlertDialog>
   );
 }
-
-LimitReachedDialog.propTypes = {
-  limit: PropTypes.number,
-  message: PropTypes.string,
-  isOpen: PropTypes.bool,
-};

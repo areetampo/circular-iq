@@ -44,7 +44,7 @@ vi.mock('@/contexts/DialogContext', () => ({
 let mockOnClose = vi.fn();
 
 vi.mock('./ResultsRestoreDialog', () => ({
-  ResultsRestoreDialog: () => (
+  default: () => (
     <div data-testid="results-restore-dialog-mock">
       <div>Restore your previous results?</div>
       <button onClick={mockOnClose}>Cancel</button>
@@ -63,7 +63,7 @@ vi.mock('./ResultsRestoreDialog', () => ({
   ),
 }));
 
-import { ResultsRestoreDialog } from './ResultsRestoreDialog';
+import ResultsRestoreDialog from './ResultsRestoreDialog';
 
 describe('ResultsRestoreDialog', () => {
   afterEach(() => {
