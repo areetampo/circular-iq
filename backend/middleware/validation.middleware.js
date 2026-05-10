@@ -1,36 +1,31 @@
 /**
  * Validation Middleware - Zod-based request validation
  *
- * Provides schema definitions and middleware for validating incoming requests
- * against structured schemas. Ensures data integrity before processing.
+ * Provides middleware for validating assessment requests.
+ * Ensures data integrity before processing.
  *
  * Location: src/middleware/validation.js
  */
 
 import { z } from 'zod';
 
-// Filters for document search (industry/category/source) must be simple strings or null
-export const filterSchema = z
+// Assessment schema for internal validation - not exported
+const assessmentSchema = z
   .object({
-    industry: z.string().min(1).nullable(),
-    category: z.string().min(1).nullable(),
-    source: z.string().min(1).nullable(),
-  })
-  .strict();
-
-/**
- * Assessment schema - Validates assessment data being saved to database
- *
- * Fields:
- * - name: Display name for the assessment (1-255 chars)
- * - industry: Industry classification (min 1 char)
- * - result_json: Full evaluation result object (non-empty)
- *
- * Strict mode: Rejects any unknown/extra fields in the request
- */
-export const assessmentSchema = z
-  .object({
-    name: z.string().min(1, 'Name is required').max(255, 'Name must not exceed 255 characters'),
+    name: z
+      .string()
+      .min(3, 'Name must be at least 3 characters')
+      .max(50, 'Name must not exceed 50 characters')
+      .refine(
+        (val) => {
+          const trimmed = val.trim();
+          return trimmed.length >= 3 && trimmed.length <= 50;
+        },
+        {
+          message:
+            'Name must be between 3 and 50 characters after removing leading/trailing whitespace',
+        },
+      ),
     industry: z.string().min(1, 'Industry is required'),
     result_json: z.record(z.unknown()).refine((val) => Object.keys(val).length > 0, {
       message: 'result_json must not be empty',
@@ -43,64 +38,6 @@ export const assessmentSchema = z
     parameters: z.record(z.number()).optional(), // Frontend sends 'parameters', not 'evaluation_parameters'
   })
   .strict();
-
-/**
- * Middleware factory: Validates request body against provided Zod schema
- *
- * @param {z.ZodSchema} schema - Zod schema to validate against
- * @returns {Function} Express middleware function
- *
- * @example
- * app.post('/assessments', validateRequest(assessmentSchema), handler);
- */
-export function validateRequest(schema) {
-  return (req, res, next) => {
-    try {
-      const validated = schema.parse(req.body);
-      req.validatedBody = validated;
-      next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const formattedErrors = error.errors.map((err) => ({
-          path: err.path.join('.'),
-          message: err.message,
-          code: err.code,
-        }));
-
-        // Log validation failures for debugging "bad actors"
-        logger.warn(
-          {
-            endpoint: req.path,
-            method: req.method,
-            ip: req.ip,
-            errors: formattedErrors,
-            receivedFields: Object.keys(req.body),
-          },
-          'Validation failure',
-        );
-
-        return res.status(400).json({
-          error: 'Validation failed',
-          code: 'VALIDATION_ERROR',
-          details: formattedErrors,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      // Handle non-Zod errors
-      logger.warn(
-        { endpoint: req.path, method: req.method, ip: req.ip, errorMessage: error.message },
-        'Validation error occurred',
-      );
-
-      return res.status(400).json({
-        error: 'Request validation error',
-        code: 'BAD_REQUEST',
-        timestamp: new Date().toISOString(),
-      });
-    }
-  };
-}
 
 /**
  * Middleware: Validates assessment-specific request body
