@@ -4,7 +4,7 @@ import { after, test } from 'node:test';
 import express from 'express';
 import request from 'supertest';
 
-import { closeAllPools } from '#database/client.js';
+import { closeAllPools } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
 // Minimal mock supabase that returns a few assessments

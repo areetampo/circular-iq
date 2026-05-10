@@ -4,7 +4,7 @@ import { after, before, test } from 'node:test';
 import express from 'express';
 import request from 'supertest';
 
-import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
+import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
 function makeMockSupabaseForSummary(assessments) {

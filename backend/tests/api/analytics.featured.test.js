@@ -5,26 +5,26 @@ import express from 'express';
 import request from 'supertest';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { closeAllPools, setDatabaseClientOverride } from '#database/client.js';
+import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
 // Mock Supabase chains used in the featured-solutions endpoint
 // It optionally asserts that `.eq` filters are applied at the query builder level.
 function makeMockSupabaseForDocs(docs = [], expected = {}) {
   return {
-    from: (table) => {
+    from: () => {
       const chain = {
-        select: (cols) => chain,
+        select: () => chain,
         eq: (col, val) => {
           if (expected[col] !== undefined) {
             assert.equal(val, expected[col], `expected filter ${col} to be ${expected[col]}`);
           }
           return chain;
         },
-        limit: (n) => ({
-          order: async (col, opts) => ({ data: docs, error: null }),
+        limit: () => ({
+          order: async () => ({ data: docs, error: null }),
         }),
-        order: (col, opts) => ({ data: docs, error: null }),
+        order: async () => ({ data: docs, error: null }),
       };
       return chain;
     },
@@ -101,20 +101,12 @@ test('GET /api/analytics/featured-solutions (fallback) returns documents', async
 // Test semantic path: mock OpenAI embedding and supabase RPC
 test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async () => {
   setDatabaseClientOverride(null); // Reset override
-  // Mock OpenAI client
-  const fakeEmbedding = Array(1536).fill(0.01);
-  const mockOpenAI = {
-    embeddings: {
-      create: async (opts) => ({ data: [{ embedding: fakeEmbedding }] }),
-    },
-  };
-
   // Note: setOpenAIClient removed - use direct mock of embedding service if needed
 
   // Mock Supabase RPC to return expected format
   const mockSupabase = {
     rpc: async (name, params) => {
-      if (name === BACKEND_CONFIG.db.functions.search_documents_hybrid_filtered) {
+      if (name === BACKEND_CONFIG.scoring.db.functions.search_documents_hybrid_filtered) {
         // ensure our new filter parameters are present (may be null)
         assert.ok('industry_filter' in params);
         assert.ok('category_filter' in params);
