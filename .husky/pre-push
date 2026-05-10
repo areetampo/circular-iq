@@ -8,19 +8,14 @@
 #   Skip individual steps:
 #     $env:SKIP_TESTS="true"; git push
 #     $env:SKIP_BUILD="true"; git push
-#     $env:SKIP_MIGRATION="true"; git push
 #
 #   Skip multiple:
 #     $env:SKIP_TESTS="true"; $env:SKIP_BUILD="true"; git push
-#
-#   Skip everything:
-#     $env:SKIP_TESTS="true"; $env:SKIP_BUILD="true"; $env:SKIP_MIGRATION="true"; git push
 #
 # ─────────────────────────────────────────────────────────────────────
 
 SKIP_BUILD="${SKIP_BUILD:-false}"
 SKIP_TESTS="${SKIP_TESTS:-false}"
-SKIP_MIGRATION="${SKIP_MIGRATION:-false}"
 
 # ─── Build ───────────────────────────────────────────────────────────
 if [ "$SKIP_BUILD" = true ]; then
@@ -36,32 +31,6 @@ if [ "$SKIP_TESTS" = true ]; then
 else
   echo "⫸ Running test suites..."
   npm test || { echo "✕ Tests failed! Push aborted."; exit 1; }
-fi
-
-# ─── Migration ───────────────────────────────────────────────────────
-if [ "$SKIP_MIGRATION" = true ]; then
-  echo "⫸ Skipping migration (SKIP_MIGRATION=true)"
-else
-  echo "⫸ Running uptime schema migration..."
-
-  ENV_FILE="env/.env.backend.production"
-  if [ ! -f "$ENV_FILE" ]; then
-    echo "✕ Env file not found at $ENV_FILE. Push aborted."
-    exit 1
-  fi
-
-  set -a
-  # shellcheck disable=SC1090
-  . "$ENV_FILE"
-  set +a
-
-  if [ -z "$SUPABASE_CONNECTION_STRING" ]; then
-    echo "✕ SUPABASE_CONNECTION_STRING is not set in $ENV_FILE. Push aborted."
-    exit 1
-  fi
-
-  psql "$SUPABASE_CONNECTION_STRING" -f backend/database/migrations/07_uptime_monitor.sql \
-    || { echo "✕ Migration failed! Push aborted."; exit 1; }
 fi
 
 echo "✓ Everything looks good. Pushing now..."
