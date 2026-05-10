@@ -1,4 +1,4 @@
--- MIGRATION: 02_user_assessments.sql (v3 — fully aligned with scoring API v2)
+-- MIGRATION: 03_user_assessments.sql (v3 — fully aligned with scoring API v2)
 -- User Assessment Storage — OPTIMIZED & SECURED
 -- STATUS: Depends on 01_vector_infrastructure.sql
 
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS user_assessments (
   session_id                  TEXT,          -- kept for guest sessions
 
   -- ── User-supplied inputs ─────────────────────────────────────────────────────
-  title                       TEXT NOT NULL CHECK (title != ''),
+  title                       TEXT NOT NULL CHECK (char_length(title) BETWEEN 3 AND 50),
   UNIQUE (user_id, title),
   business_problem            TEXT NOT NULL CHECK (business_problem != ''),
   business_solution           TEXT NOT NULL CHECK (business_solution != ''),

@@ -1,4 +1,4 @@
--- MIGRATION: 03_user_profiles.sql (v3)
+-- MIGRATION: 02_user_profiles.sql (v3)
 -- User Profile System — OPTIMIZED & SECURED
 -- STATUS: Depends on 02_user_assessments.sql (v3)
 --
