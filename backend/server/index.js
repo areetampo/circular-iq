@@ -4,12 +4,15 @@ import boxen from 'boxen';
 import chalk from 'chalk';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
+import { getSupabaseClient } from '#database/index.js';
 import app from '#server/app.js';
+import { startUptimePolling, stopUptimePolling } from '#services/uptimePolling.service.js';
 import { logger } from '#utils/logger.js';
 
 globalThis.logger = logger;
 
 let serverInstance = null;
+let uptimeCleanupInterval = null;
 
 /**
  * 🎨 UI THEME & FORMATTERS
@@ -106,7 +109,7 @@ export function startServer() {
 
     const content = [
       '',
-      theme.accent('⌀ SYSTEM PARAMETERS'),
+      theme.accent('◉ SYSTEM PARAMETERS'),
       theme.dim('━'.repeat(60)),
       ...configRows,
       '',
@@ -132,21 +135,29 @@ export function startServer() {
 
     const shutdown = () => {
       if (serverInstance) {
-        logger.log(theme.warning('\n揪 SIGTERM/SIGINT received. Cleaning up...'));
+        logger.warn(theme.warning('\n揪 SIGTERM/SIGINT received. Cleaning up...'));
         logger.warn('SIGTERM/SIGINT received, initiating shutdown');
 
         // 1. Stop accepting new requests immediately
         serverInstance.close(async () => {
-          logger.log(theme.dim('  - Server stopped accepting new connections.'));
+          logger.info(theme.dim('  - Server stopped accepting new connections.'));
           logger.info('Server stopped accepting new connections');
 
-          // 2. Give background tasks (like Supabase logging) 2-3 seconds to finish
+          // 2. Clear background intervals
+          if (uptimeCleanupInterval) {
+            clearInterval(uptimeCleanupInterval);
+            uptimeCleanupInterval = null;
+            logger.info(theme.dim('  - Stopped uptime cleanup interval.'));
+          }
+          stopUptimePolling();
+
+          // 3. Give background tasks (like Supabase logging) 2-3 seconds to finish
           // This is crucial for Render redeploys
-          logger.log(theme.dim('  - Draining background tasks...'));
+          logger.info(theme.dim('  - Draining background tasks...'));
           logger.info('Draining background tasks');
           await new Promise((resolve) => setTimeout(resolve, 3000));
 
-          logger.log(theme.danger('✕ Server Process Terminated.'));
+          logger.error(theme.danger('✕ Server Process Terminated.'));
           logger.info('Server process terminated successfully');
           process.exit(0);
         });
@@ -159,6 +170,37 @@ export function startServer() {
         }, 10000);
       }
     };
+
+    // Only start uptime background tasks if pollingEnabled is true
+    if (BACKEND_CONFIG.uptime.pollingEnabled) {
+      // Start cleanup interval (daily)
+      uptimeCleanupInterval = setInterval(
+        async () => {
+          try {
+            const supabase = getSupabaseClient();
+            const days = BACKEND_CONFIG.uptime.retentionDays;
+            await supabase.rpc('cleanup_old_uptime_checks', { days });
+            logger.info({ retentionDays: days }, 'Uptime history cleanup completed');
+          } catch (err) {
+            logger.error({ err }, 'Uptime cleanup failed');
+          }
+        },
+        24 * 60 * 60 * 1000,
+      );
+
+      // Start polling service
+      startUptimePolling();
+
+      logger.info(
+        { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled: BACKEND_CONFIG.uptime.pollingEnabled },
+        'Uptime monitoring (polling + cleanup) started',
+      );
+    } else {
+      logger.info(
+        { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled: BACKEND_CONFIG.uptime.pollingEnabled },
+        'Uptime monitoring is disabled',
+      );
+    }
 
     process.on('SIGTERM', shutdown);
     process.on('SIGINT', shutdown);
@@ -173,7 +215,7 @@ export function stopServer() {
   return new Promise((resolve) => {
     serverInstance.close(() => {
       serverInstance = null;
-      logger.log(theme.dim('Server Instance Stopped.'));
+      logger.info(theme.dim('Server Instance Stopped.'));
       logger.info('Server Instance Stopped.');
       resolve();
     });
@@ -184,7 +226,7 @@ export function stopServer() {
 process.on('unhandledRejection', (reason, promise) => {
   logger.error({ reason }, 'UNHANDLED REJECTION');
   if (BACKEND_CONFIG.nodeEnv !== 'test') {
-    logger.error(theme.danger('\n‼ UNHANDLED REJECTION:'), reason);
+    logger.error({ reason }, theme.danger('UNHANDLED REJECTION'));
   }
 });
 
