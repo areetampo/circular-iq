@@ -28,13 +28,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
   router.post('/', requireAuth(serviceSupabase), validateAssessment, async (req, res) => {
     const startTime = Date.now();
     try {
-      const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.saveAssessment(
         serviceSupabase,
         req.user,
         req.validatedBody,
         req.body,
-        token,
       );
       logOperation('POST', '/assessments', 201, Date.now() - startTime);
       res.status(201).json(result);
@@ -57,11 +55,9 @@ export default function createAssessmentsRouter(serviceSupabase) {
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
-      const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.fetchUserAssessments(
         serviceSupabase,
         req.user,
-        token,
         req.query,
       );
       logOperation('GET', '/assessments', 200, Date.now() - startTime);
@@ -84,12 +80,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
   router.get('/stats', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
-      const token = req.headers.authorization?.slice(7).trim();
-      const stats = await assessmentsController.getAssessmentStats(
-        serviceSupabase,
-        req.user,
-        token,
-      );
+      const stats = await assessmentsController.getAssessmentStats(serviceSupabase, req.user);
       logOperation('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
     } catch (err) {
