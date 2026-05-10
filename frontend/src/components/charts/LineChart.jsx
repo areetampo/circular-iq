@@ -23,6 +23,33 @@ const TICK_STYLE = {
   fill: 'var(--color-text-secondary)',
 };
 
+/**
+ * LineChart component for displaying time-series or continuous data trends
+ * Uses Recharts library with responsive design and theming support
+ *
+ * @param {Object} props - Component props
+ * @param {Array} props.data - Array of data objects to display
+ * @param {Array} props.lines - Configuration for each line series
+ * @param {string} props.lines[].dataKey - Key in data object for line values
+ * @param {string} props.lines[].name - Display name for the line (optional)
+ * @param {string} props.lines[].color - Color for the line (optional)
+ * @param {number} props.height - Height of the chart in pixels (default: 300)
+ * @param {string} props.xAxisKey - Data key for x-axis values (default: 'label')
+ * @param {boolean} props.showLegend - Whether to show legend (default: true)
+ * @param {string} props.ariaLabel - Accessibility label for the chart (optional)
+ * @param {boolean} props.isLoading - Whether to show loading state (default: false)
+ * @param {string} props.className - Additional CSS classes (optional)
+ * @param {Array} props.colors - Array of colors for lines (optional)
+ * @param {Object} props.yAxisRight - Configuration for right y-axis (optional)
+ * @param {Object} props.margin - Additional margin overrides (optional)
+ *
+ * @example
+ * <LineChart
+ *   data={[{ label: 'Jan', sales: 100 }, { label: 'Feb', sales: 150 }]}
+ *   lines={[{ dataKey: 'sales', name: 'Sales', color: '#8884d8' }]}
+ *   height={400}
+ * />
+ */
 export default function LineChart({
   data = [],
   lines = [],
@@ -34,6 +61,7 @@ export default function LineChart({
   className,
   colors,
   yAxisRight = null,
+  margin = {},
 }) {
   if (isLoading) {
     return (
@@ -80,7 +108,10 @@ export default function LineChart({
   return (
     <ChartContainer config={config} className={className} style={{ height }} aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height={height}>
-        <RechartsLineChart data={data} margin={{ top: 16, right: 24, bottom: 24, left: 8 }}>
+        <RechartsLineChart
+          data={data}
+          margin={{ top: 16, right: 24, bottom: 24, left: 8, ...margin }}
+        >
           <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
           <XAxis
             dataKey={xAxisKey}
@@ -186,4 +217,5 @@ LineChart.propTypes = {
     tickFormatter: PropTypes.func,
     domain: PropTypes.array,
   }),
+  margin: PropTypes.object,
 };

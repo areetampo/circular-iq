@@ -30,6 +30,29 @@ const getWarmFallbackColors = () => [
 // Note: Use getter function directly instead of Proxy export
 // Example: getWarmFallbackColors() instead of WARM_FALLBACK_COLORS
 
+/**
+ * PieChart component for displaying proportional data in a circular format
+ * Uses Recharts library with responsive design and theming support
+ *
+ * @param {Object} props - Component props
+ * @param {Array} props.data - Array of data objects to display
+ * @param {string} props.dataKey - Key in data object for segment values (default: 'value')
+ * @param {string} props.nameKey - Key in data object for segment names (default: 'name')
+ * @param {number} props.height - Height of the chart in pixels (default: 300)
+ * @param {boolean} props.showLegend - Whether to show legend (default: true)
+ * @param {boolean} props.isLoading - Whether to show loading state (default: false)
+ * @param {string} props.className - Additional CSS classes (optional)
+ * @param {Array} props.colors - Array of colors for segments (optional)
+ * @param {number} props.innerRadius - Inner radius for donut chart (default: 0)
+ * @param {Object} props.margin - Additional margin overrides (optional)
+ *
+ * @example
+ * <PieChart
+ *   data={[{ name: 'Category A', value: 30 }, { name: 'Category B', value: 70 }]}
+ *   height={400}
+ *   showLegend={true}
+ * />
+ */
 export default function PieChart({
   data = [],
   dataKey = 'value',
@@ -40,6 +63,7 @@ export default function PieChart({
   className,
   colors,
   innerRadius = 0,
+  margin = {},
   // outerRadius, label, labelLine, paddingAngle, cornerRadius kept for API compat but managed internally
 }) {
   if (isLoading) {
@@ -86,7 +110,7 @@ export default function PieChart({
   return (
     <ChartContainer config={config} className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height={height}>
-        <RechartsPieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <RechartsPieChart margin={{ top: 8, right: 8, bottom: 8, left: 8, ...margin }}>
           <Pie
             data={data}
             dataKey={dataKey}
@@ -132,4 +156,5 @@ PieChart.propTypes = {
   cornerRadius: PropTypes.number,
   label: PropTypes.bool,
   labelLine: PropTypes.bool,
+  margin: PropTypes.object,
 };

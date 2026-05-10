@@ -20,6 +20,28 @@ const getSeriesColors = () => [
   resolveCSSVar('var(--color-accent)', '#b8916a'),
 ];
 
+/**
+ * RadarChart component for displaying multi-dimensional data in a radial format
+ * Uses Recharts library with responsive design and theming support
+ *
+ * @param {Object} props - Component props
+ * @param {Array} props.data - Array of data objects to display
+ * @param {Array} props.radarConfigs - Configuration for each radar series
+ * @param {string} props.radarConfigs[].dataKey - Key in data object for radar values
+ * @param {string} props.radarConfigs[].name - Display name for the radar series
+ * @param {number} props.height - Height of the chart in pixels (default: 400)
+ * @param {boolean} props.showLegend - Whether to show legend (default: true)
+ * @param {string} props.className - Additional CSS classes (optional)
+ * @param {Array} props.colors - Array of colors for radar series (optional)
+ * @param {Object} props.margin - Additional margin overrides (optional)
+ *
+ * @example
+ * <RadarChart
+ *   data={[{ metric: 'Speed', value: 80 }, { metric: 'Quality', value: 90 }]}
+ *   radarConfigs={[{ dataKey: 'value', name: 'Performance' }]}
+ *   height={400}
+ * />
+ */
 function RadarChartComponent({
   data,
   radarConfigs,
@@ -27,6 +49,7 @@ function RadarChartComponent({
   showLegend = true,
   className,
   colors,
+  margin = {},
 }) {
   if (!data?.length || !radarConfigs?.length) {
     return (
@@ -63,7 +86,7 @@ function RadarChartComponent({
       <ResponsiveContainer width="100%" height={height}>
         <RechartsRadarChart
           data={data}
-          margin={{ top: 5, right: 20, bottom: 5, left: 20 }}
+          margin={{ top: 5, right: 20, bottom: 5, left: 20, ...margin }}
           outerRadius="90%"
         >
           <PolarGrid stroke="var(--color-chart-grid-strong)" strokeWidth={1} />
@@ -157,6 +180,7 @@ RadarChartComponent.propTypes = {
   showLegend: PropTypes.bool,
   className: PropTypes.string,
   colors: PropTypes.arrayOf(PropTypes.string),
+  margin: PropTypes.object,
   // These props are kept for interface compat but unused in Recharts:
   showTooltip: PropTypes.bool,
   isLoading: PropTypes.bool,

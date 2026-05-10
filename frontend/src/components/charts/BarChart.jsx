@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Bar,
   CartesianGrid,
+  Cell,
   Legend,
   BarChart as RechartsBarChart,
   ResponsiveContainer,
@@ -23,6 +24,38 @@ const TICK_STYLE = {
   fill: 'var(--color-text-secondary)',
 };
 
+/**
+ * BarChart component for displaying categorical data with customizable bars
+ * Uses Recharts library with responsive design and theming support
+ *
+ * @param {Object} props - Component props
+ * @param {Array} props.data - Array of data objects to display
+ * @param {Array} props.barConfigs - Configuration for each bar series
+ * @param {string} props.barConfigs[].dataKey - Key in data object for bar values
+ * @param {string} props.barConfigs[].name - Display name for the bar (optional)
+ * @param {string} props.barConfigs[].fill - Color for the bar (optional)
+ * @param {string} props.barConfigs[].color - Alternative color prop (optional)
+ * @param {string} props.barConfigs[].stack - Stack ID for grouped bars (optional)
+ * @param {number} props.height - Height of the chart in pixels (default: 300)
+ * @param {string} props.xAxisKey - Data key for x-axis values (default: 'name')
+ * @param {string} props.xAxisLabel - Label for x-axis (optional)
+ * @param {string} props.yAxisLabel - Label for y-axis (optional)
+ * @param {boolean} props.showLegend - Whether to show legend (default: true)
+ * @param {boolean} props.isLoading - Whether to show loading state (default: false)
+ * @param {string} props.className - Additional CSS classes (optional)
+ * @param {Array} props.colors - Array of colors for bars (optional) (applies per series, not per bar)
+ * @param {Array} props.barColors - Array of colors for each individual bar (same order as data). If provided, overrides fill for each bar. (optional)
+ * @param {number} props.tickAngle - Angle for x-axis tick labels (default: 0)
+ * @param {string} props.tickAnchor - Anchor for rotated ticks (default: 'end')
+ * @param {Object} props.margin - Additional margin overrides (optional)
+ *
+ * @example
+ * <BarChart
+ *   data={[{ name: 'Jan', sales: 100 }, { name: 'Feb', sales: 150 }]}
+ *   barConfigs={[{ dataKey: 'sales', name: 'Sales', fill: '#8884d8' }]}
+ *   height={400}
+ * />
+ */
 export default function BarChart({
   data = [],
   barConfigs = [],
@@ -34,8 +67,10 @@ export default function BarChart({
   isLoading = false,
   className,
   colors,
+  barColors, // new prop
   tickAngle = 0,
   tickAnchor = 'end',
+  margin = {},
 }) {
   if (isLoading) {
     return (
@@ -77,6 +112,9 @@ export default function BarChart({
   // Formatter for integer-only y-axis ticks
   const intFormatter = (v) => (Number.isInteger(v) ? v : '');
 
+  // Determine if we should use per‑bar colors for the first series (others are ignored for simplicity)
+  const useBarColors = barColors && barColors.length === data.length;
+
   return (
     <ChartContainer config={config} className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height={height}>
@@ -87,6 +125,7 @@ export default function BarChart({
             right: 16,
             bottom: xAxisLabel ? 40 : tickAngle !== 0 ? 70 : 24,
             left: 8,
+            ...margin,
           }}
           barCategoryGap="20%"
         >
@@ -118,7 +157,23 @@ export default function BarChart({
             width={36}
           />
           <Tooltip
-            content={<ChartTooltipContent />}
+            content={(props) => {
+              const { active, payload, label } = props;
+              if (active && payload && payload.length) {
+                // Get the bar color from the data point (if available)
+                const barColor = payload[0]?.payload?.barColor;
+                // Override the payload's color with the bar's specific color
+                const coloredPayload = payload.map((p) => ({
+                  ...p,
+                  color: barColor || p.color,
+                  stroke: barColor || p.stroke,
+                }));
+                return (
+                  <ChartTooltipContent active={active} payload={coloredPayload} label={label} />
+                );
+              }
+              return null;
+            }}
             cursor={{ fill: 'var(--color-chart-cursor)' }}
           />
           {shouldShowLegend && (
@@ -140,7 +195,13 @@ export default function BarChart({
               fill={cfg.fill || cfg.color || colors?.[i] || `var(--chart-${(i % 5) + 1})`}
               radius={[3, 3, 0, 0]}
               maxBarSize={80}
-            />
+            >
+              {useBarColors &&
+                i === 0 &&
+                data.map((entry, idx) => (
+                  <Cell key={`cell-${idx}`} fill={barColors[idx % barColors.length]} />
+                ))}
+            </Bar>
           ))}
         </RechartsBarChart>
       </ResponsiveContainer>
@@ -167,6 +228,8 @@ BarChart.propTypes = {
   isLoading: PropTypes.bool,
   className: PropTypes.string,
   colors: PropTypes.arrayOf(PropTypes.string),
+  barColors: PropTypes.arrayOf(PropTypes.string),
   tickAngle: PropTypes.number,
   tickAnchor: PropTypes.string,
+  margin: PropTypes.object,
 };
