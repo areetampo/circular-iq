@@ -58,13 +58,16 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
       const token = authHeader.slice(7).trim();
       const MASTER_API_KEY = BACKEND_CONFIG.app.apiKey;
 
-      // If the provided bearer token is the master API key, treat as authenticated
-      if (token && MASTER_API_KEY && token === MASTER_API_KEY) {
-        logger.info(
-          { authenticated: true },
-          'Master API key provided in Authorization header — treating as authenticated',
-        );
-        return null;
+      if (token && MASTER_API_KEY) {
+        const tokenBuf = Buffer.from(token);
+        const keyBuf = Buffer.from(MASTER_API_KEY);
+        if (tokenBuf.length === keyBuf.length && crypto.timingSafeEqual(tokenBuf, keyBuf)) {
+          logger.info(
+            { authenticated: true },
+            'Master API key provided in Authorization header — treating as authenticated',
+          );
+          return null;
+        }
       }
 
       if (token) {
