@@ -9,6 +9,7 @@
   "type": "module",
   "imports": {
     "#config/*": "./config/*",
+    "#constants/*": "./constants/*",
     "#controllers/*": "./controllers/*",
     "#database/*": "./database/*",
     "#datasets/*": "./datasets/*",
