@@ -25,6 +25,17 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
     } = validatedBody;
     const { title, result, evaluation_parameters } = rawBody;
 
+    // Validate title length after trimming (additional safety check)
+    const assessmentTitle = name || title?.substring(0, 255) || 'Untitled Assessment';
+    const trimmedTitle = assessmentTitle.trim();
+    if (trimmedTitle.length < 3 || trimmedTitle.length > 50) {
+      const titleError = new Error(
+        'Title must be between 3 and 50 characters after removing leading/trailing whitespace',
+      );
+      titleError.code = 'TITLE_LENGTH_INVALID';
+      throw titleError;
+    }
+
     const resultData = result_json || result;
     if (!resultData || !resultData.overall_score) {
       throw new Error('result with overall_score is required');
@@ -105,7 +116,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       throw error;
     }
 
-    logOperation('saveAssessment', 'success', Date.now() - startTime);
+    logOperation('saveAssessment', '/assessments', 'success', Date.now() - startTime);
 
     return {
       id: data[0].id,
@@ -113,7 +124,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
       assessment: data[0],
     };
   } catch (error) {
-    logOperation('saveAssessment', 'error', Date.now() - startTime);
+    logOperation('saveAssessment', '/assessments', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -193,7 +204,7 @@ export async function fetchUserAssessments(supabase, user, token, query) {
       throw error;
     }
 
-    logOperation('fetchUserAssessments', 'success', Date.now() - startTime);
+    logOperation('fetchUserAssessments', '/assessments', 'success', Date.now() - startTime);
 
     return {
       assessments: data || [],
@@ -202,7 +213,7 @@ export async function fetchUserAssessments(supabase, user, token, query) {
       pageSize: size,
     };
   } catch (error) {
-    logOperation('fetchUserAssessments', 'error', Date.now() - startTime);
+    logOperation('fetchUserAssessments', '/assessments', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -241,19 +252,21 @@ export async function getAssessmentStats(supabase, user, token) {
       assessmentsByScale: stats.assessments_by_scale || {},
     };
 
-    logOperation('getAssessmentStats', 'success', Date.now() - startTime);
+    logOperation('getAssessmentStats', '/assessments/stats', 'success', Date.now() - startTime);
 
     return result;
   } catch (error) {
-    logOperation('getAssessmentStats', 'error', Date.now() - startTime);
+    logOperation('getAssessmentStats', '/assessments/stats', 'error', Date.now() - startTime);
     throw error;
   }
 }
 
 /**
  * Fetch a public assessment by public_id
+ * Users can access their own assessments regardless of public status
+ * Other users can only access public assessments
  */
-export async function getPublicAssessment(supabase, publicId) {
+export async function getPublicAssessment(supabase, user, publicId) {
   const startTime = Date.now();
 
   try {
@@ -261,33 +274,63 @@ export async function getPublicAssessment(supabase, publicId) {
       .from('user_assessments')
       .select('*')
       .eq('public_id', publicId)
-      .eq('is_public', true)
       .maybeSingle();
 
     if (error) throw error;
 
     if (!data) {
-      const notFoundError = new Error('Assessment not found or is not public');
+      const notFoundError = new Error('Assessment not found');
       notFoundError.code = 'NOT_FOUND';
       throw notFoundError;
     }
 
-    logOperation('getPublicAssessment', 'success', Date.now() - startTime);
+    // Check ownership and public status
+    const isOwner = user && user.id && data.user_id === user.id;
+    const isPublic = data.is_public;
 
-    return { assessment: data, readonly: true };
+    // If user owns the assessment, they can access it regardless of public status
+    // If user doesn't own it, it must be public
+    if (!isOwner && !isPublic) {
+      const forbiddenError = new Error('Assessment not publicly available');
+      forbiddenError.code = 'FORBIDDEN';
+      throw forbiddenError;
+    }
+
+    logOperation('getPublicAssessment', '/assessments/public', 'success', Date.now() - startTime);
+
+    return {
+      assessment: data,
+      readonly: !isOwner, // Only owners can edit
+    };
   } catch (error) {
-    logOperation('getPublicAssessment', 'error', Date.now() - startTime);
+    logOperation('getPublicAssessment', '/assessments/public', 'error', Date.now() - startTime);
     throw error;
   }
 }
 
 /**
  * Validate a public assessment ID
+ * Users can always validate their own assessments regardless of public status
  */
-export async function validatePublicId(supabase, publicId) {
+export async function validatePublicId(supabase, publicId, user = null) {
   const startTime = Date.now();
 
   try {
+    // logger.info(
+    //   {
+    //     publicId,
+    //     user: user ? { id: user.id, email: user.email } : null,
+    //   },
+    //   'validatePublicId called',
+    // );
+
+    // Check for null/undefined first
+    if (!publicId || typeof publicId !== 'string') {
+      const error = new Error('Public ID is required');
+      error.code = 'INVALID_FORMAT';
+      throw error;
+    }
+
     const uuidRegex =
       /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
     if (!uuidRegex.test(publicId)) {
@@ -298,11 +341,13 @@ export async function validatePublicId(supabase, publicId) {
 
     const { data, error } = await supabase
       .from('user_assessments')
-      .select('id,is_public')
+      .select('id,is_public,user_id')
       .eq('public_id', publicId)
       .maybeSingle();
 
     if (error) throw error;
+
+    // logger.info({ data }, 'Assessment data');
 
     if (!data) {
       const notFoundError = new Error('Invalid Public ID');
@@ -310,17 +355,33 @@ export async function validatePublicId(supabase, publicId) {
       throw notFoundError;
     }
 
-    if (!data.is_public) {
+    // If user is authenticated and owns this assessment, it's always valid
+    const isOwner = user && user.id && data.user_id === user.id;
+    // logger.info(
+    //   {
+    //     isOwner,
+    //     userId: user?.id,
+    //     assessmentUserId: data.user_id,
+    //     isPublic: data.is_public,
+    //   },
+    //   'Ownership check',
+    // );
+
+    if (!isOwner && !data.is_public) {
       const forbiddenError = new Error('Assessment not publicly available');
       forbiddenError.code = 'FORBIDDEN';
       throw forbiddenError;
     }
 
-    logOperation('validatePublicId', 'success', Date.now() - startTime);
+    logOperation('validatePublicId', '/assessments/validate', 'success', Date.now() - startTime);
 
-    return { valid: true };
+    return {
+      valid: true,
+      isOwner,
+      isPublic: data.is_public,
+    };
   } catch (error) {
-    logOperation('validatePublicId', 'error', Date.now() - startTime);
+    logOperation('validatePublicId', '/assessments/validate', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -328,7 +389,7 @@ export async function validatePublicId(supabase, publicId) {
 /**
  * Fetch a single assessment by publicId (user-specific)
  */
-export async function getAssessmentById(supabase, user, token, publicId) {
+export async function getAssessmentById(supabase, user, publicId) {
   const startTime = Date.now();
 
   try {
@@ -348,11 +409,11 @@ export async function getAssessmentById(supabase, user, token, publicId) {
       throw notFoundError;
     }
 
-    logOperation('getAssessmentById', 'success', Date.now() - startTime);
+    logOperation('getAssessmentById', '/assessments/:id', 'success', Date.now() - startTime);
 
     return { assessment: data };
   } catch (error) {
-    logOperation('getAssessmentById', 'error', Date.now() - startTime);
+    logOperation('getAssessmentById', '/assessments/:id', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -360,11 +421,24 @@ export async function getAssessmentById(supabase, user, token, publicId) {
 /**
  * Update assessment fields
  */
-export async function updateAssessment(supabase, user, token, id, updates) {
+export async function updateAssessment(supabase, user, id, updates) {
   const startTime = Date.now();
 
   try {
     const updateData = { ...updates };
+
+    // Validate title length if title is being updated
+    if (updates.title) {
+      const trimmedTitle = updates.title.trim();
+      if (trimmedTitle.length < 3 || trimmedTitle.length > 50) {
+        const titleError = new Error(
+          'Title must be between 3 and 50 characters after removing leading/trailing whitespace',
+        );
+        titleError.code = 'TITLE_LENGTH_INVALID';
+        throw titleError;
+      }
+    }
+
     if (updates.is_public === true) {
       const { data: current } = await supabase
         .from('user_assessments')
@@ -406,11 +480,11 @@ export async function updateAssessment(supabase, user, token, id, updates) {
       throw notFoundError;
     }
 
-    logOperation('updateAssessment', 'success', Date.now() - startTime);
+    logOperation('updateAssessment', '/assessments/:id', 'success', Date.now() - startTime);
 
     return { assessment: data, message: 'Assessment updated successfully' };
   } catch (error) {
-    logOperation('updateAssessment', 'error', Date.now() - startTime);
+    logOperation('updateAssessment', '/assessments/:id', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -418,12 +492,12 @@ export async function updateAssessment(supabase, user, token, id, updates) {
 /**
  * Delete an assessment
  */
-export async function deleteAssessment(supabase, user, token, id) {
+export async function deleteAssessment(supabase, user, id) {
   const startTime = Date.now();
   const userId = user.id;
 
   try {
-    logger.info({ id, userId }, 'DELETE request received');
+    // logger.info({ id, userId }, 'DELETE request received');
 
     const { data: assessment, error: getError } = await supabase
       .from('user_assessments')
@@ -433,7 +507,7 @@ export async function deleteAssessment(supabase, user, token, id) {
       .single();
 
     if (getError || !assessment) {
-      logger.info({ id, userId, getError }, 'Assessment not found for deletion');
+      // logger.info({ id, userId, getError }, 'Assessment not found for deletion');
       const notFoundError = new Error(
         'Assessment not found or you do not have permission to delete it',
       );
@@ -452,13 +526,13 @@ export async function deleteAssessment(supabase, user, token, id) {
       throw new Error(`Deletion failed: ${deleteError.message}`);
     }
 
-    logger.info({ id, userId }, 'Assessment deleted successfully');
-    logOperation('deleteAssessment', 'success', Date.now() - startTime);
+    // logger.info({ id, userId }, 'Assessment deleted successfully');
+    logOperation('deleteAssessment', '/assessments/:id', 'success', Date.now() - startTime);
 
     return { message: 'Assessment deleted successfully', id };
   } catch (error) {
     logger.error({ error }, 'Error during deleteAssessment operation');
-    logOperation('deleteAssessment', 'error', Date.now() - startTime);
+    logOperation('deleteAssessment', '/assessments/:id', 'error', Date.now() - startTime);
     throw error;
   }
 }
@@ -467,11 +541,24 @@ export async function deleteAssessment(supabase, user, token, id) {
  * Compare two assessments with visibility rules
  * For public access (user is null), both assessments must be public
  */
-export async function compareAssessments(supabase, user, token, publicId1, publicId2) {
+export async function compareAssessments(supabase, user, publicId1, publicId2) {
   const startTime = Date.now();
 
   try {
     const userId = user?.id;
+
+    // Validate input parameters
+    if (
+      !publicId1 ||
+      !publicId2 ||
+      typeof publicId1 !== 'string' ||
+      typeof publicId2 !== 'string'
+    ) {
+      // logger.info('[ASSESSMENT_CONTROLLER_DEBUG] Validation failed, throwing error');
+      const error = new Error('Both assessment IDs are required and must be valid strings');
+      error.code = 'INVALID_IDS';
+      throw error;
+    }
 
     // Fetch basic info for both to check ownership/visibility
     const [basicRes1, basicRes2] = await Promise.all([
@@ -498,85 +585,53 @@ export async function compareAssessments(supabase, user, token, publicId1, publi
       throw error;
     }
 
+    // Helper: fetch full row, optionally requiring is_public
+    const fetchFull = async (publicId, requirePublic = false) => {
+      let q = supabase.from('user_assessments').select('*').eq('public_id', publicId);
+      if (requirePublic) q = q.eq('is_public', true);
+      const { data, error } = await q.maybeSingle();
+      if (error) throw error;
+      return data;
+    };
+
+    // Pre-validate access rights before proceeding
+    const validateAccess = (basic, userId, publicId) => {
+      const isOwner = userId && basic.user_id === userId;
+      const isPublic = basic.is_public;
+
+      // User can access if: they own it OR it's public
+      if (!isOwner && !isPublic) {
+        const error = new Error(`Assessment ${publicId} is not publicly available for comparison`);
+        error.code = 'NOT_PUBLIC';
+        throw error;
+      }
+    };
+
+    // Validate access for both assessments
+    validateAccess(basic1, userId, publicId1);
+    validateAccess(basic2, userId, publicId2);
+
     const isOwn1 = userId ? basic1.user_id === userId : false;
     const isOwn2 = userId ? basic2.user_id === userId : false;
 
-    // Helper: fetch full row, optionally requiring is_public
-    const fetchFull = (publicId, requirePublic = false) => {
-      let q = supabase.from('user_assessments').select('*').eq('public_id', publicId);
-      if (requirePublic) q = q.eq('is_public', true);
-      return q.maybeSingle();
-    };
+    // Since we've already validated access rights, we can fetch both assessments
+    // Use requirePublic flag only for assessments that are not owned by the user
+    const result1 = await fetchFull(publicId1, !isOwn1);
+    const result2 = await fetchFull(publicId2, !isOwn2);
 
-    // Both owned by user — no visibility restriction needed
-    if (isOwn1 && isOwn2) {
-      const [r1, r2] = await Promise.all([fetchFull(publicId1), fetchFull(publicId2)]);
-      if (r1.error || r2.error || !r1.data || !r2.data) {
-        const error = new Error('Assessment not found');
-        error.code = 'NOT_FOUND';
-        throw error;
-      }
-      logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return { assessment1: r1.data, assessment2: r2.data };
-    }
-
-    // One owned, one foreign — foreign must be public
-    if (isOwn1 && !isOwn2) {
-      if (!basic2.is_public) {
-        const error = new Error(`Assessment ${publicId2} is not publicly available for comparison`);
-        error.code = 'NOT_PUBLIC';
-        throw error;
-      }
-      const [r1, r2] = await Promise.all([fetchFull(publicId1), fetchFull(publicId2, true)]);
-      if (!r1.data || !r2.data) {
-        const error = new Error(`Assessment ${publicId2} not found or is not public`);
-        error.code = 'NOT_FOUND';
-        throw error;
-      }
-      logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return { assessment1: r1.data, assessment2: r2.data };
-    }
-
-    if (!isOwn1 && isOwn2) {
-      if (!basic1.is_public) {
-        const error = new Error(`Assessment ${publicId1} is not publicly available for comparison`);
-        error.code = 'NOT_PUBLIC';
-        throw error;
-      }
-      const [r1, r2] = await Promise.all([fetchFull(publicId1, true), fetchFull(publicId2)]);
-      if (!r1.data || !r2.data) {
-        const error = new Error(`Assessment ${publicId1} not found or is not public`);
-        error.code = 'NOT_FOUND';
-        throw error;
-      }
-      logOperation('compareAssessments', 'success', Date.now() - startTime);
-      return { assessment1: r1.data, assessment2: r2.data };
-    }
-
-    // Both foreign (including public access when user is null) — both must be public
-    if (!basic1.is_public || !basic2.is_public) {
-      const nonPublicIds = [];
-      if (!basic1.is_public) nonPublicIds.push(publicId1);
-      if (!basic2.is_public) nonPublicIds.push(publicId2);
-      const error = new Error(
-        `Assessment(s) ${nonPublicIds.join(', ')} are not publicly available for comparison`,
-      );
-      error.code = 'NOT_PUBLIC';
-      throw error;
-    }
-    const [r1, r2] = await Promise.all([fetchFull(publicId1, true), fetchFull(publicId2, true)]);
-    if (!r1.data || !r2.data) {
+    if (!result1 || !result2) {
       const missingIds = [];
-      if (!r1.data) missingIds.push(publicId1);
-      if (!r2.data) missingIds.push(publicId2);
-      const error = new Error(`Assessment(s) ${missingIds.join(', ')} not found or are not public`);
+      if (!result1) missingIds.push(publicId1);
+      if (!result2) missingIds.push(publicId2);
+      const error = new Error(`Assessment(s) ${missingIds.join(', ')} not found`);
       error.code = 'NOT_FOUND';
       throw error;
     }
-    logOperation('compareAssessments', 'success', Date.now() - startTime);
-    return { assessment1: r1.data, assessment2: r2.data };
+
+    logOperation('compareAssessments', '/assessments/compare', 'success', Date.now() - startTime);
+    return { assessment1: result1, assessment2: result2 };
   } catch (error) {
-    logOperation('compareAssessments', 'error', Date.now() - startTime);
+    logOperation('compareAssessments', '/assessments/compare', 'error', Date.now() - startTime);
     throw error;
   }
 }
