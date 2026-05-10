@@ -23,6 +23,12 @@ export const frontendSchema = z
     VITE_SUPABASE_URL: z.string().trim().url('VITE_SUPABASE_URL must be a valid URL'),
     VITE_SUPABASE_ANON_KEY: z.string().trim().min(1, 'Supabase Anon Key is required'),
 
+    VITE_SCORING_MAX_FREE_TRIES: z
+      .string()
+      .transform((val) => Number(val))
+      .pipe(z.number().positive('VITE_SCORING_MAX_FREE_TRIES must be a positive number'))
+      .default(20),
+
     MODE: z
       .enum(['development', 'staged', 'test', 'production', 'frontend'], {
         errorMap: () => ({
