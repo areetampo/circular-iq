@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "workspaces": {
+    "frontend": {
+      "vite": "vite.config.js",
+      "project": ["src/**/*.{js,jsx,ts,tsx}!"],
+      "entry": ["src/**/*.test.{js,jsx}!", "src/test/**/*.{js,jsx}!"],
+      "ignore": ["src/setupTests.js"]
+    },
+    "backend": {
+      "entry": [
+        "pipeline/*.js",
+        "datasets/scripts/*.js",
+        "tests/**/*.test.js!",
+        "tests/**/*.js!",
+        "utils/*.test.js!"
+      ],
+      "project": ["**/*.js!"]
+    }
+  }
+}

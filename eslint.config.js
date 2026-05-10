@@ -82,10 +82,13 @@ export default [
       // Override/add specific import rules
       'import/no-unresolved': 'error',
       'import/named': 'error',
-      'import/default': 'off', // was 'warn'
+      'import/default': 'off',
       'import/namespace': 'error',
       'import/no-named-as-default': 'off',
       'import/no-named-as-default-member': 'off',
+      'import/no-self-import': 'error', // Prevents a file from importing itself
+      'import/no-cycle': 'error', // Prevents circular dependencies (A -> B -> A)
+      'import/no-useless-path-segments': ['error', { noUselessIndex: true }], // Prevents importing './index'
 
       // Code style
       'no-unused-vars': 'off',
