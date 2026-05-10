@@ -22,11 +22,11 @@ A real‑time health monitoring dashboard that continuously checks backend API h
    - Summary stats (overall uptime, total checks, next refresh countdown)
    - Four charts in a 2×2 grid:
      - Health distribution (pie)
-     - Global average response time (last 24h, line)
+     - Global average response time (last 24h, line – hourly buckets)
      - Uptime over time (daily, line)
      - Average latency by endpoint (bar with per‑bar colours)
-   - A full‑width heatmap of the last 24h in 30‑minute buckets
-   - Detailed cards for each endpoint with sparkline, history bar, and metrics
+   - A full‑width heatmap of the last 24h in **5‑minute buckets**
+   - Detailed cards for each endpoint with sparkline (last 20 checks), history bar (last 40 checks), and metrics
 
 ---
 
@@ -38,15 +38,15 @@ A real‑time health monitoring dashboard that continuously checks backend API h
 | `constants.js`                            | Endpoint definitions and history limit (`HISTORY_LIMIT = 3500`, ~29h of data).    |
 | `hooks/useUptimeMonitor.js`               | Fetches history every 30s and manages UI state.                                   |
 | `utils/uptimeHelpers.js`                  | API calls to backend (`fetchHistoryFromBackend`).                                 |
-| `utils/uptimeCharts.js`                   | Data aggregation for heatmap, health distribution, trends.                        |
+| `utils/uptimeCharts.js`                   | Data aggregation for 5‑min heatmap, health distribution, trends.                  |
 | `components/StatSummaryCard.jsx`          | Reusable stat tile.                                                               |
 | `components/HistoryBar.jsx`               | Miniature status bar for an endpoint (last 40 checks).                            |
 | `components/SectionLabel.jsx`             | Section divider.                                                                  |
 | `components/EndpointCard.jsx`             | Individual endpoint card with sparkline, colour‑coded latency, etc.               |
 | `components/HealthDistributionChart.jsx`  | Pie chart using `PieChart`.                                                       |
-| `components/GlobalResponseTrendChart.jsx` | Line chart of global average response time (last 24h).                            |
+| `components/GlobalResponseTrendChart.jsx` | Line chart of global average response time (last 24h, hourly).                    |
 | `components/UptimeOverTimeChart.jsx`      | Line chart of daily uptime percentage.                                            |
-| `components/StatusHeatmap.jsx`            | 30‑minute heatmap of last 24h.                                                    |
+| `components/StatusHeatmap.jsx`            | 5‑minute heatmap of last 24h (tooltip shows status).                              |
 | `components/EndpointLatencyBarChart.jsx`  | Horizontal bar chart with per‑bar colours (green<200ms, yellow<500ms, red≥500ms). |
 | `components/ExportMetricsButton.jsx`      | Exports all stored checks as CSV.                                                 |
 
@@ -56,11 +56,11 @@ A real‑time health monitoring dashboard that continuously checks backend API h
 
 | Method | Path                                          | Description                                                                 |
 | ------ | --------------------------------------------- | --------------------------------------------------------------------------- |
-| `POST` | `/api/uptime/checks`                          | **Internal** – used by polling service to store a check result.             |
 | `GET`  | `/api/uptime/history/:endpointId?limit=10000` | Retrieve recent checks for an endpoint (max 10000, frontend requests 3500). |
 | `GET`  | `/api/uptime/count`                           | Total number of stored checks (used in header).                             |
 
 All endpoints are **public** (no authentication) because the data is not sensitive.
+The internal write endpoint is **not exposed** in the API; the polling service writes directly to Supabase.
 
 ---
 
@@ -138,9 +138,10 @@ The frontend uses this interval to refresh the data from the backend (read‑onl
 
 ## Extending
 
-- **Add a new endpoint** – update `ENDPOINTS` in `constants.js`.
+- **Add a new endpoint** – update `ENDPOINTS` in `constants.js` and `UPTIME_ENDPOINTS` in the backend constants.
 - **Change polling interval** – modify `pollIntervalMs` in `BACKEND_CONFIG.uptime` and `refetchIntervalMs` in frontend config (keep them equal for best UX).
 - **Change retention period** – change `retentionDays` in `BACKEND_CONFIG.uptime` and/or the default parameter in `cleanup_old_uptime_checks()` SQL function.
+- **Change heatmap granularity** – adjust `getLast24hStatus5min` in `uptimeCharts.js` (e.g., switch to 10‑minute buckets).
 - **Enable polling in development** – modify `pollingEnabled` in `BACKEND_CONFIG.uptime` to work in dev environment as well.
 
 ---
@@ -153,6 +154,7 @@ The frontend uses this interval to refresh the data from the backend (read‑onl
 | Charts show gaps                  | Polling interval may have been changed or server restarted | Ensure `pollIntervalMs` is 30s and the server stays up.                                    |
 | `cleanup_old_uptime_checks` error | Function not defined or permission denied                  | Run the migration SQL as `service_role`.                                                   |
 | Frontend shows old data           | Frontend refetch interval may be longer or network issue   | Check `refetchIntervalMs` and browser console for fetch errors.                            |
+| Heatmap shows circles (not bars)  | Old version of `StatusHeatmap.jsx`                         | Update to the 5‑minute bar version from the final implementation.                          |
 
 ---
 
