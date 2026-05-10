@@ -3,8 +3,8 @@
  * This can be used in browser console to test the functionality
  */
 
-import { getSessionId } from '@/lib/storage';
-import { clearEvaluationState, getSession, saveSession } from '@/utils/session';
+import { clearEvaluationState } from '@/lib/storage';
+import { getSession, getSessionId, saveSession } from '@/utils/session';
 
 /**
  * Create test session data (inputs and results)

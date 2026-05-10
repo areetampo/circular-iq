@@ -142,10 +142,9 @@ vi.mock('@heroui/react', async (importOriginal) => {
     { displayName: 'Alert' },
   );
 
-  const Input = Object.assign(
-    ({ children, ...props }) => React.createElement('input', props, null),
-    { displayName: 'Input' },
-  );
+  const Input = Object.assign(({ ...props }) => React.createElement('input', props, null), {
+    displayName: 'Input',
+  });
   const Switch = Object.assign(
     ({ children, isSelected, ...props }) =>
       React.createElement('div', props, renderChildren(children, { isSelected })),
@@ -300,12 +299,11 @@ vi.mock('@heroui/react', async (importOriginal) => {
       displayName: 'Separator',
     },
   );
-  const TextArea = Object.assign(
-    ({ children, ...props }) => React.createElement('textarea', props, null),
-    { displayName: 'TextArea' },
-  );
+  const TextArea = Object.assign(({ ...props }) => React.createElement('textarea', props, null), {
+    displayName: 'TextArea',
+  });
   const NumberField = Object.assign(
-    ({ children, ...props }) => React.createElement('input', { type: 'number', ...props }, null),
+    ({ ...props }) => React.createElement('input', { type: 'number', ...props }, null),
     { displayName: 'NumberField' },
   );
   NumberField.Group = Object.assign(({ children }) => React.createElement('div', null, children), {
@@ -320,7 +318,7 @@ vi.mock('@heroui/react', async (importOriginal) => {
     { displayName: 'NumberField.IncrementButton' },
   );
   NumberField.Input = Object.assign(
-    ({ children, ...props }) => React.createElement('input', { ...props }, null),
+    ({ ...props }) => React.createElement('input', { ...props }, null),
     { displayName: 'NumberField.Input' },
   );
 
@@ -358,11 +356,9 @@ vi.mock('@heroui/react', async (importOriginal) => {
     { displayName: 'ProgressCircle' },
   );
 
-  // Minimal AlertDialog mock for dialogs used in tests
   // Filter out HeroUI-specific props that shouldn't be rendered to DOM
   const filterHeroUIProps = (props) => {
-    const { isOpen, onOpenChange, isDismissable, isKeyboardDismissDisabled, ...rest } = props;
-    return rest;
+    return props;
   };
   const AlertDialog = {};
   AlertDialog.displayName = 'AlertDialog';
@@ -397,9 +393,9 @@ vi.mock('@heroui/react', async (importOriginal) => {
   );
 
   const toast = {
-    success: (msg, opts) => {},
-    info: (msg, opts) => {},
-    error: (msg, opts) => {},
+    success: () => {},
+    info: () => {},
+    error: () => {},
   };
   const Toast = ({ children }) => React.createElement('div', null, children);
 
@@ -475,11 +471,11 @@ vi.mock('recharts', async () => {
 
 // Mock @mui/x-charts
 vi.mock('@mui/x-charts/LineChart', () => ({
-  LineChart: ({ dataset, series, ...props }) =>
+  LineChart: ({ ...props }) =>
     React.createElement('div', { 'data-testid': 'line-chart', ...props }, 'Mock LineChart'),
 }));
 vi.mock('@mui/x-charts/PieChart', () => ({
-  PieChart: ({ series, ...props }) =>
+  PieChart: ({ ...props }) =>
     React.createElement('div', { 'data-testid': 'pie-chart', ...props }, 'Mock PieChart'),
 }));
 

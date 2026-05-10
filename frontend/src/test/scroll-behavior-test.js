@@ -20,14 +20,14 @@ const testScrollBehavior = {
 
     // Fill form and submit (this would normally trigger new results)
     // In real test, you'd fill the form and submit
-    console.log('✅ Navigate to /results with new result data');
+    console.log('✓ Navigate to /results with new result data');
     window.location.href = '/results';
 
     // Check if scrolled to top
     setTimeout(() => {
       const isAtTop = window.scrollY === 0;
       console.log(
-        isAtTop ? '✅ PASSED: Scrolled to top for new results' : '❌ FAILED: Did not scroll to top',
+        isAtTop ? '✓ PASSED: Scrolled to top for new results' : '✕ FAILED: Did not scroll to top',
       );
     }, 500);
   },
@@ -60,8 +60,8 @@ const testScrollBehavior = {
       const isPreserved = Math.abs(preservedScroll - scrollPosition) < 50; // Allow small variance
       console.log(
         isPreserved
-          ? '✅ PASSED: Scroll position preserved'
-          : '❌ FAILED: Scroll position not preserved',
+          ? '✓ PASSED: Scroll position preserved'
+          : '✕ FAILED: Scroll position not preserved',
       );
       console.log(`Expected: ~${scrollPosition}, Got: ${preservedScroll}`);
     }, 500);
@@ -83,8 +83,8 @@ const testScrollBehavior = {
       const isAtTop = window.scrollY === 0;
       console.log(
         isAtTop
-          ? '✅ PASSED: First-time visit scrolled to top'
-          : '❌ FAILED: First-time visit did not scroll to top',
+          ? '✓ PASSED: First-time visit scrolled to top'
+          : '✕ FAILED: First-time visit did not scroll to top',
       );
     }, 500);
   },
@@ -120,8 +120,8 @@ const testScrollBehavior = {
       const isAtTop = newScrollPosition === 0;
       console.log(
         isAtTop
-          ? '✅ PASSED: Scroll memory expired, scrolled to top'
-          : '❌ FAILED: Scroll memory did not expire',
+          ? '✓ PASSED: Scroll memory expired, scrolled to top'
+          : '✕ FAILED: Scroll memory did not expire',
       );
       console.log(`Position after return: ${newScrollPosition}`);
     }, 500);

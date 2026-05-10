@@ -3,7 +3,7 @@
  * This can be used in browser console to test the functionality
  */
 
-import { getSessionId } from '@/lib/storage';
+import { getSessionId } from '@/utils/session';
 
 /**
  * Test session ID renewal functionality
@@ -39,8 +39,8 @@ export function compareSessionIds() {
     renewed: oldSessionId !== newSessionId,
     message:
       oldSessionId !== newSessionId
-        ? '✅ Session ID successfully renewed on login!'
-        : '❌ Session ID was not renewed (same as before login)',
+        ? '✓ Session ID successfully renewed on login!'
+        : '✕ Session ID was not renewed (same as before login)',
   };
 }
 

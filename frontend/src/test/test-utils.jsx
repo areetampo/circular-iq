@@ -38,5 +38,3 @@ export function renderWithProviders(ui, options = {}) {
   const Wrapper = ({ children }) => <Providers {...(wrapperProps || {})}>{children}</Providers>;
   return render(ui, { wrapper: Wrapper, ...renderOptions });
 }
-
-export default Providers;
