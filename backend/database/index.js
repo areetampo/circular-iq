@@ -20,4 +20,4 @@ export {
   setDatabaseClientOverride,
 } from '#database/client.js';
 
-export { searchHybrid, searchKeyword } from '#database/repositories/ce_cases.repository.js';
+export * as ce_cases from '#database/repositories/ce_cases.repository.js';

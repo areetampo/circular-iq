@@ -15,7 +15,7 @@
  * @module search.controller
  */
 
-import { searchHybrid, searchKeyword } from '#database/index.js';
+import { ce_cases } from '#database/index.js';
 import { createEmbedding } from '#services/embedding.service.js';
 import { logOperation } from '#utils/controller-helpers.js';
 
@@ -128,7 +128,7 @@ export function searchCeCases(supabase) {
       let rawResults;
 
       if (mode === 'keyword') {
-        rawResults = await searchKeyword(supabase, query, limit);
+        rawResults = await ce_cases.searchKeyword(supabase, query, limit);
       } else {
         // Hybrid: embed the query first, then pass vector + keyword to RPC
         let queryEmbedding;
@@ -143,7 +143,13 @@ export function searchCeCases(supabase) {
           });
         }
 
-        rawResults = await searchHybrid(supabase, queryEmbedding, query, limit, vectorWeight);
+        rawResults = await ce_cases.searchHybrid(
+          supabase,
+          queryEmbedding,
+          query,
+          limit,
+          vectorWeight,
+        );
       }
 
       // ── 3. Format & respond ───────────────────────────────────────────────
