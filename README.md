@@ -30,49 +30,49 @@ The platform guides users through a structured assessment and returns a complete
 
 ```txt
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Full-Stack Architecture                          │
+│                    Full-Stack Architecture                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  Frontend Layer (React 19 + Vite 7)
-│  ├─ Assessment Flow — guided questionnaires + business context
-│  ├─ Results Visualisation — charts, tables, export, drawers
-│  ├─ Global Activity — live analytics from scoring_results_log
-│  ├─ State Management — React Query + custom hooks
-│  ├─ UI Components — HeroUI v3 + Tailwind CSS v4 + Recharts
-│  └─ Session Persistence — localStorage + anonymous tracking
-│
-│  API Layer (Express.js — ESM)
-│  ├─ /api/score — full scoring + enrichment pipeline
-│  ├─ /api/analytics — global stats, doc stats
-│  ├─ /api/search — ce_cases knowledge base search (keyword + hybrid)
-│  ├─ /api/assessments — assessment CRUD + comparison
-│  ├─ /api/health — health check endpoints
-│  └─ /api/uptime — uptime monitoring data storage and retrieval
-│                                                                     │
-│  Business Logic Layer (Services)
-│  ├─ scoring.service.js — hybrid search + LLM audit orchestration
-│  ├─ scoring.logic.js — pure deterministic enrichment (Layer 2)
-│  └─ embedding.service.js — OpenAI API integration + batching
-│                                                                     │
-│  Data Processing Pipeline
-│  ├─ Extraction Layer (35 dataset scripts)
-│  │  ├─ scrape_*.js (Puppeteer web automation)
-│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)
-│  ├─ Merge (merge_datasets.js)
-│  ├─ Chunking (generate_chunks.js)
-│  ├─ Embedding (generate_embeddings.js)
-│  └─ Storage (store_embeddings.js)
-│                                                                     │
-│  Database Layer (Supabase PostgreSQL + pgvector / Aiven)
-│  ├─ documents — vector-searchable knowledge base (40k+ chunks)
-│  ├─ user_assessments — user-saved results with all enrichment columns
-│  ├─ scoring_results_log — immutable log of every scoring call
-│  ├─ ce_cases — circular economy cases knowledge base
-│  ├─ user_profiles — user preferences
-│  ├─ anonymous_usage — rate limiting + session tracking
-│  ├─ uptime_checks — health monitoring history
-│  └─ RPC functions — hybrid search, market data, assessment stats
-│                                                                     │
+│                                                                             │
+│  Frontend Layer (React 19 + Vite 7)                                         │
+│  ├─ Assessment Flow — guided questionnaires + business context              │
+│  ├─ Results Visualisation — charts, tables, export, drawers                 │
+│  ├─ Global Activity — live analytics from scoring_results_log               │
+│  ├─ State Management — React Query + custom hooks                           │
+│  ├─ UI Components — HeroUI v3 + Tailwind CSS v4 + Recharts                  │
+│  └─ Session Persistence — localStorage + anonymous tracking                 │
+│                                                                             │
+│  API Layer (Express.js — ESM)                                               │
+│  ├─ /api/score — full scoring + enrichment pipeline                         │
+│  ├─ /api/analytics — global stats, doc stats                                │
+│  ├─ /api/search — ce_cases knowledge base search (keyword + hybrid)         │
+│  ├─ /api/assessments — assessment CRUD + comparison                         │
+│  ├─ /api/health — health check endpoints                                    │
+│  └─ /api/uptime — uptime monitoring data storage and retrieval              │
+│                                                                             │
+│  Business Logic Layer (Services)                                            │
+│  ├─ scoring.service.js — hybrid search + LLM audit orchestration            │
+│  ├─ scoring.logic.js — pure deterministic enrichment (Layer 2)              │
+│  └─ embedding.service.js — OpenAI API integration + batching                │
+│                                                                             │
+│  Data Processing Pipeline                                                   │
+│  ├─ Extraction Layer (35 dataset scripts)                                   │
+│  │  ├─ scrape_*.js (Puppeteer web automation)                               │
+│  │  └─ extract_*.js (PDF/CSV/JSON/API parsing)                              │
+│  ├─ Merge (merge_datasets.js)                                               │
+│  ├─ Chunking (generate_chunks.js)                                           │
+│  ├─ Embedding (generate_embeddings.js)                                      │
+│  └─ Storage (store_embeddings.js)                                           │
+│                                                                             │
+│  Database Layer (Supabase PostgreSQL + pgvector / Aiven)                    │
+│  ├─ documents — vector-searchable knowledge base (40k+ chunks)              │
+│  ├─ user_assessments — user-saved results with all enrichment columns       │
+│  ├─ scoring_results_log — immutable log of every scoring call               │
+│  ├─ ce_cases — circular economy cases knowledge base                        │
+│  ├─ user_profiles — user preferences                                        │
+│  ├─ anonymous_usage — rate limiting + session tracking                      │
+│  ├─ uptime_checks — health monitoring history                               │
+│  └─ RPC functions — hybrid search, market data, assessment stats            │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
