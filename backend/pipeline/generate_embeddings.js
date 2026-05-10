@@ -189,8 +189,8 @@ export async function generateEmbeddings(chunks, opts = {}) {
           }
         }
         existingEmbeddings.set(chunkId, existing);
-      } catch (e) {
-        logger.warn({ lineNumber: lineCount }, 'Skipping malformed line');
+      } catch (err) {
+        logger.warn({ lineNumber: lineCount, err }, 'Skipping malformed line');
       }
     }
     logger.info({ count: existingEmbeddings.size }, 'Loaded embeddings from previous run');

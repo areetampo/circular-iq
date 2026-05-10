@@ -44,7 +44,7 @@ import {
   isValidEmbedding,
   isValidTextForEmbedding,
 } from '#config/embedding.js';
-import { getAivenPgPool, getSupabasePgPool } from '#database/client.js';
+import { getAivenPgPool, getSupabasePgPool } from '#database/index.js';
 import {
   ARCHIVES_EMBEDDED_CHUNKS_JSONL,
   ARCHIVES_STORED_DOCUMENTS_JSONL,
@@ -414,12 +414,12 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
   }
 
   // --- Final identifiers after deduplication ---
-  const finalIdentifiers = documentsToInsert.map(
-    (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
-  );
+  // const finalIdentifiers = documentsToInsert.map(
+  //   (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
+  // );
   // logger.info(
-  //   `Batch ${batchNum} final identifiers (after dedup):`,
-  //   JSON.stringify(finalIdentifiers),
+  //   { batchNum, identifiers: finalIdentifiers },
+  //   'Batch final identifiers (after dedup)',
   // );
 
   // --- Explicitly show which identifiers were removed (if any) ---
@@ -435,7 +435,8 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
   // --- Proceed to insert ---
   try {
     const inserted = await insertDocuments(documentsToInsert);
-    // logger.info(`✓ Batch ${batchNum}: inserted ${inserted}/${documentsToInsert.length} documents`); <- logged in insert adapter for more accurate count after intra-batch deduplication
+    // logged in insert adapter for more accurate count after intra-batch deduplication
+    // logger.info({ batchNum, inserted, total: documentsToInsert.length }, '✓ Batch inserted documents');
     return { inserted, batchNum };
   } catch (error) {
     logger.error(

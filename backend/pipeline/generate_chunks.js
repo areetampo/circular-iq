@@ -366,37 +366,37 @@ export async function createChunks(records) {
     };
 
     // Copy any extra columns from the original record into fieldsObj (avoid overwriting existing keys)
-    for (const [k, v] of Object.entries(record)) {
+    const EXCLUDED_FIELDS = new Set([
+      'problem',
+      'Problem',
+      'Business Problem',
+      'solution',
+      'Solution',
+      'Business Solution',
+      'materials',
+      'Materials',
+      'Material',
+      'circular_strategy',
+      'Circular Strategy',
+      'circularity',
+      'Circularity',
+      'category',
+      'Category',
+      'type',
+      'Type',
+      'impact',
+      'Impact',
+      'outcomes',
+      'Outcomes',
+      'source_url',
+      'Source URL',
+      'metadata_json',
+      'ID',
+    ]);
+
+    for (const k of Object.keys(record)) {
       const key = String(k).trim();
-      if (!key) continue;
-      const excluded = [
-        'problem',
-        'Problem',
-        'Business Problem',
-        'solution',
-        'Solution',
-        'Business Solution',
-        'materials',
-        'Materials',
-        'Material',
-        'circular_strategy',
-        'Circular Strategy',
-        'circularity',
-        'Circularity',
-        'category',
-        'Category',
-        'type',
-        'Type',
-        'impact',
-        'Impact',
-        'outcomes',
-        'Outcomes',
-        'source_url',
-        'Source URL',
-        'metadata_json',
-        'ID',
-      ];
-      if (excluded.includes(key)) continue;
+      if (!key || EXCLUDED_FIELDS.has(key)) continue;
       try {
         const normalized = sanitizeText(record[k]);
         if (normalized && !(key in fieldsObj)) {

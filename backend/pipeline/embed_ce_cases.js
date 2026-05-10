@@ -269,7 +269,7 @@ async function main() {
       }
     }
 
-    logger.info({ updated }, '✅ Restored embeddings to Supabase (all from cache)');
+    logger.info({ updated }, '✓ Restored embeddings to Supabase (all from cache)');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
@@ -313,7 +313,7 @@ async function main() {
       }
     }
 
-    logger.info({ restored, missingInCache }, '✅ Restore complete');
+    logger.info({ restored, missingInCache }, '✓ Restore complete');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
@@ -354,7 +354,7 @@ async function main() {
       }
     }
 
-    logger.info({ generated }, '✅ Generated and cached embeddings (Supabase untouched)');
+    logger.info({ generated }, '✓ Generated and cached embeddings (Supabase untouched)');
     const { count, error } = await supabase
       .from('ce_cases')
       .select('id', { count: 'exact', head: true })
@@ -433,7 +433,7 @@ async function main() {
     }
   }
 
-  logger.info({ generated }, '✅ Generated and stored embeddings (cache + Supabase)');
+  logger.info({ generated }, '✓ Generated and stored embeddings (cache + Supabase)');
   const { count, error } = await supabase
     .from('ce_cases')
     .select('id', { count: 'exact', head: true })

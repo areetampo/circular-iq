@@ -28,18 +28,18 @@ import { fileURLToPath } from 'url';
 import axios from 'axios';
 
 import {
-    appendLogs,
-    cleanText,
-    clearLogs,
-    createBackupHelper,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    getDatasetProcessedCsvPath,
-    hasAppendBackupFlag,
-    hasAppendProcessedFlag,
-    isBackupRecoveryMode,
-    readBackupCsv,
-    writeCsv,
+  appendLogs,
+  cleanText,
+  clearLogs,
+  createBackupHelper,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  getDatasetProcessedCsvPath,
+  hasAppendBackupFlag,
+  hasAppendProcessedFlag,
+  isBackupRecoveryMode,
+  readBackupCsv,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -49,8 +49,7 @@ const OUTPUT_PATH = getDatasetProcessedCsvPath(DATASET_KEY);
 const BACKUP_INTERVAL = 10; // Save backup every 10 solutions
 const MAX_SOLUTIONS = 500; // Safety limit (there are ~40 solutions currently)
 
-// API Base URLs
-const API_BASE = dataset.urls.apiBase;
+// Base URLs
 const SOLUTIONS_URL = dataset.urls.solutions; // `${API_BASE}/solution_database/solutions`
 const GROUPS_URL = dataset.urls.groups; // `${API_BASE}/solution_database/groups`
 const CATEGORIES_URL = dataset.urls.categories; // `${API_BASE}/solution_database/categories`

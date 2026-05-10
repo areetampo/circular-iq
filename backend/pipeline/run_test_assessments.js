@@ -164,9 +164,9 @@ async function main() {
   // Use assertFileExists for better error handling
   try {
     assertFileExists(INPUT_FILE, 'Input file');
-  } catch (error) {
+  } catch (err) {
     logger.error(
-      { INPUT_FILE },
+      { INPUT_FILE, err },
       'Input file not found, run pipeline/generate_test_inputs.js first.',
     );
     process.exit(1);

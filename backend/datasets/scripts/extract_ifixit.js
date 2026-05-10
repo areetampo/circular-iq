@@ -20,7 +20,7 @@
  *
  * Dependencies:
  *   - csv-parse/sync
- *   - #utils/datasetsUtils.js for path helpers, writeCsv, formatId, cleanText
+ *   - #utils/datasetsUtils.js for path helpers, writeCsv, cleanText
  */
 
 import fs from 'fs';
