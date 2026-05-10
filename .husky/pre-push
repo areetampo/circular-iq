@@ -6,4 +6,7 @@ npm run build || { echo "✕ Build failed! Check your code before pushing."; exi
 echo "⫸ Running test suites..."
 npm test || { echo "✕ Tests failed! Push aborted."; exit 1; }
 
+echo "⫸ Running uptime schema migration..."
+psql "$SUPABASE_CONNECTION_STRING" -f db/migrations/07_uptime_monitor.sql || { echo "✕ Migration failed! Push aborted."; exit 1; }
+
 echo "✓ Everything looks good. Pushing now..."
