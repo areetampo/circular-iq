@@ -1,6 +1,6 @@
 /**
  * AssessmentViewPageSkeleton Component
- * Skeleton for AssessmentViewPage (/assessments/share?id=)
+ * Skeleton for AssessmentViewPage (/assessments/share/:id)
  * Accurately matches the actual component structure and layout
  */
 import { Skeleton } from '@heroui/react';

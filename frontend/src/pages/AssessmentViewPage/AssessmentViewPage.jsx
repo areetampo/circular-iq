@@ -1,32 +1,41 @@
 import { Eye, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import DetailsDisplay from '@/components/common/DetailsDisplay';
-import { useGlobalDrawer } from '@/contexts/DrawerContext';
-import { usePublicAssessment } from '@/features/assessments/hooks/useAssessment';
+import { usePublicAssessment } from '@/features/assessments/hooks';
 import { reconstructScoringResult } from '@/features/assessments/utils';
+import { useAuth } from '@/hooks';
 import { AssessmentColumn } from '@/pages/AssessmentComparisonPage/components';
 import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 import AssessmentViewPageSkeleton from '@/pages/AssessmentViewPage/components/AssessmentViewPageSkeleton';
 import { useSafeBack } from '@/utils/navigation';
 
 export default function AssessmentViewPage({ publicId: propPublicId }) {
-  const [searchParams] = useSearchParams();
+  const { id: urlParamId } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  // Get publicId from either props (from SharePage) or query params (direct access)
-  const publicId = propPublicId || searchParams.get('id');
-  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
+  // Get publicId from either props (from SharePage) or URL params (direct access)
+  const publicId = propPublicId || urlParamId;
 
   const {
     assessment: publicAssessment,
     isLoading: publicLoading,
     error: publicError,
+    data: responseData,
   } = usePublicAssessment(publicId, {
     enabled: !!publicId,
   });
+
+  // Redirect owners to /assessments/:id when accessing via /assessments/share/:id
+  useEffect(() => {
+    if (responseData && isAuthenticated && responseData.readonly === false) {
+      // User owns this assessment (readonly === false), redirect to owner route
+      navigate(`/assessments/${publicId}`, { replace: true });
+    }
+  }, [responseData, isAuthenticated, publicId, navigate]);
 
   const assessment = publicAssessment;
   const loading = publicLoading;
@@ -44,11 +53,16 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
   }
 
   if (error) {
+    const isForbidden = error === 'Assessment not publicly available';
     return (
       <DetailsDisplay
         variant="error"
-        title="Failed to Load Assessment"
-        description={error || 'Unable to retrieve the assessment details. Please try again.'}
+        title={isForbidden ? 'Assessment is Private' : 'Failed to Load Assessment'}
+        description={
+          isForbidden
+            ? 'This assessment is set to private and cannot be shared. Please contact the owner to make it public.'
+            : error || 'Unable to retrieve the assessment details. Please try again.'
+        }
         actions={[
           {
             label: 'Refresh',
@@ -113,8 +127,6 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
         <AssessmentColumn
           assessment={assessment}
           scoringResult={scoringResult}
-          label="Assessment"
-          openResultsDatabaseEvidenceDetailsDrawer={openResultsDatabaseEvidenceDetailsDrawer}
           {...assessmentData}
         />
       </div>
