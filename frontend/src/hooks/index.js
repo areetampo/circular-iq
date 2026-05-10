@@ -1,9 +1,11 @@
 /**
  * Barrel for root hooks (alphabetical). Import from `@/hooks/<name>` or from here.
  */
-export { useAuth } from './useAuth';
-export { useDebounce } from './useDebounce';
+export { default as useAuth } from './useAuth';
+export { default as useDebounce } from './useDebounce';
 export { default as useDialog } from './useDialog';
 export { default as useDrawer } from './useDrawer';
-export { useDrawerDirection } from './useDrawerDirection';
-export { useExportState } from './useExportState';
+export { default as useDrawerDirection } from './useDrawerDirection';
+export { default as useExportState } from './useExportState';
+export { default as useLoadingStages } from './useLoadingStages';
+export { default as useRelativeTime } from './useRelativeTime';

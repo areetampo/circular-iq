@@ -17,7 +17,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock useAuth to control authentication state
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ isAuthenticated: true }),
+  default: () => ({ isAuthenticated: true }),
 }));
 
 // Provide a mock for dialog hooks so we can assert calls
@@ -35,12 +35,11 @@ vi.mock('@/contexts/DialogContext', () => ({
 // Mock session utility at top level
 vi.mock('@/utils/session', () => ({
   getSession: vi.fn(),
+  getSessionId: vi.fn(() => 'test-session-id'),
 }));
 
 // Mock storage utility
-vi.mock('@/lib/storage', () => ({
-  getSessionId: vi.fn(() => 'test-session-id'),
-}));
+vi.mock('@/lib/storage', () => ({}));
 
 // Mock logger to prevent errors
 vi.mock('@/utils/logger', () => ({

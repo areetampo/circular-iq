@@ -1,13 +1,12 @@
 import { toast } from '@heroui/react';
 import { useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
-import DIALOGS from '@/components/dialogs/dialogTypes';
+import DIALOGS from '@/constants/dialogTypes';
 import { useGlobalDialog } from '@/contexts/DialogContext';
-import { defaultValues } from '@/features/assessments/validation';
-import { useAuth } from '@/hooks/useAuth';
-import { getSessionId } from '@/lib/storage';
-import { getSession } from '@/utils/session';
+import { evaluationFormDefaults } from '@/features/assessments/validation';
+import { useAuth } from '@/hooks';
+import { getSession, getSessionId } from '@/utils/session';
 
 /**
  * Check if session inputs are at default values (empty/initial state)
@@ -21,8 +20,9 @@ function isAtDefaultValues(inputs) {
     (!inputs.businessProblem || inputs.businessProblem.trim() === '') &&
     (!inputs.businessSolution || inputs.businessSolution.trim() === '') &&
     JSON.stringify(inputs.evaluationParameters || {}) ===
-      JSON.stringify(defaultValues.evaluationParameters) &&
-    JSON.stringify(inputs.businessContext || {}) === JSON.stringify(defaultValues.businessContext);
+      JSON.stringify(evaluationFormDefaults.evaluationParameters) &&
+    JSON.stringify(inputs.businessContext || {}) ===
+      JSON.stringify(evaluationFormDefaults.businessContext);
 
   return inputsAtDefaults;
 }
@@ -54,13 +54,15 @@ function isDialogMuted() {
  * Global session manager that shows restore prompt ONLY on page load/refresh
  * NOT on SPA navigation
  */
-export function AppSessionManager() {
+export default function AppSessionManager() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { openResultsRestoreDialog, dialog } = useGlobalDialog();
+
   const { isAuthenticated } = useAuth();
+  const { openResultsRestoreDialog, dialog } = useGlobalDialog();
+
   const hasCheckedOnLoad = useRef(false);
   const hasShownInputsToast = useRef(false); // track home-input-toast display
+
   const currentSessionId = useRef(getSessionId()); // Track session ID changes
 
   useEffect(() => {
@@ -218,5 +220,3 @@ export function AppSessionManager() {
 }
 
 AppSessionManager.propTypes = {};
-
-export default AppSessionManager;

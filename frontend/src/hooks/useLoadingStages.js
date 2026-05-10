@@ -6,7 +6,7 @@ import { scoreAssessmentStream } from '@/features/assessments/api/assessmentApi'
  * Hook for managing real-time loading stages during assessment scoring
  * @returns {Object} { currentStage, startStream, reset }
  */
-export function useLoadingStages() {
+export default function useLoadingStages() {
   const [currentStage, setCurrentStage] = useState('');
 
   /**

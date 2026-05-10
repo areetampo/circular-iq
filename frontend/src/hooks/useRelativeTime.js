@@ -8,7 +8,7 @@ import { formatRelativeTime } from '@/lib/formatting';
  * @param {number|string|Date} timestamp - The timestamp to format
  * @returns {string} The formatted relative time string
  */
-export function useRelativeTime(timestamp) {
+export default function useRelativeTime(timestamp) {
   const [relativeTime, setRelativeTime] = useState(() => formatRelativeTime(timestamp));
 
   // Update immediately when timestamp changes (no delay)

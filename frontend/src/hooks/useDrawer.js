@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import DRAWERS from '@/components/drawers/drawerTypes';
+import DRAWER_TYPES from '@/constants/drawerTypes';
 
 /**
  * useDrawer
@@ -49,28 +49,30 @@ export default function useDrawer() {
     // Caller-facing close function (initiates smooth close + delayed unmount)
     onClose: closeDrawer,
 
-    openAssessmentMethodologyDrawer: () => openDrawer(DRAWERS.ASSESSMENT_METHODOLOGY),
+    openAssessmentMethodologyDrawer: () => openDrawer(DRAWER_TYPES.ASSESSMENT_METHODOLOGY),
 
-    openEvaluationCriteriaDrawer: () => openDrawer(DRAWERS.EVALUATION_CRITERIA),
+    openEvaluationCriteriaDrawer: () => openDrawer(DRAWER_TYPES.EVALUATION_CRITERIA),
 
-    openBusinessProblemInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_PROBLEM_INFO),
+    openBusinessProblemInfoDrawer: () => openDrawer(DRAWER_TYPES.BUSINESS_PROBLEM_INFO),
 
-    openBusinessSolutionInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_SOLUTION_INFO),
+    openBusinessSolutionInfoDrawer: () => openDrawer(DRAWER_TYPES.BUSINESS_SOLUTION_INFO),
 
-    openBusinessContextHeadingInfoDrawer: () => openDrawer(DRAWERS.BUSINESS_CONTEXT_HEADING_INFO),
+    openBusinessContextHeadingInfoDrawer: () =>
+      openDrawer(DRAWER_TYPES.BUSINESS_CONTEXT_HEADING_INFO),
 
     openEvaluationParametersHeadingInfoDrawer: () =>
-      openDrawer(DRAWERS.EVALUATION_PARAMETERS_HEADING_INFO),
+      openDrawer(DRAWER_TYPES.EVALUATION_PARAMETERS_HEADING_INFO),
 
     openSpecificEvaluationParameterInfoDrawer: (paramKey) =>
-      openDrawer(DRAWERS.SPECIFIC_EVALUATION_PARAMETER_INFO, { paramKey }),
+      openDrawer(DRAWER_TYPES.SPECIFIC_EVALUATION_PARAMETER_INFO, { paramKey }),
 
-    openSampleTestCasesHeadingInfoDrawer: () => openDrawer(DRAWERS.SAMPLE_TEST_CASES_HEADING_INFO),
+    openSampleTestCasesHeadingInfoDrawer: () =>
+      openDrawer(DRAWER_TYPES.SAMPLE_TEST_CASES_HEADING_INFO),
 
-    openSpecificSampleTestCaseViewDetailsDrawer: (testCase, requestSelectCase) =>
-      openDrawer(DRAWERS.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase, requestSelectCase }),
+    openSpecificSampleTestCaseViewDetailsDrawer: (testCase) =>
+      openDrawer(DRAWER_TYPES.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase }),
 
     openResultsDatabaseEvidenceDetailsDrawer: (evidenceData) =>
-      openDrawer(DRAWERS.RESULTS_DATABASE_EVIDENCE_DETAILS, evidenceData),
+      openDrawer(DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS, evidenceData),
   };
 }

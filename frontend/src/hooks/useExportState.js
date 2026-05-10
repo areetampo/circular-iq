@@ -7,7 +7,7 @@ import { useState } from 'react';
  * @param {Object} options
  * @returns {Object}
  */
-export function useExportState() {
+export default function useExportState() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingCSV, setIsExportingCSV] = useState(false);
   // toasts are shown directly via HeroUI's toast helper

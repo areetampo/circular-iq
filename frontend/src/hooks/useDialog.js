@@ -12,13 +12,13 @@
  * @example
  * const { openDeleteAssessmentDialog, onClose, isDialogOpen } = useDialog();
  *
- * // Open dialog with data
+ * Open dialog with data :
  * openDeleteAssessmentDialog({ assessmentName: 'My Project' });
  *
- * // Access state
+ * Access state :
  * if (isDialogOpen) { ... }
  *
- * // Close dialog
+ * Close dialog :
  * onClose();
  *
  * @param {Object} options
@@ -27,11 +27,11 @@
 
 import { useCallback, useState } from 'react';
 
-import { DIALOGS } from '@/components/dialogs/dialogTypes';
+import DIALOGS from '@/constants/dialogTypes';
 
 // Dialog priority levels (higher = more important)
 // Higher priority dialogs prevent lower priority ones from opening
-export const DIALOG_PRIORITIES = {
+const DIALOG_PRIORITIES = {
   CRITICAL: 20,
   HIGH: 10,
   MEDIUM: 5,
@@ -67,11 +67,6 @@ export default function useDialog() {
   const onClose = useCallback(() => {
     setDialogState({ type: null, data: null, priority: 0 });
   }, []);
-
-  const openDialog = useCallback(
-    (type, data = null) => openDialogWithPriority(type, data, 0),
-    [openDialogWithPriority],
-  );
 
   // Stable wrappers for dialog openers so their identity doesn't change
   // when dialogState updates. This prevents consumers from re-running
@@ -149,12 +144,7 @@ export default function useDialog() {
   );
 
   const openLimitReachedDialog = useCallback(
-    (data) =>
-      openDialogWithPriority(
-        DIALOGS.LIMIT_REACHED,
-        { limit: data?.limit, message: data?.message },
-        DIALOG_PRIORITIES.MEDIUM,
-      ),
+    () => openDialogWithPriority(DIALOGS.LIMIT_REACHED, {}, DIALOG_PRIORITIES.MEDIUM),
     [openDialogWithPriority],
   );
 

@@ -1,20 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks';
 import {
   clearEvaluationState,
-  getSessionId,
   hasEvaluationContent,
   loadEvaluationState,
   saveEvaluationState,
 } from '@/lib/storage';
+import { getSessionId } from '@/utils/session';
 
 /**
  * Hook for managing user session with React Query
  * Unified for both anonymous and authenticated users
  */
-export function useSession() {
+export default function useSession() {
   const { user } = useAuth();
 
   // Query for session data

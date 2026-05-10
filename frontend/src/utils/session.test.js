@@ -1,12 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  clearSession,
-  getMostRecentSession,
-  getSession,
-  hasUnsavedResults,
-  saveSession,
-} from './session';
+import { getSession, saveSession } from './session';
 
 describe('session utilities', () => {
   beforeEach(() => {
@@ -89,46 +83,6 @@ describe('session utilities', () => {
     it('returns null when no session exists', () => {
       const retrieved = getSession();
       expect(retrieved).toBeNull();
-    });
-  });
-
-  describe('clearSession', () => {
-    it('removes session data from localStorage', () => {
-      saveSession({ inputs: { businessProblem: 'test data' } });
-      expect(localStorage.getItem('session_evaluation_state')).toBeTruthy();
-
-      clearSession();
-      expect(localStorage.getItem('session_evaluation_state')).toBeNull();
-    });
-  });
-
-  describe('hasUnsavedResults', () => {
-    it('returns true when session has results', () => {
-      saveSession({ results: { score: 85 } });
-
-      expect(hasUnsavedResults()).toBe(true);
-    });
-
-    it('returns false when session has no results', () => {
-      saveSession({ inputs: { businessProblem: 'Test' } });
-
-      expect(hasUnsavedResults()).toBe(false);
-    });
-
-    it('returns false when no session exists', () => {
-      expect(hasUnsavedResults()).toBe(false);
-    });
-  });
-
-  describe('getMostRecentSession', () => {
-    it('returns the same as getSession for compatibility', () => {
-      const testData = { results: { score: 90 } };
-      saveSession(testData);
-
-      const session = getSession();
-      const recent = getMostRecentSession();
-
-      expect(recent).toEqual(session);
     });
   });
 });
