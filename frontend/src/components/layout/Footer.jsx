@@ -14,6 +14,7 @@ const footerLinks = [
   { name: 'Guide', href: '/guide' },
   { name: 'Shared Assessments', href: '/assessments/share' },
   { name: 'Compare Assessments', href: '/assessments/compare' },
+  { name: 'Uptime Monitor', href: '/uptime-monitor' },
 ];
 
 const socialLinks = [
@@ -79,20 +80,21 @@ export default function Footer() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
-              className="space-y-4 xs_sm:ml-8"
+              className="space-y-4"
             >
               <h3 className="font-sans text-sm tracking-wider text-(--color-text-primary) uppercase">
                 Navigation
               </h3>
-              <nav className="space-y-2">
+              <nav className="columns-1 space-y-3 gap-x-8 sm:columns-2">
                 {footerLinks.map((link) => (
                   <Link
                     key={link.name}
                     to={link.href}
                     className={cn(
-                      `block w-fit text-sm text-(--color-text-muted) hover:text-(--color-accent)`,
-                      'text-left transition-all duration-200',
-                      `transform cursor-pointer hover:translate-x-1`,
+                      // 'break-inside-avoid' is critical to prevent a link from being split between two columns
+                      'block break-inside-avoid text-sm text-(--color-text-muted)',
+                      'transition-all duration-200 ease-in-out',
+                      'hover:translate-x-1 hover:font-medium hover:text-(--color-checkbox)',
                     )}
                   >
                     {link.name}

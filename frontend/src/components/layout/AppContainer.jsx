@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-import { DialogManager } from '@/components/dialogs';
+import DialogManager from '@/components/dialogs/DialogManager';
 import { cn } from '@/utils/cn';
 
 /**

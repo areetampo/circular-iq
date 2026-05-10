@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, Separator, SiteLogo, SiteName } from '@/components/common';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks';
 import { formatTimestamp, getUserInitials } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 import { getSession } from '@/utils/session';
@@ -36,12 +36,154 @@ const navItemsSecondary = [
     path: '/results',
     type: 'link',
   },
+  {
+    id: 'uptime-monitor',
+    name: 'Uptime Monitor',
+    path: '/uptime-monitor',
+    type: 'link',
+  },
 ];
+
+const getTooltipTextForUnsavedResults = (sessionData) => {
+  const hasResults = Boolean(sessionData?.results);
+
+  if (!hasResults) {
+    return 'No previous calculation results found to display';
+  }
+
+  if (sessionData?.results?.processing_info?.timestamp) {
+    const formattedTimestamp = formatTimestamp(sessionData.results.processing_info.timestamp);
+    return `View the results of your last calculation\nfrom [${formattedTimestamp}]`;
+  }
+
+  return 'View the results of your last calculation';
+};
+
+// --- Shared sub-components ---
+
+function NavLinkItem({ item, isActive, isDisabled, onClose }) {
+  const linkClass = cn(
+    'flex w-full rounded-md px-2 py-1.5 text-sm',
+    isActive
+      ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
+      : 'text-(--color-text-secondary) hover:bg-(--color-hover-subtle)',
+  );
+
+  if (isDisabled) {
+    return (
+      <span className="flex w-full cursor-not-allowed rounded-md px-2 py-1.5 text-sm text-(--color-text-muted)">
+        {item.name}
+      </span>
+    );
+  }
+
+  return (
+    <Link to={item.path} className={linkClass} onClick={onClose}>
+      {item.name}
+    </Link>
+  );
+}
+
+function SecondaryNavItems({ isAuthenticated, isActivePath, onClose }) {
+  return navItemsSecondary.map((item) => {
+    const sessionData = getSession();
+    const hasResults = Boolean(sessionData?.results);
+    const isDisabled = item.id === 'unsaved-results' && !hasResults;
+    const showTooltip = item.id === 'unsaved-results';
+    const isActive = isActivePath(item.path);
+
+    return (
+      <div
+        key={item.id}
+        className={cn('px-2 py-1', !isAuthenticated && item === navItemsSecondary[0] ? 'pt-3' : '')}
+      >
+        {showTooltip ? (
+          <Tooltip delay={0} className="w-full">
+            <Tooltip.Trigger className="w-full">
+              <NavLinkItem
+                item={item}
+                isActive={isActive}
+                isDisabled={isDisabled}
+                onClose={onClose}
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <p className="whitespace-pre-line">{getTooltipTextForUnsavedResults(sessionData)}</p>
+            </Tooltip.Content>
+          </Tooltip>
+        ) : (
+          <div className="w-full">
+            <NavLinkItem
+              item={item}
+              isActive={isActive}
+              isDisabled={isDisabled}
+              onClose={onClose}
+            />
+          </div>
+        )}
+      </div>
+    );
+  });
+}
+
+function ProfileHeader({ profile, user, getUserInitials, getUsername }) {
+  return (
+    <>
+      <div className="px-3 pt-3 pb-1">
+        <div className="flex items-center gap-3">
+          <Avatar size="md" className="bg-(--color-accent-light) text-(--color-accent)">
+            <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
+              {getUserInitials(profile?.username || user?.username)}
+            </Avatar.Fallback>
+          </Avatar>
+          <div>
+            <p className="text-sm font-medium text-(--color-text-primary)">{getUsername()}</p>
+            <p className="text-xs text-(--color-text-muted)">Signed in</p>
+          </div>
+        </div>
+      </div>
+      <Separator wrapperCn="my-2" />
+    </>
+  );
+}
+
+function AuthAction({ isAuthenticated, onSignOut, onClose, location }) {
+  return (
+    <div className="px-2 pt-1 pb-2">
+      {isAuthenticated ? (
+        <button
+          type="button"
+          onClick={() => {
+            onSignOut();
+            onClose();
+          }}
+          className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-(--color-error) hover:bg-(--color-danger-soft-ui)"
+        >
+          Sign out
+        </button>
+      ) : (
+        <Link
+          to="/auth"
+          state={{ from: location }}
+          onClick={onClose}
+          className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-(--color-success) hover:bg-(--color-success-soft-ui)"
+        >
+          Sign in
+        </Link>
+      )}
+    </div>
+  );
+}
+
+// --- Main component ---
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile, isAuthenticated, signOut } = useAuth();
+
+  const [isDesktopPopoverOpen, setIsDesktopPopoverOpen] = useState(false);
+  const [isMobilePopoverOpen, setIsMobilePopoverOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -64,27 +206,10 @@ export default function Navbar() {
     return currentPath.startsWith(path);
   };
 
-  const getUsername = () => {
-    return profile?.username || user?.username || 'User';
-  };
+  const getUsername = () => profile?.username || user?.username || 'User';
 
-  const getTooltipTextForUnsavedResults = (sessionData) => {
-    const hasResults = Boolean(sessionData?.results);
-
-    if (!hasResults) {
-      return 'No previous calculation results found to display';
-    }
-
-    if (sessionData?.results?.processing_info?.timestamp) {
-      const formattedTimestamp = formatTimestamp(sessionData.results.processing_info.timestamp);
-      return `View the results of your last calculation\nfrom [${formattedTimestamp}]`;
-    }
-
-    return 'View the results of your last calculation';
-  };
-
-  const [isDesktopPopoverOpen, setIsDesktopPopoverOpen] = useState(false);
-  const [isMobilePopoverOpen, setIsMobilePopoverOpen] = useState(false);
+  const sharedAuthProps = { isAuthenticated, onSignOut: handleSignOut, location };
+  const sharedProfileProps = { profile, user, getUserInitials, getUsername };
 
   return (
     <nav className="sticky top-3 z-50 h-13 px-8">
@@ -118,7 +243,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Right -> sign in (for unauthenticated user) + hamburger menu */}
+        {/* Right -> sign in (for unauthenticated user) + hamburger menus */}
         <div className="flex items-center gap-0">
           {!isAuthenticated && (
             <Button variant="ghost" size="sm" as={Link} to="/auth" state={{ from: location }}>
@@ -126,6 +251,7 @@ export default function Navbar() {
             </Button>
           )}
 
+          {/* Desktop Popover */}
           <Popover isOpen={isDesktopPopoverOpen} onOpenChange={setIsDesktopPopoverOpen}>
             <Popover.Trigger>
               {isAuthenticated ? (
@@ -150,7 +276,6 @@ export default function Navbar() {
                   type="button"
                   aria-label="Desktop hamburger menu"
                   className={cn(
-                    // Styles from Button variant="ghastly"
                     'cursor-pointer items-center justify-center gap-2 rounded-lg font-sans outline-none',
                     'bg-transparent text-(--color-text-muted)',
                     'hover:text-(--color-text-primary)',
@@ -165,131 +290,19 @@ export default function Navbar() {
             </Popover.Trigger>
             <Popover.Content className="min-w-45 p-0" placement="bottom right">
               <div className="flex flex-col">
-                {/* === ALL YOUR MENU ITEMS (copy exactly from old Dropdown.Menu) === */}
-                {isAuthenticated && (
-                  <>
-                    <div className="px-3 pt-3 pb-1">
-                      <div className="flex items-center gap-3">
-                        <Avatar
-                          size="md"
-                          className="bg-(--color-accent-light) text-(--color-accent)"
-                        >
-                          <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
-                            {getUserInitials(profile?.username || user?.username)}
-                          </Avatar.Fallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium text-(--color-text-primary)">
-                            {getUsername()}
-                          </p>
-                          <p className="text-xs text-(--color-text-muted)">Signed in</p>
-                        </div>
-                      </div>
-                    </div>
-                    <Separator wrapperCn="my-2" />
-                  </>
-                )}
-
-                {/* desktop hamburger menu secondary navigation items */}
-                {navItemsSecondary.map((item) => {
-                  const sessionData = getSession();
-                  const hasResults = Boolean(sessionData?.results);
-                  const isDisabled = item.id === 'unsaved-results' && !hasResults;
-                  const showTooltip = item.id === 'unsaved-results';
-                  const isActive = isActivePath(item.path);
-
-                  return (
-                    <div key={item.id} className={cn('px-2', isAuthenticated ? '' : 'pt-3')}>
-                      {/* tooltip style item only for results restore */}
-                      {showTooltip ? (
-                        <Tooltip delay={0} className="w-full">
-                          <Tooltip.Trigger className="w-full">
-                            {/* resutls restore active */}
-                            {item.type === 'link' && !isDisabled ? (
-                              <Link
-                                to={item.path}
-                                className={cn(
-                                  'flex w-full rounded-md px-2 py-1.5 text-sm',
-                                  isActive
-                                    ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
-                                    : 'text-(--color-text-primary) hover:bg-(--color-hover-subtle)',
-                                )}
-                                onClick={() => setIsDesktopPopoverOpen(false)}
-                              >
-                                {item.name}
-                              </Link>
-                            ) : (
-                              // results restore disabled
-                              <span className="flex w-full cursor-not-allowed rounded-md px-2 py-1.5 text-sm text-(--color-text-muted)">
-                                {item.name}
-                              </span>
-                            )}
-                          </Tooltip.Trigger>
-                          <Tooltip.Content>
-                            <p className="whitespace-pre-line">
-                              {getTooltipTextForUnsavedResults(sessionData)}
-                            </p>
-                          </Tooltip.Content>
-                        </Tooltip>
-                      ) : (
-                        // other secondary nav items
-                        <div className="w-full">
-                          {item.type === 'link' && !isDisabled ? (
-                            <Link
-                              to={item.path}
-                              className={cn(
-                                'flex w-full rounded-md px-2 py-1.5 text-sm',
-                                isActive
-                                  ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
-                                  : 'text-(--color-text-primary) hover:bg-(--color-hover-subtle)',
-                              )}
-                              onClick={() => setIsDesktopPopoverOpen(false)}
-                            >
-                              {item.name}
-                            </Link>
-                          ) : (
-                            <span className="flex w-full cursor-not-allowed rounded-md px-2 py-1.5 text-sm text-(--color-text-muted)">
-                              {item.name}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
+                {isAuthenticated && <ProfileHeader {...sharedProfileProps} />}
+                <SecondaryNavItems
+                  isAuthenticated={isAuthenticated}
+                  isActivePath={isActivePath}
+                  onClose={() => setIsDesktopPopoverOpen(false)}
+                />
                 <Separator wrapperCn="my-2" />
-
-                {/* Sign out / Sign in */}
-                <div className="px-2 pt-1 pb-2">
-                  {isAuthenticated ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleSignOut();
-                        navigate('/auth', { state: { from: location } });
-                        setIsDesktopPopoverOpen(false);
-                      }}
-                      className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-(--color-error) hover:bg-(--color-danger-soft-ui)"
-                    >
-                      Sign out
-                    </button>
-                  ) : (
-                    <Link
-                      to="/auth"
-                      state={{ from: location }}
-                      onClick={() => setIsDesktopPopoverOpen(false)}
-                      className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-(--color-success) hover:bg-(--color-success-soft-ui)"
-                    >
-                      Sign in
-                    </Link>
-                  )}
-                </div>
+                <AuthAction {...sharedAuthProps} onClose={() => setIsDesktopPopoverOpen(false)} />
               </div>
             </Popover.Content>
           </Popover>
 
-          {/* Mobile Navigation - Dropdown */}
+          {/* Mobile Popover */}
           <Popover
             isOpen={isMobilePopoverOpen}
             onOpenChange={setIsMobilePopoverOpen}
@@ -300,7 +313,6 @@ export default function Navbar() {
                 type="button"
                 aria-label="Mobile navigation menu"
                 className={cn(
-                  // Styles from Button variant="ghastly"
                   'cursor-pointer items-center justify-center gap-2 rounded-lg font-sans outline-none',
                   'bg-transparent text-(--color-text-muted)',
                   'hover:text-(--color-text-primary)',
@@ -314,31 +326,9 @@ export default function Navbar() {
             </Popover.Trigger>
             <Popover.Content className="min-w-45 p-0" placement="bottom right">
               <div className="flex flex-col">
-                {isAuthenticated && (
-                  <>
-                    <div className="px-3 pt-3 pb-1">
-                      <div className="flex items-center gap-3">
-                        <Avatar
-                          size="md"
-                          className="bg-(--color-accent-light) text-(--color-accent)"
-                        >
-                          <Avatar.Fallback className="bg-(--color-hover-accent-strong) text-lg font-medium text-(--color-accent)">
-                            {getUserInitials(profile?.username || user?.username)}
-                          </Avatar.Fallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium text-(--color-text-primary)">
-                            {getUsername()}
-                          </p>
-                          <p className="text-xs text-(--color-text-muted)">Signed in</p>
-                        </div>
-                      </div>
-                    </div>
-                    <Separator wrapperCn="my-2" />
-                  </>
-                )}
+                {isAuthenticated && <ProfileHeader {...sharedProfileProps} />}
 
-                {/* mobile hamburger menu primary navigation items */}
+                {/* Mobile primary nav items */}
                 <div className={cn(isAuthenticated ? '' : 'pt-1')}>
                   {navItemsPrimary.map((item) => {
                     const isActive = isActivePath(item.path);
@@ -361,101 +351,13 @@ export default function Navbar() {
                   })}
                 </div>
 
-                {/* mobile hamburger menu secondary navigation items */}
-                {navItemsSecondary.map((item) => {
-                  const sessionData = getSession();
-                  const hasResults = Boolean(sessionData?.results);
-                  const isDisabled = item.id === 'unsaved-results' && !hasResults;
-                  const showTooltip = item.id === 'unsaved-results';
-                  const isActive = isActivePath(item.path);
-
-                  return (
-                    <div key={item.id} className="px-2 py-1">
-                      {/* tooltip style item only for results restore */}
-                      {showTooltip ? (
-                        <Tooltip delay={0} className="w-full">
-                          <Tooltip.Trigger className="w-full">
-                            {/* resutls restore active */}
-                            {item.type === 'link' && !isDisabled ? (
-                              <Link
-                                to={item.path}
-                                className={cn(
-                                  'flex w-full rounded-md px-2 py-1.5 text-sm',
-                                  isActive
-                                    ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
-                                    : 'text-(--color-text-secondary) hover:bg-(--color-hover-subtle)',
-                                )}
-                                onClick={() => setIsMobilePopoverOpen(false)}
-                              >
-                                {item.name}
-                              </Link>
-                            ) : (
-                              // results restore disabled
-                              <span className="flex w-full cursor-not-allowed rounded-md px-2 py-1.5 text-sm text-(--color-text-muted)">
-                                {item.name}
-                              </span>
-                            )}
-                          </Tooltip.Trigger>
-                          <Tooltip.Content>
-                            <p className="whitespace-pre-line">
-                              {getTooltipTextForUnsavedResults(sessionData)}
-                            </p>
-                          </Tooltip.Content>
-                        </Tooltip>
-                      ) : (
-                        // other secondary nav items
-                        <div className="w-full">
-                          {item.type === 'link' && !isDisabled ? (
-                            <Link
-                              to={item.path}
-                              className={cn(
-                                'flex w-full rounded-md px-2 py-1.5 text-sm',
-                                isActive
-                                  ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
-                                  : 'text-(--color-text-secondary) hover:bg-(--color-hover-subtle)',
-                              )}
-                              onClick={() => setIsMobilePopoverOpen(false)}
-                            >
-                              {item.name}
-                            </Link>
-                          ) : (
-                            <span className="flex w-full cursor-not-allowed rounded-md px-2 py-1.5 text-sm text-(--color-text-muted)">
-                              {item.name}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
+                <SecondaryNavItems
+                  isAuthenticated={isAuthenticated}
+                  isActivePath={isActivePath}
+                  onClose={() => setIsMobilePopoverOpen(false)}
+                />
                 <Separator wrapperCn="my-2" />
-
-                {/* Auth action */}
-                <div className="px-2 pt-1 pb-2">
-                  {isAuthenticated ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleSignOut();
-                        navigate('/auth', { state: { from: location } });
-                        setIsDesktopPopoverOpen(false);
-                      }}
-                      className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-(--color-error) hover:bg-(--color-danger-soft-ui)"
-                    >
-                      Sign out
-                    </button>
-                  ) : (
-                    <Link
-                      to="/auth"
-                      state={{ from: location }}
-                      onClick={() => setIsDesktopPopoverOpen(false)}
-                      className="block w-full cursor-pointer rounded-md px-2 py-1.5 text-left text-sm text-(--color-success) hover:bg-(--color-success-soft-ui)"
-                    >
-                      Sign in
-                    </Link>
-                  )}
-                </div>
+                <AuthAction {...sharedAuthProps} onClose={() => setIsMobilePopoverOpen(false)} />
               </div>
             </Popover.Content>
           </Popover>
