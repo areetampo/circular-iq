@@ -12,10 +12,10 @@ import { OpenAI } from 'openai';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { createSupabaseAnonClient, createSupabaseClient } from '#database/index.js';
-import { requireAuth } from '#middleware/auth.middleware.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 import createAssessmentsRouter from '#routes/assessments.routes.js';
 import createHealthRouter from '#routes/health.routes.js';
+import createProfileRouter from '#routes/profile.routes.js';
 import createScoringRouter from '#routes/scoring.routes.js';
 import createSearchRouter from '#routes/search.routes.js';
 import createUptimeRouter from '#routes/uptime.routes.js';
@@ -114,7 +114,7 @@ export function apiKeyGuard(req, res, next) {
 
   logger.error({ path: req.path }, 'Invalid or missing API key for protected route');
   return res.status(401).json({
-    error: 'Invalid or missing API key',
+    error: 'Failed to fetch data - UNAUTHORIZED',
     code: 'UNAUTHORIZED',
     timestamp: new Date().toISOString(),
   });
@@ -127,7 +127,7 @@ app.use(express.urlencoded({ limit: '512kb', extended: true }));
 
 // Catch-all for root pings to stop CORS errors in deployment logs
 app.get('/', (req, res) => {
-  let message = 'Circular Economy API is Running ₰';
+  let message = 'Circular Economy API is Running ~\\(≧▽≦)/~';
   if (!BACKEND_CONFIG.isProduction) {
     const origins = BACKEND_CONFIG.app.allowedOrigins;
     if (origins.length > 0) {
@@ -171,50 +171,25 @@ const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
 validateConfig();
 
-// mount public health routes before API key guard but after CORS middleware
+// ============================================
+// ROUTES (all before API key guard)
+// ============================================
+
+// Public health routes
 app.use('/health', createHealthRouter());
 
-app.use(apiKeyGuard);
+// Public API routes (no authentication required)
+app.use('/api/uptime', createUptimeRouter());
 app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
+app.use('/api/search', createSearchRouter(supabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
-app.use('/api/search', createSearchRouter(supabase));
-app.use('/api/uptime', createUptimeRouter());
+app.use('/api/profile', createProfileRouter(serviceSupabase));
 
-app.get('/api/profile', requireAuth(serviceSupabase), async (req, res) => {
-  try {
-    const { data, error } = await serviceSupabase
-      .from('profiles')
-      .select('id, username, created_at, updated_at')
-      .eq('id', req.user.id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({
-          error: 'Profile not found',
-          code: 'PROFILE_NOT_FOUND',
-          timestamp: new Date().toISOString(),
-        });
-      }
-      throw error;
-    }
-
-    res.json({
-      id: data.id,
-      username: data.username,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-    });
-  } catch (err) {
-    logger.error({ err }, 'Failed to fetch profile');
-    res.status(500).json({
-      error: 'Failed to fetch profile',
-      code: 'INTERNAL_ERROR',
-      timestamp: new Date().toISOString(),
-    });
-  }
-});
+// ============================================
+// API KEY GUARD (kept for future admin endpoints)
+// ============================================
+app.use(apiKeyGuard);
 
 // 404 handler
 app.use((req, res) => {
