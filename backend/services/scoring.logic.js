@@ -593,90 +593,11 @@ function formatFactorName(factor) {
 }
 
 /**
- * Get color coding for score ranges
- * @param {number} score - Score from 0-100
- * @returns {string} Color code and classification
- */
-export function getScoreColor(score) {
-  if (score >= 75) return { color: '#34a83a', label: 'Strong' };
-  if (score >= 50) return { color: '#4a90e2', label: 'Moderate' };
-  if (score >= 25) return { color: '#ff9800', label: 'Weak' };
-  return { color: '#d32f2f', label: 'Critical' };
-}
-
-/**
- * Generate score comparison with database benchmarks
- * Used for comparative analysis
- * @param {Object} userScores - User's sub_scores
- * @param {Array} databaseCases - Similar cases from database
- * @returns {Object} Comparison insights
- */
-export function compareWithDatabase(userScores, databaseCases) {
-  // Robust comparison that handles multi-vector rows and weights benchmarks
-  if (!databaseCases || databaseCases.length === 0) {
-    return { error: 'No database cases available for comparison' };
-  }
-
-  // Aggregate raw rows into per-source summaries (handles multi-vector storage)
-  const sources = aggregateMultiVectorResults(databaseCases);
-
-  // Determine weighting factors for benchmarking
-  // Each source contributes to the benchmark proportional to its relevance (combined_similarity)
-  const factors = Object.keys(userScores || {});
-  const weightedSums = {};
-  const weightTotals = {};
-
-  for (const s of sources) {
-    // prefer embedded scores if present
-    const docScore = extractDocumentOverallScore(s);
-    const relevance = s.combined_similarity || 0; // 0..1
-
-    // compute per-factor values (from metadata.scores if present)
-    const metaScores = (s.metadata && s.metadata.scores) || {};
-
-    for (const factor of factors) {
-      const val =
-        typeof metaScores[factor] === 'number'
-          ? metaScores[factor]
-          : typeof s[factor] === 'number'
-            ? s[factor]
-            : null;
-
-      if (val !== null && !isNaN(val)) {
-        weightedSums[factor] = (weightedSums[factor] || 0) + val * relevance;
-        weightTotals[factor] = (weightTotals[factor] || 0) + relevance;
-      }
-    }
-  }
-
-  // Build comparison object with weighted benchmarks and statistics
-  const comparison = {};
-  for (const factor of factors) {
-    const totalW = weightTotals[factor] || 0;
-    if (totalW === 0) continue;
-    const weightedAvg = weightedSums[factor] / totalW;
-    const variance = userScores[factor] - weightedAvg;
-
-    comparison[factor] = {
-      userScore: userScores[factor],
-      benchmark_weighted_average: Math.round(weightedAvg),
-      gap: Math.round(weightedAvg - userScores[factor]),
-      percentile_estimate: Math.round(100 * estimatePercentile(userScores[factor], weightedAvg)),
-      z_score: computeZScore(userScores[factor], weightedAvg, totalW),
-      isOverestimated: variance < -12, // user score much higher than benchmark => negative gap
-      isUnderestimated: variance > 12,
-    };
-  }
-
-  return comparison;
-}
-
-/**
  * Group multi-vector rows by source and compute aggregated similarity metrics.
  * Accepts rows which may be returned from `match_documents`, `search_documents_hybrid`,
  * or similar RPCs. Each row may include `metadata.field_name` === 'problem'|'solution'|'doc'
  */
-export function aggregateMultiVectorResults(rows = [], opts = {}) {
+function aggregateMultiVectorResults(rows = [], opts = {}) {
   const map = new Map();
   for (const r of rows || []) {
     if (!r || !r.metadata) continue;
@@ -721,7 +642,6 @@ export function aggregateMultiVectorResults(rows = [], opts = {}) {
     const wDoc = opts.wDoc ?? 0.1;
 
     // If one type is missing, redistribute its weight proportionally
-    let totalW = wProblem + wSolution + wDoc;
     let adjustedWProblem = wProblem;
     let adjustedWSolution = wSolution;
     let adjustedWDoc = wDoc;
@@ -787,28 +707,6 @@ function average(arr = []) {
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
-/** Extract overall score from a source metadata if present */
-function extractDocumentOverallScore(source) {
-  return (
-    (source.metadata && source.metadata.scores && source.metadata.scores.overall_score) || null
-  );
-}
-
-/** Estimate percentile roughly from a mean benchmark (simple mapping) */
-function estimatePercentile(value, benchmark) {
-  // If value equals benchmark -> 50th percentile; linear mapping for +/-30 pts
-  const diff = value - benchmark;
-  const pct = 50 + (diff / 60) * 100; // diff +-30 -> +-50 percentiles
-  return Math.max(1, Math.min(99, pct));
-}
-
-/** Compute a z-like score as (x - mu) / sigma_estimate. sigma_estimate derived from weight (higher weight => lower sigma) */
-function computeZScore(x, mu, weightTotal) {
-  // rough heuristic: treat weightTotal (sum of similarities) => variance shrinker
-  const sigma = Math.max(5, 30 / Math.sqrt(Math.max(1, weightTotal))); // minimum spread 5
-  return Number(((x - mu) / sigma).toFixed(2));
-}
-
 /**
  * Identify integrity gaps based on scoring inconsistencies
  * @param {Object} userScores - User's sub_scores
@@ -866,99 +764,4 @@ export function identifyIntegrityGaps(userScores) {
   }
 
   return gaps;
-}
-
-/**
- * Generate detailed score explanation for user understanding
- * @param {Object} scores - Sub-scores object
- * @returns {Object} Detailed explanations for each factor
- */
-export function generateScoreExplanations(scores) {
-  return {
-    public_participation: {
-      score: scores.public_participation,
-      interpretation:
-        scores.public_participation >= 75
-          ? 'Excellent - broad stakeholder participation expected'
-          : scores.public_participation >= 50
-            ? 'Moderate - some barriers to participation exist'
-            : 'Limited - participation restricted to specific groups',
-      benchmark:
-        'Municipal composting programs: 80-90 | Take-back schemes: 40-60 | B2B partnerships: 10-30',
-    },
-    infrastructure: {
-      score: scores.infrastructure,
-      interpretation:
-        scores.infrastructure >= 75
-          ? 'Strong existing infrastructure can support this'
-          : scores.infrastructure >= 50
-            ? 'Moderate infrastructure available, some gaps'
-            : 'Limited infrastructure - significant investment needed',
-      benchmark:
-        'Urban areas with collection systems: 70-85 | Rural areas: 30-50 | Developing regions: 10-30',
-    },
-    market_price: {
-      score: scores.market_price,
-      interpretation:
-        scores.market_price >= 75
-          ? 'Strong market demand and high recovery value'
-          : scores.market_price >= 50
-            ? 'Moderate market value, viable economics'
-            : 'Low market value - requires subsidies or policy support',
-      benchmark: 'Aluminum recycling: 85-95 | Plastic recycling: 40-60 | Textile waste: 20-40',
-    },
-    maintenance: {
-      score: scores.maintenance,
-      interpretation:
-        scores.maintenance >= 75
-          ? 'Very easy to maintain, low operational cost'
-          : scores.maintenance >= 50
-            ? 'Moderate maintenance required'
-            : 'High maintenance demands, complex operations',
-      benchmark:
-        'Simple collection systems: 80-90 | Processing facilities: 40-60 | R&D-heavy: 10-30',
-    },
-    uniqueness: {
-      score: scores.uniqueness,
-      interpretation:
-        scores.uniqueness >= 75
-          ? 'Highly innovative with strong competitive advantage'
-          : scores.uniqueness >= 50
-            ? 'Some innovation, differentiated approach'
-            : 'Conventional approach, limited competitive advantage',
-      benchmark:
-        'Breakthrough technology: 80-95 | Established methods: 30-50 | Commodity recycling: 5-20',
-    },
-    size_efficiency: {
-      score: scores.size_efficiency,
-      interpretation:
-        scores.size_efficiency >= 75
-          ? 'Highly space-efficient, minimal footprint'
-          : scores.size_efficiency >= 50
-            ? 'Moderate space requirements'
-            : 'Significant space and resources needed',
-      benchmark: 'Digital platforms: 90-98 | Compact facilities: 60-75 | Large warehouses: 20-40',
-    },
-    chemical_safety: {
-      score: scores.chemical_safety,
-      interpretation:
-        scores.chemical_safety >= 75
-          ? 'Minimal environmental/health risks'
-          : scores.chemical_safety >= 50
-            ? 'Manageable risks with proper controls'
-            : 'Significant hazards - strict protocols required',
-      benchmark:
-        'Inert material processing: 85-95 | Standard recycling: 50-70 | Hazardous waste: 20-40',
-    },
-    tech_readiness: {
-      score: scores.tech_readiness,
-      interpretation:
-        scores.tech_readiness >= 75
-          ? 'Proven technology, ready for deployment'
-          : scores.tech_readiness >= 50
-            ? 'Technology exists but needs adaptation'
-            : 'Emerging technology, significant R&D needed',
-      benchmark: 'Established processes: 80-95 | Pilot stage: 40-60 | Lab stage: 10-30',
-    },
-  };
 }

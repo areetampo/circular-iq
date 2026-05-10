@@ -19,37 +19,6 @@ const IMPACT_ARTIFACT_PATTERNS = [
 ];
 
 /**
- * Main export function: Generate complete audit with metadata and gap analysis
- *
- * @param {string} businessProblem - The environmental/circular economy problem addressed
- * @param {string} businessSolution - How the business solves the problem
- * @param {Object} scores - Calculated scores object with overall_score and sub_scores
- * @param {Array} similarDocs - Top matching documents from database with similarity scores
- * @returns {Promise<Object>} Complete response including metadata, audit, gap analysis
- */
-export async function generateCompleteAudit(
-  businessProblem,
-  businessSolution,
-  scores,
-  similarDocs = [],
-) {
-  // Extract metadata
-  const metadata = await extractMetadata(businessProblem, businessSolution);
-
-  // Generate reasoning and audit analysis
-  const audit = await generateReasoning(businessProblem, businessSolution, scores, similarDocs);
-
-  // Calculate gap analysis
-  const gap_analysis = calculateGapAnalysis(scores, similarDocs);
-
-  return {
-    metadata,
-    audit,
-    gap_analysis,
-  };
-}
-
-/**
  * Extract structured metadata (industry, scale, strategy) from problem/solution
  *
  * @param {string} businessProblem - The environmental/circular economy problem addressed
@@ -85,7 +54,8 @@ Be concise and precise. If uncertain, use "other" or infer from context.`;
 
     const metadata = JSON.parse(response.choices[0].message.content);
     return metadata;
-  } catch (error) {
+  } catch (err) {
+    logger.warn({ err }, 'Metadata extraction failed, using fallback');
     // Fallback metadata if extraction fails
     return {
       industry: 'other',
@@ -524,16 +494,81 @@ Metadata: ${JSON.stringify(metadata)}`;
 }
 
 /**
+ * Calibrate the LLM's self-reported confidence using hard deterministic signals.
+ *
+ * Adjustments applied:
+ *  - Integrity gap severity  → penalty per gap (-8 high / -4 medium / -1 low)
+ *  - Parameter consistency   → penalty when internal score coherence is poor
+ *  - Similar-docs evidence   → small bonus when well-supported, penalty when blind
+ *  - Low overall score       → penalty (very weak solutions are harder to assess reliably)
+ *  - LLM overconfidence clamp → pulls back when LLM is >25 pts above deterministic confidence_level
+ *
+ * @param {number} llmScore          - Raw confidence_score from LLM (0-100)
+ * @param {Array}  integrityGaps     - Already-enhanced integrity_gaps array
+ * @param {Object} scores            - Full scores object from calculateScores()
+ * @param {Array}  similarDocs       - Similar docs array (used for evidence count)
+ * @returns {number} Calibrated confidence score (0-100)
+ */
+function calibrateConfidenceScore(llmScore, integrityGaps, scores, similarDocs) {
+  let adjustment = 0;
+
+  // 1. Integrity gap penalties — high-severity gaps meaningfully undermine confidence
+  for (const gap of integrityGaps || []) {
+    if (gap.severity === 'high') adjustment -= 8;
+    else if (gap.severity === 'medium') adjustment -= 4;
+    else adjustment -= 1;
+  }
+
+  // 2. Parameter consistency penalty — internally incoherent scores reduce assessability
+  const consistencyScore = scores?.parameter_consistency?.score ?? 100;
+  if (consistencyScore < 40) adjustment -= 15;
+  else if (consistencyScore < 65) adjustment -= 8;
+
+  // 3. Evidence grounding — more matched docs = more grounded analysis
+  const docCount = (similarDocs || []).length;
+  if (docCount >= 3) adjustment += 5;
+  else if (docCount === 0) adjustment -= 5;
+
+  // 4. Very low overall score penalty — near-zero solutions have high assessment uncertainty
+  const overallScore = scores?.overall_score ?? 50;
+  if (overallScore < 25) adjustment -= 10;
+  else if (overallScore < 40) adjustment -= 5;
+
+  // 5. Overconfidence clamp — if LLM confidence far exceeds the deterministic
+  // confidence_level (computed from score variance/extremes), pull it back proportionally
+  const deterministicConfidence = scores?.confidence_level ?? llmScore;
+  const overconfidence = llmScore - deterministicConfidence;
+  if (overconfidence > 25) adjustment -= Math.round(overconfidence * 0.4);
+
+  return Math.max(0, Math.min(100, llmScore + adjustment));
+}
+
+/**
  * Enhance and validate the AI response
  * @private
  */
 function enhanceAnalysis(analysis, similarDocs, scores) {
-  // Helper to sanitise fabricated evidence_source_id values
+  // Build a Set of valid IDs from the actual similarDocs returned by the DB.
+  // Used to cross-check every evidence_source_id the LLM emits.
+  const validSourceIds = new Set((similarDocs || []).map((d) => d.id).filter(Boolean));
+
+  // Valid sub_score factor keys — used to validate improvement_roadmap target_factor values
+  const validFactors = new Set(Object.keys(scores?.sub_scores || {}));
+
+  // Helper to sanitise evidence_source_id values.
+  // - Strips obviously fake placeholders (N/A, CASE-1234, etc.)
+  // - When we have DB docs to compare against, tags unrecognised IDs as
+  //   'unverified_source' rather than silently nulling them, preserving
+  //   traceability while flagging hallucinated IDs.
   const sanitiseSourceId = (id) => {
     if (!id || typeof id !== 'string') return null;
     const fake = /^(N\/A|n\/a|none|null|undefined|CASE-\d+|case-\d+)$/i;
     if (fake.test(id.trim())) return null;
-    return id.trim();
+    const trimmed = id.trim();
+    if (validSourceIds.size > 0 && !validSourceIds.has(trimmed)) {
+      return 'unverified_source';
+    }
+    return trimmed;
   };
 
   // Ensure all required fields exist
@@ -571,14 +606,20 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
       const seenFactors = new Set();
       return analysis.improvement_roadmap
         .slice(0, 3)
-        .map((item, i) => ({
-          priority: item.priority || i + 1,
-          action: item.action || 'No action specified',
-          target_factor: item.target_factor || null,
-          effort: ['low', 'medium', 'high'].includes(item.effort) ? item.effort : 'medium',
-          impact: ['low', 'medium', 'high'].includes(item.impact) ? item.impact : 'medium',
-          timeframe: item.timeframe || 'Not specified',
-        }))
+        .map((item, i) => {
+          // Validate target_factor against actual sub_score keys — rejects hallucinated
+          // factor names the LLM sometimes emits (e.g. "cost_efficiency", "scalability")
+          const rawFactor = item.target_factor || null;
+          const validatedFactor = rawFactor && validFactors.has(rawFactor) ? rawFactor : null;
+          return {
+            priority: item.priority || i + 1,
+            action: item.action || 'No action specified',
+            target_factor: validatedFactor,
+            effort: ['low', 'medium', 'high'].includes(item.effort) ? item.effort : 'medium',
+            impact: ['low', 'medium', 'high'].includes(item.impact) ? item.impact : 'medium',
+            timeframe: item.timeframe || 'Not specified',
+          };
+        })
         .filter((item) => {
           if (!item.target_factor) return true; // keep null-factor items, don't dedupe on null
           if (seenFactors.has(item.target_factor)) return false;
@@ -610,6 +651,15 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
       economic_viability: 'Assessment unavailable',
     },
   };
+
+  // Calibrate confidence_score now that integrity_gaps are finalised —
+  // must run after the enhanced object is built so gap severities are available
+  enhanced.confidence_score = calibrateConfidenceScore(
+    enhanced.confidence_score,
+    enhanced.integrity_gaps,
+    scores,
+    similarDocs,
+  );
 
   return enhanced;
 }
@@ -727,7 +777,8 @@ ${rawLines}`;
               ? result.circular_strategy
               : c.circular_strategy,
         };
-      } catch (_) {
+      } catch (error) {
+        logger.warn({ error, caseId: c.id }, 'Case cleanup failed, returning original');
         // If cleanup fails for any case, return original unchanged
         return c;
       }
@@ -755,9 +806,25 @@ export function validateInput(problem, solution) {
   }
 
   // Check for obvious spam/junk patterns
-  const junkPatterns = [/^[a-z]{1,3}$/i, /^-{3,}$/, /^x{3,}$/, /^test|lorem|ipsum/i];
+  const junkPatterns = [/^[a-z]{1,3}$/i, /^-{3,}$/, /^x{3,}$/, /^(test|lorem|ipsum)/i];
   if (junkPatterns.some((pattern) => pattern.test(problem) || pattern.test(solution))) {
     return { is_junk: true, reason: 'Input matches junk patterns' };
+  }
+
+  // Detect single-character flooding (e.g. "AAAA..." or "1111...")
+  function dominantCharRatio(text) {
+    const clean = text.replace(/\s/g, '');
+    if (!clean.length) return 0;
+    const freq = {};
+    for (const ch of clean) freq[ch] = (freq[ch] || 0) + 1;
+    return Math.max(...Object.values(freq)) / clean.length;
+  }
+
+  if (dominantCharRatio(problem) > 0.5 || dominantCharRatio(solution) > 0.5) {
+    return {
+      is_junk: true,
+      reason: 'Input appears to be repetitive characters; please provide a real description.',
+    };
   }
 
   // Low uniqueness detection: many repeated words or filler
@@ -798,22 +865,4 @@ export function validateInput(problem, solution) {
   }
 
   return null;
-}
-
-/**
- * Execute the LLM call to get reasoning
- * @private
- */
-async function executeReasoningCall(systemRole, userPrompt, similarDocs) {
-  const response = await openaiClient.chat.completions.create({
-    model: 'gpt-4o-mini',
-    temperature: 0,
-    response_format: { type: 'json_object' },
-    messages: [
-      { role: 'system', content: systemRole },
-      { role: 'user', content: userPrompt },
-    ],
-  });
-
-  return JSON.parse(response.choices[0].message.content);
 }
