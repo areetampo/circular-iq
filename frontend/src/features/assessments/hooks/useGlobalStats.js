@@ -9,7 +9,7 @@ import { getGlobalStats } from '@/features/assessments/api/assessmentApi';
  * @param {boolean} [options.enabled]
  * @returns {Object}
  */
-export function useGlobalStats({ enabled = true } = {}) {
+export default function useGlobalStats({ enabled = true } = {}) {
   const { data, isLoading, isFetching, isError, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['global-stats'],
     queryFn: getGlobalStats,
@@ -31,8 +31,8 @@ export function useGlobalStats({ enabled = true } = {}) {
     assessmentStats: assessStats,
 
     // top-line numbers from scoring_results_log
-    totalScoringCalls: logStats?.total_scoring_calls ?? 0,
-    avgScore: logStats?.avg_score ?? 0,
+    totalScoringCalls: logStats?.total_scoring_calls ?? null,
+    avgScore: logStats?.avg_score ?? null,
     avgConfidence: logStats?.avg_metrics?.confidence_level ?? null,
     avgTechFeas: logStats?.avg_metrics?.technical_feasibility ?? null,
     avgEconViab: logStats?.avg_metrics?.economic_viability ?? null,
@@ -49,7 +49,7 @@ export function useGlobalStats({ enabled = true } = {}) {
     materialDistribution: logStats?.material_distribution ?? [],
     geoDistribution: logStats?.geo_distribution ?? [],
     scaleDistribution: logStats?.scale_distribution ?? [],
-    junkRate: logStats?.junk_rate ?? 0,
+    junkRate: logStats?.junk_rate ?? null,
     weeklyTrend: logStats?.weekly_trend ?? [],
 
     // market data (contributed assessments)
@@ -61,7 +61,7 @@ export function useGlobalStats({ enabled = true } = {}) {
     })),
 
     // saved assessment stats (global)
-    totalSavedAssessments: assessStats?.total_assessments ?? 0,
+    totalSavedAssessments: assessStats?.total_assessments ?? null,
     assessmentsByTier: assessStats?.assessments_by_tier ?? {},
     assessmentsByRisk: assessStats?.assessments_by_risk ?? {},
     assessmentsByScale: assessStats?.assessments_by_scale ?? {},

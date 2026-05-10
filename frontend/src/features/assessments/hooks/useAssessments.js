@@ -18,7 +18,7 @@ import {
  * @param {string} [options.industry] - Industry filter
  * @returns {Object} Query result with assessments data and delete functionality
  */
-export function useAssessments({
+export default function useAssessments({
   sessionId,
   page,
   pageSize,

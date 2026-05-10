@@ -9,7 +9,7 @@ import { getAssessmentStats } from '@/features/assessments/api/assessmentApi';
  * @param {boolean} [options.enabled]
  * @returns {Object}
  */
-export function useAssessmentStats({ enabled = true } = {}) {
+export default function useAssessmentStats({ enabled = true } = {}) {
   const {
     data = {
       totalAssessments: 0,

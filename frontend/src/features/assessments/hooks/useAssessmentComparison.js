@@ -2,42 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getComparisonAssessments } from '@/features/assessments/api/assessmentApi';
 
-/**
- * useAssessmentComparison
- * Loads two assessments for side-by-side comparison via the comparison API.
- * @param {string|number} id1
- * @param {string|number} id2
- * @returns {Object}
- */
-export function useAssessmentComparison(id1, id2) {
-  // Fetch both assessments using the comparison endpoint with visibility checking
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['comparison', id1, id2],
-    queryFn: () => getComparisonAssessments(id1, id2),
-    enabled: !!id1 && !!id2,
-  });
-
-  // Extract assessment data
-  const assessment1 = data?.assessment1 ?? null;
-  const assessment2 = data?.assessment2 ?? null;
-
-  // Derive comparison metrics
-  const comparisonData = deriveComparison(assessment1, assessment2);
-
-  return {
-    assessment1,
-    assessment2,
-    comparisonData,
-    loading: isLoading,
-    isLoading,
-    error: error?.message || null,
-    isError,
-    refetch: () => {
-      // Refetch would be handled by React Query automatically
-    },
-  };
-}
-
 function deriveComparison(a1, a2) {
   if (!a1?.result_json || !a2?.result_json) {
     return {
@@ -81,5 +45,41 @@ function deriveComparison(a1, a2) {
     overallDiff,
     biggestGain,
     biggestDrop,
+  };
+}
+
+/**
+ * useAssessmentComparison
+ * Loads two assessments for side-by-side comparison via the comparison API.
+ * @param {string|number} id1
+ * @param {string|number} id2
+ * @returns {Object}
+ */
+export default function useAssessmentComparison(id1, id2) {
+  // Fetch both assessments using the comparison endpoint with visibility checking
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['comparison', id1, id2],
+    queryFn: () => getComparisonAssessments(id1, id2),
+    enabled: !!id1 && !!id2,
+  });
+
+  // Extract assessment data
+  const assessment1 = data?.assessment1 ?? null;
+  const assessment2 = data?.assessment2 ?? null;
+
+  // Derive comparison metrics
+  const comparisonData = deriveComparison(assessment1, assessment2);
+
+  return {
+    assessment1,
+    assessment2,
+    comparisonData,
+    loading: isLoading,
+    isLoading,
+    error: error?.message || null,
+    isError,
+    refetch: () => {
+      // Refetch would be handled by React Query automatically
+    },
   };
 }
