@@ -9,7 +9,7 @@ import { logOperation } from '#utils/controller-helpers.js';
 /**
  * Save a new assessment
  */
-export async function saveAssessment(supabase, user, validatedBody, rawBody, token) {
+export async function saveAssessment(supabase, user, validatedBody, rawBody) {
   const startTime = Date.now();
 
   try {
@@ -132,7 +132,7 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody, tok
 /**
  * Fetch user's assessments with filtering, sorting, pagination
  */
-export async function fetchUserAssessments(supabase, user, token, query) {
+export async function fetchUserAssessments(supabase, user, query) {
   const startTime = Date.now();
 
   try {
@@ -221,7 +221,7 @@ export async function fetchUserAssessments(supabase, user, token, query) {
 /**
  * Get aggregate statistics for user's assessments
  */
-export async function getAssessmentStats(supabase, user, token) {
+export async function getAssessmentStats(supabase, user) {
   const startTime = Date.now();
 
   try {
