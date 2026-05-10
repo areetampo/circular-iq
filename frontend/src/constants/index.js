@@ -1,2 +1,1 @@
-/** Reserved barrel for `@/constants` re-exports; import from `@/constants/<module>` directly until consolidated here. */
-export {};
+export { default as FRONTEND_ROUTES } from './frontendRoutes.js';

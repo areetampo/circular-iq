@@ -8,32 +8,6 @@
  * - Score interpretation scales
  */
 
-// View states
-export const VIEWS = {
-  LANDING: 'landing',
-  EVALUATION: 'evaluation',
-  RESULTS: 'results',
-};
-
-// Color scheme - Professional emerald theme
-export const COLORS = {
-  primary: '#34a83a', // Emerald green
-  secondary: '#4a90e2', // Blue
-  accent: '#ff9800', // Orange
-  success: '#34a83a', // Green
-  warning: '#ff9800', // Orange
-  error: '#d32f2f', // Red
-  textPrimary: '#333',
-  textSecondary: '#666',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  // Background colors
-  strongBg: '#e8f5e9', // Light green
-  moderateBg: '#e3f2fd', // Light blue
-  weakBg: '#fff3e0', // Light orange
-  criticalBg: '#ffebee', // Light red
-};
-
 /**
  * Parameter Guidance - Complete educational content for each factor
  */
@@ -428,125 +402,6 @@ export const parameterGuidance = {
 };
 
 /**
- * Score interpretation categories
- */
-export const scoreRanges = {
-  'Strong (75-100)': {
-    color: COLORS.success,
-    backgroundColor: COLORS.strongBg,
-    description: 'Excellent - This factor is a major strength',
-  },
-  'Moderate (50-74)': {
-    color: COLORS.secondary,
-    backgroundColor: COLORS.moderateBg,
-    description: 'Good - This factor is viable',
-  },
-  'Weak (25-49)': {
-    color: COLORS.accent,
-    backgroundColor: COLORS.weakBg,
-    description: 'Challenging - Needs improvement',
-  },
-  'Critical (0-24)': {
-    color: COLORS.error,
-    backgroundColor: COLORS.criticalBg,
-    description: 'Problematic - Major weakness',
-  },
-};
-
-/**
- * Integrity gap warning levels
- */
-export const integrityGapLevels = {
-  high: {
-    color: COLORS.error,
-    icon: 'AlertTriangle',
-    label: 'Critical Inconsistency',
-    description: 'Significant contradiction between scores and evidence',
-  },
-  medium: {
-    color: COLORS.accent,
-    icon: 'Zap',
-    label: 'Notable Inconsistency',
-    description: 'Possible inflation in self-assessment',
-  },
-  low: {
-    color: COLORS.secondary,
-    icon: 'Info',
-    label: 'Minor Gap',
-    description: 'Small discrepancy worth noting',
-  },
-};
-
-/**
- * Confidence level interpretation
- */
-export const confidenceLevels = {
-  high: {
-    min: 75,
-    max: 100,
-    color: COLORS.success,
-    label: 'High Confidence',
-    description: 'Strong evidence supports this assessment',
-  },
-  moderate: {
-    min: 50,
-    max: 74,
-    color: COLORS.secondary,
-    label: 'Moderate Confidence',
-    description: 'Assessment is reasonable but has some uncertainty',
-  },
-  low: {
-    min: 0,
-    max: 49,
-    color: COLORS.accent,
-    label: 'Low Confidence',
-    description: 'Limited evidence or conflicting signals',
-  },
-};
-
-/**
- * Info modal content for form help
- */
-export const formHelp = {
-  problemGuide: {
-    title: 'How to Describe Your Business Problem',
-    content: `
-    <h4>What to include:</h4>
-    <ul>
-      <li>The environmental challenge you're addressing</li>
-      <li>Current scale of the problem</li>
-      <li>Who is affected (consumers, businesses, communities)</li>
-      <li>Why existing solutions are inadequate</li>
-    </ul>
-
-    <h4>Example:</h4>
-    <p>"Single-use plastic packaging generates 8 million tons of ocean waste annually. Current recycling recovers only 30%. We address the 70% that ends up in landfills and oceans through an innovative collection network."</p>
-
-    <p><strong>Minimum length:</strong> 50 characters (aim for 200+ for detailed analysis)</p>
-    `,
-  },
-
-  solutionGuide: {
-    title: 'How to Describe Your Business Solution',
-    content: `
-    <h4>What to include:</h4>
-    <ul>
-      <li>Your specific approach to solving the problem</li>
-      <li>Materials or processes involved</li>
-      <li>How your solution closes the circular loop</li>
-      <li>Key competitive advantages</li>
-      <li>Scale and geographic scope</li>
-    </ul>
-
-    <h4>Example:</h4>
-    <p>"We collect used packaging via drop-off points and mail-back programs, processing it into compostable feedstock. Our hub-and-spoke model reaches 95% of urban areas. Materials are processed using water-based separation, with zero chemical waste."</p>
-
-    <p><strong>Minimum length:</strong> 50 characters (aim for 200+ for detailed analysis)</p>
-    `,
-  },
-};
-
-/**
  * Parameter groups for organized display
  */
 export const parameterGroups = {
@@ -613,20 +468,6 @@ export const factorDefinitions = {
     desc: 'Complexity and availability of technology required for effective processing and recovery.',
     category: 'Processing Value',
   },
-};
-
-/**
- * Initial parameter values
- */
-export const initialParameters = {
-  public_participation: 50,
-  infrastructure: 50,
-  market_price: 50,
-  maintenance: 50,
-  uniqueness: 50,
-  size_efficiency: 50,
-  chemical_safety: 50,
-  tech_readiness: 50,
 };
 
 /**
@@ -767,20 +608,3 @@ export const TIER_CONFIG = [
       'border-[oklch(0.88_0.026_10/_0.22)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.014_10/_0.06)]',
   },
 ];
-
-export default {
-  VIEWS,
-  COLORS,
-  parameterGuidance,
-  scoreRanges,
-  integrityGapLevels,
-  confidenceLevels,
-  formHelp,
-  parameterGroups,
-  parameterLabels,
-  factorDefinitions,
-  initialParameters,
-  validKeys,
-  categoryMapping,
-  TIER_CONFIG,
-};
