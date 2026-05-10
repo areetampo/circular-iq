@@ -3,6 +3,8 @@
 echo "⫸ Checking builds in all workspaces..."
 
 # ─── Parse push options ──────────────────────────────────────────────
+# Usage: git push -o skip-build -o skip-tests -o skip-migration
+# Options can be combined, e.g. git push -o skip-build -o skip-tests
 SKIP_BUILD=false
 SKIP_TESTS=false
 SKIP_MIGRATION=false
