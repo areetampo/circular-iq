@@ -11,14 +11,13 @@
 import express from 'express';
 
 import { searchCeCases } from '#controllers/search.controller.js';
-import { requireAuth } from '#middleware/auth.middleware.js';
 
 /**
  * Create search router
  * @param {Object} supabase - Supabase client (anon key — read-only RLS policy covers ce_cases)
  * @returns {express.Router}
  */
-export default function createSearchRouter(supabase, serviceSupabase) {
+export default function createSearchRouter(supabase) {
   const router = express.Router();
 
   /**
@@ -33,7 +32,7 @@ export default function createSearchRouter(supabase, serviceSupabase) {
    *
    * No auth required — ce_cases is public read-only reference data.
    */
-  router.get('/ce-cases', requireAuth(serviceSupabase), searchCeCases(supabase));
+  router.get('/ce-cases', searchCeCases(supabase));
 
   // Fallback error handler
   router.use((err, req, res, next) => {
