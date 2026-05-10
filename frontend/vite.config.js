@@ -67,7 +67,7 @@ export default defineConfig({
     },
   },
   build: {
-    // kB; vendor-react includes React, MUI, and @mui/x-charts (~1 MB minified)
+    // kB; vendor-react includes React and React Aria components
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
@@ -75,9 +75,8 @@ export default defineConfig({
           // PDF vendor
           if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('canvg'))
             return 'vendor-pdf';
-          // React + MUI (incl. @mui/x-charts) + React Aria — MUI charts must stay with MUI to avoid chunk cycles
+          // React + React Aria components
           if (
-            id.includes('@mui/') ||
             id.includes('react-dom') ||
             id.includes('/react/') ||
             id.includes('@react-aria') ||
@@ -85,7 +84,7 @@ export default defineConfig({
             id.includes('react-aria-components')
           )
             return 'vendor-react';
-          // Charts vendor (Recharts/D3 only — not @mui/x-charts)
+          // Charts vendor (Recharts/D3)
           if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
           // supabase
           if (id.includes('@supabase')) return 'vendor-supabase';
