@@ -1,39 +1,58 @@
 import { FieldError, Input, Label, TextField } from '@heroui/react';
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/common';
+import { Button, DetailsBadge, Spinner } from '@/components/common';
+import { useAssessmentValidationSingle } from '@/features/assessments/hooks';
+import { useAuth } from '@/hooks';
+import { clearShareFormState, loadShareFormState, saveShareFormState } from '@/lib/storage';
 import { isValidUUID } from '@/lib/validation';
-import AssessmentViewPage from '@/pages/AssessmentViewPage/AssessmentViewPage';
-
-const STORAGE_KEY = 'sharePageInput';
 
 export default function SharePage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  const [publicId, setPublicId] = useState(() => {
-    try {
-      return sessionStorage.getItem(STORAGE_KEY) || '';
-    } catch {
-      return '';
-    }
-  });
+  const [publicId, setPublicId] = useState('');
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [showEmptyError, setShowEmptyError] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [validationMessage, setValidationMessage] = useState(null);
+  const [validationData, setValidationData] = useState(null);
 
-  // Save to sessionStorage whenever input changes
+  // Save form state to sessionStorage whenever publicId changes
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, publicId);
+    // Only save if there's a value
+    if (publicId.trim()) {
+      saveShareFormState(publicId);
+    }
   }, [publicId]);
 
-  // Handle query parameter for direct share links
-  const idFromQuery = searchParams.get('id');
-  if (idFromQuery) {
-    // Direct access with query parameter - redirect to AssessmentViewPage
-    return <AssessmentViewPage publicId={idFromQuery} />;
-  }
+  // Load saved state from sessionStorage when component mounts
+  useEffect(() => {
+    const saved = loadShareFormState();
+    if (saved?.publicId && isValidUUID(saved.publicId)) {
+      setPublicId(saved.publicId);
+    }
+  }, []);
+
+  // Call the hook at the top level of the component, but only enable when ID is valid UUID
+  const { validate, validationQuery } = useAssessmentValidationSingle(
+    isValidUUID(publicId) ? publicId : null,
+  );
+
+  // Note: Direct share links are now handled by the /assessments/share/:id route
+  // This component only renders the share form at /assessments/share
+
+  // Sync error state and validation data from validation query to local state
+  useEffect(() => {
+    if (validationQuery.error) {
+      setError(validationQuery.error.message || 'Validation failed');
+      setValidationData(null);
+    } else if (validationQuery.data) {
+      setError(null);
+      setValidationData(validationQuery.data);
+    }
+  }, [validationQuery.error, validationQuery.data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,38 +69,87 @@ export default function SharePage() {
 
     // Check UUID format if input is not empty
     if (!isValidUUID(id)) {
-      setError(
-        `Incorrect assessment ID format.\nExample format: 123e4567-e89b-12d3-a456-426614174000`,
-      );
+      setError('Incorrect assessment ID format');
       return;
     }
 
-    setLoading(true);
+    setValidating(true);
+    setValidationMessage('Validating assessment...');
+
+    // Force a re-render to show validation message
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Update validation message to show we're making API calls
+    setValidationMessage('Checking assessment availability...');
+
     try {
-      const res = await fetch(`/api/assessments/validate/${encodeURIComponent(id)}`);
-      if (res.status === 400 || res.status === 404) {
-        setError('Invalid ID');
-        return;
-      }
-      if (res.status === 403) {
-        setError('Assessment not publicly available');
+      // logger.log('Starting validation for:', id);
+
+      // Use the validate function from the hook
+      await validate();
+
+      // Check for validation error after the validate call
+      if (validationQuery.error) {
+        setValidating(false);
+        setValidationMessage(null);
+        setError(validationQuery.error.message || 'Invalid ID');
         return;
       }
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body.error || 'Invalid ID');
-        return;
-      }
+      // If validation passes, determine correct redirect based on authentication and ownership
+      setValidating(false);
+      setValidationMessage('Validation successful! Redirecting...');
 
-      // Valid - clear saved input and redirect to public view
-      sessionStorage.removeItem(STORAGE_KEY);
-      navigate(`/assessments/share?id=${id}`);
+      // Brief delay to show success message
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Clear validation state and navigate to the appropriate route
+      setValidationMessage(null);
+
+      const validationResult = validationQuery.data;
+      const isOwner = validationResult?.isOwner;
+
+      // Redirect logic:
+      // - If user is authenticated and owns the assessment → /assessments/:publicId
+      // - Otherwise (logged out or viewing other's public assessment) → /assessments/share/:publicId
+      if (isAuthenticated && isOwner) {
+        navigate(`/assessments/${id}`);
+      } else {
+        navigate(`/assessments/share/${id}`);
+      }
     } catch (err) {
       logger.error(err);
-      setError('Invalid ID');
-    } finally {
-      setLoading(false);
+      setValidating(false);
+      setValidationMessage(null);
+      setError(err.message || 'Invalid ID');
+    }
+  };
+
+  const handleClear = () => {
+    setPublicId('');
+    setError(null);
+    setShowEmptyError(false);
+    setValidating(false);
+    setValidationMessage(null);
+    setValidationData(null);
+    clearShareFormState();
+  };
+
+  const handleInputChange = (e) => {
+    setPublicId(e.target.value);
+    // Clear all errors when user starts typing
+    if (e.target.value.trim()) {
+      setShowEmptyError(false);
+      setError(null);
+      setValidating(false);
+      setValidationMessage(null);
+      setValidationData(null);
+    } else {
+      // If field becomes empty, clear UUID format error but set empty error for validation
+      setError(null);
+      setValidating(false);
+      setValidationMessage(null);
+      setValidationData(null);
     }
   };
 
@@ -100,44 +168,50 @@ export default function SharePage() {
             <div>
               <Label>Assessment ID</Label>
               {(showEmptyError || error) && (
-                <FieldError>{showEmptyError ? 'is required' : 'has invalid format'}</FieldError>
+                <FieldError className="hidden">
+                  {showEmptyError ? 'is required' : 'has invalid format'}
+                </FieldError>
               )}
             </div>
             <Input
               id="public-id"
               value={publicId}
-              onChange={(e) => {
-                setPublicId(e.target.value);
-                // Clear all errors when user starts typing
-                if (e.target.value.trim()) {
-                  setShowEmptyError(false);
-                  setError(null);
-                } else {
-                  // If field becomes empty, clear UUID format error but keep empty error for validation
-                  setError(null);
-                }
-              }}
+              onChange={handleInputChange}
               placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               size="lg"
             />
           </TextField>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button type="submit" variant="primary" isLoading={loading}>
-            View
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onPress={() => {
-              setPublicId('');
-              setError(null);
-              setShowEmptyError(false);
-            }}
-          >
-            Clear
-          </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button type="submit" variant="primary" isLoading={validating}>
+              View
+            </Button>
+            <Button type="button" variant="ghost" onPress={handleClear}>
+              Clear
+            </Button>
+          </div>
+          <div>
+            {/* Validation message display - show when validating and no error */}
+            {validating && validationMessage && !error && (
+              <DetailsBadge variant="info" message={validationMessage} icon={Spinner} />
+            )}
+            {/* Loading state from validation query - show when auto-fetching */}
+            {validationQuery.isLoading && !validating && !error && (
+              <DetailsBadge variant="info" message="Validating assessment ID..." icon={Spinner} />
+            )}
+            {/* Success state after auto-fetching completes - show ready message */}
+            {!validating && !error && validationData && !validationMessage && (
+              <DetailsBadge variant="success" message="Assessment validated! Ready to view." />
+            )}
+            {/* Success state during manual validation - show redirecting message */}
+            {!validating && !error && validationData && validationMessage && (
+              <DetailsBadge variant="success" message={validationMessage} />
+            )}
+            {/* Error display - show when not validating and has error */}
+            {!validating && error && <DetailsBadge variant="error" message={error} />}
+          </div>
         </div>
       </form>
 
@@ -149,6 +223,7 @@ export default function SharePage() {
         <ul className="space-y-1.5">
           {[
             'Only assessments set to public are viewable',
+            'You can view any of your own assessments',
             <>
               Assessment IDs follow the standard UUID format:
               <br />
