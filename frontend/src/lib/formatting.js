@@ -1,89 +1,6 @@
 /** Date, number, and string formatting helpers. */
 
 /**
- * Format number as percentage with rounding
- * @param {number} value - Value to format
- * @param {number} decimals - Decimal places (default 1)
- * @returns {string} Formatted percentage
- */
-export function formatPercentage(value, decimals = 1) {
-  if (typeof value !== 'number') return '0%';
-  return `${value.toFixed(decimals)}%`;
-}
-
-/**
- * Format similarity score for display
- * @param {number} similarity - Similarity from 0-1
- * @returns {string} Formatted similarity percentage
- */
-export function formatSimilarity(similarity) {
-  if (typeof similarity !== 'number') return '0%';
-  return `${Math.round(similarity * 100)}%`;
-}
-
-/**
- * Format audit verdict for display
- * @param {string} verdict - Raw verdict text
- * @returns {string} Formatted verdict
- */
-export function formatVerdict(verdict) {
-  if (!verdict) return 'No verdict available';
-  return verdict.charAt(0).toUpperCase() + verdict.slice(1);
-}
-
-/**
- * Truncate text to specified length
- * @param {string} text - Text to truncate
- * @param {number} length - Max length (default 200)
- * @returns {string} Truncated text with ellipsis
- */
-export function truncateText(text, length = 200) {
-  if (!text) return '';
-  if (text.length <= length) return text;
-  return text.substring(0, length) + '...';
-}
-
-/**
- * Format number with thousands separator
- * @param {number} num - Number to format
- * @returns {string} Formatted number
- */
-export function formatNumber(num) {
-  if (typeof num !== 'number') return '0';
-  return num.toLocaleString('en-US');
-}
-
-/**
- * Format currency
- * @param {number} amount - Amount to format
- * @param {string} currency - Currency code (default 'USD')
- * @returns {string} Formatted currency
- */
-export function formatCurrency(amount, currency = 'USD') {
-  if (typeof amount !== 'number') return '$0.00';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-  }).format(amount);
-}
-
-/**
- * Format date to readable string
- * @param {Date|string|number} date - Date to format
- * @returns {string} Formatted date
- */
-export function formatDate(date) {
-  if (!date) return '';
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return 'Invalid date';
-  return d.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-/**
  * Formats a timestamp into a human-readable string.
  * @param {number|string|Date} timestamp - The value to format.
  * @param {Object} [options={}] - Configuration for the output format.
@@ -111,14 +28,6 @@ export function formatTimestamp(
     fractionalSecondDigits: showMilliseconds ? 3 : undefined,
     hour12: !use24Hour,
   });
-}
-
-/**
- * Get current timestamp
- * @returns {string} Current timestamp formatted as readable string
- */
-export function getCurrentTimestampFormatted() {
-  return formatTimestamp(new Date());
 }
 
 /**
@@ -153,9 +62,6 @@ export function formatRelativeTime(timestamp) {
 
   // pluralise: p(2, 'hr', 'hrs') → "2 hrs"
   const p = (n, singular, plural = singular + 's') => `${n} ${n === 1 ? singular : plural}`;
-
-  // 0. under 10s
-  if (diffSecs < 10) return 'just now';
 
   // 1. Under 1 minute
   if (diffMins < 1) return `${p(diffSecs, 'second', 'seconds')} ago`;
@@ -221,34 +127,6 @@ export function formatRelativeTime(timestamp) {
     suffix = ` ${p(Math.floor(calDays / 7), 'w', 'w')}`;
   }
   return `${p(calYears, 'yr', 'yrs')}${suffix} ago`;
-}
-
-/**
- * Format a list with truncation support
- * Truncates list to specified max items and provides full list for display
- * @param {Array} items - Array of items (can have 'industry' property or be strings)
- * @param {number} maxDisplay - Max items to display before truncating (default 2)
- * @returns {Object} Object with display (string), all (array), extra (count)
- */
-export function formatTruncatedList(items = [], maxDisplay = 2) {
-  if (!Array.isArray(items) || items.length === 0) {
-    return { display: 'N/A', all: [], extra: 0 };
-  }
-
-  const formatted = items.map((item) => toTitleCase(item.industry || item));
-
-  const hasExtra = formatted.length > maxDisplay;
-  const displayed = formatted.slice(0, maxDisplay);
-  const extra = hasExtra ? formatted.length - maxDisplay : 0;
-
-  // Format display string: "A, B" or "A"
-  const display = displayed.join(', ');
-
-  return {
-    display,
-    all: formatted,
-    extra,
-  };
 }
 
 /**
@@ -362,25 +240,11 @@ export function cleanUrl(urlStr, options = {}) {
     const query = settings.stripQuery ? '' : url.search;
 
     return `${protocol}${host}${port}${path}${query}`;
-  } catch (e) {
+  } catch (err) {
+    logger.warn('Failed to clean URL:', err);
     // Fallback if the string is completely mangled
     return urlStr;
   }
-}
-
-/**
- * Format file size to human readable string
- * @param {number} bytes - File size in bytes
- * @returns {string} Formatted size
- */
-export function formatFileSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
 /**

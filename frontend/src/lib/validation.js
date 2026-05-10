@@ -11,6 +11,7 @@ import { z } from 'zod';
 export function getCharacterCount(text) {
   if (!text && text !== 0) return 0;
   const stringText = String(text);
+  // Remove all whitespace but keep character count for validation
   return stringText.replace(/\s+/g, '').trim().length;
 }
 
@@ -47,191 +48,6 @@ export function validateInput(problem, solution, minLength = 50) {
   }
 
   return { valid: true };
-}
-
-/**
- * Validate assessment name
- * @param {string} name - Assessment name
- * @returns {Object} Validation result {valid: boolean, error?: string}
- */
-export function validateAssessmentName(name) {
-  if (!name) {
-    return {
-      valid: false,
-      error: 'Assessment name is required',
-    };
-  }
-
-  const trimmed = name.trim();
-
-  if (trimmed.length === 0) {
-    return {
-      valid: false,
-      error: 'Assessment name cannot be empty',
-    };
-  }
-
-  if (trimmed.length < 3) {
-    return {
-      valid: false,
-      error: 'Assessment name must be at least 3 characters',
-    };
-  }
-
-  if (trimmed.length > 100) {
-    return {
-      valid: false,
-      error: 'Assessment name must be less than 100 characters',
-    };
-  }
-
-  return { valid: true };
-}
-
-/**
- * Validate email format
- * @param {string} email - Email address
- * @returns {Object} Validation result {valid: boolean, error?: string}
- */
-export function validateEmail(email) {
-  if (!email) {
-    return {
-      valid: false,
-      error: 'Email is required',
-    };
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailRegex.test(email)) {
-    return {
-      valid: false,
-      error: 'Please enter a valid email address',
-    };
-  }
-
-  return { valid: true };
-}
-
-/**
- * Validate parameter values
- * @param {Object} parameters - Parameter object
- * @returns {Object} Validation result {valid: boolean, errors?: Object}
- */
-export function validateParameters(parameters) {
-  const errors = {};
-  const validKeys = [
-    'public_participation',
-    'infrastructure',
-    'market_price',
-    'maintenance',
-    'uniqueness',
-    'size_efficiency',
-    'chemical_safety',
-    'tech_readiness',
-  ];
-
-  for (const key of validKeys) {
-    const value = parameters[key];
-
-    if (value === undefined || value === null) {
-      errors[key] = 'Parameter value is required';
-      continue;
-    }
-
-    if (typeof value !== 'number') {
-      errors[key] = 'Parameter must be a number';
-      continue;
-    }
-
-    if (value < 0 || value > 100) {
-      errors[key] = 'Parameter must be between 0 and 100';
-    }
-  }
-
-  return {
-    valid: Object.keys(errors).length === 0,
-    errors: Object.keys(errors).length > 0 ? errors : undefined,
-  };
-}
-
-/**
- * Validate URL format
- * @param {string} url - URL to validate
- * @returns {Object} Validation result {valid: boolean, error?: string}
- */
-export function validateUrl(url) {
-  if (!url) {
-    return {
-      valid: false,
-      error: 'URL is required',
-    };
-  }
-
-  try {
-    new URL(url);
-    return { valid: true };
-  } catch {
-    return {
-      valid: false,
-      error: 'Please enter a valid URL',
-    };
-  }
-}
-
-/**
- * Validate phone number (basic US format)
- * @param {string} phone - Phone number
- * @returns {Object} Validation result {valid: boolean, error?: string}
- */
-export function validatePhone(phone) {
-  if (!phone) {
-    return {
-      valid: false,
-      error: 'Phone number is required',
-    };
-  }
-
-  // Remove all non-digit characters
-  const digits = phone.replace(/\D/g, '');
-
-  if (digits.length !== 10) {
-    return {
-      valid: false,
-      error: 'Phone number must be 10 digits',
-    };
-  }
-
-  return { valid: true };
-}
-
-/**
- * Check if text meets minimum word count
- * @param {string} text - Text to check
- * @param {number} minWords - Minimum word count
- * @returns {boolean} True if meets requirement
- */
-export function meetsMinWordCount(text, minWords) {
-  if (!text) return false;
-  const words = text
-    .trim()
-    .split(/\s+/)
-    .filter((word) => word.length > 0);
-  return words.length >= minWords;
-}
-
-/**
- * Get word count from text
- * @param {string} text - Text to count
- * @returns {number} Word count
- */
-export function getWordCount(text) {
-  if (!text) return 0;
-  const words = text
-    .trim()
-    .split(/\s+/)
-    .filter((word) => word.length > 0);
-  return words.length;
 }
 
 /**
@@ -294,50 +110,6 @@ export const AUTH_VALIDATION = {
 };
 
 // ============================================
-// Username Schema
-// ============================================
-
-export const usernameSchema = z
-  .string()
-  .trim()
-  .min(
-    AUTH_VALIDATION.USERNAME.MIN_LENGTH,
-    `Username must be at least ${AUTH_VALIDATION.USERNAME.MIN_LENGTH} characters`,
-  )
-  .max(
-    AUTH_VALIDATION.USERNAME.MAX_LENGTH,
-    `Username must be at most ${AUTH_VALIDATION.USERNAME.MAX_LENGTH} characters`,
-  )
-  .regex(AUTH_VALIDATION.USERNAME.PATTERN, {
-    message: `Username: ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`,
-  })
-  // Explicitly block @ before the regex so the error message is unambiguous.
-  // This also prevents any attempt to inject an @ce.internal email directly.
-  .refine((val) => !val.includes('@'), {
-    message: 'Username cannot contain @',
-  });
-
-// ============================================
-// Password Schema
-// ============================================
-
-export const passwordSchema = z
-  .string()
-  // No .trim() on passwords — a trailing space is a valid mistake to surface,
-  // but we still enforce no-spaces via the regex pattern below.
-  .min(
-    AUTH_VALIDATION.PASSWORD.MIN_LENGTH,
-    `Password must be at least ${AUTH_VALIDATION.PASSWORD.MIN_LENGTH} characters`,
-  )
-  .max(
-    AUTH_VALIDATION.PASSWORD.MAX_LENGTH,
-    `Password must be at most ${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} characters`,
-  )
-  .regex(AUTH_VALIDATION.PASSWORD.PATTERN, {
-    message: `Password: ${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`,
-  });
-
-// ============================================
 // Login Schema
 // ============================================
 // Intentionally uses the same strict username schema as signup.
@@ -373,8 +145,40 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    username: usernameSchema,
-    password: passwordSchema,
+    username: z
+      .string()
+      .trim()
+      .min(
+        AUTH_VALIDATION.USERNAME.MIN_LENGTH,
+        `Username must be at least ${AUTH_VALIDATION.USERNAME.MIN_LENGTH} characters`,
+      )
+      .max(
+        AUTH_VALIDATION.USERNAME.MAX_LENGTH,
+        `Username must be at most ${AUTH_VALIDATION.USERNAME.MAX_LENGTH} characters`,
+      )
+      .regex(AUTH_VALIDATION.USERNAME.PATTERN, {
+        message: `Username: ${AUTH_VALIDATION.USERNAME.PATTERN_DESC}`,
+      })
+      // Explicitly block @ before the regex so the error message is unambiguous.
+      // This also prevents any attempt to inject an @ce.internal email directly.
+      .refine((val) => !val.includes('@'), {
+        message: 'Username cannot contain @',
+      }),
+    password: z
+      .string()
+      // No .trim() on passwords — a trailing space is a valid mistake to surface,
+      // but we still enforce no-spaces via the regex pattern below.
+      .min(
+        AUTH_VALIDATION.PASSWORD.MIN_LENGTH,
+        `Password must be at least ${AUTH_VALIDATION.PASSWORD.MIN_LENGTH} characters`,
+      )
+      .max(
+        AUTH_VALIDATION.PASSWORD.MAX_LENGTH,
+        `Password must be at most ${AUTH_VALIDATION.PASSWORD.MAX_LENGTH} characters`,
+      )
+      .regex(AUTH_VALIDATION.PASSWORD.PATTERN, {
+        message: `Password: ${AUTH_VALIDATION.PASSWORD.PATTERN_DESC}`,
+      }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

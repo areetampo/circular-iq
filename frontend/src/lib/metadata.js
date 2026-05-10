@@ -1,6 +1,7 @@
-/** Extracts industry, category, and scale from assessment results. */
+/** Extracts industry from assessment results. */
 
-export function getField(obj, field) {
+// Internal helper function - not exported
+function getField(obj, field) {
   if (!obj) return null;
 
   // Direct top-level field
@@ -23,8 +24,4 @@ export function getIndustry(obj) {
   return getField(obj, 'industry');
 }
 
-export function getCategory(obj) {
-  return getField(obj, 'category');
-}
-
-export default { getField, getIndustry, getCategory };
+export default { getIndustry };
