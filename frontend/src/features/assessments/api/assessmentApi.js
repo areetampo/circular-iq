@@ -24,8 +24,13 @@ async function getAuthHeaders() {
 
   try {
     const { data } = await supabase.auth.getSession();
+    // logger.log('[AUTH_DEBUG] Session data:', data);
+
     if (data?.session?.access_token) {
       headers.Authorization = `Bearer ${data.session.access_token}`;
+      // logger.log('[AUTH_DEBUG] Auth header set');
+    } else {
+      // logger.log('[AUTH_DEBUG] No session or token found');
     }
   } catch (error) {
     logger.error('[AUTH_HEADER_ERROR]', error);
@@ -42,6 +47,8 @@ async function getAuthHeaders() {
  */
 async function request(path, options = {}) {
   const headers = await getAuthHeaders();
+  // logger.log('[REQUEST_DEBUG] Headers being sent:', headers);
+
   const finalOptions = {
     ...options,
     headers: {
@@ -83,40 +90,6 @@ async function requestJson(path, options = {}) {
     err.status = response.status;
     err.response = data;
     throw err;
-  }
-
-  return data;
-}
-
-/**
- * Submit assessment for scoring
- * @param {Object} formData - Assessment form data
- * @param {string} formData.businessProblem - Business problem description
- * @param {string} formData.businessSolution - Business solution description
- * @param {Object} formData.evaluationParameters - Evaluation parameters
- * @param {Object} [formData.businessContext] - Optional business context
- * @returns {Promise<Object>} Scoring results
- * @throws {Object} Error response if request fails (including 403 limit errors)
- */
-export async function scoreAssessment(formData) {
-  const response = await request('/api/score', {
-    method: 'POST',
-    body: JSON.stringify({
-      businessProblem: formData.businessProblem,
-      businessSolution: formData.businessSolution,
-      evaluationParameters: formData.evaluationParameters,
-      businessContext: formData.businessContext || null,
-    }),
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (response.status === 403) {
-    throw data;
-  }
-
-  if (!response.ok) {
-    throw data || { message: `Request failed (${response.status})` };
   }
 
   return data;
@@ -175,6 +148,113 @@ export async function getAssessmentStats() {
 }
 
 /**
+ * Validate a single assessment ID for sharing
+ * @param {string} publicId - Assessment public ID
+ * @returns {Promise<{valid: boolean}>} Validation result
+ * @throws {Error} If validation fails with detailed error information
+ */
+export async function validateAssessmentId(publicId) {
+  // logger.log('[validateAssessmentId] called with:', { publicId });
+
+  // Use optional authentication for validation
+  const response = await request(`/api/assessments/validate/${encodeURIComponent(publicId)}`);
+
+  const body = await response.json().catch(() => null);
+
+  // logger.log('[validateAssessmentId] API response received:', {
+  //   response: { status: response.status, ok: response.ok, statusText: response.statusText, body },
+  // });
+
+  // Check if ID is invalid (NOT_FOUND)
+  if (response.status === 404) {
+    // logger.log('[validateAssessmentId] 404 error detected, throwing error');
+    throw new Error('Invalid assessment ID');
+  }
+
+  // Check if ID is not public (FORBIDDEN)
+  if (response.status === 403) {
+    // logger.log('[validateAssessmentId] 403 error detected, throwing error');
+    throw new Error('Assessment not publicly available');
+  }
+
+  // Check for any other errors
+  if (!response.ok) {
+    // logger.log('[validateAssessmentId] Other error detected, response not OK');
+
+    // logger.log('Error body:', { errorBody: body });
+    throw new Error(body?.error || 'Failed to validate assessment ID');
+  }
+
+  // logger.log('[validateAssessmentId] Successful response body:', { body });
+
+  return {
+    valid: body?.valid === true,
+    isOwner: body?.isOwner === true,
+    isPublic: body?.isPublic === true,
+  };
+}
+
+/**
+ * Validate assessment IDs for comparison
+ * @param {string} id1 - First assessment public ID
+ * @param {string} id2 - Second assessment public ID
+ * @returns {Promise<{valid1: boolean, valid2: boolean}>} Validation results
+ * @throws {Error} If validation fails with detailed error information
+ */
+export async function validateAssessmentIds(id1, id2) {
+  // logger.log('[validateAssessmentIds] called with:', { id1, id2 });
+
+  // Use optional authentication for validation
+  const [res1, res2] = await Promise.all([
+    request(`/api/assessments/validate/${encodeURIComponent(id1)}`),
+    request(`/api/assessments/validate/${encodeURIComponent(id2)}`),
+  ]);
+
+  const body1 = await res1
+    .clone()
+    .json()
+    .catch(() => null);
+  const body2 = await res2
+    .clone()
+    .json()
+    .catch(() => null);
+
+  // logger.log('[validateAssessmentIds] API responses received:', {
+  //   res1: { status: res1.status, ok: res1.ok, statusText: res1.statusText, body: body1 },
+  //   res2: { status: res2.status, ok: res2.ok, statusText: res2.statusText, body: body2 },
+  // });
+
+  // Check if either ID is invalid (NOT_FOUND)
+  if (res1.status === 404 || res2.status === 404) {
+    // logger.log('[validateAssessmentIds] 404 error detected, throwing error');
+    throw new Error('One or more ids incorrect');
+  }
+
+  // Check if either ID is not public (FORBIDDEN)
+  if (res1.status === 403 || res2.status === 403) {
+    // logger.log('[validateAssessmentIds] 403 error detected, throwing error');
+    throw new Error('One or more assessments not public');
+  }
+
+  // Check for any other errors
+  if (!res1.ok || !res2.ok) {
+    // Reuse the already parsed body1 and body2 from above
+
+    // logger.log('[validateAssessmentIds] Other error detected, responses not OK');
+    // logger.log('Error bodies:', { body1, body2 });
+
+    throw new Error(body1?.error || body2?.error || 'Failed to validate assessment IDs');
+  }
+
+  // logger.log('[validateAssessmentIds] Successful response data body:', { body1, body2 });
+
+  return {
+    valid1: body1?.valid === true,
+    valid2: body2?.valid === true,
+  };
+}
+
+/**
  * Fetch a single assessment by ID
  * @param {string|number} id - Assessment ID
  * @returns {Promise<Object>} Assessment data with validated structure
@@ -201,17 +281,22 @@ export async function getAssessmentById(id) {
 }
 
 /**
- * Fetch a publicly shared assessment by its public_id (no authentication required)
+ * Fetch a publicly shared assessment by its public_id (optional authentication for ownership check)
  */
 export async function getPublicAssessment(publicId) {
   if (!publicId) {
     throw new Error('Public assessment ID is required');
   }
 
-  // Public endpoint - no auth required, but still use proxy in production
+  // Use optional authentication - include auth header if available
+  const headers = await getAuthHeaders();
+
   const url = buildApiUrl(`/api/assessments/public/${publicId}`);
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
   });
 
   const data = await response.json();
@@ -273,11 +358,11 @@ export async function deleteAssessment(id) {
     throw new Error('Assessment id is required');
   }
 
-  logger.log('[DELETE_ASSESSMENT_API]', { id });
+  // logger.log('[DELETE_ASSESSMENT_API]', { id });
 
   try {
     const response = await requestJson(`/api/assessments/${id}`, { method: 'DELETE' });
-    logger.log('[DELETE_ASSESSMENT_RESPONSE]', { id, response });
+    // logger.log('[DELETE_ASSESSMENT_RESPONSE]', { id, response });
 
     if (!response) {
       throw new Error('Failed to delete assessment: No response from server');
@@ -297,19 +382,27 @@ export async function deleteAssessment(id) {
 /**
  * Compare two assessments by publicId with visibility checking
  * Handles cross-user comparisons with privacy enforcement
- * Public endpoint - no authentication required
+ * Optional authentication - includes auth header if available
  */
 export async function getComparisonAssessments(id1, id2) {
-  if (!id1 || !id2) {
-    throw new Error('Both assessment ids are required');
+  if (!id1 || !id2 || typeof id1 !== 'string' || typeof id2 !== 'string') {
+    throw new Error('Both assessment ids are required and must be valid strings');
   }
 
-  const query = new URLSearchParams({ id1, id2 });
+  // Ensure we don't pass empty strings to URLSearchParams
+  const query = new URLSearchParams();
+  query.append('id1', id1.trim());
+  query.append('id2', id2.trim());
 
-  // Public endpoint - no auth required, but still use proxy in production
+  // Use optional authentication - include auth header if available
+  const headers = await getAuthHeaders();
+
   const url = buildApiUrl(`/api/assessments/compare?${query}`);
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    },
   });
 
   const data = await response.json();
@@ -346,7 +439,20 @@ export async function getComparisonAssessments(id1, id2) {
  * @returns {Promise<Object>} Global statistics including market data and assessment stats
  */
 export async function getGlobalStats() {
-  return requestJson('/api/analytics/global-stats');
+  // Public endpoint - no auth required, but still use proxy in production
+  const url = buildApiUrl('/api/analytics/global-stats');
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const message = data?.error || data?.message || `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+
+  return data;
 }
 
 /**
