@@ -1,34 +1,62 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 echo "⫸ Checking builds in all workspaces..."
-npm run build || { echo "✕ Build failed! Check your code before pushing."; exit 1; }
 
-echo "⫸ Running test suites..."
-npm test || { echo "✕ Tests failed! Push aborted."; exit 1; }
+# ─── Parse push options ──────────────────────────────────────────────
+SKIP_BUILD=false
+SKIP_TESTS=false
+SKIP_MIGRATION=false
 
-echo "⫸ Running uptime schema migration..."
-# Husky runs in a minimal shell that doesn't source project .env files.
-# We load env/.env.backend.production explicitly so that SUPABASE_CONNECTION_STRING
-# is available to psql.
-ENV_FILE="env/.env.backend.production"
-
-if [ ! -f "$ENV_FILE" ]; then
-  echo "✕ Env file not found at $ENV_FILE. Push aborted."
-  exit 1
+if [ -n "$GIT_PUSH_OPTION_COUNT" ]; then
+  for i in $(seq 0 $((GIT_PUSH_OPTION_COUNT - 1))); do
+    opt="GIT_PUSH_OPTION_$i"
+    case "${!opt}" in
+      skip-build)      SKIP_BUILD=true ;;
+      skip-tests)      SKIP_TESTS=true ;;
+      skip-migration)  SKIP_MIGRATION=true ;;
+    esac
+  done
 fi
 
-# Export vars from the env file, skipping blank lines and comments
-set -a
-# shellcheck disable=SC1090
-. "$ENV_FILE"
-set +a
-
-if [ -z "$SUPABASE_CONNECTION_STRING" ]; then
-  echo "✕ SUPABASE_CONNECTION_STRING is not set in $ENV_FILE. Push aborted."
-  exit 1
+# ─── Build ───────────────────────────────────────────────────────────
+if [ "$SKIP_BUILD" = true ]; then
+  echo "⫸ Skipping build (push option: skip-build)"
+else
+  npm run build || { echo "✕ Build failed! Check your code before pushing."; exit 1; }
 fi
 
-psql "$SUPABASE_CONNECTION_STRING" -f backend/database/migrations/07_uptime_monitor.sql \
-  || { echo "✕ Migration failed! Push aborted."; exit 1; }
+# ─── Tests ───────────────────────────────────────────────────────────
+if [ "$SKIP_TESTS" = true ]; then
+  echo "⫸ Skipping tests (push option: skip-tests)"
+else
+  echo "⫸ Running test suites..."
+  npm test || { echo "✕ Tests failed! Push aborted."; exit 1; }
+fi
+
+# ─── Migration ───────────────────────────────────────────────────────
+if [ "$SKIP_MIGRATION" = true ]; then
+  echo "⫸ Skipping migration (push option: skip-migration)"
+else
+  echo "⫸ Running uptime schema migration..."
+
+  ENV_FILE="env/.env.backend.production"
+  if [ ! -f "$ENV_FILE" ]; then
+    echo "✕ Env file not found at $ENV_FILE. Push aborted."
+    exit 1
+  fi
+
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+
+  if [ -z "$SUPABASE_CONNECTION_STRING" ]; then
+    echo "✕ SUPABASE_CONNECTION_STRING is not set in $ENV_FILE. Push aborted."
+    exit 1
+  fi
+
+  psql "$SUPABASE_CONNECTION_STRING" -f backend/database/migrations/07_uptime_monitor.sql \
+    || { echo "✕ Migration failed! Push aborted."; exit 1; }
+fi
 
 echo "✓ Everything looks good. Pushing now..."
