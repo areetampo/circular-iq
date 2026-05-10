@@ -5,11 +5,12 @@
 /**
  * Log API operation
  * @param {string} operation - Operation name
+ * @param {string} path - API endpoint path
  * @param {string} status - Operation status
  * @param {number} duration - Duration in milliseconds
  */
-export function logOperation(operation, status, duration) {
-  logger.logOperation(operation, status, duration);
+export function logOperation(operation, path, status, duration) {
+  logger.logOperation(operation, path, status, duration);
 }
 
 /**

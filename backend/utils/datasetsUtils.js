@@ -42,18 +42,18 @@ const __dirname = path.dirname(__filename);
 // =============================================================================
 
 //* root of the backend project (one level up from utils/)
-export const BACKEND_ROOT = path.resolve(__dirname, '..');
+const BACKEND_ROOT = path.resolve(__dirname, '..');
 //* dataset directory moved out of utils; reference via backend root
-export const DATASETS_DIR = path.join(BACKEND_ROOT, 'datasets');
-export const DATASETS_RAW_DIR = path.join(DATASETS_DIR, 'raw');
+const DATASETS_DIR = path.join(BACKEND_ROOT, 'datasets');
+const DATASETS_RAW_DIR = path.join(DATASETS_DIR, 'raw');
 export const DATASETS_PROCESSED_DIR = path.join(DATASETS_DIR, 'processed');
 export const DATASETS_MANUAL_ENTRIES_DIR = path.join(DATASETS_DIR, 'manual_entries');
 export const DATASETS_SCRIPTS_DIR = path.join(DATASETS_DIR, 'scripts');
 
 //* archived output files stored at root of archives/
-export const DATASETS_ARCHIVES_DIR = path.join(DATASETS_DIR, 'archives');
+const DATASETS_ARCHIVES_DIR = path.join(DATASETS_DIR, 'archives');
 
-export const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_backup');
+const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_backup');
 //* subfolders are created within scrape_backup/ for specific datasets' backup,
 //* each containing a CSV file and a logs.txt file.
 
@@ -74,7 +74,7 @@ export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
 );
 
 //* archives test files
-export const ARCHIVES_TEST_DIR = path.join(DATASETS_ARCHIVES_DIR, 'test_files');
+const ARCHIVES_TEST_DIR = path.join(DATASETS_ARCHIVES_DIR, 'test_files');
 export const ARCHIVES_TEST_COMBINED_INPUT_CSV = path.join(
   ARCHIVES_TEST_DIR,
   'combined_input_test.csv',
@@ -99,7 +99,7 @@ export const ARCHIVES_TEST_STORED_DOCUMENTS_JSONL = path.join(
 // placed directly inside archives/.
 
 //* output directory holds generated artifacts that are safe to regenerate
-export const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
+const DATASETS_OUTPUT_DIR = path.join(DATASETS_DIR, 'out');
 
 export const OUT_COMBINED_INPUT_CSV = path.join(DATASETS_OUTPUT_DIR, 'combined_input.csv');
 export const OUT_COMBINED_INPUT_FINAL_CSV = path.join(
@@ -111,7 +111,7 @@ export const OUT_EMBEDDED_CHUNKS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'embedde
 export const OUT_STORED_DOCUMENTS_JSONL = path.join(DATASETS_OUTPUT_DIR, 'stored_documents.jsonl');
 
 //* out test files
-export const OUT_TEST_DIR = path.join(DATASETS_OUTPUT_DIR, 'test_files');
+const OUT_TEST_DIR = path.join(DATASETS_OUTPUT_DIR, 'test_files');
 export const OUT_TEST_COMBINED_INPUT_CSV = path.join(OUT_TEST_DIR, 'combined_input_test.csv');
 export const OUT_TEST_COMBINED_INPUT_FINAL_CSV = path.join(
   OUT_TEST_DIR,
@@ -125,7 +125,7 @@ export const OUT_TEST_STORED_DOCUMENTS_JSONL = path.join(
 );
 
 //* datasets/for_search
-export const DATASETS_FOR_SEARCH_DIR = path.join(DATASETS_DIR, 'for_search');
+const DATASETS_FOR_SEARCH_DIR = path.join(DATASETS_DIR, 'for_search');
 export const DATASETS_FOR_SEARCH_COMBINED_INPUT_CSV = path.join(
   DATASETS_FOR_SEARCH_DIR,
   'combined_input.csv',
@@ -136,7 +136,7 @@ export const DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON = path.joi
 );
 
 //* datasets/test_inputs for storing sample inputs (pipeline/generate_test_inputs) + running them through scoring and saving their results (pipeline/run_test_assessments)
-export const DATASETS_TEST_INPUTS_DIR = path.join(DATASETS_DIR, 'test_inputs');
+const DATASETS_TEST_INPUTS_DIR = path.join(DATASETS_DIR, 'test_inputs');
 export const DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON = path.join(
   DATASETS_TEST_INPUTS_DIR,
   'generated_inputs.json',
@@ -156,7 +156,7 @@ export const DATASETS_TEST_INPUTS_POKEMON_NAMES_JSON = path.join(
 
 // Number of digits for zero-padding IDs (e.g., 00001). Adjust as needed for expected dataset sizes.
 // With 5 digits, we can handle up to 99,999 entries before switching to natural expansion (100000, 100001, etc.) without breaking the ID format.
-export const ID_DIGITS = 5;
+const ID_DIGITS = 5;
 
 /**
  * Dataset registry
@@ -173,7 +173,7 @@ export const ID_DIGITS = 5;
  *   prefix             auto-generated as key + '_'
  *   scrape_backup_folder name of the folder inside archives/scrape_backup/ (or null if no backup)
  */
-export const DATASETS = [
+const DATASETS = [
   {
     key: 'c2c',
     name: 'C2C Registry',
@@ -1010,7 +1010,7 @@ export function getDatasetBackupFolderPath(key) {
  * Get the full path to a dataset's backup CSV file.
  * The CSV filename is the folder name + '.csv'.
  */
-export function getDatasetBackupCsvPath(key) {
+function getDatasetBackupCsvPath(key) {
   const folder = getDatasetBackupFolderPath(key);
   if (!folder) return null;
   const folderName = path.basename(folder);
@@ -1109,7 +1109,7 @@ export function verifyPathsExist(paths) {
  *   await ensureFile(outputPath);
  *   now write/append freely, file is guaranteed to exist
  */
-export async function ensureFile(filePath) {
+async function ensureFile(filePath) {
   const dir = path.dirname(filePath);
   await ensureDir(dir);
   try {
@@ -1127,7 +1127,7 @@ export async function ensureFile(filePath) {
  *
  * Mirrors the behaviour: create parent directory, touch empty file if missing.
  */
-export function ensureFileSync(filePath) {
+function ensureFileSync(filePath) {
   const dir = path.dirname(filePath);
   fs.mkdirSync(dir, { recursive: true });
   if (fs.existsSync(filePath)) {
@@ -1196,7 +1196,7 @@ export function hasAppendBackupFlag() {
 }
 
 // generic helper used by new tests and scripts that accept `--append`
-export function hasAppendFlag() {
+function hasAppendFlag() {
   return process.argv.includes('--append');
 }
 
@@ -1458,7 +1458,7 @@ export async function writeJson(filePath, obj) {
  * @param {Object} [opts]
  * @param {boolean} opts.clear - if true, delete existing contents first
  */
-export async function appendToArchive(key, rows, opts = {}) {
+async function appendToArchive(key, rows, opts = {}) {
   const { clear = false } = opts;
   const csvPath = getDatasetBackupCsvPath(key);
   if (!csvPath) return; // dataset has no backup folder defined
@@ -1840,7 +1840,7 @@ export const STRINGIFY_OPTIONS = {
  * @param {number} index - sequential numeric ID
  * @returns {string} formatted ID ready for CSV output
  */
-export function formatId(DATASET_KEY, index) {
+function formatId(DATASET_KEY, index) {
   const baseLimit = Math.pow(10, ID_DIGITS) - 1;
 
   if (index <= baseLimit) {

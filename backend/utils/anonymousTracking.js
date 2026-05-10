@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 // Configuration
-export const MAX_FREE_TRIES = BACKEND_CONFIG.app.maxFreeTries;
+export const SCORING_MAX_FREE_TRIES = BACKEND_CONFIG.scoring.maxFreeTries;
 
 /**
  * Extract real IP address handling proxies
