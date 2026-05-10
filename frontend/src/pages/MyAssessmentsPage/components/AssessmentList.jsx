@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button, Chip, CopyIcon, Separator, Spinner, Tilt3D } from '@/components/common';
-import { useAssessmentHandlers } from '@/features/export/assessmentHandlers';
+import { useAssessmentHandlers } from '@/features/export';
 import { formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
@@ -153,7 +153,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 
   return (
     <Tilt3D
-      rotateRange={{ x: 2, y: 3 }}
+      rotateRange={{ x: 2, y: 1 }}
       block
       className={cn(
         'group relative mb-2 block rounded-xl border-2 p-4 transition-all duration-200',
@@ -333,7 +333,7 @@ AssessmentListItem.propTypes = {
 };
 
 // Skeleton Components
-export const AssessmentCardSkeleton = () => (
+const AssessmentCardSkeleton = () => (
   <div className="group relative cursor-pointer rounded-xl border-2 border-(--color-drawer-border) bg-(--color-bg-card-faint) p-4 transition-all duration-200">
     {/* Main content row */}
     <div className="flex items-start gap-3">
@@ -441,6 +441,3 @@ export const AssessmentList = ({ assessments, selectedIds, ...props }) => (
 AssessmentList.propTypes = {
   assessments: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
-
-export default AssessmentListItem;
-export { AssessmentListItem };

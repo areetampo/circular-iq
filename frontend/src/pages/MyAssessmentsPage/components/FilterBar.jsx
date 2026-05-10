@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 
-import { IndustryFilterChip } from './IndustryFilterChip';
+import IndustryFilterChip from './IndustryFilterChip';
 
-export function FilterBar({
+export default function FilterBar({
   sortBy,
   setSortBy,
   setPage,
@@ -75,7 +75,7 @@ export function FilterBar({
           </Select>
         </div>
 
-        {/* Compare button */}
+        {/* 'to share page', 'to compare page', 'compare selected assessments' buttons */}
         <div className="flex items-center justify-center gap-2">
           <Button
             variant="ghost"
@@ -114,7 +114,7 @@ export function FilterBar({
             <Tooltip.Content showArrow placement="top">
               <p>
                 {selectedIds.size === 2
-                  ? 'Compare these two assessments'
+                  ? 'Compare the two selected assessments'
                   : 'Select exactly 2 assessments to compare'}
               </p>
             </Tooltip.Content>
@@ -153,5 +153,3 @@ FilterBar.propTypes = {
   selectedIds: PropTypes.instanceOf(Set).isRequired,
   compareUrl: PropTypes.string,
 };
-
-export default FilterBar;

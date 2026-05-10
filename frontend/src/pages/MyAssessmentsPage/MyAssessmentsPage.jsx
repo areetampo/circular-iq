@@ -9,11 +9,12 @@ import { Button, DetailsDisplay } from '@/components/common';
 import { INDUSTRY_OPTIONS } from '@/constants/industries';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { getAssessments, updateAssessment } from '@/features/assessments/api/assessmentApi';
-import { usePrefetchAssessment } from '@/features/assessments/hooks/useAssessment';
-import { useAssessments } from '@/features/assessments/hooks/useAssessments';
-import { useAssessmentStats } from '@/features/assessments/hooks/useAssessmentStats';
-import { useAuth } from '@/hooks/useAuth';
-import { useDebounce } from '@/hooks/useDebounce';
+import {
+  useAssessments,
+  useAssessmentStats,
+  usePrefetchAssessment,
+} from '@/features/assessments/hooks';
+import { useAuth, useDebounce } from '@/hooks';
 import { toTitleCase } from '@/lib/formatting';
 import { getSessionId } from '@/utils/session';
 import { parseSortBy } from '@/utils/sortUtils';
@@ -456,33 +457,28 @@ export default function MyAssessmentsPage() {
         </div>
 
         {/* FilterBar Skeleton */}
-        <div className="my-6 mt-8 space-y-3">
+        <div className="my-6 space-y-3">
           {/* Search input skeleton */}
           <div className="relative">
             <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-(--color-text-muted)">
               <Skeleton animationType="shimmer" className="size-4" />
             </div>
-            <Skeleton
-              animationType="shimmer"
-              className="h-9 w-full rounded-xl bg-(--color-input-bg) pr-4 pl-9"
-            />
+            <Skeleton animationType="shimmer" className="h-9 w-full rounded-xl pr-4 pl-9" />
           </div>
 
-          {/* Sort + Compare button row skeleton */}
+          {/* Sort + Button row skeleton */}
           <div className="flex items-center justify-between gap-3">
             {/* Sort select skeleton */}
             <div className="max-w-50 flex-1">
-              <Skeleton
-                animationType="shimmer"
-                className="h-9 w-full rounded-md bg-(--color-input-bg) pr-10"
-              />
+              <Skeleton animationType="shimmer" className="h-9 w-full pr-10" />
             </div>
 
-            {/* Compare button skeleton */}
-            <Skeleton
-              animationType="shimmer"
-              className="h-9 w-32 rounded-md bg-(--color-input-bg)"
-            />
+            {/* 'to share page', 'to compare page', 'compare selected assessments' buttons skeleton */}
+            <div className="flex items-center gap-2">
+              <Skeleton animationType="shimmer" className="h-9 w-40" />
+              <Skeleton animationType="shimmer" className="h-9 w-40" />
+              <Skeleton animationType="shimmer" className="h-9 w-40" />
+            </div>
           </div>
 
           {/* Industry filter chips skeleton */}
@@ -490,11 +486,7 @@ export default function MyAssessmentsPage() {
             {Array(12)
               .fill(0)
               .map((_, i) => (
-                <Skeleton
-                  key={i}
-                  animationType="shimmer"
-                  className="h-6 w-20 rounded-full! bg-(--color-input-bg)"
-                />
+                <Skeleton key={i} animationType="shimmer" className="ro h-6 w-20" />
               ))}
           </div>
         </div>
@@ -585,8 +577,6 @@ export default function MyAssessmentsPage() {
           }
 
           const detailCacheKey = ['assessment', id];
-          const previousAssessments = queryClient.getQueriesData({ queryKey: ['assessments'] });
-          const previousAssessment = queryClient.getQueryData(detailCacheKey);
 
           queryClient.setQueriesData({ queryKey: ['assessments'] }, (old) => {
             if (!old || !old.assessments) return old;

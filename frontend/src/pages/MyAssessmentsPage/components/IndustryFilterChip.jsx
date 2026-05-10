@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import { Chip } from '@/components/common';
-import { getIndustryTheme } from '@/constants/industryThemes';
 
 const IndustryFilterChip = React.memo(function IndustryFilterChip({
   industry,
@@ -10,8 +9,6 @@ const IndustryFilterChip = React.memo(function IndustryFilterChip({
   onToggle,
   label,
 }) {
-  const theme = getIndustryTheme(industry);
-
   return (
     <Chip
       variant="filter"
@@ -31,5 +28,4 @@ IndustryFilterChip.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-export { IndustryFilterChip };
 export default IndustryFilterChip;

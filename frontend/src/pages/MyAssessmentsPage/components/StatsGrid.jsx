@@ -1,4 +1,5 @@
 import { Popover } from '@heroui/react';
+import { Minus } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Button, Tilt3D } from '@/components/common';
@@ -35,7 +36,7 @@ const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
   </Tilt3D>
 );
 
-export function StatsGrid({
+export default function StatsGrid({
   averageScore,
   totalAssessments,
   highestScore,
@@ -54,6 +55,10 @@ export function StatsGrid({
   const displayIndustries =
     topIndustries && topIndustries.length > 0
       ? topIndustries
+          .filter((item) => {
+            const name = getIndustryName(item.industry).toLowerCase();
+            return name !== 'other' && name !== 'general';
+          })
           .map((item) => ({
             ...item,
             industry: getIndustryName(item.industry),
@@ -140,7 +145,11 @@ export function StatsGrid({
                 </Popover.Trigger>
                 <Popover.Content className="min-w-50" placement="bottom">
                   <Popover.Dialog>
-                    <Popover.Heading className="uppercase">top industries</Popover.Heading>
+                    <Popover.Heading className="flex items-center gap-1 uppercase">
+                      <span>Industries</span>
+                      <Minus size={16} strokeWidth={2} />
+                      <span className="font-mono">{displayIndustries.length}</span>
+                    </Popover.Heading>
                     {displayIndustries.map((item, index) => {
                       // Handle different possible data structures
                       const industryName = item.industry || (typeof item === 'string' ? item : '');
