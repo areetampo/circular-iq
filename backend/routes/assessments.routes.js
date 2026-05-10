@@ -7,25 +7,11 @@
 
 import express from 'express';
 
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as assessmentsController from '#controllers/assessments.controller.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 import { validateAssessment } from '#middleware/validation.middleware.js';
-
-const IS_PROD = BACKEND_CONFIG.isProduction;
-
-/**
- * Log API request/response
- * @private
- */
-function logRequest(method, path, status, duration) {
-  if (!IS_PROD) {
-    logger.info(
-      { method, path, status, duration, ts: new Date().toISOString() },
-      'Route request complete',
-    );
-  }
-}
+import { authenticateRequest } from '#services/auth.service.js';
+import { logOperation } from '#utils/controller-helpers.js';
 
 /**
  * Create assessments router
@@ -50,12 +36,13 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.body,
         token,
       );
-      logRequest('POST', '/assessments', 201, Date.now() - startTime);
+      logOperation('POST', '/assessments', 201, Date.now() - startTime);
       res.status(201).json(result);
     } catch (err) {
       logger.error({ err }, 'Error saving assessment');
-      logRequest('POST', '/assessments', 500, Date.now() - startTime);
-      res.status(500).json({
+      const statusCode = err.code === 'TITLE_LENGTH_INVALID' ? 400 : 500;
+      logOperation('POST', '/assessments', statusCode, Date.now() - startTime);
+      res.status(statusCode).json({
         error: err.message || 'Failed to save assessment',
         code: err.code || 'INTERNAL_ERROR',
         timestamp: new Date().toISOString(),
@@ -77,11 +64,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         token,
         req.query,
       );
-      logRequest('GET', '/assessments', 200, Date.now() - startTime);
+      logOperation('GET', '/assessments', 200, Date.now() - startTime);
       res.json(result);
     } catch (err) {
       logger.error({ err }, 'Error fetching assessments');
-      logRequest('GET', '/assessments', 500, Date.now() - startTime);
+      logOperation('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json({
         error: err.message || 'Failed to fetch assessments',
         code: err.code || 'INTERNAL_ERROR',
@@ -103,11 +90,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
         req.user,
         token,
       );
-      logRequest('GET', '/assessments/stats', 200, Date.now() - startTime);
+      logOperation('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
     } catch (err) {
       logger.error({ err }, 'Error fetching assessment stats');
-      logRequest('GET', '/assessments/stats', 500, Date.now() - startTime);
+      logOperation('GET', '/assessments/stats', 500, Date.now() - startTime);
       res.status(500).json({
         error: err.message || 'Failed to fetch assessment statistics',
         code: err.code || 'INTERNAL_ERROR',
@@ -118,20 +105,31 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /public/:publicId
-   * Retrieve a publicly shared assessment (no auth required)
+   * Retrieve a publicly shared assessment (optional auth for ownership check)
    */
-  router.get('/public/:publicId', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/public/:publicId', async (req, res) => {
     const startTime = Date.now();
     try {
+      // Handle optional authentication using centralized auth service
+      const { user } = await authenticateRequest(req, serviceSupabase, {
+        required: false,
+      });
+
       const result = await assessmentsController.getPublicAssessment(
         serviceSupabase,
+        user,
         req.params.publicId,
       );
-      logRequest('GET', `/assessments/public/${req.params.publicId}`, 200, Date.now() - startTime);
+      logOperation(
+        'GET',
+        `/assessments/public/${req.params.publicId}`,
+        200,
+        Date.now() - startTime,
+      );
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logRequest(
+      logOperation(
         'GET',
         `/assessments/public/${req.params.publicId}`,
         statusCode,
@@ -149,14 +147,20 @@ export default function createAssessmentsRouter(serviceSupabase) {
    * GET /validate/:publicId
    * Validate a public assessment ID exists and is shareable
    */
-  router.get('/validate/:publicId', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/validate/:publicId', async (req, res) => {
     const startTime = Date.now();
     try {
+      // Handle optional authentication using centralized auth service
+      const { user } = await authenticateRequest(req, serviceSupabase, {
+        required: false,
+      });
+
       const result = await assessmentsController.validatePublicId(
         serviceSupabase,
         req.params.publicId,
+        user,
       );
-      logRequest(
+      logOperation(
         'GET',
         `/assessments/validate/${req.params.publicId}`,
         200,
@@ -172,7 +176,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
             : error.code === 'FORBIDDEN'
               ? 403
               : 500;
-      logRequest(
+      logOperation(
         'GET',
         `/assessments/validate/${req.params.publicId}`,
         statusCode,
@@ -187,31 +191,68 @@ export default function createAssessmentsRouter(serviceSupabase) {
    * Compare two assessments by publicId with visibility rules
    * Query params: id1, id2 (both required)
    * Supports cross-user comparison with privacy enforcement
-   * Public endpoint - no authentication required
+   * Allows both authenticated and unauthenticated access
    *
    * NOTE: This route must appear before `GET /:publicId` to avoid the dynamic
    * param route capturing the literal path segment `compare`.
    */
-  router.get('/compare', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/compare', async (req, res) => {
     const startTime = Date.now();
     const { id1, id2 } = req.query;
 
+    // logger.info(
+    //   {
+    //     query: req.query,
+    //     id1,
+    //     id2,
+    //     types: { id1: typeof id1, id2: typeof id2 },
+    //     falsy: { id1: !id1, id2: !id2 },
+    //     details: {
+    //       id1_length: id1 ? id1.length : 'null',
+    //       id2_length: id2 ? id2.length : 'null',
+    //       id1_trimmed: id1 ? id1.trim() : 'null',
+    //       id2_trimmed: id2 ? id2.trim() : 'null',
+    //       id1_empty_after_trim: id1 ? id1.trim() === '' : 'null',
+    //       id2_empty_after_trim: id2 ? id2.trim() === '' : 'null',
+    //       id1_constructor: id1 ? id1.constructor.name : 'null',
+    //       id2_constructor: id2 ? id2.constructor.name : 'null',
+    //     },
+    //   },
+    //   '[COMPARE_ROUTE_DEBUG] Query params received',
+    // );
+
     try {
-      if (!id1 || !id2) {
+      // More robust validation - check for null, undefined, empty string, or whitespace-only
+      if (!id1 || !id2 || id1.trim() === '' || id2.trim() === '') {
         throw {
           code: 'INVALID_IDS',
           message: 'Query parameters id1 and id2 are required',
         };
       }
 
+      // Handle optional authentication using centralized auth service
+      const { user } = await authenticateRequest(req, serviceSupabase, {
+        required: false,
+      });
+
+      // logger.info('[COMPARE_DEBUG] Authentication result:', {
+      //   user: user ? { id: user.id, email: user.email } : null,
+      // });
+
+      // logger.info({ id1, id2 }, '[COMPARE_ROUTE_DEBUG] Calling controller with params');
+
       const result = await assessmentsController.compareAssessments(
         serviceSupabase,
-        req.user,
-        req.headers.authorization?.slice(7).trim(),
+        user,
         id1,
         id2,
       );
-      logRequest('GET', `/assessments/compare?id1=${id1}&id2=${id2}`, 200, Date.now() - startTime);
+      logOperation(
+        'GET',
+        `/assessments/compare?id1=${id1}&id2=${id2}`,
+        200,
+        Date.now() - startTime,
+      );
       res.json(result);
     } catch (error) {
       const statusCode =
@@ -224,7 +265,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
               : error.code === 'NOT_PUBLIC'
                 ? 403
                 : 500;
-      logRequest(
+      logOperation(
         'GET',
         `/assessments/compare?id1=${id1}&id2=${id2}`,
         statusCode,
@@ -246,18 +287,21 @@ export default function createAssessmentsRouter(serviceSupabase) {
   router.get('/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
-      const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.getAssessmentById(
         serviceSupabase,
         req.user,
-        token,
         req.params.publicId,
       );
-      logRequest('GET', `/assessments/${req.params.publicId}`, 200, Date.now() - startTime);
+      logOperation('GET', `/assessments/${req.params.publicId}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logRequest('GET', `/assessments/${req.params.publicId}`, statusCode, Date.now() - startTime);
+      logOperation(
+        'GET',
+        `/assessments/${req.params.publicId}`,
+        statusCode,
+        Date.now() - startTime,
+      );
       res.status(statusCode).json({
         error: error.message || 'Failed to fetch assessment',
         code: error.code || 'INTERNAL_ERROR',
@@ -273,19 +317,22 @@ export default function createAssessmentsRouter(serviceSupabase) {
   router.patch('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
-      const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.updateAssessment(
         serviceSupabase,
         req.user,
-        token,
         req.params.id,
         req.body,
       );
-      logRequest('PATCH', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
+      logOperation('PATCH', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
-      const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logRequest('PATCH', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
+      let statusCode = 500;
+      if (error.code === 'NOT_FOUND') {
+        statusCode = 404;
+      } else if (error.code === 'TITLE_LENGTH_INVALID') {
+        statusCode = 400;
+      }
+      logOperation('PATCH', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
       res.status(statusCode).json({
         error: error.message || 'Failed to update assessment',
         code: error.code || 'INTERNAL_ERROR',
@@ -301,18 +348,16 @@ export default function createAssessmentsRouter(serviceSupabase) {
   router.delete('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
     try {
-      const token = req.headers.authorization?.slice(7).trim();
       const result = await assessmentsController.deleteAssessment(
         serviceSupabase,
         req.user,
-        token,
         req.params.id,
       );
-      logRequest('DELETE', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
+      logOperation('DELETE', `/assessments/${req.params.id}`, 200, Date.now() - startTime);
       res.json(result);
     } catch (error) {
       const statusCode = error.code === 'NOT_FOUND' ? 404 : 500;
-      logRequest('DELETE', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
+      logOperation('DELETE', `/assessments/${req.params.id}`, statusCode, Date.now() - startTime);
       res.status(statusCode).json({
         error: error.message || 'Failed to delete assessment',
         code: error.code || 'INTERNAL_ERROR',
