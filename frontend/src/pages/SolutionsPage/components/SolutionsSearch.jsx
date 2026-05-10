@@ -15,11 +15,11 @@ import {
 } from '@/components/common';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { searchCeCases } from '@/features/search/searchApi';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from '@/hooks';
 import { formatProcessingTime } from '@/lib/formatting';
 import { getMatchStrength } from '@/utils/content';
 
-import { FilterSidebar } from './index';
+import FilterSidebar from './FilterSidebar';
 
 function ResultCard({ result, isHybridMode }) {
   const {
@@ -206,38 +206,24 @@ function ResultsGrid({ results, isHybridMode }) {
 
 // Sub-components for cleaner rendering logic
 function IdleState() {
-  return (
-    <div className="flex items-center justify-center">
-      <DetailsBadge variant="info" message="Type to search" icon={Keyboard} />
-    </div>
-  );
+  return <DetailsBadge variant="info" message="Type to search" icon={Keyboard} />;
 }
 
 function LoadingState() {
-  return (
-    <div className="flex items-center justify-center">
-      <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} />
-    </div>
-  );
+  return <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} />;
 }
 
 function ErrorState({ error }) {
   return (
-    <div className="flex items-center justify-center">
-      <DetailsBadge
-        variant="error"
-        message={`Error: ${error?.message || 'Failed to fetch solutions'}`}
-      />
-    </div>
+    <DetailsBadge
+      variant="error"
+      message={`Error: ${error?.message || 'Failed to fetch solutions'}`}
+    />
   );
 }
 
 function EmptyState({ query }) {
-  return (
-    <div className="flex items-center justify-center">
-      <DetailsBadge variant="warning" message={`No results found for '${query}'`} />
-    </div>
-  );
+  return <DetailsBadge variant="warning" message={`No results found for '${query}'`} />;
 }
 
 export default function SolutionsSearch() {

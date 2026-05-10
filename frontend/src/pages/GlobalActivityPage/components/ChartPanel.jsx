@@ -9,9 +9,8 @@ import { Tilt3D } from '@/components/common';
  * @param {ReactNode} props.children - Content to render in panel body
  * @param {boolean} [props.isLoading] - Whether data is currently loading
  * @param {string} [props.error] - Error message to display
- * @param {string} [props.chartHeight] - Height for skeleton placeholder
  */
-export default function ChartPanel({ title, children, isLoading, error, chartHeight }) {
+export default function ChartPanel({ title, children, isLoading, error }) {
   return (
     <Tilt3D
       rotateRange={{ x: 2, y: 3 }}
@@ -46,6 +45,4 @@ ChartPanel.propTypes = {
   isLoading: PropTypes.bool,
   /** Error message to display */
   error: PropTypes.string,
-  /** Height for skeleton placeholder */
-  chartHeight: PropTypes.string,
 };

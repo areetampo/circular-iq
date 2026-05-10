@@ -21,24 +21,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chip, Separator } from '@/components/common';
 import { cn } from '@/utils/cn';
 
-import { GUIDE_PAGE_CONTENT } from './content';
+import GUIDE_PAGE_CONTENT from './content/guidePageContent';
 
 // Reusable Section Heading Component
 const SectionHeading = ({ children }) => (
   <p className="mb-1 font-sans text-2xl font-medium text-(--color-text-primary)">{children}</p>
 );
-
-// Parameter category border colors
-const PARAM_CATEGORY_BORDER = {
-  public_participation: 'border-l-2 border-(--color-info)',
-  infrastructure: 'border-l-2 border-(--color-info)',
-  market_price: 'border-l-2 border-(--color-success)',
-  maintenance: 'border-l-2 border-(--color-success)',
-  uniqueness: 'border-l-2 border-(--color-success)',
-  size_efficiency: 'border-l-2 border-(--color-accent)',
-  chemical_safety: 'border-l-2 border-(--color-accent)',
-  tech_readiness: 'border-l-2 border-(--color-accent)',
-};
 
 // Navigation tree as specified in prompt
 const NAV_TREE = [

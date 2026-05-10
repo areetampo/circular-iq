@@ -2,8 +2,8 @@ import { Globe, RotateCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Button } from '@/components/common';
-import { useGlobalStats } from '@/features/assessments/hooks/useGlobalStats';
-import { useRelativeTime } from '@/hooks/useRelativeTime';
+import { useGlobalStats } from '@/features/assessments/hooks';
+import { useRelativeTime } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 /**
