@@ -19,6 +19,4 @@ export const logger = pino({
     : undefined,
 });
 
-logger.log = logger.info.bind(logger);
-
-logger.logOperation = (op, stat, dur) => logger.info({ op, stat, dur }, 'API Op');
+logger.logOperation = (op, path, stat, dur) => logger.info({ op, path, stat, dur }, 'API Op');
