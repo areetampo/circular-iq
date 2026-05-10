@@ -10,11 +10,12 @@ A production-grade PostgreSQL database system for circular economy assessment an
 - [Dual Backend Support](#dual-backend-support)
 - [Migration Sequence](#migration-sequence)
 - [Migration 01 — Vector Infrastructure (Core)](#migration-01--vector-infrastructure-core)
-- [Migration 02 — User Assessments](#migration-02--user-assessments)
-- [Migration 03 — User Profiles](#migration-03--user-profiles)
+- [Migration 02 — User Profiles](#migration-02--user-profiles)
+- [Migration 03 — User Assessments](#migration-03--user-assessments)
 - [Migration 04 — Anonymous Usage](#migration-04--anonymous-usage)
 - [Migration 05 — Scoring Results Log](#migration-05--scoring-results-log)
 - [Migration 06 — CE Cases (Core)](#migration-06--ce-cases-core)
+- [Migration 07 — Uptime Monitor](#migration-07--uptime-monitor)
 - [RPC Functions Reference](#rpc-functions-reference)
 - [Repository Layer](#repository-layer)
 - [Client & Connection Management](#client--connection-management)
@@ -93,15 +94,16 @@ DB_IDLE_TIMEOUT_MS=30000
 
 ## Migration Sequence
 
-Migrations live in `backend/database/migrations/`. Run them **in order** via the Supabase SQL editor or `psql`. Every migration is idempotent: it drops conflicting tables and functions before re-creating them, so it is safe to re-run.
+Migrations live in `backend/database/migrations/`. Run them **in order** via Supabase SQL editor or `psql`. Every migration is idempotent: it drops conflicting tables and functions before re-creating them, so it is safe to re-run.
 
 ```txt
-01_vector_infrastructure.sql  ← pgvector setup, documents table, all search functions
-02_user_assessments.sql       ← assessment storage, triggers, RLS
-03_user_profiles.sql          ← user profiles, assessment counter sync
-04_anonymous_usage.sql        ← anonymous rate-limiting
-05_results_logs.sql           ← immutable scoring audit log
-06_ce_cases.sql               ← circular economy reference library with hybrid search
+01_vector_infrastructure.sql  ← pgvector + halfvec extension, documents table + HNSW index
+02_user_profiles.sql          ← user_profiles table
+03_user_assessments.sql       ← assessments table (v3) + get_market_data/get_assessment_statistics RPCs
+04_anonymous_usage.sql        ← anonymous_usage table + rate limiting logic
+05_results_logs.sql           ← scoring_results_log table (append-only audit log)
+06_ce_cases.sql               ← ce_cases table with hybrid search functions
+07_uptime_monitor.sql        ← uptime_checks table for monitoring history
 ```
 
 ---
@@ -194,9 +196,9 @@ Documents are public reference data. A single `documents_access_policy` allows a
 
 ---
 
-## Migration 02 — User Assessments
+## Migration 03 — User Assessments
 
-**File:** `02_user_assessments.sql`
+**File:** `03_user_assessments.sql`
 
 Stores the complete lifecycle of a circular economy assessment — from user-supplied inputs through multi-layer AI scoring to final audit results.
 
@@ -239,9 +241,9 @@ Defined in `queries/get_assessment_statistics_BUG.sql`. Returns aggregated stati
 
 ---
 
-## Migration 03 — User Profiles
+## Migration 02 — User Profiles
 
-**File:** `03_user_profiles.sql`
+**File:** `02_user_profiles.sql`
 
 User profiles are tightly coupled to Supabase auth. The `profiles.id` is a direct foreign key to `auth.users(id)`.
 
@@ -396,6 +398,57 @@ CE cases are read-only reference data for authenticated and anonymous users. Onl
 
 ---
 
+## Migration 07 — Uptime Monitor
+
+**File:** `07_uptime_monitor.sql`
+
+Creates the uptime monitoring infrastructure for tracking backend health check history. The backend polls endpoints every 30 seconds and stores results in this table with a 7-day retention policy.
+
+### The `uptime_checks` Table
+
+Stores historical health check results from backend-side polling with efficient querying by endpoint and time.
+
+**Key columns:**
+
+| Column             | Type        | Purpose                                                                  |
+| ------------------ | ----------- | ------------------------------------------------------------------------ |
+| `id`               | UUID        | Primary key                                                              |
+| `endpoint_id`      | TEXT        | Identifier of the health endpoint (e.g., 'health', 'database', 'openai') |
+| `status`           | TEXT        | Status string from the health endpoint response                          |
+| `up`               | BOOLEAN     | Boolean indicating if the endpoint was reachable and returning OK        |
+| `response_time_ms` | INTEGER     | Response time in milliseconds                                            |
+| `payload`          | JSONB       | Full JSON payload returned by the health endpoint                        |
+| `created_at`       | TIMESTAMPTZ | Timestamp of the health check                                            |
+
+### Indexes on `uptime_checks`
+
+| Index                         | Type       | Purpose                           |
+| ----------------------------- | ---------- | --------------------------------- |
+| `idx_uptime_endpoint_created` | btree DESC | Fast queries by endpoint and time |
+| `idx_uptime_created_at`       | btree      | Time-based cleanup queries        |
+
+### RLS on `uptime_checks`
+
+Public read/write access (no authentication required) for the uptime monitoring system.
+
+### Autovacuum Tuning
+
+Table is configured with reduced autovacuum thresholds to prevent bloat from high-frequency inserts/deletes:
+
+- `autovacuum_vacuum_scale_factor = 0.02`
+- `autovacuum_analyze_scale_factor = 0.01`
+
+### Cleanup Function
+
+**`cleanup_old_uptime_checks(days INTEGER DEFAULT 7)`** — Deletes uptime check records older than the specified number of days. Uses `TRUNCATE` when `days=0` for complete table cleanup. Called daily by the backend server (production only).
+
+### Permissions
+
+- Full CRUD access granted to `anon`, `authenticated`, and `service_role` roles
+- Cleanup function executable only by `service_role`
+
+---
+
 ## RPC Functions Reference
 
 All functions are accessible via Supabase RPC (PostgREST) or direct SQL. The `documents` functions require vector arguments formatted as `extensions.halfvec(1536)`.
@@ -423,7 +476,7 @@ All functions are accessible via Supabase RPC (PostgREST) or direct SQL. The `do
 | `get_ce_cases_statistics()`                                                    | Totals, embedding coverage, strategy/category breakdown |
 | `truncate_ce_cases()`                                                          | Truncate table (service_role only)                      |
 
-### user assessments function (Migration 02)
+### user assessments function (Migration 03)
 
 | Function                               | Description                                  |
 | -------------------------------------- | -------------------------------------------- |
@@ -441,6 +494,12 @@ All functions are accessible via Supabase RPC (PostgREST) or direct SQL. The `do
 | Function                            | Description                                |
 | ----------------------------------- | ------------------------------------------ |
 | `cleanup_old_scoring_results_log()` | Delete scoring log rows older than 90 days |
+
+### uptime monitor functions (Migration 07)
+
+| Function                                  | Description                                                |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| `cleanup_old_uptime_checks(days INTEGER)` | Delete uptime checks older than specified days (default 7) |
 
 ---
 
