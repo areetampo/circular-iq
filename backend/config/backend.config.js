@@ -203,9 +203,11 @@ export const BACKEND_CONFIG = deepFreeze({
   },
 
   uptime: {
-    pollIntervalMs: 30_000, // 30 seconds
+    pollIntervalMs: 30 * 1000, // 30 seconds
     retentionDays: 7, // 7 days
     pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
+    cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
+    cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
     endpoints: UPTIME_ENDPOINTS.map((endpoint) => endpoint.path),
   },
 });

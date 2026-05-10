@@ -65,6 +65,8 @@ const baseEnvSchema = z.object({
 
   SCORING_MAX_FREE_TRIES: z.coerce.number().int().positive(),
 
+  UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema,
+
   LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']),
 
   API_AUTH_ENABLED: booleanSchema,
@@ -101,6 +103,8 @@ export const envSchema = baseEnvSchema
     USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
 
     SCORING_MAX_FREE_TRIES: z.coerce.number().int().positive().default(20),
+
+    UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema.default(true),
 
     LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']).default('info'),
 
