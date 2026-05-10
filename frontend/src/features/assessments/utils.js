@@ -1,15 +1,3 @@
-export function getAverageScore(item) {
-  return (
-    (typeof item.averageScore === 'number' && item.averageScore) ||
-    (typeof item.average_score === 'number' && item.average_score) ||
-    0
-  );
-}
-
-export function sortByAverageScoreDesc(a, b) {
-  return getAverageScore(b) - getAverageScore(a);
-}
-
 /**
  * Reconstruct the full scoring API response shape from a saved assessment row
  * @param {Object} assessment - Assessment row from database
@@ -67,8 +55,4 @@ export function reconstructScoringResult(assessment) {
       // Not stored, so omit or use defaults
     },
   };
-}
-
-export function sortByAverageScoreAsc(a, b) {
-  return getAverageScore(a) - getAverageScore(b);
 }

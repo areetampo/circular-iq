@@ -97,7 +97,7 @@ export function exportAssessmentCSV(assessments) {
     throw new Error('Assessment data is required');
   }
 
-  const assessmentData = filteredAssessments.map((assessment, index) => {
+  const assessmentData = filteredAssessments.map((assessment) => {
     const result = assessment.result_json || assessment;
     const metadata = result.metadata || {};
     const name = assessment.title;

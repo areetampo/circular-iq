@@ -7,8 +7,6 @@
 
 import jsPDF from 'jspdf';
 
-import { reconstructScoringResult } from '@/features/assessments/utils';
-
 // Page layout constants
 const PAGE_WIDTH = 210; // A4 width in mm
 const PAGE_HEIGHT = 297; // A4 height in mm
@@ -28,11 +26,9 @@ const COLOR_TEXT = '#1C1C1C'; // near-black body
 const COLOR_TEXT_MUTED = '#6B6560'; // muted labels
 const COLOR_PRIMARY = '#2D6A4F'; // deep forest green
 const COLOR_ACCENT = '#C2714F'; // warm terracotta
-const COLOR_GOLD = '#B5936A'; // muted gold
 const COLOR_SUCCESS = '#2D6A4F';
 const COLOR_WARNING = '#C77D34';
 const COLOR_DANGER = '#B5432A';
-const COLOR_WHITE = '#FFFFFF';
 const COLOR_HEADER_BG = '#1A1A1A';
 
 /**
@@ -503,17 +499,15 @@ function drawSimilarCaseCard(pdf, x, y, caseItem) {
 /**
  * Exports an assessment as a high-fidelity PDF report using programmatic jsPDF
  * @param {Object} assessment - Assessment data to export
- * @param {Object} options - Export options (unused in new implementation)
  * @returns {Promise<void>}
  */
-export async function exportAssessmentPDF(assessment, options = {}) {
+export async function exportAssessmentPDF(assessment) {
   if (!assessment) {
     throw new Error('Assessment data is required');
   }
 
   const result = assessment.result_json || assessment;
   const metadata = result.metadata || {};
-  const scoringResult = reconstructScoringResult(assessment);
 
   const assessmentName =
     assessment.title ||
@@ -1389,12 +1383,6 @@ export async function exportAssessmentPDF(assessment, options = {}) {
       Object.entries(gapAnalysis.comparisons).forEach(([factor, comparison], index) => {
         y = checkPageBreak(pdf, y, 12, state);
 
-        const statusColor = comparison.status?.includes('above')
-          ? COLOR_SUCCESS
-          : comparison.status?.includes('below')
-            ? COLOR_DANGER
-            : COLOR_WARNING;
-
         y = drawTableRow(
           pdf,
           MARGIN_LEFT,
@@ -1852,7 +1840,6 @@ export async function exportComparisonPDF(assessments) {
     drawHeader(pdf, state.title, state.subtitle);
     y = CONTENT_START_Y;
 
-    const result = assessment.result_json || assessment;
     const assessmentName = assessmentData[index].title;
 
     y = drawSectionHeading(pdf, MARGIN_LEFT, y, assessmentName);
@@ -2098,19 +2085,4 @@ export async function exportComparisonPDF(assessments) {
   // Save the PDF
   pdf.save(filename);
   return { success: true, message: 'Comparison PDF downloaded successfully' };
-}
-
-/**
- * Exports an audit report to PDF (legacy function)
- * @param {Object} auditData - Audit data to export
- * @param {Object} options - Export options
- * @returns {Promise<void>}
- */
-export async function exportAuditReportToPDF(auditData, options = {}) {
-  // This is a legacy function - redirect to the main export function
-  if (auditData.assessment) {
-    return exportAssessmentPDF(auditData.assessment, options);
-  }
-
-  throw new Error('Valid assessment data is required for audit report export');
 }

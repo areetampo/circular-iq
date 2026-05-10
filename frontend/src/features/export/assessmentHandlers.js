@@ -1,7 +1,7 @@
 import { toast } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 
-import { useExportState } from '@/hooks/useExportState';
+import { useExportState } from '@/hooks';
 
 // Helper function to normalize business context values to match form option values
 const normalizeBusinessContextValue = (field, value) => {
@@ -48,7 +48,7 @@ const ENABLE_REEVALUATE = true;
  * Uses useExportState and useNavigate internally for complete independence
  * @returns {Object} - Handler functions
  */
-export function useAssessmentHandlers() {
+export default function useAssessmentHandlers() {
   // Get navigation and export functions from hooks
   const navigate = useNavigate();
   const { isExporting, isExportingPDF, isExportingCSV, executeExport } = useExportState();
@@ -74,9 +74,7 @@ export function useAssessmentHandlers() {
 
     await executeExport(
       () =>
-        import('./exportPDF').then(({ exportAssessmentPDF }) =>
-          exportAssessmentPDF(assessment, { elementId: 'results-content' }),
-        ),
+        import('./exportPDF').then(({ exportAssessmentPDF }) => exportAssessmentPDF(assessment)),
       'PDF',
     );
   };
@@ -219,8 +217,3 @@ export function useAssessmentHandlers() {
     isExportingCSV,
   };
 }
-
-/**
- * Default export for backward compatibility
- */
-export default useAssessmentHandlers;
