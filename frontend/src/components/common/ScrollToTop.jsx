@@ -344,7 +344,8 @@ export default function ScrollToTop() {
         !currentPath.includes('/compare') &&
         currentPath.split('/').length === 3; // /assessments/:id format
 
-      const isAssessmentShareRoute = currentPath.startsWith('/assessments/share');
+      const isAssessmentShareRoute =
+        currentPath.startsWith('/assessments/share/') || currentPath === '/assessments/share';
       const isAssessmentCompareRoute = currentPath.startsWith('/assessments/compare');
 
       // Force scroll to top for assessment routes when not restored from navigation
