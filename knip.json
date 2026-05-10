@@ -8,13 +8,21 @@
       "ignore": ["src/setupTests.js"]
     },
     "backend": {
-      "entry": [
-        "pipeline/*.js",
-        "datasets/scripts/*.js",
-        "tests/**/*.test.js!",
-        "tests/**/*.js!",
-        "utils/*.test.js!"
-      ],
+      "paths": {
+        "#config/*": ["config/*"],
+        "#constants/*": ["constants/*"],
+        "#controllers/*": ["controllers/*"],
+        "#database/*": ["database/*"],
+        "#datasets/*": ["datasets/*"],
+        "#middleware/*": ["middleware/*"],
+        "#pipeline/*": ["pipeline/*"],
+        "#routes/*": ["routes/*"],
+        "#server/*": ["server/*"],
+        "#services/*": ["services/*"],
+        "#tests/*": ["tests/*"],
+        "#utils/*": ["utils/*"]
+      },
+      "entry": ["pipeline/*.js", "datasets/scripts/*.js", "tests/**/*.test.js!", "tests/**/*.js!"],
       "project": ["**/*.js!"]
     }
   }
