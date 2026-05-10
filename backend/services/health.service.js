@@ -6,7 +6,7 @@
 import { performance } from 'perf_hooks';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { getDatabaseClient, getDatabaseType } from '#database/client.js';
+import { getDatabaseClient, getDatabaseType } from '#database/index.js';
 
 /**
  * Check database connectivity and health
@@ -43,6 +43,46 @@ async function checkDatabase() {
     return {
       status: 'unhealthy',
       type: dbType,
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Check Aiven PostgreSQL connectivity and health
+ * @returns {Promise<Object>} Aiven database health status
+ */
+async function checkAivenDatabase() {
+  const startTime = performance.now();
+
+  try {
+    // Check if Aiven is configured (has host or connection string)
+    const hasAivenConfig = BACKEND_CONFIG.aiven.host || BACKEND_CONFIG.aiven.connectionString;
+    if (!hasAivenConfig) {
+      return {
+        status: 'disabled',
+        reason: 'Aiven not configured (no host or connection string)',
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Get Aiven pool and run a simple query
+    const { getAivenPgPool } = await import('#database/client.js');
+    const pool = getAivenPgPool();
+    await pool.query('SELECT 1');
+
+    const responseTime = Math.round(performance.now() - startTime);
+    return {
+      status: 'healthy',
+      type: 'aiven',
+      responseTime: `${responseTime}ms`,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      type: 'aiven',
       error: error.message,
       timestamp: new Date().toISOString(),
     };
@@ -149,7 +189,6 @@ function checkConfiguration() {
     issues,
     environment: BACKEND_CONFIG.nodeEnv,
     apiAuthEnabled: BACKEND_CONFIG.app.apiAuthEnabled,
-    authAllowList: Array.from(BACKEND_CONFIG.app.authAllowList),
     timestamp: new Date().toISOString(),
   };
 }
@@ -231,6 +270,7 @@ async function getMinimalHealth() {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
+    logger.error({ error }, 'Minimal health check failed');
     return {
       status: 'error',
       timestamp: new Date().toISOString(),
@@ -239,6 +279,7 @@ async function getMinimalHealth() {
 }
 
 export {
+  checkAivenDatabase,
   checkConfiguration,
   checkDatabase,
   checkOpenAI,
