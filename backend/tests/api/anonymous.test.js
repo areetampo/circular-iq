@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { enforceAnonymousUsage } from '#controllers/scoring.controller.js';
-import { MAX_FREE_TRIES } from '#utils/anonymousTracking.js';
+import { SCORING_MAX_FREE_TRIES } from '#utils/anonymousTracking.js';
 import { logger } from '#utils/logger.js';
 
 // The scoring controller expects `logger` to exist on the global scope.
@@ -21,15 +21,15 @@ function makeReq({ ip = '127.0.0.1', ua = 'test-agent', authorization } = {}) {
   return { headers };
 }
 
-test('anonymous usage allows up to MAX_FREE_TRIES then blocks', async (t) => {
+test('anonymous usage allows up to SCORING_MAX_FREE_TRIES then blocks', async () => {
   // create a closure-backed counter to simulate RPC increments
   let counter = 0;
 
   const serviceSupabase = {
-    rpc: async (fnName, params) => {
+    rpc: async () => {
       counter += 1;
       const current_count = counter;
-      const is_allowed = current_count <= MAX_FREE_TRIES;
+      const is_allowed = current_count <= SCORING_MAX_FREE_TRIES;
       return { data: [{ current_count, is_allowed }], error: null };
     },
   };
@@ -45,8 +45,8 @@ test('anonymous usage allows up to MAX_FREE_TRIES then blocks', async (t) => {
     },
   };
 
-  // Call MAX_FREE_TRIES times and expect null (allowed)
-  for (let i = 1; i <= MAX_FREE_TRIES; i++) {
+  // Call SCORING_MAX_FREE_TRIES times and expect null (allowed)
+  for (let i = 1; i <= SCORING_MAX_FREE_TRIES; i++) {
     const result = await enforceAnonymousUsage(req, supabase, serviceSupabase);
     assert.strictEqual(result, null, `Expected allowed on try ${i}`);
   }
@@ -57,12 +57,12 @@ test('anonymous usage allows up to MAX_FREE_TRIES then blocks', async (t) => {
   assert.strictEqual(blocked.status, 403);
 });
 
-test('authenticated users bypass anonymous usage tracking', async (t) => {
+test('authenticated users bypass anonymous usage tracking', async () => {
   const req = makeReq({ authorization: 'Bearer user-token' });
 
   const supabase = {
     auth: {
-      getUser: async (token) => {
+      getUser: async () => {
         return { data: { user: { id: 'user-1' } }, error: null };
       },
     },
@@ -81,7 +81,7 @@ test('authenticated users bypass anonymous usage tracking', async (t) => {
   assert.strictEqual(rpcCalled, false, 'Service RPC should not be called for authenticated users');
 });
 
-test('tracking service error returns fail-closed response', async (t) => {
+test('tracking service error returns fail-closed response', async () => {
   // Provide a Bearer header (with a non-master token) so enforceAnonymousUsage
   // does not "skip anonymous check" in NODE_ENV=test.
   const req = makeReq({ authorization: 'Bearer anonymous-token' });

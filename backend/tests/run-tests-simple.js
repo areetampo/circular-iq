@@ -5,7 +5,9 @@
 
 import './setup.js';
 
-console.log('Running tests directly without timeout wrapper...');
+import { logger } from '#utils/logger.js';
+
+logger.info('Running tests directly without timeout wrapper...');
 
 // Run tests directly using Node's built-in test runner
 const { execSync } = await import('child_process');
@@ -19,22 +21,22 @@ try {
   ];
 
   for (const testFile of testFiles) {
-    console.log(`\n🧪 Running ${testFile}...`);
+    logger.info(`\n🧪 Running ${testFile}...`);
     try {
       execSync(`node --test ${testFile}`, {
         cwd: process.cwd(),
         env: process.env,
         stdio: 'inherit',
       });
-      console.log(`✅ ${testFile} completed`);
+      logger.info(`✓ ${testFile} completed`);
     } catch (error) {
-      console.log(`❌ ${testFile} failed with exit code ${error.status}`);
+      logger.error(`✕ ${testFile} failed with exit code ${error.status}`);
     }
   }
 
-  console.log('\n🎉 All test runs completed!');
+  logger.info('\n🎉 All test runs completed!');
   process.exit(0);
 } catch (error) {
-  console.error('Test execution failed:', error.message);
+  logger.error('Test execution failed:', error.message);
   process.exit(1);
 }

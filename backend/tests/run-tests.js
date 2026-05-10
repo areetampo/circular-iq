@@ -16,11 +16,18 @@
 
 import './setup.js';
 
-console.log('Running tests with Node.js built-in test runner');
+import { logger } from '#utils/logger.js';
+
+logger.info('Running tests with Node.js built-in test runner');
 
 const { execSync } = await import('child_process');
 
 async function runTests() {
+  // Ensure NODE_ENV is set to test for all test runs
+  if (process.env.NODE_ENV !== 'test') {
+    process.env.NODE_ENV = 'test';
+  }
+
   const testArgs = process.argv.slice(2);
   const includeAnalytics = testArgs.includes('--include-analytics');
 
@@ -45,8 +52,8 @@ async function runTests() {
   ];
 
   if (!includeAnalytics) {
-    console.log('⚠️  Analytics tests excluded due to Node.js v24.13.0 serialization issue');
-    console.log('   Use --include-analytics to run them if needed');
+    logger.warn('⚠️  Analytics tests excluded due to Node.js v24.13.0 serialization issue');
+    logger.warn('   Use --include-analytics to run them if needed');
   }
 
   // Determine which tests to run
@@ -66,21 +73,21 @@ async function runTests() {
   try {
     // Run all tests in sequence to avoid hanging
     for (const testFile of testsToRun) {
-      console.log(`\n🧪 Running ${testFile}...`);
+      logger.info(`\n🧪 Running ${testFile}...`);
       try {
         execSync(`node --test ${testFile}`, {
           cwd: process.cwd(),
           env: process.env,
           stdio: 'inherit',
         });
-        console.log(`✅ ${testFile} completed`);
+        logger.info(`✓ ${testFile} completed`);
       } catch (error) {
-        console.log(`❌ ${testFile} failed with exit code ${error.status}`);
+        logger.error(`✕ ${testFile} failed with exit code ${error.status}`);
         // Continue running other tests even if one fails
       }
     }
 
-    console.log('\n🎉 All test runs completed!');
+    logger.info('\n🎉 All test runs completed!');
 
     // Clear the global timeout before exiting
     if (global.clearGlobalTimeout) {
@@ -89,7 +96,7 @@ async function runTests() {
 
     process.exit(0);
   } catch (error) {
-    console.error('Test execution failed:', error.message);
+    logger.error('Test execution failed:', error.message);
     if (global.clearGlobalTimeout) {
       global.clearGlobalTimeout();
     }

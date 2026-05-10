@@ -21,6 +21,8 @@ import { fileURLToPath } from 'url';
 
 import dotenv from 'dotenv';
 
+import { logger } from '#utils/logger.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -65,7 +67,7 @@ function setupTestEnvironment() {
     throw new Error(`[CRITICAL] Failed to load env/.env.test: ${result.error.message}`);
   }
 
-  console.log(`✓ Test environment loaded from ${envTestPath}`);
+  logger.info(`✓ Test environment loaded from ${envTestPath}`);
 
   // Validate required test variables
   const requiredVars = [
@@ -90,7 +92,7 @@ function setupTestEnvironment() {
   // Load second time to ensure dotenv variables are available
   dotenv.config({ path: envTestPath });
 
-  console.log('Loaded environment variables from', envTestPath);
+  logger.info('Loaded environment variables from', envTestPath);
 }
 
 // Global timeout to prevent infinite hanging - increased for test suite
@@ -100,8 +102,8 @@ let timeoutHandle;
 
 function setupGlobalTimeout() {
   timeoutHandle = setTimeout(() => {
-    console.error('🚨 TEST TIMEOUT: Tests are hanging, forcing exit...');
-    console.error('This usually indicates unclosed connections or hanging promises');
+    logger.error('🚨 TEST TIMEOUT: Tests are hanging, forcing exit...');
+    logger.error('This usually indicates unclosed connections or hanging promises');
     process.exit(1);
   }, GLOBAL_TIMEOUT);
 }
@@ -123,26 +125,26 @@ process.on('exit', () => {
 
 // Handle various exit scenarios
 process.on('SIGINT', () => {
-  console.log('📡 Received SIGINT, exiting...');
+  logger.info('📡 Received SIGINT, exiting...');
   clearGlobalTimeout();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('📡 Received SIGTERM, exiting...');
+  logger.info('📡 Received SIGTERM, exiting...');
   clearGlobalTimeout();
   process.exit(0);
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('💥 Uncaught Exception:', err);
+  logger.error('💥 Uncaught Exception:', err);
   clearGlobalTimeout();
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
   clearGlobalTimeout();
   process.exit(1);
 });

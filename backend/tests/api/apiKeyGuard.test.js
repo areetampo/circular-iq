@@ -6,7 +6,7 @@ import request from 'supertest';
 
 // Load environment first
 import '#config/loadEnv.js';
-import { closeAllPools } from '#database/client.js';
+import { closeAllPools } from '#database/index.js';
 import { logger } from '#utils/logger.js';
 
 // Setup global logger for the test
@@ -14,7 +14,6 @@ globalThis.logger = logger;
 
 // Import AFTER configuring env to pick up values
 const { apiKeyGuard } = await import('#server/app.js');
-const { BACKEND_CONFIG } = await import('#config/backend.config.js');
 
 function makeApp() {
   const app = express();
