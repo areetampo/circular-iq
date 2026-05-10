@@ -6,8 +6,8 @@
 import express from 'express';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { requireAuth } from '#middleware/auth.middleware.js';
 import {
+  checkAivenDatabase,
   checkConfiguration,
   checkDatabase,
   checkOpenAI,
@@ -16,14 +16,14 @@ import {
   getSystemHealth,
 } from '#services/health.service.js';
 
-export default function createHealthRouter(serviceSupabase) {
+export default function createHealthRouter() {
   const router = express.Router();
 
   /**
    * GET /health - Basic health check for load balancers
    * Returns minimal status with appropriate HTTP status codes
    */
-  router.get('/', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/', async (req, res) => {
     try {
       const healthData = await getMinimalHealth();
 
@@ -46,7 +46,7 @@ export default function createHealthRouter(serviceSupabase) {
    * - checks: comma-separated list of checks (database,openai,system,config)
    * - timeout: timeout in milliseconds for each check (default: 5000)
    */
-  router.get('/detailed', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/detailed', async (req, res) => {
     try {
       const { checks, timeout = '5000' } = req.query;
 
@@ -72,7 +72,7 @@ export default function createHealthRouter(serviceSupabase) {
   /**
    * GET /health/database - Database health check
    */
-  router.get('/database', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/database', async (req, res) => {
     try {
       const dbHealth = await checkDatabase();
       const statusCode = dbHealth.status === 'healthy' ? 200 : 503;
@@ -87,9 +87,26 @@ export default function createHealthRouter(serviceSupabase) {
   });
 
   /**
+   * GET /health/database/aiven - Aiven PostgreSQL health check
+   */
+  router.get('/database/aiven', async (req, res) => {
+    try {
+      const aivenHealth = await checkAivenDatabase();
+      const statusCode = aivenHealth.status === 'healthy' ? 200 : 503;
+      res.status(statusCode).json(aivenHealth);
+    } catch (error) {
+      res.status(503).json({
+        status: 'error',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  /**
    * GET /health/openai - OpenAI API health check
    */
-  router.get('/openai', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/openai', async (req, res) => {
     try {
       const openaiHealth = await checkOpenAI();
       const statusCode = openaiHealth.status === 'healthy' ? 200 : 503;
@@ -106,7 +123,7 @@ export default function createHealthRouter(serviceSupabase) {
   /**
    * GET /health/system - System resources health check
    */
-  router.get('/system', requireAuth(serviceSupabase), (req, res) => {
+  router.get('/system', (req, res) => {
     try {
       const systemHealth = checkSystemResources();
       res.json(systemHealth);
@@ -122,7 +139,7 @@ export default function createHealthRouter(serviceSupabase) {
   /**
    * GET /health/config - Configuration health check
    */
-  router.get('/config', requireAuth(serviceSupabase), (req, res) => {
+  router.get('/config', (req, res) => {
     try {
       const configHealth = checkConfiguration();
       const statusCode = configHealth.status === 'healthy' ? 200 : 200; // Always 200 for config issues
@@ -140,7 +157,7 @@ export default function createHealthRouter(serviceSupabase) {
    * GET /health/readiness - Kubernetes readiness probe
    * Checks if the application is ready to serve traffic
    */
-  router.get('/readiness', requireAuth(serviceSupabase), async (req, res) => {
+  router.get('/readiness', async (req, res) => {
     try {
       // Check critical dependencies
       const [dbHealth, configHealth] = await Promise.all([
@@ -172,7 +189,7 @@ export default function createHealthRouter(serviceSupabase) {
    * GET /health/liveness - Kubernetes liveness probe
    * Checks if the application is still running
    */
-  router.get('/liveness', requireAuth(serviceSupabase), (req, res) => {
+  router.get('/liveness', (req, res) => {
     // Basic liveness check - just verify the process is running
     res.status(200).json({
       status: 'alive',
@@ -184,7 +201,7 @@ export default function createHealthRouter(serviceSupabase) {
   /**
    * GET /health/version - Version and build information
    */
-  router.get('/version', requireAuth(serviceSupabase), (req, res) => {
+  router.get('/version', (req, res) => {
     res.json({
       version: '1.0.0',
       name: 'Circular Economy API',
