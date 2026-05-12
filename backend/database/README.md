@@ -398,7 +398,7 @@ CE cases are read-only reference data for authenticated and anonymous users. Onl
 
 **File:** `07_uptime_monitor.sql`
 
-Creates the uptime monitoring infrastructure for tracking backend health check history. The backend polls endpoints every 30 seconds and stores results in this table with a 7-day retention policy.
+Creates the uptime monitoring infrastructure for tracking backend health check history with real-time streaming capabilities. The backend polls endpoints every 30 seconds, stores results in this table with a 7-day retention policy, and provides live updates via Server-Sent Events (SSE).
 
 ### Environment-Controlled Cleanup
 
@@ -444,7 +444,15 @@ Table is configured with reduced autovacuum thresholds to prevent bloat from hig
 - `autovacuum_vacuum_scale_factor = 0.02`
 - `autovacuum_analyze_scale_factor = 0.01`
 
-### Production-Only Polling
+### SSE Streaming Integration
+
+The uptime monitoring system includes real-time streaming capabilities:
+
+- **SSE Endpoint**: `/api/uptime/stream` provides live updates to connected clients
+- **Broadcast System**: `uptime.broadcaster.js` manages client connections and event broadcasting
+- **Events**: `connected` (on join), `poll-complete` (after each polling cycle), heartbeat (every 30s)
+- **Fallback**: Automatic fallback to polling when SSE connection is lost
+- **Client Management**: Frontend handles connection lifecycle with reconnection logic
 
 The uptime monitoring system is designed to run **only in production** environments:
 
