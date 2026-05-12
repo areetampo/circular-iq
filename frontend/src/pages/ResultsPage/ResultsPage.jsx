@@ -636,14 +636,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Retry',
             icon: RotateCw,
-            onPress: refetch,
             variant: 'teal',
+            onPress: refetch,
           },
           {
             label: 'Go Back',
             icon: MoveLeft,
             variant: 'ghost',
-            onClick: goBackSafely,
+            onPress: goBackSafely,
           },
         ].filter(Boolean)}
         showDefaultActions={false}
@@ -662,13 +662,13 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             label: 'Retry',
             icon: RotateCw,
             variant: 'teal',
-            onClick: refetch,
+            onPress: refetch,
           },
           {
             label: 'Go Back',
             icon: MoveLeft,
             variant: 'ghost',
-            onClick: goBackSafely,
+            onPress: goBackSafely,
           },
         ]}
         showDefaultActions={false}
@@ -687,10 +687,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           {
             label: 'Start New Assessment',
             icon: MoveRight,
+            iconRight: true,
             variant: 'teal',
             as: Link,
             to: '/',
-            iconRight: true,
           },
         ]}
         showDefaultActions={false}
@@ -768,7 +768,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         {/* Share Assessment Section */}
         {!isPublicShare && currentData && (
           <Tilt3D
-            rotateRange={{ x: 2, y: 3 }}
+            rotateRange={{ x: 3, y: 1.5 }}
             block
             className="rounded-xl border-2 border-(--color-border-card) px-3 py-1"
           >
@@ -863,17 +863,21 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                   )}
                   <span className={isUpdatingPublic && 'opacity-30'}>/</span>
                   <CopyButton
-                    value={publicUrl}
-                    description="URL"
-                    noBorder
+                    variant="dark"
+                    copyValue={publicUrl}
+                    title="URL"
+                    titleCn="font-mono"
                     isDisabled={isUpdatingPublic}
+                    noBorder
                   />
                   <span className={isUpdatingPublic && 'opacity-30'}>/</span>
                   <CopyButton
-                    value={`${currentData.public_id}`}
-                    description="ID"
-                    noBorder
+                    variant="dark"
+                    copyValue={`${currentData.public_id}`}
+                    title="ID"
+                    titleCn="font-mono"
                     isDisabled={isUpdatingPublic}
+                    noBorder
                   />
                 </div>
               </div>
