@@ -19,4 +19,10 @@ export const logger = pino({
     : undefined,
 });
 
-logger.logOperation = (op, path, stat, dur) => logger.info({ op, path, stat, dur }, 'API Op');
+logger.logOperation = (op, path, stat, dur, extra = null) => {
+  const logData = { op, path, stat, dur };
+  if (extra) {
+    logData.extra = extra;
+  }
+  return logger.info(logData, 'API Op');
+};
