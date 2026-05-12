@@ -26,9 +26,8 @@ export default function createHealthRouter() {
   router.get('/', async (req, res) => {
     try {
       const healthData = await getMinimalHealth();
-
-      // Set appropriate HTTP status based on health
       const statusCode = healthData.status === 'ok' ? 200 : 503;
+
       res.status(statusCode).json(healthData);
     } catch (err) {
       logger.error({ err }, 'Health check failed');
@@ -48,13 +47,10 @@ export default function createHealthRouter() {
    */
   router.get('/detailed', async (req, res) => {
     try {
-      const { checks, timeout = '5000' } = req.query;
-
+      const { checks } = req.query;
       const healthData = await getSystemHealth({
         checks: checks ? checks.split(',') : ['database', 'openai', 'system', 'config'],
       });
-
-      // Set appropriate HTTP status based on overall health
       const statusCode =
         healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 200 : 503;
 
@@ -76,6 +72,7 @@ export default function createHealthRouter() {
     try {
       const dbHealth = await checkDatabase();
       const statusCode = dbHealth.status === 'healthy' ? 200 : 503;
+
       res.status(statusCode).json(dbHealth);
     } catch (error) {
       res.status(503).json({
@@ -93,6 +90,7 @@ export default function createHealthRouter() {
     try {
       const aivenHealth = await checkAivenDatabase();
       const statusCode = aivenHealth.status === 'healthy' ? 200 : 503;
+
       res.status(statusCode).json(aivenHealth);
     } catch (error) {
       res.status(503).json({
@@ -110,6 +108,7 @@ export default function createHealthRouter() {
     try {
       const openaiHealth = await checkOpenAI();
       const statusCode = openaiHealth.status === 'healthy' ? 200 : 503;
+
       res.status(statusCode).json(openaiHealth);
     } catch (error) {
       res.status(503).json({
@@ -142,8 +141,7 @@ export default function createHealthRouter() {
   router.get('/config', (req, res) => {
     try {
       const configHealth = checkConfiguration();
-      const statusCode = configHealth.status === 'healthy' ? 200 : 200; // Always 200 for config issues
-      res.status(statusCode).json(configHealth);
+      res.status(200).json(configHealth);
     } catch (error) {
       res.status(500).json({
         status: 'error',
@@ -159,12 +157,10 @@ export default function createHealthRouter() {
    */
   router.get('/readiness', async (req, res) => {
     try {
-      // Check critical dependencies
       const [dbHealth, configHealth] = await Promise.all([
         checkDatabase(),
         Promise.resolve(checkConfiguration()),
       ]);
-
       const isReady = dbHealth.status === 'healthy' && configHealth.status === 'healthy';
       const statusCode = isReady ? 200 : 503;
 
@@ -190,28 +186,43 @@ export default function createHealthRouter() {
    * Checks if the application is still running
    */
   router.get('/liveness', (req, res) => {
-    // Basic liveness check - just verify the process is running
-    res.status(200).json({
-      status: 'alive',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-    });
+    try {
+      res.status(200).json({
+        status: 'alive',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
   });
 
   /**
    * GET /health/version - Version and build information
    */
   router.get('/version', (req, res) => {
-    res.json({
-      version: '1.0.0',
-      name: 'Circular Economy API',
-      description: 'RAG-powered evaluator for circular economy business evaluations',
-      environment: BACKEND_CONFIG.nodeEnv,
-      nodeVersion: process.version,
-      buildTime: process.env.BUILD_TIME || 'unknown',
-      gitCommit: process.env.GIT_COMMIT || 'unknown',
-      timestamp: new Date().toISOString(),
-    });
+    try {
+      res.json({
+        version: '1.0.0',
+        name: 'Circular Economy API',
+        description: 'RAG-powered evaluator for circular economy business evaluations',
+        environment: BACKEND_CONFIG.nodeEnv,
+        nodeVersion: process.version,
+        buildTime: process.env.BUILD_TIME || 'unknown',
+        gitCommit: process.env.GIT_COMMIT || 'unknown',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
   });
 
   // Error handler for health routes
