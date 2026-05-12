@@ -56,6 +56,7 @@ const ICONS = {
  * @param {string} [props.className] - Additional CSS classes to apply to the inner badge container
  * @param {React.ComponentType} [props.icon] - Custom icon component to override the default variant icon. Should accept size, strokeWidth, and color props
  * @param {boolean} [props.fullWidth=false] - Whether the badge should take full width of its container
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
  *
  * @returns {React.ReactElement|null} Rendered badge component or null if message is empty
  */
@@ -65,6 +66,7 @@ export default function DetailsBadge({
   className,
   icon: CustomIcon,
   fullWidth = false,
+  ...props
 }) {
   if (!message.trim()) return null;
 
@@ -72,7 +74,7 @@ export default function DetailsBadge({
   const Icon = CustomIcon || ICONS[variant] || ICONS.info;
 
   return (
-    <div className={cn('flex h-full w-full items-center justify-center', className)}>
+    <div className={cn('flex h-full w-full items-center justify-center', className)} {...props}>
       <div
         className={cn(
           'flex w-fit animate-in items-center justify-center gap-2 rounded-xl',
