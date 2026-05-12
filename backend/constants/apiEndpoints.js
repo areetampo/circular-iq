@@ -108,4 +108,9 @@ export default [
     endpoint: '/api/uptime/history/:endpointId',
     description: 'Retrieve recent checks for specific endpoint (max 10000)',
   },
+  {
+    method: 'GET',
+    endpoint: '/api/uptime/stream',
+    description: 'SSE stream for real-time uptime updates with fallback to polling',
+  },
 ];
