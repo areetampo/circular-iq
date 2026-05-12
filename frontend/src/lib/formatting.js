@@ -188,7 +188,7 @@ export function truncate(str, charsToRemove) {
 /**
  * Cleans and formats a URL string based on provided transformation options.
  * Useful for displaying "pretty" URLs in the UI or normalizing URLs for comparison.
- * * @param {string} urlStr - The raw URL or domain string to be cleaned.
+ * @param {string} urlStr - The raw URL or domain string to be cleaned.
  * @param {Object} [options={}] - Transformation settings.
  * @param {boolean} [options.stripProtocol=true] - Remove 'http://' or 'https://'.
  * @param {boolean} [options.stripWww=false] - Remove the 'www.' prefix from the hostname.
