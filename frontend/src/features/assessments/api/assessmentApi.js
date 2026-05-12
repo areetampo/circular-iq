@@ -539,13 +539,14 @@ export async function scoreAssessmentStream(formData, onStage, onComplete, onErr
       reader.releaseLock();
     }
   } catch (err) {
-    // Handle network/stream errors
-    // Check for 403 errors - can be either Error instance with status or plain object from 403 JSON response
+    if (err.code === 'ANON_SCORING_LIMIT_REACHED') {
+      onError(err); // err is the raw body: { code, limit, message, ... }
+      return;
+    }
     if (
       err.status === 403 ||
       (typeof err === 'object' && err !== null && !err.message && Object.keys(err).length > 0)
     ) {
-      // Re-throw LIMIT_REACHED errors for the caller to handle
       throw err;
     }
     onError(err);

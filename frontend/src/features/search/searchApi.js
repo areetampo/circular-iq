@@ -5,10 +5,10 @@ import { buildApiUrl } from '@/lib/apiClient';
  * @param {Object} params - Search parameters
  * @param {string} params.q - Search query
  * @param {string} params.mode - Search mode: 'keyword' | 'hybrid'
- * @param {number} params.limit - Maximum number of results (default: 20)
+ * @param {number} params.limit - Maximum number of results (default: 50)
  * @returns {Promise<Object>} Search results
  */
-export async function searchCeCases({ q, mode, limit = 30 }) {
+export async function searchCeCases({ q, mode, limit = 50 }) {
   if (!q || typeof q !== 'string') {
     throw new Error('Search query is required');
   }
