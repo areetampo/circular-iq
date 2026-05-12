@@ -6,8 +6,8 @@ import { Tilt3D } from '@/components/common';
 /**
  * Stat card component for displaying metrics with loading states
  * @param {Object} props - Component props
- * @param {string} props.title - Label text displayed above the value
- * @param {string|number} props.value - Main numeric or text value to display
+ * @param {string} [props.title] - Label text displayed above the value
+ * @param {string|number} [props.value] - Main numeric or text value to display
  * @param {string} [props.subtext] - Secondary text displayed below the value
  * @param {boolean} [props.loading] - Whether to show skeleton loading state
  */

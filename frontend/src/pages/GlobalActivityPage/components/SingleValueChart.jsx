@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 /**
  * Single value chart component for displaying a single metric
  * @param {Object} props - Component props
- * @param {string|number} props.value - Numeric value to display (0-100)
- * @param {string} props.label - Label text displayed below the chart
+ * @param {string|number} [props.value] - Main numeric or text value to display (0-100)
+ * @param {string} [props.label] - Label text displayed below the chart
  * @param {string} [props.sublabel] - Optional sublabel text displayed below label
  */
 export default function SingleValueChart({ value, label, sublabel }) {

@@ -6,14 +6,14 @@ import { Tilt3D } from '@/components/common';
  * Chart panel component for wrapping charts with title and loading states
  * @param {Object} props - Component props
  * @param {string} [props.title] - Optional title for the chart panel
- * @param {ReactNode} props.children - Content to render in panel body
+ * @param {ReactNode} [props.children] - Content to render in the panel body
  * @param {boolean} [props.isLoading] - Whether data is currently loading
  * @param {string} [props.error] - Error message to display
  */
 export default function ChartPanel({ title, children, isLoading, error }) {
   return (
     <Tilt3D
-      rotateRange={{ x: 2, y: 3 }}
+      rotateRange={{ x: 2, y: 1.5 }}
       block
       className="w-full rounded-[14px] border-2 border-(--color-border-ui) bg-transparent p-4"
     >

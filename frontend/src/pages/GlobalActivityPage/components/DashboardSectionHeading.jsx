@@ -5,7 +5,7 @@ import { Separator } from '@/components/common';
 /**
  * Dashboard section heading component with separator
  * @param {Object} props - Component props
- * @param {string} props.label - Main label text for the section
+ * @param {string} [props.label] - Main label text for the section
  * @param {number} [props.count] - Optional count to show on the right
  */
 export default function DashboardSectionHeading({ label, count }) {

@@ -9,8 +9,8 @@ import { cn } from '@/utils/cn';
 /**
  * Global activity page header with refresh functionality
  * @param {Object} props - Component props
- * @param {string} props.title - Page title
- * @param {string} props.description - Page description
+ * @param {string} [props.title] - Page title
+ * @param {string} [props.description] - Page description
  */
 export default function GlobalActivityHeader({ title, description }) {
   // ── Global data ─────────────────────────────────────────────────────────────
@@ -52,12 +52,15 @@ export default function GlobalActivityHeader({ title, description }) {
         )}
       >
         <Button
-          onClick={handleRefresh}
-          disabled={showUpdating}
-          variant="teal"
-          className={cn(showUpdating && 'opacity-60')}
+          variant="success-soft"
+          isLoading={showUpdating}
+          icon={RotateCw}
+          loadingIcon={RotateCw}
+          spinLoadingIcon
+          loadingIconInline
+          onPress={handleRefresh}
+          isDisabled={showUpdating}
         >
-          <RotateCw size={15} className={cn(showUpdating && 'animate-spin')} strokeWidth={2.5} />
           Refresh
         </Button>
         <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
