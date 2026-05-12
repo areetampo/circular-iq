@@ -17,8 +17,8 @@ const rawEnv = {
   VITE_SUPABASE_ANON_KEY:
     import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'test-key',
 
-  VITE_SCORING_MAX_FREE_TRIES:
-    import.meta.env.VITE_SCORING_MAX_FREE_TRIES || process.env.VITE_SCORING_MAX_FREE_TRIES || '20',
+  VITE_ANON_SCORING_LIMIT:
+    import.meta.env.VITE_ANON_SCORING_LIMIT || process.env.VITE_ANON_SCORING_LIMIT || '20',
 
   MODE: import.meta.env.MODE || process.env.MODE || process.env.NODE_ENV || 'development',
   PROD: import.meta.env.PROD ?? process.env.NODE_ENV === 'production',
@@ -62,7 +62,7 @@ if (isTest) {
     },
 
     scoring: {
-      maxFreeTries: Number(import.meta.env.VITE_SCORING_MAX_FREE_TRIES) || 20,
+      anonScoringLimit: Number(import.meta.env.VITE_ANON_SCORING_LIMIT) || 20,
     },
 
     isProd: false,
@@ -106,7 +106,7 @@ if (isTest) {
       },
 
       scoring: {
-        maxFreeTries: env.VITE_SCORING_MAX_FREE_TRIES,
+        anonScoringLimit: env.VITE_ANON_SCORING_LIMIT,
       },
 
       isProd: env.PROD,
