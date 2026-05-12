@@ -14,15 +14,11 @@ const variantStyles = {
     'bg-(--color-accent-soft-10) text-(--color-text-secondary) border border-transparent hover:text-(--color-text-primary) hover:bg-(--color-hover-accent-strong)',
   ghastly:
     'bg-transparent text-(--color-text-muted) border border-transparent hover:bg-(--color-hover-subtle) hover:text-(--color-text-primary)',
+  bordered:
+    'bg-transparent text-(--color-text-secondary) border-[1.5px] border-(--color-border-ui) hover:bg-(--color-accent-light) text-xs tracking-wide uppercase',
   danger:
     'bg-(--color-error) text-white border border-(--color-error-border-strong) hover:opacity-90 transition-opacity',
-  'results-action':
-    'bg-transparent text-(--color-text-secondary) border-[1.5px] border-(--color-border-ui) hover:bg-(--color-accent-light) text-xs tracking-wide uppercase',
-  'dialog-primary': 'bg-(--color-accent) text-white w-full hover:bg-(--color-accent-hover)',
-  'dialog-secondary':
-    'bg-transparent text-(--color-text-secondary) w-full border border-(--color-border-strong) hover:bg-(--color-accent-light)',
   teal: 'bg-(--color-success) text-white hover:bg-(--color-success-hover) border border-transparent',
-  'neutral-soft': 'text-(--color-accent) bg-(--color-accent-soft-ui) hover:bg-(--color-accent)/20',
   'info-soft': 'text-(--color-info) bg-(--color-info-soft-ui) hover:bg-(--color-info)/20',
   'success-soft':
     'text-(--color-success) bg-(--color-success-soft-ui) hover:bg-(--color-success)/20',
@@ -38,42 +34,108 @@ const sizeStyles = {
   lg: 'px-5 py-2.5 text-base',
 };
 
+const iconSizeMap = {
+  xs: 11,
+  sm: 13,
+  md: 16, // default
+  lg: 18,
+};
+
+const iconStrokeWidthMap = {
+  xs: 2,
+  sm: 2,
+  md: 2, // default
+  lg: 2,
+};
+
 const spinnerColorMap = {
   primary: '#ffffff',
-  secondary: '#4B5563',
-  ghost: '#4B5563',
-  ghastly: '#4B5563',
+  ghost: '#8b6f47',
+  ghastly: '#8b6f47',
+  bordered: '#8b6f47',
   danger: '#ffffff',
   teal: '#ffffff',
-  'dialog-primary': '#ffffff',
-  'dialog-secondary': '#4B5563',
-  'results-action': '#4B5563',
-  'eco-soft': '#4B5563',
-  'neutral-soft': '#4B5563',
+  'info-soft': '#8b6f47',
+  'success-soft': '#8b6f47',
+  'warning-soft': '#8b6f47',
+  'danger-soft': '#8b6f47',
 };
 
 const spinnerSizeMap = {
   xs: 12,
   sm: 14,
-  md: 16, // default
+  md: 15, // default
   lg: 20,
 };
 
-const getSpinnerColor = (variant) => spinnerColorMap[variant] || '#ffffff';
-const getSpinnerSize = (size) => spinnerSizeMap[size] || 16;
-
+/**
+ * Button component with consistent styling and accessibility features
+ * Supports icons, loading states, and various visual variants
+ * Built with React Aria for proper keyboard and screen reader support
+ *
+ * @param {Object} props - Component props
+ * @param {string} props.className - Additional CSS classes
+ * @param {'primary'|'ghost'|'ghastly'|'bordered'|'danger'|'teal'|'info-soft'|'success-soft'|'warning-soft'|'danger-soft'} props.variant - Visual style variant (default: 'primary')
+ * @param {'xs'|'sm'|'md'|'lg'} props.size - Button size (default: 'md')
+ * @param {Function} props.onPress - Click handler function
+ * @param {boolean} props.isDisabled - Whether button is disabled (default: false)
+ * @param {boolean} props.isLoading - Whether to show loading state (default: false)
+ * @param {React.ElementType} props.icon - Icon component to display (Lucide icon)
+ * @param {Object} props.iconProps - Additional props to pass to icon component
+ * @param {number} props.iconSize - Custom icon size in pixels (overrides size-based sizing)
+ * @param {number} props.iconStrokeWidth - Custom icon stroke width (overrides size-based sizing)
+ * @param {boolean} props.iconRight - Whether to position icon on the right (default: false)
+ * @param {React.ElementType} props.loadingIcon - Custom loading icon component
+ * @param {boolean} props.spinLoadingIcon - Whether to spin the loading icon (default: false)
+ * @param {boolean} props.loadingIconInline - Whether to show loading icon inline (default: false)
+ * @param {boolean} props.fullWidth - Whether button should take full width (default: false)
+ * @param {React.ReactNode} props.children - Button content
+ * @param {React.ElementType} props.as - Component to render as (default: 'button')
+ * @param {string} props.to - Navigation target for links
+ * @param {string} props.href - URL for link elements
+ * @param {string} props.type - HTML button type (default: 'button')
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered Button component
+ *
+ * @example
+ * Basic button
+ * <Button onPress={handleClick}>Click me</Button>
+ *
+ * @example
+ * Button with icon and loading state
+ * <Button
+ *   icon={Save}
+ *   isLoading={loading}
+ *   onPress={handleSave}
+ *   variant="primary"
+ * >
+ *   Save
+ * </Button>
+ *
+ * @example
+ * Link button
+ * <Button as={Link} to="/home" variant="ghost">
+ *   Go Home
+ * </Button>
+ */
 const Button = forwardRef(function Button(
   {
     className,
     variant = 'primary',
     size = 'md',
-    fullWidth = false,
-    isDisabled = false,
-    disabled = false,
-    isLoading = false,
-    children,
     onPress,
-    onClick,
+    isDisabled = false,
+    isLoading = false,
+    icon,
+    iconProps,
+    iconSize,
+    iconStrokeWidth,
+    iconRight = false,
+    loadingIcon,
+    spinLoadingIcon = false,
+    loadingIconInline = false,
+    fullWidth = false,
+    children,
     as: Component = 'button',
     to,
     href,
@@ -83,7 +145,7 @@ const Button = forwardRef(function Button(
   ref,
 ) {
   const resolvedSize = sizeStyles[size] ?? sizeStyles.md;
-  const isButtonDisabled = isDisabled || disabled || isLoading;
+  const isButtonDisabled = isDisabled || isLoading;
 
   let Element = Component;
   let isLink = Element !== 'button';
@@ -98,7 +160,6 @@ const Button = forwardRef(function Button(
   const { buttonProps: ariaButtonProps } = useButton(
     {
       onPress,
-      onClick,
       isDisabled: isButtonDisabled,
       elementType: Element,
       ...props,
@@ -116,12 +177,12 @@ const Button = forwardRef(function Button(
       event.preventDefault();
       return;
     }
-    const pressHandler = onPress || onClick;
+    const pressHandler = onPress;
     if (pressHandler) pressHandler(event);
   };
 
   const baseClasses = cn(
-    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-sans transition-colors duration-200 outline-none',
+    'inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-sans transition-colors duration-200 outline-none size-fit',
     variantStyles[variant] || variantStyles.primary,
     resolvedSize,
     isButtonDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
@@ -129,28 +190,56 @@ const Button = forwardRef(function Button(
     className,
   );
 
-  const spinnerColor = getSpinnerColor(variant);
-  const spinnerSize = getSpinnerSize(size);
+  const spinnerColor = spinnerColorMap[variant] || spinnerColorMap.ghost;
+  const spinnerSize = spinnerSizeMap[size] || spinnerSizeMap.md;
+  iconSize = iconSize || iconSizeMap[size] || iconSizeMap.md;
+  iconStrokeWidth = iconStrokeWidth || iconStrokeWidthMap[size] || iconStrokeWidthMap.md;
 
-  // ✓ Content rendering: original content always keeps its layout (icon + text side by side)
+  // Render lucide-icon with appropriate size
+  const renderIcon = () => {
+    if (!icon) return null;
+    const IconComponent = icon;
+    return <IconComponent size={iconSize} strokeWidth={iconStrokeWidth} {...iconProps} />;
+  };
+
+  // Render loading icon or spinner
+  const renderLoadingIcon = () => {
+    if (loadingIcon) {
+      const LoadingIconComponent = loadingIcon;
+      return (
+        <LoadingIconComponent
+          size={iconSize}
+          strokeWidth={iconStrokeWidth}
+          className={cn(spinLoadingIcon && 'animate-spin')}
+        />
+      );
+    }
+    return <Spinner color={spinnerColor} size={spinnerSize} />;
+  };
+
+  // Content rendering: original content always keeps its layout (icon + text side by side)
   // The wrapper span always has the same classes – only its visibility changes.
-  // Spinner is absolutely positioned over the same area, does not affect button size.
+  // Loading icon is absolutely positioned over the same area, does not affect button size.
   const content = (
     <span className="relative inline-flex items-center justify-center">
       {/* Original children – always in layout, never changes display style */}
       <span
         className={cn(
           'inline-flex items-center justify-center gap-1.5',
-          isLoading ? 'invisible' : 'visible',
+          isLoading && !loadingIconInline ? 'invisible' : 'visible',
         )}
       >
+        {!iconRight && !isLoading && renderIcon()}
+        {!iconRight && isLoading && loadingIconInline && renderLoadingIcon()}
         {children}
+        {iconRight && isLoading && loadingIconInline && renderLoadingIcon()}
+        {iconRight && !isLoading && renderIcon()}
       </span>
 
-      {/* Spinner – absolute, centered, only shown when loading */}
-      {isLoading && (
+      {/* Loading icon or spinner – absolute, centered, only shown when loading and not inline */}
+      {isLoading && !loadingIconInline && (
         <span className="absolute inset-0 flex items-center justify-center">
-          <Spinner color={spinnerColor} size={spinnerSize} />
+          {renderLoadingIcon()}
         </span>
       )}
     </span>
@@ -189,31 +278,56 @@ const Button = forwardRef(function Button(
 Button.displayName = 'Button';
 
 Button.propTypes = {
+  /** Visual style variant (default: 'primary') */
   variant: PropTypes.oneOf([
     'primary',
-    'secondary',
     'ghost',
     'ghastly',
+    'bordered',
     'danger',
-    'results-action',
-    'dialog-primary',
-    'dialog-secondary',
-    'eco-soft',
     'teal',
-    'neutral-soft',
+    'info-soft',
+    'success-soft',
+    'warning-soft',
+    'danger-soft',
   ]),
+  /** Button size (default: 'md') */
   size: PropTypes.oneOf(['xs', 'sm', 'md', 'lg']),
+  /** Whether button should take full width (default: false) */
   fullWidth: PropTypes.bool,
+  /** Additional CSS classes */
   className: PropTypes.string,
+  /** Button content */
   children: PropTypes.node,
+  /** Whether button is disabled (default: false) */
   isDisabled: PropTypes.bool,
-  disabled: PropTypes.bool,
+  /** Whether to show loading state (default: false) */
   isLoading: PropTypes.bool,
+  /** Icon component to display (Lucide icon) */
+  icon: PropTypes.elementType,
+  /** Additional props to pass to icon component */
+  iconProps: PropTypes.object,
+  /** Custom icon size in pixels (overrides size-based sizing) */
+  iconSize: PropTypes.number,
+  /** Custom icon stroke width (overrides size-based sizing) */
+  iconStrokeWidth: PropTypes.number,
+  /** Whether to position icon on the right (default: false) */
+  iconRight: PropTypes.bool,
+  /** Custom loading icon component */
+  loadingIcon: PropTypes.elementType,
+  /** Whether to spin the loading icon (default: false) */
+  spinLoadingIcon: PropTypes.bool,
+  /** Whether to show loading icon inline (default: false) */
+  loadingIconInline: PropTypes.bool,
+  /** Click handler function */
   onPress: PropTypes.func,
-  onClick: PropTypes.func,
+  /** Component to render as (default: 'button') */
   as: PropTypes.elementType,
+  /** Navigation target for links */
   to: PropTypes.string,
+  /** URL for link elements */
   href: PropTypes.string,
+  /** HTML button type (default: 'button') */
   type: PropTypes.string,
 };
 
