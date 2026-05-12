@@ -6,7 +6,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 import * as scoringController from '#controllers/scoring.controller.js';
 import { createSupabaseClient } from '#database/index.js';
 import { extractUserId } from '#services/auth.service.js';
@@ -19,17 +18,6 @@ let sharedOpenAI = null;
 export function setOpenAIClient(client) {
   sharedOpenAI = client;
   setServiceOpenAIClient(client);
-}
-
-const IS_PROD = BACKEND_CONFIG.isProduction;
-
-function logRequest(method, path, status, duration) {
-  if (!IS_PROD) {
-    logger.info(
-      { method, path, status, duration, timestamp: new Date().toISOString() },
-      'Route request complete',
-    );
-  }
 }
 
 export default function createScoringRouter(openai, supabase) {
@@ -70,7 +58,7 @@ export default function createScoringRouter(openai, supabase) {
 
       if (anonCheck && anonCheck.blocked) {
         const status = anonCheck.status || 403;
-        logRequest('POST', '/score', status, Date.now() - start);
+        logger.logOperation('POST', '/score', status, Date.now() - start);
         return res.status(status).json(anonCheck.body);
       }
 
@@ -84,11 +72,11 @@ export default function createScoringRouter(openai, supabase) {
         userId,
       );
 
-      logRequest('POST', '/score', 200, Date.now() - start);
+      logger.logOperation('POST', '/score', 200, Date.now() - start);
       res.json(response);
     } catch (err) {
       const status = err.status || (err.code === 'INPUT_TOO_LONG' ? 400 : 500);
-      logRequest('POST', '/score', status, Date.now() - start);
+      logger.logOperation('POST', '/score', status, Date.now() - start);
       logger.error({ err }, 'Failed to generate scoring audit');
       res.status(status).json({
         error: err.message || 'Failed to generate scoring audit',
@@ -118,8 +106,7 @@ export default function createScoringRouter(openai, supabase) {
 
       if (anonCheck && anonCheck.blocked) {
         const status = anonCheck.status || 403;
-        logRequest('POST', '/score/stream', status, Date.now() - start);
-
+        logger.logOperation('POST', '/score/stream', status, Date.now() - start);
         return res.status(status).json(anonCheck.body);
       }
 
@@ -170,10 +157,10 @@ export default function createScoringRouter(openai, supabase) {
 
       if (!isClosed) res.end();
 
-      logRequest('POST', '/score/stream', 200, Date.now() - start);
+      logger.logOperation('POST', '/score/stream', 200, Date.now() - start);
     } catch (err) {
       const status = err.status || (err.code === 'INPUT_TOO_LONG' ? 400 : 500);
-      logRequest('POST', '/score/stream', status, Date.now() - start);
+      logger.logOperation('POST', '/score/stream', status, Date.now() - start);
       logger.error({ err }, 'Failed to generate scoring audit (stream)');
 
       if (!isClosed) {
