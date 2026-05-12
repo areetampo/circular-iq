@@ -13,7 +13,7 @@ The frontend provides:
 2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
 3. **Solutions Search** — semantic search across 6,000+ real circular economy case studies
 4. **Global Activity** — live analytics from all scoring calls worldwide
-5. **Uptime Monitoring** — real-time system health dashboard with 30-second polling and 7-day history
+5. **Uptime Monitoring** — real-time system health dashboard with Server-Sent Events (SSE) streaming, 30-second polling fallback, and 7-day history
 6. **Export Functionality** — PDF reports and CSV data exports
 7. **Assessment History** — save, rename, delete, compare, and share assessments
 8. **Session Management** — automatic save/restore across browser sessions
@@ -71,21 +71,21 @@ frontend/
 
 ## Routes
 
-| Path                                     | Component            | Auth | Description                   |
-| ---------------------------------------- | -------------------- | ---- | ----------------------------- |
-| `/`                                      | LandingPage          | No   | Assessment input form         |
-| `/results`                               | ResultsPage          | No   | Interactive results display   |
-| `/assessments`                           | MyAssessmentsPage    | Yes  | User's assessment history     |
-| `/assessments/:id`                       | AssessmentViewPage   | Yes  | View/edit single assessment   |
-| `/assessments/share`                     | SharePage            | No   | Share assessment form         |
-| `/assessments/share/:id`                 | AssessmentViewPage   | No   | Direct shared assessment view |
-| `/assessments/compare`                   | ComparePage          | No   | Compare two assessments       |
-| `/assessments/compare?id1=:id1&id2=:id2` | ComparePage          | No   | Direct comparison link        |
-| `/export/csv`                            | ExportCSV            | No   | CSV export (anonymous)        |
-| `/export/pdf`                            | ExportPDF            | No   | PDF export (anonymous)        |
-| `/global-activity`                       | `GlobalActivityPage` | No   | Global activity analytics     |
-| `/uptime-monitor`                        | `UptimeMonitorPage`  | No   | System uptime monitoring      |
-| `*`                                      | `NotFoundPage`       | —    | 404                           |
+| Path                                     | Component            | Auth | Description                                 |
+| ---------------------------------------- | -------------------- | ---- | ------------------------------------------- |
+| `/`                                      | LandingPage          | No   | Assessment input form                       |
+| `/results`                               | ResultsPage          | No   | Interactive results display                 |
+| `/assessments`                           | MyAssessmentsPage    | Yes  | User's assessment history                   |
+| `/assessments/:id`                       | AssessmentViewPage   | Yes  | View/edit single assessment                 |
+| `/assessments/share`                     | SharePage            | No   | Share assessment form                       |
+| `/assessments/share/:id`                 | AssessmentViewPage   | No   | Direct shared assessment view               |
+| `/assessments/compare`                   | ComparePage          | No   | Compare two assessments                     |
+| `/assessments/compare?id1=:id1&id2=:id2` | ComparePage          | No   | Direct comparison link                      |
+| `/export/csv`                            | ExportCSV            | No   | CSV export (anonymous)                      |
+| `/export/pdf`                            | ExportPDF            | No   | PDF export (anonymous)                      |
+| `/global-activity`                       | `GlobalActivityPage` | No   | Global activity analytics                   |
+| `/uptime-monitor`                        | `UptimeMonitorPage`  | No   | System uptime monitoring with SSE streaming |
+| `*`                                      | `NotFoundPage`       | —    | 404                                         |
 
 ## Setup & Installation
 
@@ -1203,4 +1203,4 @@ For issues or questions:
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 10 May 2026
+**Last Updated:** 12 May 2026
