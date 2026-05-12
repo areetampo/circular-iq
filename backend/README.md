@@ -163,7 +163,7 @@ backend/
 
 ## Uptime Monitoring System
 
-The backend includes a comprehensive uptime monitoring system that tracks health endpoint status:
+The backend includes a comprehensive uptime monitoring system that tracks health endpoint status with real-time streaming capabilities:
 
 ### Architecture
 
@@ -172,6 +172,9 @@ The backend includes a comprehensive uptime monitoring system that tracks health
 - **Data Storage**: Stores results in `uptime_checks` table with 7-day retention
 - **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`
 - **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
+- **SSE Streaming**: Real-time updates via `/api/uptime/stream` endpoint with client connection management
+- **Broadcast System**: `uptime.broadcaster.js` manages SSE client connections and event broadcasting
+- **Fallback Mechanism**: Automatic fallback to polling when SSE connection is lost
 
 ### Configuration
 
@@ -204,10 +207,11 @@ This replaces the previous pre-push hook approach, giving you more control over 
 
 ### API Endpoints
 
-| Method | Endpoint                          | Description                  |
-| ------ | --------------------------------- | ---------------------------- |
-| GET    | `/api/uptime/count`               | Total uptime checks count    |
-| GET    | `/api/uptime/history/:endpointId` | Historical data for endpoint |
+| Method | Endpoint                          | Description                      |
+| ------ | --------------------------------- | -------------------------------- |
+| GET    | `/api/uptime/count`               | Total uptime checks count        |
+| GET    | `/api/uptime/history/:endpointId` | Historical data for endpoint     |
+| GET    | `/api/uptime/stream`              | SSE stream for real-time updates |
 
 ### Each Layer's Responsibilities
 
@@ -590,10 +594,11 @@ Validate assessment ID exists and is shareable. Supports user access to their ow
 
 ### Uptime Monitor Endpoints
 
-| Method | Endpoint                          | Auth | Description                                                 |
-| ------ | --------------------------------- | ---- | ----------------------------------------------------------- |
-| `GET`  | `/api/uptime/count`               | None | Get total number of uptime checks (optionally per endpoint) |
-| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 10000)    |
+| Method | Endpoint                          | Auth | Description                                                      |
+| ------ | --------------------------------- | ---- | ---------------------------------------------------------------- |
+| `GET`  | `/api/uptime/count`               | None | Get total number of uptime checks (optionally per endpoint)      |
+| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 10000)         |
+| `GET`  | `/api/uptime/stream`              | None | SSE stream for real-time uptime updates with fallback to polling |
 
 #### GET `/api/uptime/count`
 
@@ -640,6 +645,55 @@ Retrieve recent uptime checks for a specific endpoint.
   ]
 }
 ```
+
+#### GET `/api/uptime/stream`
+
+Server-Sent Events (SSE) endpoint for real-time uptime monitoring updates. Establishes a persistent connection that pushes live updates as health checks complete.
+
+**Response Headers:**
+
+```txt
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+X-Accel-Buffering: no
+```
+
+**SSE Events:**
+
+- `connected` - Sent immediately on connection establishment
+
+  ```js
+  {
+    timestamp: '2026-01-15T10:30:00.000Z';
+  }
+  ```
+
+- `poll-complete` - Sent after each successful polling cycle
+
+  ```js
+  {
+    timestamp: "2026-01-15T10:30:30.000Z",
+    results: [
+      {
+        endpointId: "health",
+        up: true,
+        responseTimeMs: 45,
+        status: "ok"
+      }
+      // ... more endpoints
+    ]
+  }
+  ```
+
+- Heartbeat - Comment every 30 seconds to maintain connection
+
+**Features:**
+
+- Automatic fallback to polling if SSE connection is lost
+- Client connection management via `uptime.broadcaster.js`
+- 30-second heartbeat to prevent connection timeouts
+- Error handling with automatic client cleanup on disconnect
 
 ### Profile Endpoint
 
@@ -693,7 +747,7 @@ INTERNAL_BACKEND_API_KEY=your-secret-api-key
 PORT=8000
 NODE_ENV=development
 
-# Scoring endpoints respect SCORING_MAX_FREE_TRIES for anonymous users
+# Scoring endpoints respect ANON_SCORING_LIMIT for anonymous users
 
 # Database backend switch
 USE_SUPABASE_DOCUMENTS_TABLE=true   # set to false to switch to Aiven
@@ -1158,4 +1212,4 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 10 May 2026
+**Last Updated:** 12 May 2026

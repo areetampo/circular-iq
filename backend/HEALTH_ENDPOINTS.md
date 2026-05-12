@@ -219,12 +219,14 @@ The health endpoints are designed to work with:
 
 ## Uptime Monitor Integration
 
-The health endpoints are automatically polled by the uptime monitoring system:
+The health endpoints are automatically polled by uptime monitoring system with real-time streaming:
 
 - **Polling Interval**: Every 30 seconds (production only)
 - **Endpoints Monitored**: `/health`, `/health?detailed=true`, `/health/database`, `/health/database/aiven`, `/health/openai`, `/health/system`, `/health/config`, `/health/readiness`, `/health/liveness`, `/health/version`
 - **Data Storage**: Results stored in `uptime_checks` table with 7-day retention
-- **Dashboard**: Real-time visualization available at `/uptime-monitor` in frontend
+- **Real-time Dashboard**: Live visualization available at `/uptime-monitor` in frontend with Server-Sent Events (SSE)
+- **SSE Streaming**: `/api/uptime/stream` endpoint provides real-time updates with automatic fallback to polling
+- **Broadcast System**: `uptime.broadcaster.js` manages client connections and event broadcasting
 - **Cleanup**: Automatic cleanup of records older than 7 days runs daily
 
 ### Monitored Metrics
@@ -248,14 +250,16 @@ The health endpoints are automatically polled by the uptime monitoring system:
 
 The uptime monitoring dashboard is fully documented in:
 
-- `frontend/src/pages/UptimeMonitorPage/README.md` - Complete architecture, components, and usage guide
+- `frontend/src/pages/UptimeMonitorPage/README.md` - Complete architecture, SSE implementation, components, and usage guide
 
 This includes detailed information about:
 
-- Real-time dashboard components and charts
+- Real-time dashboard components and charts with SSE streaming
 - Data aggregation and visualization
 - Export functionality and metrics
 - Frontend refresh intervals and state management
+- Server-Sent Events architecture and fallback mechanisms
+- SSE client connection management via `uptime.broadcaster.js`
 
 ### Configuration
 
@@ -267,3 +271,12 @@ Uptime monitoring is controlled by:
 - `BACKEND_CONFIG.uptime.cleanupOnStart` (controlled by `UPTIME_CHECKS_CLEANUP_ON_START` env var, default: `true`)
 - `BACKEND_CONFIG.uptime.cleanupIntervalDurationMs` (default: 86400000ms - daily)
 - `BACKEND_CONFIG.uptime.endpoints` array of endpoint paths to monitor
+
+### SSE Stream Events
+
+The `/api/uptime/stream` endpoint provides real-time updates:
+
+- **`connected`**: Sent immediately on connection establishment
+- **`poll-complete`**: Sent after each successful polling cycle with results
+- **Heartbeat**: Comment sent every 30s to keep connection alive
+- **Automatic Reconnection**: Frontend handles connection drops with fallback to polling
