@@ -22,7 +22,7 @@
  *     });
  *   };
  *
- *   return <Button onClick={() => handleDelete(123)}>Delete</Button>;
+ *   return <Button onPress={() => handleDelete(123)}>Delete</Button>;
  * }
  */
 
