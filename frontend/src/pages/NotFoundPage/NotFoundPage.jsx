@@ -1,4 +1,4 @@
-import { BarChart3, Book, Compass, Home } from 'lucide-react';
+import { BarChart3, Compass, Files, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Button, Separator } from '@/components/common';
@@ -36,8 +36,7 @@ export default function NotFoundPage() {
               </p>
             </div>
           </div>
-          <Button variant="ghost" as={Link} to="/">
-            <Home size={15} />
+          <Button variant="ghost" icon={Home} iconSize={15} as={Link} to="/">
             Home
           </Button>
         </div>
@@ -54,8 +53,7 @@ export default function NotFoundPage() {
               </p>
             </div>
           </div>
-          <Button variant="ghost" as={Link} to="/assessments">
-            <Book size={15} />
+          <Button variant="ghost" icon={Files} iconSize={15} as={Link} to="/assessments">
             My Assessments
           </Button>
         </div>
