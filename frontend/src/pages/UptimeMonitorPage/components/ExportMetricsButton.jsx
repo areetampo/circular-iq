@@ -1,9 +1,29 @@
 import { Tooltip } from '@heroui/react';
 import { Download } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 import { Button } from '@/components/common';
 
-export default function ExportMetricsButton({ history, endpoints, hasNoData = false }) {
+/**
+ * ExportMetricsButton - A button component for exporting uptime metrics as CSV
+ * Downloads all stored metrics data in CSV format
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.history - History object mapping endpoint IDs to check arrays
+ * @param {Array} props.endpoints - Array of endpoint configuration objects
+ * @param {boolean} [props.hasNoData=false] - Whether there is no data to export
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered ExportMetricsButton
+ *
+ * @example
+ * Basic usage
+ * <ExportMetricsButton history={uptimeHistory} endpoints={endpointList} />
+ *
+ * @example
+ * With no data state
+ * <ExportMetricsButton history={{}} endpoints={[]} hasNoData={true} />
+ */
+export default function ExportMetricsButton({ history, endpoints, hasNoData = false, ...props }) {
   const handleExport = () => {
     const data = [];
     for (const ep of endpoints) {
@@ -37,14 +57,26 @@ export default function ExportMetricsButton({ history, endpoints, hasNoData = fa
       <Tooltip.Trigger>
         <Button
           variant="ghost"
+          icon={Download}
           onPress={hasNoData ? undefined : handleExport}
           isDisabled={hasNoData}
+          {...props}
         >
-          <Download size={14} />
           Export CSV
         </Button>
       </Tooltip.Trigger>
-      <Tooltip.Content>{hasNoData ? 'No data to export' : 'Export metrics as CSV'}</Tooltip.Content>
+      <Tooltip.Content>
+        {hasNoData ? 'No data to export' : 'Download all stored metrics as CSV"'}
+      </Tooltip.Content>
     </Tooltip>
   );
 }
+
+ExportMetricsButton.propTypes = {
+  /** History object mapping endpoint IDs to check arrays */
+  history: PropTypes.object.isRequired,
+  /** Array of endpoint configuration objects */
+  endpoints: PropTypes.array.isRequired,
+  /** Whether there is no data to export */
+  hasNoData: PropTypes.bool,
+};
