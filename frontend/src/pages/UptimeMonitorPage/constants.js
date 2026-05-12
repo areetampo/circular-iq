@@ -1,4 +1,8 @@
+// sufficient for past 24 hours of data
 export const HISTORY_LIMIT = 3500;
+
+// Number of recent checks to show in the response time sparkline
+export const RECENT_CHECKS_DISPLAY_COUNT = 100;
 
 export const ENDPOINTS = [
   { id: 'health', label: 'Basic Health', path: '/health', desc: 'Load balancer check' },
