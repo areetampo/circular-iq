@@ -144,7 +144,12 @@ export default function useDialog() {
   );
 
   const openLimitReachedDialog = useCallback(
-    () => openDialogWithPriority(DIALOGS.LIMIT_REACHED, {}, DIALOG_PRIORITIES.MEDIUM),
+    (data) =>
+      openDialogWithPriority(
+        DIALOGS.LIMIT_REACHED,
+        { anonScoringLimit: data?.anonScoringLimit },
+        DIALOG_PRIORITIES.MEDIUM,
+      ),
     [openDialogWithPriority],
   );
 
