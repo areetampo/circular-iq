@@ -117,8 +117,10 @@ export function getGlobalResponseTrend(history, endpoints) {
         count++;
       }
     }
+    const date = new Date(hourStart);
+    const hourLabel = date.getHours().toString().padStart(2, '0'); // only hour, e.g., "08", "14"
     hours.push({
-      hourLabel: new Date(hourStart).toLocaleTimeString([], { hour: '2-digit' }),
+      hourLabel,
       avgResponseTime: count ? Math.round(totalMs / count) : null,
     });
   }
