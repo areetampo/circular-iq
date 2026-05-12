@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { enforceAnonymousUsage } from '#controllers/scoring.controller.js';
-import { SCORING_MAX_FREE_TRIES } from '#utils/anonymousTracking.js';
+import { ANON_SCORING_LIMIT } from '#utils/anonymousTracking.js';
 import { logger } from '#utils/logger.js';
 
 // The scoring controller expects `logger` to exist on the global scope.
@@ -21,7 +21,7 @@ function makeReq({ ip = '127.0.0.1', ua = 'test-agent', authorization } = {}) {
   return { headers };
 }
 
-test('anonymous usage allows up to SCORING_MAX_FREE_TRIES then blocks', async () => {
+test('anonymous usage allows up to ANON_SCORING_LIMIT then blocks', async () => {
   // create a closure-backed counter to simulate RPC increments
   let counter = 0;
 
@@ -29,7 +29,7 @@ test('anonymous usage allows up to SCORING_MAX_FREE_TRIES then blocks', async ()
     rpc: async () => {
       counter += 1;
       const current_count = counter;
-      const is_allowed = current_count <= SCORING_MAX_FREE_TRIES;
+      const is_allowed = current_count <= ANON_SCORING_LIMIT;
       return { data: [{ current_count, is_allowed }], error: null };
     },
   };
@@ -45,8 +45,8 @@ test('anonymous usage allows up to SCORING_MAX_FREE_TRIES then blocks', async ()
     },
   };
 
-  // Call SCORING_MAX_FREE_TRIES times and expect null (allowed)
-  for (let i = 1; i <= SCORING_MAX_FREE_TRIES; i++) {
+  // Call ANON_SCORING_LIMIT times and expect null (allowed)
+  for (let i = 1; i <= ANON_SCORING_LIMIT; i++) {
     const result = await enforceAnonymousUsage(req, supabase, serviceSupabase);
     assert.strictEqual(result, null, `Expected allowed on try ${i}`);
   }
