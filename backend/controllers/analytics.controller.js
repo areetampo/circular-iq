@@ -8,6 +8,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 
 import { safeNumber } from '#utils/formatting.js';
+import { logger } from '#utils/logger.js';
 
 /**
  * Compute ISO week key in format YYYY-Www for a UTC date
@@ -37,6 +38,8 @@ function getISOWeekKey(date) {
  */
 export function postEmbeddingsReindex() {
   return async (req, res) => {
+    const startTime = Date.now();
+
     try {
       const scriptsDir = path.join(process.cwd(), 'backend');
       const child = spawn(process.execPath, ['scripts/embed_and_store.js'], {
@@ -46,9 +49,11 @@ export function postEmbeddingsReindex() {
       });
       child.unref();
 
+      logger.logOperation('POST', '/analytics/embeddings/reindex', 200, Date.now() - startTime);
       res.json({ started: true, pid: child.pid });
     } catch (err) {
       logger.error({ err }, 'Failed to start embedding pipeline');
+      logger.logOperation('POST', '/analytics/embeddings/reindex', 500, Date.now() - startTime);
       res.status(500).json({
         error: err?.message || 'Failed to start embedding pipeline',
         code: err?.code || 'INTERNAL_ERROR',
@@ -73,8 +78,11 @@ export function postEmbeddingsReindex() {
  */
 export function getGlobalStats(serviceSupabase) {
   return async (req, res) => {
+    const startTime = Date.now();
+
     if (!serviceSupabase) {
       logger.error('Service client not available');
+      logger.logOperation('GET', '/analytics/global-stats', 503, Date.now() - startTime);
       return res.status(503).json({
         error: 'Service client not available',
         code: 'SERVICE_UNAVAILABLE',
@@ -252,6 +260,7 @@ export function getGlobalStats(serviceSupabase) {
       };
 
       // ── Assemble response ──────────────────────────────────────────────────
+      logger.logOperation('GET', '/analytics/global-stats', 200, Date.now() - startTime);
       res.json({
         log_stats: {
           total_scoring_calls: totalScoringCalls,
@@ -284,6 +293,7 @@ export function getGlobalStats(serviceSupabase) {
       });
     } catch (err) {
       logger.error({ err }, '[getGlobalStats] unexpected error');
+      logger.logOperation('GET', '/analytics/global-stats', 500, Date.now() - startTime);
       res.status(500).json({
         error: err?.message || 'Failed to fetch global stats',
         code: err?.code || 'INTERNAL_ERROR',
