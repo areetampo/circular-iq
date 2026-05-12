@@ -3,7 +3,6 @@ export { default as Button } from './Button';
 export { default as ButtonStages } from './ButtonStages';
 export { default as Chip } from './Chip';
 export { default as CopyButton } from './CopyButton';
-export { default as CopyIcon } from './CopyIcon';
 export { default as DetailsBadge } from './DetailsBadge';
 export { default as DetailsDisplay } from './DetailsDisplay';
 export { default as ExpandableText } from './ExpandableText';
