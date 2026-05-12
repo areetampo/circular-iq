@@ -25,15 +25,16 @@ const getSeriesColors = () => [
  * Uses Recharts library with responsive design and theming support
  *
  * @param {Object} props - Component props
- * @param {Array} props.data - Array of data objects to display
- * @param {Array} props.radarConfigs - Configuration for each radar series
+ * @param {Array} [props.data] - Array of data objects to display
+ * @param {Array} [props.radarConfigs] - Configuration for each radar series
  * @param {string} props.radarConfigs[].dataKey - Key in data object for radar values
  * @param {string} props.radarConfigs[].name - Display name for the radar series
- * @param {number} props.height - Height of the chart in pixels (default: 400)
- * @param {boolean} props.showLegend - Whether to show legend (default: true)
- * @param {string} props.className - Additional CSS classes (optional)
- * @param {Array} props.colors - Array of colors for radar series (optional)
- * @param {Object} props.margin - Additional margin overrides (optional)
+ * @param {number} [props.height=400] - Height of the chart in pixels (default: 400)
+ * @param {boolean} [props.showLegend=true] - Whether to show legend (default: true)
+ * @param {string} [props.className] - Additional CSS classes (optional)
+ * @param {Array} [props.colors] - Array of colors for radar series (optional)
+ * @param {Object} [props.margin] - Additional margin overrides (optional)
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
  *
  * @example
  * <RadarChart
@@ -50,11 +51,12 @@ function RadarChartComponent({
   className,
   colors,
   margin = {},
+  ...props
 }) {
   if (!data?.length || !radarConfigs?.length) {
     return (
       <div
-        className="flex items-center justify-center font-mono text-[13px] text-stone-500"
+        className="flex items-center justify-center font-mono text-[0.85rem] text-(--color-text-muted)"
         style={{
           height,
         }}
@@ -82,7 +84,7 @@ function RadarChartComponent({
     data[0]?.subject !== undefined ? 'subject' : data[0]?.factor !== undefined ? 'factor' : 'name';
 
   return (
-    <ChartContainer config={config} className={className} style={{ height }}>
+    <ChartContainer config={config} className={className} style={{ height }} {...props}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsRadarChart
           data={data}
