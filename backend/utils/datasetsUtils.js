@@ -1195,11 +1195,6 @@ export function hasAppendBackupFlag() {
   return process.argv.includes('--append-backup');
 }
 
-// generic helper used by new tests and scripts that accept `--append`
-function hasAppendFlag() {
-  return process.argv.includes('--append');
-}
-
 /**
  * Write rows to a CSV file, with optional append and deduplication.
  *
