@@ -6,16 +6,28 @@ import { cn } from '@/utils/cn';
  * SectionHeading Component
  * Reusable section heading with icon support
  *
- * @param {string} children - Heading text
- * @param {string} variant - 'large' or 'small'
- * @param {ReactNode} icon - Optional icon component
- * @param {string} className - Additional CSS classes
+ * @param {Object} props - Component props
+ * @param {string} props.children - Heading text
+ * @param {'large'|'small'} [props.variant='large'] - 'large' or 'small'
+ * @param {ReactNode} [props.icon=null] - Optional icon component
+ * @param {string} [props.className=''] - Additional CSS classes
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered SectionHeading component
+ *
+ * @example
+ * Basic usage
+ * <SectionHeading>My Section</SectionHeading>
+ *
+ * @example
+ * With icon and small variant
+ * <SectionHeading variant="small" icon={<Icon />}>Subsection</SectionHeading>
  */
 export default function SectionHeading({
   children,
   variant = 'large',
   icon = null,
   className = '',
+  ...props
 }) {
   const baseClasses =
     variant === 'large'
@@ -23,7 +35,7 @@ export default function SectionHeading({
       : 'text-sm uppercase tracking-widest text-(--foreground) font-semibold font-sans';
 
   return (
-    <div className={cn('mb-6 flex items-center gap-2', className)}>
+    <div className={cn('mb-6 flex items-center gap-2', className)} {...props}>
       {icon && <div className="shrink-0">{icon}</div>}
       <h3 className={baseClasses}>{children}</h3>
     </div>
