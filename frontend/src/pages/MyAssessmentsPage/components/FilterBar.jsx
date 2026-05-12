@@ -79,35 +79,38 @@ export default function FilterBar({
         <div className="flex items-center justify-center gap-2">
           <Button
             variant="ghost"
+            icon={Share2}
+            iconSize={14}
             as={Link}
             to={'/assessments/share'}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Share2 size={14} strokeWidth={2} />
-            <span>Shared Assessments</span>
+            Shared Assessments
           </Button>
           <Button
             variant="ghost"
+            icon={Scale}
+            iconSize={14}
             as={Link}
             to={'/assessments/compare'}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Scale size={14} strokeWidth={2} />
-            <span>Compare Others</span>
+            Compare Others
           </Button>
           <Tooltip delay={0}>
             <Tooltip.Trigger>
               <Button
-                variant="results-action"
+                variant="bordered"
+                icon={TrendingUpDown}
+                iconSize={14}
+                isDisabled={selectedIds.size !== 2}
                 as={selectedIds.size === 2 ? Link : 'button'}
                 to={selectedIds.size === 2 ? compareUrl : undefined}
                 target="_blank"
                 rel="noopener noreferrer"
-                isDisabled={selectedIds.size !== 2}
               >
-                <TrendingUpDown size={14} strokeWidth={2} />
                 <span className="font-mono">compare ({selectedIds.size}/2)</span>
               </Button>
             </Tooltip.Trigger>
