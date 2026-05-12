@@ -68,4 +68,6 @@ export default function GlobalLoadingBar() {
   );
 }
 
-GlobalLoadingBar.propTypes = {};
+GlobalLoadingBar.propTypes = {
+  /** No props required for this component */
+};
