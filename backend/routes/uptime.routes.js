@@ -6,11 +6,8 @@
 import express from 'express';
 
 import { getSupabaseClient } from '#database/client.js';
+import { addClient, removeClient } from '#services/uptime.broadcaster.js';
 
-/**
- * Create uptime router
- * @returns {express.Router} Express router
- */
 export default function createUptimeRouter() {
   const router = express.Router();
 
@@ -20,6 +17,7 @@ export default function createUptimeRouter() {
    */
   router.get('/count', async (req, res) => {
     const startTime = Date.now();
+
     try {
       const supabase = getSupabaseClient();
       let query = supabase.from('uptime_checks').select('*', { count: 'exact', head: true });
@@ -42,10 +40,10 @@ export default function createUptimeRouter() {
   /**
    * GET /history/:endpointId
    * Retrieve recent checks for a specific endpoint
-   * Query param: ?limit=100 (default 10000, max 10000)
    */
   router.get('/history/:endpointId', async (req, res) => {
     const startTime = Date.now();
+
     const { endpointId } = req.params;
     const path = `/api/uptime/history/${endpointId}`;
     let limit = parseInt(req.query.limit, 10) || 10000;
@@ -82,6 +80,48 @@ export default function createUptimeRouter() {
       res.status(500).json({
         error: 'Failed to fetch history',
         code: 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  /**
+   * GET /stream
+   * Server‑Sent Events endpoint – keeps connection open and pushes 'poll-complete' events.
+   */
+  router.get('/stream', (req, res) => {
+    const startTime = Date.now();
+
+    try {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no', // Disable nginx/proxy buffering
+      });
+      res.flushHeaders();
+
+      // Heartbeat every 30s to keep connection alive
+      const heartbeat = setInterval(() => {
+        res.write(': heartbeat\n\n');
+      }, 30000);
+
+      addClient(res);
+      res.write(
+        `event: connected\ndata: ${JSON.stringify({ timestamp: new Date().toISOString() })}\n\n`,
+      );
+
+      logger.logOperation('GET', '/api/uptime/stream', 200, Date.now() - startTime);
+
+      req.on('close', () => {
+        removeClient(res);
+        clearInterval(heartbeat);
+      });
+    } catch (err) {
+      logger.error({ err }, 'Failed to establish SSE stream');
+      logger.logOperation('GET', '/api/uptime/stream', 500, Date.now() - startTime);
+      res.status(500).json({
+        error: 'Failed to establish SSE stream',
         timestamp: new Date().toISOString(),
       });
     }

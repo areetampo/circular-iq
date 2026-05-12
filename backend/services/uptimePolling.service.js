@@ -6,6 +6,7 @@
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { UPTIME_ENDPOINTS } from '#constants/index.js';
 import { getSupabaseClient } from '#database/client.js';
+import { broadcastUptimeEvent } from '#services/uptime.broadcaster.js';
 
 let pollingInterval = null;
 let isPolling = false;
@@ -26,27 +27,38 @@ async function pingEndpoint(endpointId, path) {
     clearTimeout(timeoutId);
     const ms = Date.now() - start;
     const body = await res.json().catch(() => ({}));
-    return {
+    const result = {
       endpointId,
       status: body.status ?? (res.ok ? 'healthy' : 'unhealthy'),
       up: res.ok,
       responseTimeMs: ms,
       payload: body,
     };
-  } catch (err) {
+    logger.logOperation('pingEndpoint', 'uptime/check', 'success', ms, {
+      endpointId,
+      up: result.up,
+      responseTime: ms,
+    });
+    return result;
+  } catch (error) {
     const ms = Date.now() - start;
-    return {
+    const result = {
       endpointId,
       status: 'error',
       up: false,
       responseTimeMs: ms,
-      payload: { error: err.message },
+      payload: { error: error.message },
     };
+    logger.logOperation('pingEndpoint', 'uptime/check', 'error', ms, {
+      endpointId,
+      error,
+    });
+    return result;
   }
 }
 
 /**
- * Run a full poll of all endpoints and store results in Supabase.
+ * Run a full poll of all endpoints, store results in Supabase and broadcast
  */
 async function runPoll() {
   if (isPolling) {
@@ -54,7 +66,9 @@ async function runPoll() {
     return;
   }
   isPolling = true;
+
   const startTime = Date.now();
+
   logger.info('[UptimePoll] Starting new poll cycle');
 
   try {
@@ -80,6 +94,17 @@ async function runPoll() {
         { timeTookMs: duration, endpointsStored: results.length },
         '[UptimePoll] Poll completed',
       );
+
+      // Broadcast to all SSE clients
+      broadcastUptimeEvent('poll-complete', {
+        timestamp: new Date().toISOString(),
+        results: results.map((r) => ({
+          endpointId: r.endpointId,
+          up: r.up,
+          responseTimeMs: r.responseTimeMs,
+          status: r.status,
+        })),
+      });
     }
   } catch (err) {
     logger.error({ err }, '[UptimePoll] Poll cycle failed');

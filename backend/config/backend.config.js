@@ -186,7 +186,7 @@ export const BACKEND_CONFIG = deepFreeze({
   scoring: {
     db: buildDatabaseConfig(),
     useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
-    maxFreeTries: env.SCORING_MAX_FREE_TRIES,
+    anonScoringLimit: env.ANON_SCORING_LIMIT,
   },
 
   app: {
