@@ -10,9 +10,9 @@ import { dominantCharRatio, nonLetterDensity, uniqueWordRatio } from '@/utils/fo
  * Uses useWatch to avoid triggering parent re-renders
  *
  * @param {Object} props
- * @param {string} props.fieldName - The form field name to watch
- * @param {number} props.minLength - Minimum required character count (default: 200)
- * @param {string} props.className - Additional CSS classes to apply
+ * @param {string} [props.fieldName] - The form field name to watch
+ * @param {number} [props.minLength=200] - Minimum required character count (default: 200)
+ * @param {string} [props.className] - Additional CSS classes to apply
  */
 export default function LiveCharacterCounter({ fieldName, minLength = 200, className }) {
   const { control } = useFormContext();

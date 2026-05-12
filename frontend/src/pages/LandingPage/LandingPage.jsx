@@ -573,8 +573,8 @@ export default function LandingPage() {
         resetProgress();
 
         // Handle anonymous limit reached
-        if (err?.code === 'LIMIT_REACHED') {
-          openLimitReachedDialog();
+        if (err?.code === 'ANON_SCORING_LIMIT_REACHED') {
+          openLimitReachedDialog({ anonScoringLimit: err?.anonScoringLimit });
           return;
         }
 
@@ -755,7 +755,7 @@ export default function LandingPage() {
                   <Tooltip delay={0} isDisabled={isValid} className="w-full">
                     <Tooltip.Trigger className="w-full">
                       <ButtonStages
-                        loading={loading}
+                        isLoading={loading}
                         isValid={isValid}
                         onPress={handleSubmit(handleFormSubmit)}
                         currentStage={currentStage}

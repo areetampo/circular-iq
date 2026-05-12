@@ -273,9 +273,13 @@ export default function SampleTestCasesContainer({
 
             {/* "View details" button — make it a subtle text link, not a button */}
             <div className="flex justify-end">
-              <Button size="sm" variant="ghost" onPress={(e) => handleViewDetails(e, testCase)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={(e) => handleViewDetails(e, testCase)}
+                icon={BookOpen}
+              >
                 View details
-                <BookOpen size={11} />
               </Button>
             </div>
           </Tilt3D>

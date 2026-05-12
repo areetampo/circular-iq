@@ -64,17 +64,16 @@ export default function HeroSection({
               key: 'assessment',
               label: 'Assessment Methodology',
               icon: BookOpen,
-              onClick: openAssessmentMethodologyDrawer,
+              onPress: openAssessmentMethodologyDrawer,
             },
             {
               key: 'evaluation',
               label: 'Evaluation Criteria',
               icon: Target,
-              onClick: openEvaluationCriteriaDrawer,
+              onPress: openEvaluationCriteriaDrawer,
             },
-          ].map(({ key, label, icon: Icon, onClick }) => (
-            <Button key={key} onClick={onClick} variant="ghost">
-              <Icon size={12} />
+          ].map(({ key, label, icon: Icon, onPress }) => (
+            <Button key={key} onPress={onPress} variant="ghost" icon={Icon} iconSize={14}>
               {label}
             </Button>
           ))}
