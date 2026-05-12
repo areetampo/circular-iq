@@ -32,29 +32,39 @@ const TICK_STYLE = {
  * @param {Array} props.data - Array of data objects to display
  * @param {Array} props.barConfigs - Configuration for each bar series
  * @param {string} props.barConfigs[].dataKey - Key in data object for bar values
- * @param {string} props.barConfigs[].name - Display name for the bar (optional)
- * @param {string} props.barConfigs[].fill - Color for the bar (optional)
- * @param {string} props.barConfigs[].color - Alternative color prop (optional)
- * @param {string} props.barConfigs[].stack - Stack ID for grouped bars (optional)
- * @param {number} props.height - Height of the chart in pixels (default: 300)
- * @param {string} props.xAxisKey - Data key for x-axis values (default: 'name')
- * @param {string} props.xAxisLabel - Label for x-axis (optional)
- * @param {string} props.yAxisLabel - Label for y-axis (optional)
- * @param {boolean} props.showLegend - Whether to show legend (default: true)
- * @param {boolean} props.isLoading - Whether to show loading state (default: false)
- * @param {string} props.className - Additional CSS classes (optional)
- * @param {Array} props.colors - Array of colors for bars (optional) (applies per series, not per bar)
- * @param {Array} props.barColors - Array of colors for each individual bar (same order as data). If provided, overrides fill for each bar. (optional)
- * @param {number} props.tickAngle - Angle for x-axis tick labels (default: 0)
- * @param {string} props.tickAnchor - Anchor for rotated ticks (default: 'end')
- * @param {Object} props.margin - Additional margin overrides (optional)
+ * @param {string} [props.barConfigs[].name] - Display name for the bar (optional)
+ * @param {string} [props.barConfigs[].fill] - Color for the bar (optional)
+ * @param {string} [props.barConfigs[].color] - Alternative color prop (optional)
+ * @param {string} [props.barConfigs[].stack] - Stack ID for grouped bars (optional)
+ * @param {number} [props.height=300] - Height of the chart in pixels
+ * @param {string} [props.xAxisKey='name'] - Data key for x-axis values
+ * @param {string} [props.xAxisLabel] - Label for x-axis (optional)
+ * @param {string} [props.yAxisLabel] - Label for y-axis (optional)
+ * @param {boolean} [props.showLegend=true] - Whether to show legend
+ * @param {boolean} [props.isLoading=false] - Whether to show loading state
+ * @param {string} [props.className] - Additional CSS classes (optional)
+ * @param {Array} [props.colors] - Array of colors for bars (optional) (applies per series, not per bar)
+ * @param {Array} [props.barColors] - Array of colors for each individual bar (same order as data). If provided, overrides fill for each bar. (optional)
+ * @param {number} [props.tickAngle=0] - Angle for x-axis tick labels
+ * @param {string} [props.tickAnchor='end'] - Anchor for rotated ticks
+ * @param {Object} [props.margin] - Additional margin overrides (optional)
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered BarChart
  *
  * @example
- * <BarChart
- *   data={[{ name: 'Jan', sales: 100 }, { name: 'Feb', sales: 150 }]}
- *   barConfigs={[{ dataKey: 'sales', name: 'Sales', fill: '#8884d8' }]}
- *   height={400}
- * />
+ * Basic usage
+ * <BarChart data={salesData} barConfigs={[{ dataKey: 'sales', name: 'Sales', fill: '#8884d8' }]} height={400} />
+ *
+ * @example
+ * With multiple series
+ * <BarChart data={companyData} barConfigs={[
+ *   { dataKey: 'revenue', name: 'Revenue', fill: '#82ca9d' },
+ *   { dataKey: 'profit', name: 'Profit', fill: '#8884d8' }
+ * ]} showLegend={true} />
+ *
+ * @example
+ * With custom styling
+ * <BarChart data={performanceData} colors={['#ff7c7c', '#3b82f6']} tickAngle={45} tickAnchor='middle' />
  */
 export default function BarChart({
   data = [],
@@ -67,10 +77,11 @@ export default function BarChart({
   isLoading = false,
   className,
   colors,
-  barColors, // new prop
+  barColors,
   tickAngle = 0,
   tickAnchor = 'end',
   margin = {},
+  ...props
 }) {
   if (isLoading) {
     return (
@@ -85,7 +96,7 @@ export default function BarChart({
       <div
         className={cn(
           className,
-          'flex items-center justify-center font-mono text-[13px] text-stone-500',
+          'flex items-center justify-center font-mono text-[0.85rem] text-(--color-text-muted)',
         )}
         style={{
           height,
@@ -116,7 +127,7 @@ export default function BarChart({
   const useBarColors = barColors && barColors.length === data.length;
 
   return (
-    <ChartContainer config={config} className={className} style={{ height }}>
+    <ChartContainer config={config} className={className} style={{ height }} {...props}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart
           data={data}
