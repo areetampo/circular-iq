@@ -1,7 +1,8 @@
 import { ScrollShadow } from '@heroui/react';
 import { AlertTriangle, Ghost, Home, Info, RotateCw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
 import { cn } from '@/utils/cn';
@@ -58,18 +59,19 @@ const variants = {
  * Used across error boundaries, error states, informational messages, and various UI states
  *
  * @param {Object} props - Component props
- * @param {'neutral'|'error'|'warning'|'info'|'404'} props.variant - Visual variant theme
+ * @param {'neutral'|'error'|'warning'|'info'|'404'} props.variant - Visual variant theme (default: 'error')
  * @param {React.ElementType} props.icon - Custom icon component (Lucide icon)
- * @param {string} props.title - Main heading/title text
- * @param {boolean} props.showTitle - Whether to display the title (default: true)
- * @param {string} props.description - Descriptive message text (default: 'Something went wrong. Please try again later.')
- * @param {boolean} props.showDescription - Whether to display the description (default: true)
+ * @param {string} [props.title='An Error Occurred'] - Main heading/title text (default: 'An Error Occurred')
+ * @param {boolean} [props.showTitle=true] - Whether to display the title (default: true)
+ * @param {string} [props.description='Something went wrong. Please try again later.'] - Descriptive message text (default: 'Something went wrong. Please try again later.')
+ * @param {boolean} [props.showDescription=true] - Whether to display the description (default: true)
  * @param {React.ReactNode} props.children - Additional custom content to display
- * @param {Array<Object>} props.actions - Array of action buttons: [{ label, icon, onClick, variant, size, className, state }]
- * @param {boolean} props.showDefaultActions - Whether to show default "Refresh" and "Return Home" buttons (default: true)
- * @param {boolean} props.fullScreen - Whether to use full screen height (default: false)
- * @param {string|Object} props.errorDetails - Error details to show in dev mode
- * @param {string} props.className - Additional CSS classes
+ * @param {Array<Object>} props.actions - Array of action buttons: [{ label, icon, onPress, variant, size, className, state, as, to, smooth, iconRight }]
+ * @param {boolean} [props.showDefaultActions=true] - Whether to show default "Refresh" and "Return Home" buttons (default: true)
+ * @param {boolean} [props.fullScreen=false] - Whether to use full screen height (default: false)
+ * @param {string|Object|Error} props.errorDetails - Error details to show in dev mode
+ * @param {string} [props.className] - Additional CSS classes
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
  * @returns {JSX.Element} Rendered DetailsDisplay component
  *
  * @example
@@ -78,7 +80,7 @@ const variants = {
  *   variant="error"
  *   title="Network Error"
  *   description="Unable to connect to the server. Please check your internet connection."
- *   actions={[{ label: 'Retry', onClick: handleRetry }]}
+ *   actions={[{ label: 'Retry', onPress: handleRetry }]}
  * />
  *
  * @example
@@ -89,7 +91,7 @@ const variants = {
  *   title="Sign In Required"
  *   description="Please sign in to access this feature."
  *   showDefaultActions={false}
- *   actions={[{ label: 'Sign In', onClick: handleSignIn }]}
+ *   actions={[{ label: 'Sign In', onPress: handleSignIn }]}
  * />
  */
 export default function DetailsDisplay({
@@ -105,7 +107,13 @@ export default function DetailsDisplay({
   fullScreen = false,
   errorDetails = null,
   className,
+  ...props
 }) {
+  const navigate = useNavigate();
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, [navigate]);
+
   const style = variants[variant] || variants.error;
   const Icon = CustomIcon || style.defaultIcon;
 
@@ -116,7 +124,7 @@ export default function DetailsDisplay({
           variant: 'ghost',
           label: 'Refresh Page',
           icon: RotateCw,
-          onPress: () => window.location.reload(),
+          onPress: handleRefresh,
         },
         {
           variant: 'ghost',
@@ -140,10 +148,11 @@ export default function DetailsDisplay({
   return (
     <div
       className={cn(
-        `flex items-center justify-center px-6 py-20`,
+        `flex items-center justify-center px-6 py-10`,
         `${fullScreen ? 'min-h-screen' : 'min-h-[40vh]'}`,
         className,
       )}
+      {...props}
     >
       <div
         className={cn('w-full max-w-lg rounded-4xl bg-transparent p-8', 'border-4 border-dashed')}
@@ -186,16 +195,14 @@ export default function DetailsDisplay({
         {import.meta.env.DEV && errorDetails && (
           <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-(--color-error-soft-ui) p-3">
             <CopyButton
-              value={errorDetailsMsg}
-              size={16}
-              strokeWidth={2.5}
-              color="var(--color-danger)"
-              description="Error Details (Dev env only)"
+              variant="danger-text"
+              copyValue={errorDetailsMsg}
+              title="Error Details (Dev env only)"
+              titleCn="font-sniglet tracking-wide"
               noBorder
-              className="mb-1 -ml-2 gap-2 font-medium"
             />
-            <ScrollShadow hideScrollBar size={30} className="scrollbar-hide max-h-45 p-2 pb-5">
-              <pre className="font-mono text-xs/relaxed wrap-break-word whitespace-pre-wrap text-(--color-danger)">
+            <ScrollShadow hideScrollBar size={30} className="scrollbar-hide max-h-47 p-2">
+              <pre className="font-mono text-[0.65rem]/relaxed wrap-break-word whitespace-pre-wrap text-(--color-danger)">
                 {errorDetailsMsg}
               </pre>
             </ScrollShadow>
@@ -216,17 +223,18 @@ export default function DetailsDisplay({
               return (
                 <Button
                   key={index}
+                  {...(ActionIcon && { icon: ActionIcon })}
+                  {...(ActionIcon && { iconSize: 15 })}
+                  {...(ActionIcon && action.iconRight && { iconRight: 15 })}
                   as={Component} // Pass the component type here
                   to={action.to}
                   state={action.state} // Pass state for Link navigation
                   smooth={action.smooth} // HashLink will use this, standard Link will ignore it
-                  onPress={action.onPress || action.onClick}
+                  onPress={action.onPress}
                   variant={action.variant || 'ghost'}
                   className={cn('gap-2', action.className)}
                 >
-                  {ActionIcon && !action.iconRight && <ActionIcon size={15} />}
                   {action.label}
-                  {ActionIcon && action.iconRight && <ActionIcon size={15} />}
                 </Button>
               );
             })}
@@ -238,38 +246,46 @@ export default function DetailsDisplay({
 }
 
 DetailsDisplay.propTypes = {
-  /** Visual variant: 'neutral', 'error', 'warning', 'info', '404' */
+  /** Visual variant: 'neutral', 'error', 'warning', 'info', '404' (default: 'error') */
   variant: PropTypes.oneOf(['neutral', 'error', 'warning', 'info', '404']),
   /** Custom icon component (Lucide icon) */
   icon: PropTypes.elementType,
-  /** Main heading/title */
-  title: PropTypes.string.isRequired,
-  /** to show the title or not */
+  /** Main heading/title (default: 'An Error Occurred') */
+  title: PropTypes.string,
+  /** Whether to display title (default: true) */
   showTitle: PropTypes.bool,
-  /** Descriptive message */
+  /** Descriptive message (default: 'Something went wrong. Please try again later.') */
   description: PropTypes.string,
-  /** to show the description or not */
+  /** Whether to display description (default: true) */
   showDescription: PropTypes.bool,
   /** Additional custom content */
   children: PropTypes.node,
-  /** Array of action buttons: [{ label, icon, onClick, variant, size, className, state }] */
+  /** Array of action buttons: [{ label, icon, onPress, variant, size, className, state, as, to, smooth, iconRight }] */
   actions: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,
       icon: PropTypes.elementType,
-      onClick: PropTypes.func.isRequired,
+      onPress: PropTypes.func.isRequired,
       variant: PropTypes.string,
       size: PropTypes.string,
       className: PropTypes.string,
       state: PropTypes.object, // For Link navigation state
+      as: PropTypes.elementType, // Component type (Link, HashLink, button)
+      to: PropTypes.string, // Navigation target
+      smooth: PropTypes.bool, // For HashLink smooth scrolling
+      iconRight: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]), // Icon positioning
     }),
   ),
-  /** Show default "Refresh" and "Return Home" buttons */
+  /** Whether to show default "Refresh" and "Return Home" buttons (default: true) */
   showDefaultActions: PropTypes.bool,
-  /** Use full screen height */
+  /** Whether to use full screen height (default: false) */
   fullScreen: PropTypes.bool,
-  /** Error details to show in dev mode */
-  errorDetails: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  /** Error details to show in dev mode (string, object, or Error instance) */
+  errorDetails: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.object,
+    PropTypes.instanceOf(Error),
+  ]),
   /** Additional CSS classes */
   className: PropTypes.string,
 };
