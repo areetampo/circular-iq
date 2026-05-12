@@ -516,4 +516,6 @@ export default function ScrollToTop() {
   return null;
 }
 
-ScrollToTop.propTypes = {};
+ScrollToTop.propTypes = {
+  /** No props required for this component */
+};
