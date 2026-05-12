@@ -11,8 +11,9 @@
  * @returns {Promise<Object>} Authentication result { user, isAuthenticated, token }
  */
 export async function authenticateRequest(req, supabase, options = {}) {
-  const { required = true } = options;
+  const startTime = Date.now();
 
+  const { required = true } = options;
   const authHeader = req.headers.authorization || '';
 
   // If no auth header and not required, return unauthenticated
@@ -41,13 +42,25 @@ export async function authenticateRequest(req, supabase, options = {}) {
         }
       : null;
 
-    return {
+    const result = {
       user,
       isAuthenticated: !!user,
       token,
     };
+
+    logger.logOperation('authenticateRequest', 'auth/service', 'success', Date.now() - startTime, {
+      isAuthenticated: result.isAuthenticated,
+      required,
+    });
+
+    return result;
   } catch (error) {
+    logger.logOperation('authenticateRequest', 'auth/service', 'error', Date.now() - startTime, {
+      error,
+      required,
+    });
     logger.warn({ error, required }, '[auth.service] authenticateRequest failed');
+
     if (!required) {
       return { user: null, isAuthenticated: false, token: null };
     }
