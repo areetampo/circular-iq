@@ -20,6 +20,8 @@ import { logger } from '#utils/logger.js';
  */
 export function requireAuth(serviceSupabase) {
   return async (req, res, next) => {
+    const startTime = Date.now();
+
     try {
       const IS_TEST = BACKEND_CONFIG.nodeEnv === 'test';
 
@@ -74,16 +76,17 @@ export function requireAuth(serviceSupabase) {
         user_metadata: data.user.user_metadata || {},
       };
 
-      // logger.info(
-      //   {
-      //     userId: req.user.id,
-      //     email: req.user.email,
-      //   },
-      //   '[AUTH_MIDDLEWARE] User attached to request',
-      // );
+      logger.logOperation('requireAuth', 'auth/middleware', 'success', Date.now() - startTime, {
+        userId: req.user.id,
+        path: req.path,
+      });
       next();
-    } catch (err) {
-      logger.error({ err }, 'Authentication failed');
+    } catch (error) {
+      logger.logOperation('requireAuth', 'auth/middleware', 'error', Date.now() - startTime, {
+        error,
+        path: req.path,
+      });
+      logger.error({ error }, 'Authentication failed');
       return res.status(500).json({
         error: 'Authentication failed',
         code: 'AUTH_ERROR',
