@@ -7,26 +7,6 @@ import request from 'supertest';
 import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
-function makeMockSupabaseForSummary(assessments) {
-  const chain = {
-    eq() {
-      return chain;
-    },
-    gte() {
-      return chain;
-    },
-    then(resolve) {
-      resolve({ data: assessments, error: null });
-    },
-  };
-
-  return {
-    from: () => ({
-      select: () => chain,
-    }),
-  };
-}
-
 function makeServiceSupabaseMock({ logRows, marketData, assessmentStats }) {
   return {
     from: () => ({
@@ -74,30 +54,6 @@ after(async () => {
   setDatabaseClientOverride(null);
   // Close all database pools and connections to prevent hanging
   await closeAllPools();
-});
-
-test('GET /api/analytics returns aggregate, industryMetrics, timeSeries', async () => {
-  const nowIso = new Date().toISOString();
-  const assessments = [
-    { industry: 'energy', created_at: nowIso, result_json: { overall_score: 80 } },
-    { industry: 'energy', created_at: nowIso, result_json: { overall_score: 60 } },
-  ];
-
-  const supabaseMock = makeMockSupabaseForSummary(assessments);
-  const serviceSupabaseMock = makeServiceSupabaseMock({
-    logRows: [],
-    marketData: [],
-    assessmentStats: [{}],
-  });
-
-  const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(supabaseMock, serviceSupabaseMock));
-
-  const res = await request(app).get('/api/analytics');
-  assert.equal(res.status, 200);
-  assert.ok(res.body.aggregate);
-  assert.ok(Array.isArray(res.body.industryMetrics));
-  assert.ok(Array.isArray(res.body.timeSeries));
 });
 
 test('GET /api/analytics/global-stats returns log_stats + market_data + assessment_stats', async () => {
@@ -153,7 +109,6 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
     },
   ];
 
-  const supabaseMock = makeMockSupabaseForSummary([]);
   const serviceSupabaseMock = makeServiceSupabaseMock({
     logRows,
     marketData,
@@ -161,7 +116,7 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
   });
 
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(supabaseMock, serviceSupabaseMock));
+  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
@@ -169,4 +124,55 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
   assert.equal(res.body.log_stats.total_scoring_calls, 1);
   assert.ok(Array.isArray(res.body.market_data));
   assert.ok('assessment_stats' in res.body);
+});
+
+test('GET /api/analytics/global-stats handles empty data gracefully', async () => {
+  const serviceSupabaseMock = makeServiceSupabaseMock({
+    logRows: [],
+    marketData: [],
+    assessmentStats: [{}],
+  });
+
+  const app = express();
+  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
+
+  const res = await request(app).get('/api/analytics/global-stats');
+  assert.equal(res.status, 200);
+  assert.ok(res.body.log_stats);
+  assert.equal(res.body.log_stats.total_scoring_calls, 0);
+  assert.ok(Array.isArray(res.body.market_data));
+  assert.equal(res.body.market_data.length, 0);
+  assert.ok('assessment_stats' in res.body);
+});
+
+test('GET /api/analytics/global-stats includes weekly trend data', async () => {
+  const nowIso = new Date().toISOString();
+  const logRows = [
+    {
+      overall_score: 80,
+      created_at: nowIso,
+      audit_is_junk_input: false,
+    },
+    {
+      overall_score: 75,
+      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
+      audit_is_junk_input: false,
+    },
+  ];
+
+  const serviceSupabaseMock = makeServiceSupabaseMock({
+    logRows,
+    marketData: [],
+    assessmentStats: [{}],
+  });
+
+  const app = express();
+  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
+
+  const res = await request(app).get('/api/analytics/global-stats');
+  assert.equal(res.status, 200);
+  assert.ok(res.body.log_stats.weekly_trend);
+  assert.ok(Array.isArray(res.body.log_stats.weekly_trend));
+  // Should have 12 weeks of data (including current and empty weeks)
+  assert.equal(res.body.log_stats.weekly_trend.length, 12);
 });

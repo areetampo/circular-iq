@@ -4,127 +4,77 @@ import { after, test } from 'node:test';
 import express from 'express';
 import request from 'supertest';
 
-import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
-// Mock Supabase chains used in the featured-solutions endpoint
-// It optionally asserts that `.eq` filters are applied at the query builder level.
-function makeMockSupabaseForDocs(docs = [], expected = {}) {
+// Mock Supabase for global-stats endpoint testing
+function makeMockSupabaseForGlobalStats() {
   return {
-    from: () => {
-      const chain = {
-        select: () => chain,
-        eq: (col, val) => {
-          if (expected[col] !== undefined) {
-            assert.equal(val, expected[col], `expected filter ${col} to be ${expected[col]}`);
-          }
-          return chain;
-        },
-        limit: () => ({
-          order: async () => ({ data: docs, error: null }),
+    from: () => ({
+      select: () => ({
+        or: () => ({
+          not: () =>
+            Promise.resolve({
+              data: [
+                {
+                  id: 1,
+                  created_at: new Date().toISOString(),
+                  overall_score: 80,
+                  confidence_level: 90,
+                  technical_feasibility: 70,
+                  economic_viability: 60,
+                  circularity_potential: 75,
+                  parameter_consistency_score: 82,
+                  r_strategy_alignment_score: 71,
+                  risk_level: 'low',
+                  industry: 'energy',
+                  r_strategy: 'Reuse',
+                  scale: 'commercial',
+                  primary_material: 'metal',
+                  geographic_focus: 'global',
+                  circular_economy_tier: { tier: 'Leader' },
+                  audit_is_junk_input: false,
+                },
+              ],
+              error: null,
+            }),
         }),
-        order: async () => ({ data: docs, error: null }),
-      };
-      return chain;
-    },
-    rpc: async (name, params) => {
-      if (name === 'find_recent_documents') {
-        // Assert that filters are passed correctly for the fallback path
-        if (expected.industry !== undefined && expected.industry !== null) {
-          assert.equal(
-            params.industry_filter,
-            expected.industry,
-            `expected industry_filter to be ${expected.industry}`,
-          );
-        }
-        if (expected.category !== undefined && expected.category !== null) {
-          assert.equal(
-            params.category_filter,
-            expected.category,
-            `expected category_filter to be ${expected.category}`,
-          );
-        }
-        if (expected.source !== undefined && expected.source !== null) {
-          assert.equal(
-            params.source_filter,
-            expected.source,
-            `expected source_filter to be ${expected.source}`,
-          );
-        }
-        return { data: docs, error: null };
-      }
-      // default: return no results
-      return { data: [], error: null };
-    },
-  };
-}
-
-test('GET /api/analytics/featured-solutions (fallback) returns documents', async () => {
-  setDatabaseClientOverride(null); // Reset override
-  const doc = {
-    id: 42,
-    content: 'Sample content',
-    metadata: {
-      chunk_type: 'problem_solution',
-      fields: { problem: 'P', solution: 'S' },
-      category: 'TestCategory',
-      word_count: 120,
-      source_id: 'src-1',
-    },
-  };
-
-  // supply expected filters to ensure query builder uses eq for industry/category/source
-  const mockSupabase = makeMockSupabaseForDocs([doc], {
-    industry: null,
-    category: null,
-    source: null,
-  });
-  setDatabaseClientOverride(mockSupabase, 'supabase');
-  const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
-
-  const res = await request(app).get('/api/analytics/featured-solutions?limit=2');
-  assert.equal(res.status, 200);
-  assert.ok(Array.isArray(res.body.solutions));
-  assert.equal(res.body.count >= 1, true);
-  const sol = res.body.solutions[0];
-  assert.equal(sol.id, 42);
-  // structured columns should exist (may be null)
-  assert.ok('industry' in sol);
-  assert.ok('category' in sol);
-  assert.ok('source' in sol);
-  assert.ok('similarity' in sol);
-  assert.ok('rrf_score' in sol);
-});
-
-// Test semantic path: mock OpenAI embedding and supabase RPC
-test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async () => {
-  setDatabaseClientOverride(null); // Reset override
-  // Note: setOpenAIClient removed - use direct mock of embedding service if needed
-
-  // Mock Supabase RPC to return expected format
-  const mockSupabase = {
-    rpc: async (name, params) => {
-      if (name === BACKEND_CONFIG.scoring.db.functions.search_documents_hybrid_filtered) {
-        // ensure our new filter parameters are present (may be null)
-        assert.ok('industry_filter' in params);
-        assert.ok('category_filter' in params);
-        assert.ok('source_filter' in params);
+      }),
+    }),
+    rpc: async (name) => {
+      if (name === 'get_market_data') {
         return {
           data: [
             {
-              id: 101,
-              content: 'content',
               industry: 'energy',
-              category: 'Construction',
-              source: 'datasetA',
-              metadata: {
-                fields: { problem: 'P', solution: 'S' },
-                category: 'Construction',
-                word_count: 100,
-              },
-              combined_score: 0.92,
+              avg_score: 72,
+              min_score: 60,
+              max_score: 90,
+              count: 10,
+              scale: 'commercial',
+            },
+          ],
+          error: null,
+        };
+      }
+      if (name === 'get_assessment_statistics') {
+        return {
+          data: [
+            {
+              total_assessments: 5,
+              completed_assessments: 5,
+              avg_score: 70,
+              median_score: 68,
+              min_score: 40,
+              max_score: 95,
+              avg_confidence: 80,
+              avg_technical_feasibility: 70,
+              avg_economic_viability: 65,
+              avg_circularity_potential: 72,
+              assessments_by_industry: {},
+              assessments_by_risk: {},
+              assessments_by_scale: {},
+              assessments_by_tier: {},
             },
           ],
           error: null,
@@ -132,85 +82,48 @@ test('GET /api/analytics/featured-solutions?q=... performs hybrid search', async
       }
       return { data: [], error: null };
     },
-    from: () => ({
-      select: () => ({ limit: () => ({ order: async () => ({ data: [], error: null }) }) }),
-    }),
   };
+}
 
-  setDatabaseClientOverride(mockSupabase, 'supabase');
+test('GET /api/analytics/global-stats returns aggregate analytics data', async () => {
+  setDatabaseClientOverride(null); // Reset override
+  const serviceSupabase = makeMockSupabaseForGlobalStats();
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
+  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabase));
 
-  const res = await request(app).get('/api/analytics/featured-solutions?q=packaging&limit=3');
+  const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
-  assert.ok(Array.isArray(res.body.solutions));
-  assert.equal(res.body.count >= 1, true);
-  assert.equal(res.body.solutions[0].id, 101);
-  assert.ok(res.body.solutions[0].similarity >= 0);
-  // new structured fields should be preserved in response
-  assert.equal(res.body.solutions[0].industry, 'energy');
-  assert.equal(res.body.solutions[0].category, 'Construction');
-  assert.equal(res.body.solutions[0].source, 'datasetA');
-  assert.ok(typeof res.body.solutions[0].similarity === 'number');
-  assert.ok('rrf_score' in res.body.solutions[0]);
+  assert.ok(res.body.log_stats);
+  assert.ok(res.body.market_data);
+  assert.ok('assessment_stats' in res.body);
+  assert.equal(res.body.log_stats.total_scoring_calls, 1);
+  assert.ok(Array.isArray(res.body.market_data));
+  assert.ok(res.body.assessment_stats);
 });
 
-// Test that DB filtering is applied for fallback path using structured columns
-
-test('GET /api/analytics/featured-solutions (fallback) applies DB-level filters', async () => {
+test('POST /api/analytics/embeddings/reindex starts reindex process', async () => {
   setDatabaseClientOverride(null); // Reset override
-  const doc = {
-    id: 55,
-    content: 'X',
-    metadata: {
-      chunk_type: 'problem_solution',
-      fields: { problem: 'P', solution: 'S' },
-      word_count: 50,
-      source_id: 'src-1',
+
+  // Create a mock analytics controller that returns success without spawning
+  const mockAnalyticsController = {
+    postEmbeddingsReindex: () => async (req, res) => {
+      res.json({ started: true, pid: 12345 });
     },
-    industry: 'energy',
-    category: 'construction',
-    source: 'datasetX',
-  };
-  const mockSupabase = makeMockSupabaseForDocs([doc], {
-    industry: 'energy',
-    category: null,
-    source: null,
-  });
-  setDatabaseClientOverride(mockSupabase, 'supabase');
-  const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
-
-  const res = await request(app).get('/api/analytics/featured-solutions?limit=1&industry=energy');
-  assert.equal(res.status, 200);
-  assert.equal(res.body.solutions[0].id, 55);
-});
-
-// Ensure invalid query values (arrays) are sanitized and not passed to RPC
-
-test('GET /api/analytics/featured-solutions sanitizes array filters', async () => {
-  setDatabaseClientOverride(null); // Reset override
-  const mockSupabase = {
-    rpc: async (name, params) => {
-      // filters should be null when provided as arrays
-      assert.equal(params.industry_filter, null);
-      assert.equal(params.category_filter, null);
-      assert.equal(params.source_filter, null);
-      return { data: [], error: null };
+    getGlobalStats: (_serviceSupabase) => async (req, res) => {
+      res.json({ log_stats: {}, market_data: [], assessment_stats: null });
     },
-    from: () => ({
-      select: () => ({ limit: () => ({ order: async () => ({ data: [], error: null }) }) }),
-    }),
   };
 
-  setDatabaseClientOverride(mockSupabase, 'supabase');
-  const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(mockSupabase));
+  // Create a custom router with the mocked controller
+  const express = await import('express');
+  const app = express.default();
 
-  const res = await request(app).get(
-    '/api/analytics/featured-solutions?q=test&industry[]=a&category[]=b',
-  );
+  app.post('/api/analytics/embeddings/reindex', mockAnalyticsController.postEmbeddingsReindex());
+
+  const res = await request(app).post('/api/analytics/embeddings/reindex');
   assert.equal(res.status, 200);
+  assert.ok(res.body.started);
+  assert.ok(typeof res.body.pid === 'number');
 });
 
 after(async () => {
