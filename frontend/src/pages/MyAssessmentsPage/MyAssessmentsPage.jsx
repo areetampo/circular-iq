@@ -1,6 +1,15 @@
 import { Input, Label, ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Home, MoveLeft, Plus, RotateCw, ScrollText } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Eraser,
+  Home,
+  MoveLeft,
+  Plus,
+  RotateCw,
+  ScrollText,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
@@ -172,9 +181,9 @@ export default function MyAssessmentsPage() {
           showDefaultActions={false}
           actions={[
             {
-              variant: 'teal',
               label: 'Sign In',
               icon: Home,
+              variant: 'teal',
               as: Link,
               to: '/auth?view=login',
               state: { from: location },
@@ -447,7 +456,7 @@ export default function MyAssessmentsPage() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5 pb-10"
+              className="rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5 pb-14"
             >
               <Skeleton animationType="shimmer" className="mb-3 h-3 w-20" />
               <Skeleton animationType="shimmer" className="mb-2 h-8 w-16" />
@@ -770,8 +779,8 @@ export default function MyAssessmentsPage() {
             {
               label: 'Retry',
               icon: RotateCw,
-              onPress: refetch,
               variant: 'teal',
+              onPress: refetch,
             },
             {
               label: 'Back to Home',
@@ -798,9 +807,9 @@ export default function MyAssessmentsPage() {
             {
               label: 'Start Your First Assessment',
               icon: Plus,
+              variant: 'teal',
               as: HashLink,
               to: '/#ce-assessment-form',
-              variant: 'teal',
               smooth: true,
             },
           ]}
@@ -820,6 +829,7 @@ export default function MyAssessmentsPage() {
           actions={[
             {
               label: 'Clear Filters',
+              icon: Eraser,
               variant: 'ghost',
               onPress: () => {
                 setSearchTerm('');
@@ -1055,8 +1065,8 @@ export default function MyAssessmentsPage() {
             {
               label: 'Retry',
               icon: RotateCw,
-              onPress: refetch,
               variant: 'teal',
+              onPress: refetch,
             },
             {
               label: 'Back to Home',
@@ -1117,8 +1127,8 @@ export default function MyAssessmentsPage() {
 
       {/* Back button */}
       <div className="flex justify-center pt-4 pb-2">
-        <Button as={Link} to="/" variant="ghost">
-          <MoveLeft size={16} /> Back to Home
+        <Button variant="ghost" as={Link} to="/" icon={MoveLeft}>
+          Back to Home
         </Button>
       </div>
     </div>

@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Button, Chip, CopyIcon, Separator, Spinner, Tilt3D } from '@/components/common';
+import { Button, Chip, CopyButton, Separator, Spinner, Tilt3D } from '@/components/common';
 import { useAssessmentHandlers } from '@/features/export';
-import { formatTimestamp, toTitleCase } from '@/lib/formatting';
+import { cleanUrl, formatTimestamp, toTitleCase } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 const scoreColor = (s) =>
@@ -24,10 +24,12 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 }) {
   const assessmentPublicId = assessment.public_id;
   const assessmentPath = `/assessments/${assessmentPublicId}`;
-  const assessmentUrl = `${window.location.origin}${assessmentPath}`;
+  const assessmentPublicUrl = cleanUrl(
+    `${window.location.origin}/assessments/share/${assessmentPublicId}`,
+    { stripProtocol: true, stripWww: true },
+  );
+  const formattedDate = formatTimestamp(assessment.created_at);
 
-  const [copiedAssessmentPublicId, setCopiedAssessmentPublicId] = useState(null);
-  const [copiedAssessmentUrl, setCopiedAssessmentUrl] = useState(null);
   const [togglingPublic, setTogglingPublic] = useState(null);
 
   // Use centralized assessment handlers
@@ -38,17 +40,6 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
     isExportingPDF,
     isExportingCSV,
   } = useAssessmentHandlers();
-
-  const handleCopy = (type, value) => {
-    navigator.clipboard.writeText(value);
-    if (type === 'id') {
-      setCopiedAssessmentPublicId(value);
-      setTimeout(() => setCopiedAssessmentPublicId(null), 1500);
-    } else if (type === 'url') {
-      setCopiedAssessmentUrl(value);
-      setTimeout(() => setCopiedAssessmentUrl(null), 1500);
-    }
-  };
 
   const handleTogglePublic = async (id) => {
     setTogglingPublic(id);
@@ -85,71 +76,63 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
   };
 
   const actionButtons = [
-    { icon: Eye, label: 'View', onClick: () => onView(assessmentPublicId), link: assessmentPath },
-    { icon: Pencil, label: 'Rename', onClick: () => onRename(assessment.id) },
-    { icon: Trash2, label: 'Delete', onClick: () => onDelete(assessment.id) },
-    { icon: RefreshCw, label: 'Re-evaluate', onClick: handleReevaluateClick },
+    { icon: Eye, label: 'View', onPress: () => onView(assessmentPublicId), link: assessmentPath },
+    { icon: Pencil, label: 'Rename', onPress: () => onRename(assessment.id) },
+    { icon: Trash2, label: 'Delete', onPress: () => onDelete(assessment.id) },
+    { icon: RefreshCw, label: 'Re-evaluate', onPress: handleReevaluateClick },
+    // CopyButton for URL & ID
     {
-      icon: CopyIcon,
       label: 'URL',
-      onClick: () => handleCopy('url', assessmentUrl),
+      value: assessmentPublicUrl,
     },
     {
-      icon: CopyIcon,
       label: 'ID',
-      onClick: () => handleCopy('id', assessmentPublicId),
+      value: assessmentPublicId,
     },
     {
       icon: Download,
       label: 'PDF',
-      onClick: handlePDFDownload,
+      onPress: handlePDFDownload,
       isLoading: isExportingPDF,
       isDisabled: isExportingPDF,
     },
     {
       icon: Download,
       label: 'CSV',
-      onClick: handleCSVDownload,
+      onPress: handleCSVDownload,
       isLoading: isExportingCSV,
       isDisabled: isExportingCSV,
     },
   ];
 
-  const renderBtn = (btn, idx) => {
+  const renderBtn = (btn) => {
     const buttonProps = btn.link ? { as: Link, to: btn.link } : {};
-    return (
-      <Button
-        key={idx}
+    return btn.label === 'URL' || btn.label === 'ID' ? (
+      <CopyButton
+        key={btn.label}
         variant="ghastly"
         size="xs"
-        onClick={(e) => {
-          e.stopPropagation();
-          btn.onClick();
-        }}
-        label={btn.label}
+        copyValue={btn.value}
+        title={btn.label}
+        {...(btn.label === 'URL' && { isDisabled: !assessment.is_public })}
+      />
+    ) : (
+      <Button
+        key={btn.label}
+        variant="ghastly"
+        size="xs"
+        onPress={btn.onPress}
         isDisabled={btn.isDisabled}
         isLoading={btn.isLoading}
+        icon={btn.icon}
+        iconStrokeWidth={2.5}
         className="flex items-center gap-1"
         {...buttonProps}
       >
-        <btn.icon
-          size={11}
-          strokeWidth={2.5}
-          {...(btn.label === 'ID' && {
-            hasCopied: copiedAssessmentPublicId === assessmentPublicId,
-            copyIconClassname: 'pr-3',
-          })}
-          {...(btn.label === 'URL' && {
-            hasCopied: copiedAssessmentUrl === assessmentUrl,
-            copyIconClassname: 'pr-3',
-          })}
-        />
-        <span>{btn.label}</span>
+        {btn.label}
       </Button>
     );
   };
-
-  const formattedDate = formatTimestamp(assessment.created_at);
 
   return (
     <Tilt3D
@@ -218,8 +201,8 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
                 [3, 6],
                 [6, 8],
               ].map(([start, end], rowIdx) => (
-                <div key={rowIdx} className="flex gap-1">
-                  {actionButtons.slice(start, end).map((btn, idx) => renderBtn(btn, start + idx))}
+                <div key={rowIdx} className="flex gap-0.5">
+                  {actionButtons.slice(start, end).map((btn) => renderBtn(btn))}
                 </div>
               ))}
             </div>
@@ -234,19 +217,19 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
           {assessment.technical_feasibility && (
             <>
               <span>Tech: {assessment.technical_feasibility}%</span>
-              <Separator orientation="vertical" />
+              <Separator orientation="vertical" pct={80} variant="secondary" />
             </>
           )}
           {assessment.economic_viability && (
             <>
               <span>Econ: {assessment.economic_viability}%</span>
-              <Separator orientation="vertical" />
+              <Separator orientation="vertical" pct={80} variant="secondary" />
             </>
           )}
           {assessment.circularity_potential && (
             <>
               <span>Circular: {assessment.circularity_potential}%</span>
-              <Separator orientation="vertical" />
+              <Separator orientation="vertical" pct={80} variant="secondary" />
             </>
           )}
           {assessment.risk_level && <span>{assessment.risk_level.toUpperCase()} RISK</span>}
@@ -365,7 +348,7 @@ const AssessmentCardSkeleton = () => (
       {/* Action buttons skeleton */}
       <div className="flex flex-col items-end gap-2">
         {[[3], [3], [2]].map(([count], rowIdx) => (
-          <div key={rowIdx} className="flex gap-1">
+          <div key={rowIdx} className="flex gap-0.5">
             {Array(count)
               .fill(0)
               .map((_, idx) => (
