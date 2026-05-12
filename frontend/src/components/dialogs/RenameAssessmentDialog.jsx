@@ -156,7 +156,7 @@ export default function RenameAssessmentDialog({ defaultName = '' }) {
                     Cancel
                   </Button>
                   <Button
-                    variant="dialog-primary"
+                    variant="primary"
                     onPress={() => handleSubmit(close)}
                     isLoading={isSubmitting}
                     isDisabled={isSubmitting}

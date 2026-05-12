@@ -1,17 +1,15 @@
 import { AlertDialog } from '@heroui/react';
 import { Angry, FileDown, InfinityIcon, Orbit, Save, Share, TextSearch } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
-import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
-export default function LimitReachedDialog() {
+export default function LimitReachedDialog({ anonScoringLimit }) {
   const { isDialogOpen, onClose } = useGlobalDialog();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const limit = FRONTEND_CONFIG.scoring.maxFreeTries;
 
   if (!isDialogOpen) {
     return null;
@@ -22,7 +20,7 @@ export default function LimitReachedDialog() {
     navigate('/auth', { state: { mode: 'signup', from: location } });
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     onClose();
   };
 
@@ -60,8 +58,10 @@ export default function LimitReachedDialog() {
 
                 <AlertDialog.Body className="text-center text-sm/relaxed text-(--color-text-secondary)">
                   You&apos;ve used your{' '}
-                  <span className="font-semibold text-(--color-text-primary)">{limit}</span> free
-                  evaluations. Create an account to continue assessing your circular economy
+                  <span className="font-semibold text-(--color-text-primary)">
+                    {anonScoringLimit}
+                  </span>{' '}
+                  free evaluations. Create an account to continue assessing your circular economy
                   initiatives:
                   <ul className="mt-4 space-y-2 text-left">
                     {LIMIT_REACHED_DIALOG_POINTS.map((point, idx) => (
@@ -77,8 +77,8 @@ export default function LimitReachedDialog() {
                   </ul>
                 </AlertDialog.Body>
                 <AlertDialog.Footer>
-                  <Button variant="ghost" onPress={handleCancel} className="flex-1">
-                    Cancel
+                  <Button variant="ghost" onPress={handleClose} className="flex-1">
+                    Close
                   </Button>
                   <Button variant="teal" onPress={handleSignUp} className="flex-1">
                     Sign In
@@ -92,3 +92,7 @@ export default function LimitReachedDialog() {
     </AlertDialog>
   );
 }
+
+LimitReachedDialog.propTypes = {
+  anonScoringLimit: PropTypes.number,
+};

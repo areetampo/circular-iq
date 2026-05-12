@@ -120,9 +120,6 @@ function ReplaceInputsDialogContent() {
 
   return (
     <AlertDialog>
-      <Button className="hidden" aria-hidden="true">
-        Dialog Trigger
-      </Button>
       <AlertDialog.Backdrop
         isOpen={true}
         onOpenChange={handleBackdropChange}
@@ -151,7 +148,7 @@ function ReplaceInputsDialogContent() {
               <Button variant="ghost" onPress={handleCancelClick} className="flex-1">
                 {cancelText}
               </Button>
-              <Button variant="dialog-primary" onPress={handleConfirmClick} className="flex-1">
+              <Button variant="primary" onPress={handleConfirmClick} className="flex-1">
                 {confirmText}
               </Button>
             </AlertDialog.Footer>

@@ -52,33 +52,34 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
           <AlertDialog.Dialog>
             {({ close }) => (
               <>
-                <AlertDialog.Header>
+                <AlertDialog.Header className="flex items-center justify-center">
                   <AlertDialog.Icon
                     status="danger"
                     className="alert-dialog__icon alert-dialog__icon--danger"
                   >
                     <Trash2 size={20} />
                   </AlertDialog.Icon>
-                  <AlertDialog.Heading>Delete Assessment?</AlertDialog.Heading>
+                  <AlertDialog.Heading className="pr-2">Delete Assessment?</AlertDialog.Heading>
                 </AlertDialog.Header>
 
-                <AlertDialog.Body>
-                  This will permanently delete assessment{' '}
-                  <span>&ldquo;{assessmentName}&rdquo;</span>. This action cannot be undone.
+                <AlertDialog.Body className="flex flex-col items-center justify-center">
+                  <span>This will permanently delete assessment :</span>
+                  <span className="font-medium">{assessmentName}</span>
+                  <span>This action cannot be undone.</span>
                 </AlertDialog.Body>
 
                 <AlertDialog.Footer>
-                  <Button variant="ghost" className="flex-1" onClick={close}>
+                  <Button variant="ghost" className="flex-1" onPress={close}>
                     Cancel
                   </Button>
                   <Button
                     variant="danger"
                     className="flex-1"
-                    onClick={() => {
+                    onPress={() => {
                       if (onConfirm) onConfirm();
                       close();
                     }}
-                    disabled={isLoading}
+                    isDisabled={isLoading}
                   >
                     Delete
                   </Button>

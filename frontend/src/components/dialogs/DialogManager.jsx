@@ -60,7 +60,7 @@ function DialogManagerContent() {
       return <ReplaceInputsDialog />;
 
     case DIALOG_TYPES.LIMIT_REACHED:
-      return <LimitReachedDialog />;
+      return <LimitReachedDialog anonScoringLimit={data?.anonScoringLimit} />;
 
     case DIALOG_TYPES.CONFIRM:
       return (
