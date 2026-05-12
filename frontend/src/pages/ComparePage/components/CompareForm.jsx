@@ -285,12 +285,10 @@ export default function CompareForm() {
       </div>
 
       <div className="flex justify-center gap-3">
-        <Button type="button" variant="ghost" onPress={goBackSafely}>
-          <MoveLeft size={14} />
+        <Button type="button" variant="ghost" onPress={goBackSafely} icon={MoveLeft}>
           Back
         </Button>
-        <Button variant="info-soft" as={Link} to="/assessments">
-          <Files size={18} strokeWidth={1.6} />
+        <Button variant="info-soft" as={Link} to="/assessments" icon={Files}>
           Compare your assessments
         </Button>
       </div>
