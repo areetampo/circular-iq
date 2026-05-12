@@ -6,6 +6,25 @@ import { cn } from '@/utils/cn';
 /**
  * ExpandableText component that truncates text and provides expand/collapse functionality
  * Used by ProblemText and SolutionText components
+ *
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Text content to display and potentially truncate
+ * @param {number} [props.limit=280] - Character limit before truncation
+ * @param {string} [props.className=''] - Additional CSS classes
+ * @param {string} [props.showMoreText='Show more'] - Text for expand button
+ * @param {string} [props.showLessText='Show less'] - Text for collapse button
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered ExpandableText component
+ *
+ * @example
+ * Basic usage
+ * <ExpandableText>This is a long text that will be truncated...</ExpandableText>
+ *
+ * @example
+ * Custom limit and button text
+ * <ExpandableText limit={100} showMoreText="Read more" showLessText="Read less">
+ *   Very long text content here...
+ * </ExpandableText>
  */
 export default function ExpandableText({
   children,
@@ -13,6 +32,7 @@ export default function ExpandableText({
   className = '',
   showMoreText = 'Show more',
   showLessText = 'Show less',
+  ...props
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -39,7 +59,7 @@ export default function ExpandableText({
   const displayContent = expanded || !isLong ? textContent : textContent.slice(0, limit) + '…';
 
   return (
-    <div>
+    <div {...props}>
       <p
         className={cn(
           'text-[0.8125rem]/relaxed wrap-break-word text-(--color-text-secondary)',
