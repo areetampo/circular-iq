@@ -1,6 +1,7 @@
 import { Checkbox, Label, Pagination, ScrollShadow, SearchField, Tooltip } from '@heroui/react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
+import { Building2, Eraser, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -21,7 +22,25 @@ import { getMatchStrength } from '@/utils/content';
 
 import FilterSidebar from './FilterSidebar';
 
-function ResultCard({ result, isHybridMode }) {
+/**
+ * ResultCard - A card component displaying solution search results
+ * Shows detailed information about circular economy solutions with expandable text
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.result - Solution result object with all solution details
+ * @param {boolean} props.isHybridMode - Whether to display in hybrid mode
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered ResultCard
+ *
+ * @example
+ * Basic usage
+ * <ResultCard result={solutionData} isHybridMode={false} />
+ *
+ * @example
+ * Hybrid mode
+ * <ResultCard result={solutionData} isHybridMode={true} />
+ */
+function ResultCard({ result, isHybridMode, ...props }) {
   const {
     title,
     problem,
@@ -38,7 +57,10 @@ function ResultCard({ result, isHybridMode }) {
   } = result;
 
   return (
-    <div className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border)">
+    <div
+      className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border)"
+      {...props}
+    >
       {/* 1) HEADER: title + score badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 font-sans text-[0.9375rem] leading-snug font-medium tracking-[-0.01em] text-(--color-text-primary)">
@@ -168,6 +190,13 @@ function ResultCard({ result, isHybridMode }) {
   );
 }
 
+ResultCard.propTypes = {
+  /** Solution result object with all solution details */
+  result: PropTypes.object.isRequired,
+  /** Whether to display in hybrid mode */
+  isHybridMode: PropTypes.bool.isRequired,
+};
+
 function ResultsGrid({ results, isHybridMode }) {
   const [isResultsOverflowing, setIsResultsOverflowing] = useState(false);
   const resultsRef = useRef(null);
@@ -204,29 +233,111 @@ function ResultsGrid({ results, isHybridMode }) {
   );
 }
 
+ResultsGrid.propTypes = {
+  /** Array of search results to display */
+  results: PropTypes.array.isRequired,
+  /** Whether to display in hybrid mode */
+  isHybridMode: PropTypes.bool.isRequired,
+};
+
 // Sub-components for cleaner rendering logic
-function IdleState() {
-  return <DetailsBadge variant="info" message="Type to search" icon={Keyboard} />;
+/**
+ * IdleState - Component displayed when no search query is active
+ * Shows a prompt to start searching
+ *
+ * @param {Object} props - Component props
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered IdleState
+ *
+ * @example
+ * <IdleState />
+ */
+function IdleState({ ...props }) {
+  return <DetailsBadge variant="info" message="Type to search" icon={Keyboard} {...props} />;
 }
 
-function LoadingState() {
-  return <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} />;
+/**
+ * LoadingState - Component displayed during data fetching
+ * Shows a loading message with spinner
+ *
+ * @param {Object} props - Component props
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered LoadingState
+ *
+ * @example
+ * <LoadingState />
+ */
+function LoadingState({ ...props }) {
+  return (
+    <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} {...props} />
+  );
 }
 
-function ErrorState({ error }) {
+/**
+ * ErrorState - Component displayed when an error occurs
+ * Shows an error message with details
+ *
+ * @param {Object} props - Component props
+ * @param {Error} props.error - Error object containing error details
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered ErrorState
+ *
+ * @example
+ * <ErrorState error={new Error('Failed to fetch')} />
+ */
+function ErrorState({ error, ...props }) {
   return (
     <DetailsBadge
       variant="error"
       message={`Error: ${error?.message || 'Failed to fetch solutions'}`}
+      {...props}
     />
   );
 }
 
-function EmptyState({ query }) {
-  return <DetailsBadge variant="warning" message={`No results found for '${query}'`} />;
+ErrorState.propTypes = {
+  /** Error object containing error details */
+  error: PropTypes.object.isRequired,
+};
+
+/**
+ * EmptyState - Component displayed when no search results are found
+ * Shows a message indicating no results for the current query
+ *
+ * @param {Object} props - Component props
+ * @param {string} props.query - Search query that returned no results
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered EmptyState
+ *
+ * @example
+ * <EmptyState query="test" />
+ */
+function EmptyState({ query, ...props }) {
+  return <DetailsBadge variant="warning" message={`No results found for '${query}'`} {...props} />;
 }
 
-export default function SolutionsSearch() {
+EmptyState.propTypes = {
+  /** Search query that returned no results */
+  query: PropTypes.string.isRequired,
+};
+
+/**
+ * SolutionsSearch - Main search component for solutions page
+ * Handles search queries, filtering, pagination, and result display
+ *
+ * @param {Object} props - Component props
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered SolutionsSearch
+ *
+ * @example
+ * Basic usage
+ * <SolutionsSearch />
+ *
+ * @example
+ * With additional props
+ * <SolutionsSearch className="custom-class" />
+ */
+export default function SolutionsSearch({ ...props }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Parse multi-value parameters from URL
@@ -587,8 +698,9 @@ export default function SolutionsSearch() {
             showDescription={false}
             actions={[
               {
-                variant: 'ghost',
                 label: 'Clear all filters',
+                icon: Eraser,
+                variant: 'ghost',
                 onPress: clearAllFilters,
               },
             ]}
@@ -602,7 +714,7 @@ export default function SolutionsSearch() {
   }
 
   return (
-    <div className="-mt-4 space-y-4">
+    <div className="-mt-4 space-y-4" {...props}>
       {/* Search input and mode toggle */}
       <div className="space-y-1">
         <div className="flex items-center justify-start gap-2 pl-2">

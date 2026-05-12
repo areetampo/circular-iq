@@ -15,6 +15,7 @@ import { Chip } from '@/components/common';
  * @param {Function} props.setActiveCategories - Function to update active categories
  * @param {Array} props.activeSources - Currently active source filters
  * @param {Function} props.setActiveSources - Function to update active sources
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
  */
 export default function FilterSidebar({
   results,
@@ -24,6 +25,7 @@ export default function FilterSidebar({
   setActiveCategories,
   activeSources,
   setActiveSources,
+  ...props
 }) {
   // Extract unique filter values from results
   const { strategies, categories, sources } = useMemo(() => {
@@ -122,6 +124,7 @@ export default function FilterSidebar({
       ref={filtersRef}
       className={`h-screen overflow-hidden ${isFiltersOverflowing && 'pr-2.5'} pb-2 hover:overflow-y-auto hover:pr-0`}
       size={30}
+      {...props}
     >
       <Accordion
         className="w-full"
