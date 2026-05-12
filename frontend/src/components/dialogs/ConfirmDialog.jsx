@@ -137,14 +137,10 @@ export default function ConfirmDialog({
                 <AlertDialog.Body>{description}</AlertDialog.Body>
 
                 <AlertDialog.Footer>
-                  <Button variant="ghost" onClick={handleCancelClick} disabled={isLoading}>
+                  <Button variant="ghost" onPress={handleCancelClick} isDisabled={isLoading}>
                     {cancelText}
                   </Button>
-                  <Button
-                    variant="dialog-primary"
-                    onClick={handleConfirmClick}
-                    disabled={isLoading}
-                  >
+                  <Button variant="primary" onPress={handleConfirmClick} isDisabled={isLoading}>
                     {confirmText}
                   </Button>
                 </AlertDialog.Footer>
