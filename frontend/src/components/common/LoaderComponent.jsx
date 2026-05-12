@@ -2,6 +2,23 @@ import PropTypes from 'prop-types';
 
 import LoaderIcon from './LoaderIcon';
 
+/**
+ * LoaderComponent - A full-page loading component with heading and message
+ * Displays a loader icon with optional heading and message text
+ *
+ * @param {Object} props - Component props
+ * @param {string} [props.heading='Loading...'] - Heading text to display above the loader
+ * @param {string} [props.message='Please wait while we retrieve your data...'] - Descriptive message to display below the heading
+ * @returns {JSX.Element} Rendered LoaderComponent
+ *
+ * @example
+ * Basic usage
+ * <LoaderComponent />
+ *
+ * @example
+ * Custom heading and message
+ * <LoaderComponent heading="Fetching data..." message="This may take a few seconds..." />
+ */
 export default function LoaderComponent({
   heading = 'Loading...',
   message = 'Please wait while we retrieve your data...',
