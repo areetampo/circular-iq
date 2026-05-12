@@ -114,11 +114,36 @@ const getRandomIndex = (exclude, allowedIndices) => {
 const SWITCH_INTERVAL = 6000;
 const FADE_DURATION = 400;
 
+/**
+ * LoaderIcon component that displays animated loading indicators
+ * Automatically switches between different loader animations for visual variety
+ *
+ * @param {Object} props - Component props
+ * @param {string} [props.color='#8b6f47'] - Color for the loader
+ * @param {boolean} [props.isButton=false] - Whether the loader is used in a button context
+ * @param {string[]} [props.allowedLoaderNames] - Array of specific loader names to use (e.g., ['Spiral', 'Bouncy'])
+ * @param {string} [props.className] - Additional CSS classes
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered LoaderIcon component
+ *
+ * @example
+ * Basic usage
+ * <LoaderIcon />
+ *
+ * @example
+ * Custom color and size
+ * <LoaderIcon color="#ff0000" className="w-8 h-8" />
+ *
+ * @example
+ * Specific loaders only
+ * <LoaderIcon allowedLoaderNames={['Bouncy', 'Spiral']} />
+ */
 export default function LoaderIcon({
   color = '#8b6f47',
   isButton = false,
   allowedLoaderNames, // array of strings like ['Spiral', 'Bouncy']
   className,
+  ...props
 }) {
   const [visible, setVisible] = useState(true);
 
@@ -190,6 +215,7 @@ export default function LoaderIcon({
         visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0',
         className,
       )}
+      {...props}
     >
       <div className={cn(isButton && 'scale-[0.45] transform')}>
         <Icon color={color || ''} className="size-full" />
