@@ -3,11 +3,28 @@ import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
 
-export default function CircularEconomyTierCard({ actualResult }) {
+/**
+ * CircularEconomyTierCard - Component displaying circular economy tier information
+ * Shows tier level, score range, percentile, description, and next milestone
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.actualResult - Assessment result object containing circular economy tier data
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element|null} Rendered CircularEconomyTierCard or null if no data
+ *
+ * @example
+ * Basic usage
+ * <CircularEconomyTierCard actualResult={assessmentResult} />
+ *
+ * @example
+ * With missing data
+ * <CircularEconomyTierCard actualResult={null} />
+ */
+export default function CircularEconomyTierCard({ actualResult, ...props }) {
   if (!actualResult?.circular_economy_tier) return null;
 
   return (
-    <div>
+    <div {...props}>
       <SectionHeading variant="small" icon={<Target size={16} className="text-(--color-accent)" />}>
         Circular Economy Tier
       </SectionHeading>

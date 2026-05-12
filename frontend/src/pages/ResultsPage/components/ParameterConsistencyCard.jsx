@@ -5,7 +5,24 @@ import { formatFactorName } from '@/lib/scoring';
 
 import ScoreCard from './ScoreCard';
 
-export default function ParameterConsistencyCard({ actualResult }) {
+/**
+ * ParameterConsistencyCard - Component displaying parameter consistency analysis
+ * Shows internal consistency score, rating, interpretation, and identified issues
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.actualResult - Assessment result object containing parameter consistency data
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element|null} Rendered ParameterConsistencyCard or null if no data
+ *
+ * @example
+ * Basic usage
+ * <ParameterConsistencyCard actualResult={assessmentResult} />
+ *
+ * @example
+ * With missing data
+ * <ParameterConsistencyCard actualResult={null} />
+ */
+export default function ParameterConsistencyCard({ actualResult, ...props }) {
   if (!actualResult?.parameter_consistency) return null;
 
   const { score, rating, interpretation, issues } = actualResult.parameter_consistency;
@@ -25,6 +42,7 @@ export default function ParameterConsistencyCard({ actualResult }) {
       rating={`${rating} Consistency`}
       message={interpretation}
       scoreColor={getScoreColor(score)}
+      {...props}
     >
       {issues.length > 0 && (
         <div className="space-y-2">

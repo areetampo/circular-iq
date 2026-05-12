@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 
-export default function StrengthsGapsCard({ strengths, gaps }) {
+export default function StrengthsGapsCard({ strengths, gaps, ...props }) {
   return (
-    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
+    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent" {...props}>
       <div className="p-2 sm:p-4">
         <SectionHeading variant="small" className="mb-6">
           Strengths & Gaps

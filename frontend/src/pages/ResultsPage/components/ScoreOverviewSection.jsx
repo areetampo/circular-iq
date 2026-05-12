@@ -2,14 +2,35 @@ import PropTypes from 'prop-types';
 
 import { formatProcessingTime, toTitleCase } from '@/lib/formatting';
 
+/**
+ * ScoreOverviewSection - Component displaying score overview and metadata
+ * Shows industry, confidence level, processing time, and overall score
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.actualResult - Assessment result object with metadata and processing info
+ * @param {number} props.overallScore - Overall assessment score
+ * @param {string} props.topFactor - Top contributing factor name
+ * @param {string} props.focusFactor - Focus factor for improvement
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered ScoreOverviewSection
+ *
+ * @example
+ * Basic usage
+ * <ScoreOverviewSection actualResult={result} overallScore={85} topFactor="Materials" focusFactor="Recycling" />
+ *
+ * @example
+ * With missing data
+ * <ScoreOverviewSection actualResult={null} overallScore={0} />
+ */
 export default function ScoreOverviewSection({
   actualResult,
   overallScore,
   topFactor,
   focusFactor,
+  ...props
 }) {
   return (
-    <div className="mt-8">
+    <div className="mt-8" {...props}>
       {/* Industry and Confidence Row */}
       <div className="mb-6 flex justify-center gap-4">
         {[

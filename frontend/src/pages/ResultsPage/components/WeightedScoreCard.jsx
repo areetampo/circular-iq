@@ -6,11 +6,28 @@ import { getParameterStyling, getProgressBarColor } from '@/constants/groupStyle
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 
-export default function WeightedScoreCard({ actualResult }) {
+/**
+ * WeightedScoreCard - Component displaying weighted score breakdown
+ * Shows how each factor contributed to the overall score with visual progress bars
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.actualResult - Assessment result object containing weighted score data
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element|null} Rendered WeightedScoreCard or null if no data
+ *
+ * @example
+ * Basic usage
+ * <WeightedScoreCard actualResult={assessmentResult} />
+ *
+ * @example
+ * With missing data
+ * <WeightedScoreCard actualResult={null} />
+ */
+export default function WeightedScoreCard({ actualResult, ...props }) {
   if (!actualResult?.weighted_score_card) return null;
 
   return (
-    <div>
+    <div {...props}>
       <SectionHeading
         variant="small"
         icon={<TrendingUp className="size-4 text-(--color-accent)" />}
