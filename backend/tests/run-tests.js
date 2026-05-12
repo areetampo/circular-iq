@@ -5,12 +5,12 @@
  * This wrapper script ensures test environment is set up (env/.env.test loaded and validated)
  * before running any tests. It then delegates to Node's built-in test runner.
  *
- * Due to a Node.js v24.13.0 serialization issue, analytics tests are excluded from the main run.
- * Use --include-analytics to run all tests including analytics.
+ * Note: Analytics tests have been updated to align with existing endpoints.
+ * All tests are now included by default.
  *
  * Usage:
- *   node tests/run-tests.js                    # Run all tests except analytics
- *   node tests/run-tests.js --include-analytics # Run all tests including analytics
+ *   node tests/run-tests.js                    # Run all tests
+ *   node tests/run-tests.js --include-analytics # Run all tests (legacy flag, no effect)
  *   npm test
  */
 
@@ -29,40 +29,25 @@ async function runTests() {
   }
 
   const testArgs = process.argv.slice(2);
-  const includeAnalytics = testArgs.includes('--include-analytics');
 
-  // Exclude problematic analytics tests unless explicitly requested
-  const excludedTests = [
-    'tests/api/analytics-missing-endpoints.test.js',
-    'tests/api/analytics.enhanced.test.js',
-    'tests/api/analytics.featured.test.js',
-  ];
-
-  // List of all valid tests (excluding problematic analytics tests)
-  const validTests = [
+  // List of all tests (analytics tests now align with existing endpoints)
+  const allTests = [
     'tests/api/anonymous.test.js',
     'tests/api/api-auth.test.js',
     'tests/api/assessments-routes.test.js',
     'tests/api/misc-endpoints.test.js',
     'tests/api/scoring.rpc.test.js',
     'tests/api/apiKeyGuard.test.js',
+    'tests/api/analytics-missing-endpoints.test.js',
+    'tests/api/analytics.enhanced.test.js',
+    'tests/api/analytics.featured.test.js',
     'tests/database/documents.repository.test.js',
     'tests/services/score-validation.test.js',
     'tests/services/scoring-logic-enrichment.test.js',
   ];
 
-  if (!includeAnalytics) {
-    logger.warn('⚠️  Analytics tests excluded due to Node.js v24.13.0 serialization issue');
-    logger.warn('   Use --include-analytics to run them if needed');
-  }
-
-  // Determine which tests to run
-  let testsToRun;
-  if (includeAnalytics) {
-    testsToRun = [...validTests, ...excludedTests];
-  } else {
-    testsToRun = validTests;
-  }
+  // All tests are included by default now
+  let testsToRun = allTests;
 
   // Filter for specific test files if provided
   const filteredArgs = testArgs.filter((arg) => arg !== '--include-analytics');
