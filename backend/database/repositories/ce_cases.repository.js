@@ -22,17 +22,37 @@
  * @returns {Promise<Array>}    - Ranked rows with relevance score
  */
 export async function searchKeyword(supabase, keyword, limit = 20) {
-  const { data, error } = await supabase.rpc('search_ce_cases_keyword', {
-    keyword,
-    match_limit: limit,
-  });
+  const startTime = Date.now();
 
-  if (error) {
-    logger.error({ error, keyword }, 'search_ce_cases_keyword RPC failed');
+  try {
+    const { data, error } = await supabase.rpc('search_ce_cases_keyword', {
+      keyword,
+      match_limit: limit,
+    });
+
+    if (error) {
+      logger.logOperation('searchKeyword', 'ce_cases/keyword', 'error', Date.now() - startTime, {
+        keyword: keyword.substring(0, 50),
+        error,
+      });
+      logger.error({ error, keyword }, 'search_ce_cases_keyword RPC failed');
+      throw error;
+    }
+
+    logger.logOperation('searchKeyword', 'ce_cases/keyword', 'success', Date.now() - startTime, {
+      keyword: keyword.substring(0, 50),
+      resultCount: data?.length || 0,
+      limit,
+    });
+
+    return data ?? [];
+  } catch (error) {
+    logger.logOperation('searchKeyword', 'ce_cases/keyword', 'error', Date.now() - startTime, {
+      keyword: keyword.substring(0, 50),
+      error,
+    });
     throw error;
   }
-
-  return data ?? [];
 }
 
 /**
@@ -56,17 +76,40 @@ export async function searchHybrid(
   limit = 20,
   vectorWeight = 0.7,
 ) {
-  const { data, error } = await supabase.rpc('search_ce_cases_hybrid', {
-    query_embedding: queryEmbedding,
-    keyword,
-    match_limit: limit,
-    vector_weight: vectorWeight,
-  });
+  const startTime = Date.now();
 
-  if (error) {
-    logger.error({ error, keyword }, 'search_ce_cases_hybrid RPC failed');
+  try {
+    const { data, error } = await supabase.rpc('search_ce_cases_hybrid', {
+      query_embedding: queryEmbedding,
+      keyword,
+      match_limit: limit,
+      vector_weight: vectorWeight,
+    });
+
+    if (error) {
+      logger.logOperation('searchHybrid', 'ce_cases/hybrid', 'error', Date.now() - startTime, {
+        keyword: keyword.substring(0, 50),
+        vectorWeight,
+        error,
+      });
+      logger.error({ error, keyword }, 'search_ce_cases_hybrid RPC failed');
+      throw error;
+    }
+
+    logger.logOperation('searchHybrid', 'ce_cases/hybrid', 'success', Date.now() - startTime, {
+      keyword: keyword.substring(0, 50),
+      resultCount: data?.length || 0,
+      limit,
+      vectorWeight,
+    });
+
+    return data ?? [];
+  } catch (error) {
+    logger.logOperation('searchHybrid', 'ce_cases/hybrid', 'error', Date.now() - startTime, {
+      keyword: keyword.substring(0, 50),
+      vectorWeight,
+      error,
+    });
     throw error;
   }
-
-  return data ?? [];
 }
