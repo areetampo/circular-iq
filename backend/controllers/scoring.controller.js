@@ -23,9 +23,9 @@ import {
   validateInput,
 } from '#services/scoring.service.js';
 import {
+  ANON_SCORING_LIMIT,
   extractIPAddress,
   getIdentifierFromRequest,
-  SCORING_MAX_FREE_TRIES,
 } from '#utils/anonymousTracking.js';
 
 /**
@@ -134,7 +134,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // Race the database call against the timeout
     const rpcPromise = serviceSupabase.rpc('check_and_increment_anonymous_usage', {
       p_identifier_hash: hash,
-      p_max_tries: SCORING_MAX_FREE_TRIES,
+      p_max_tries: ANON_SCORING_LIMIT,
       p_ip_hash: ipHash,
       p_user_agent_snippet: uaSnippet,
     });
@@ -184,18 +184,18 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
     // 7. Check if limit reached
     if (!is_allowed) {
       logger.info(
-        { currentCount: current_count, limit: SCORING_MAX_FREE_TRIES },
-        'Anonymous user limit reached',
+        { currentCount: current_count, anonScoringLimit: ANON_SCORING_LIMIT },
+        'Anonymous user anonScoringLimit reached',
       );
       return {
         blocked: true,
         status: 403,
         body: {
-          code: 'LIMIT_REACHED',
-          message: `You've used your ${SCORING_MAX_FREE_TRIES} free evaluations. Create an account to continue assessing your circular economy initiatives!`,
+          code: 'ANON_SCORING_LIMIT_REACHED',
+          message: `You've used your ${ANON_SCORING_LIMIT} free evaluations. Create an account to continue assessing your circular economy initiatives!`,
           remaining: 0,
           currentCount: current_count,
-          limit: SCORING_MAX_FREE_TRIES,
+          anonScoringLimit: ANON_SCORING_LIMIT,
           scoringRateLimiter: false,
         },
       };
@@ -203,7 +203,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 8. Allow request
     logger.info(
-      { currentCount: current_count, limit: SCORING_MAX_FREE_TRIES },
+      { currentCount: current_count, anonScoringLimit: ANON_SCORING_LIMIT },
       'Anonymous user allowed',
     );
     return null;
@@ -233,6 +233,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
  */
 export async function performScoring(req, openai, supabase, serviceSupabase, userId) {
   const startTime = Date.now();
+
   const requestId = Math.random().toString(36).slice(2, 9);
 
   // Performance tracking
@@ -887,6 +888,7 @@ export async function performScoringWithStream(
 ) {
   // --- SETUP & VALIDATION ---
   const startTime = Date.now();
+
   const requestId = req.id || Math.random().toString(36).slice(2, 9);
 
   // Performance tracking
