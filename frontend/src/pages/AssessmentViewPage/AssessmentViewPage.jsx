@@ -67,8 +67,8 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
           {
             label: 'Refresh',
             icon: RotateCw,
-            onClick: handleRefresh,
             variant: 'ghost',
+            onPress: handleRefresh,
           },
           {
             label: 'Try Different ID',
@@ -93,8 +93,8 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
           {
             label: 'Refresh',
             icon: RotateCw,
-            onClick: handleRefresh,
             variant: 'ghost',
+            onPress: handleRefresh,
           },
           {
             label: 'Try Different ID',
@@ -133,12 +133,10 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
 
       {/* Simple footer */}
       <div className="mt-8 flex items-center justify-center gap-3 p-6">
-        <Button onClick={goBackSafely} variant="ghost">
-          <MoveLeft size={16} />
+        <Button onPress={goBackSafely} variant="ghost" icon={MoveLeft}>
           Back
         </Button>
-        <Button as={Link} to="/assessments/share" variant="ghost">
-          <Eye size={16} />
+        <Button as={Link} to="/assessments/share" variant="ghost" icon={Eye}>
           View another
         </Button>
       </div>

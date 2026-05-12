@@ -1,6 +1,14 @@
 import { Tooltip, toast } from '@heroui/react';
-import { Download, ExternalLink, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import {
+  Download,
+  ExternalLink,
+  Files,
+  FingerprintPattern,
+  MoveLeft,
+  RotateCw,
+} from 'lucide-react';
+import { useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, DetailsDisplay, Separator } from '@/components/common';
 import { useAssessmentComparison } from '@/features/assessments/hooks';
@@ -11,6 +19,11 @@ import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './compone
 import { computeAssessmentData } from './utils/assessmentUtils';
 
 export default function AssessmentComparisonPage() {
+  const navigate = useNavigate();
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, [navigate]);
+
   const [searchParams] = useSearchParams();
 
   // Support query params (/assessments/compare/?id1=...&id2=...)
@@ -33,7 +46,7 @@ export default function AssessmentComparisonPage() {
             label: 'Refresh',
             icon: RotateCw,
             variant: 'ghost',
-            onPress: () => window.location.reload(),
+            onPress: handleRefresh,
           },
           {
             label: 'Try Different IDs',
@@ -61,7 +74,7 @@ export default function AssessmentComparisonPage() {
             label: 'Refresh',
             icon: RotateCw,
             variant: 'ghost',
-            onPress: () => window.location.reload(),
+            onPress: handleRefresh,
           },
           {
             label: 'Try Different IDs',
@@ -87,7 +100,7 @@ export default function AssessmentComparisonPage() {
             label: 'Refresh',
             icon: RotateCw,
             variant: 'ghost',
-            onPress: () => window.location.reload(),
+            onPress: handleRefresh,
           },
           {
             label: 'Try Different IDs',
@@ -194,8 +207,8 @@ export default function AssessmentComparisonPage() {
 
       <div className="mt-2 mb-6 flex justify-between px-5">
         <div>
-          <Button as={Link} to="/assessments/compare" variant="ghost" size="sm">
-            <MoveLeft size={14} className="mr-1" /> Compare Others
+          <Button as={Link} to="/assessments/compare" variant="ghost" size="sm" icon={MoveLeft}>
+            Compare Others
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -236,11 +249,12 @@ export default function AssessmentComparisonPage() {
             <Button
               key={label}
               size="sm"
-              variant="dialog-secondary"
+              variant="bordered"
               onPress={action}
+              icon={Download}
               className="w-fit"
             >
-              <Download size={16} /> {label}
+              {label}
             </Button>
           ))}
         </div>
@@ -253,29 +267,25 @@ export default function AssessmentComparisonPage() {
           zoom: 0.95,
         }}
       >
-        <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-          <div className="relative pr-6 lg:pr-8">
-            <Separator orientation="vertical" wrapperCn="absolute top-0 right-0 h-full" />
-            <AssessmentColumn
-              assessment={assessment1}
-              scoringResult={scoringResult1}
-              {...assessment1Data}
-            />
-          </div>
-          <div className="pl-6 lg:pl-8">
-            <AssessmentColumn
-              assessment={assessment2}
-              scoringResult={scoringResult2}
-              {...assessment2Data}
-            />
-          </div>
+        <div className="flex">
+          <AssessmentColumn
+            assessment={assessment1}
+            scoringResult={scoringResult1}
+            {...assessment1Data}
+          />
+          <Separator orientation="vertical" wrapperCn="mx-6 lg:mx-8" />
+          <AssessmentColumn
+            assessment={assessment2}
+            scoringResult={scoringResult2}
+            {...assessment2Data}
+          />
         </div>
       </div>
 
       {/* Footer */}
       <div className="mt-8 flex items-center justify-end">
-        <Button variant="ghost" as={Link} to="/assessments">
-          <MoveLeft size={16} /> Back to Assessments
+        <Button variant="ghost" as={Link} to="/assessments" icon={Files}>
+          My Assessments
         </Button>
       </div>
     </div>
