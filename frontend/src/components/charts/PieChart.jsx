@@ -35,23 +35,30 @@ const getWarmFallbackColors = () => [
  * Uses Recharts library with responsive design and theming support
  *
  * @param {Object} props - Component props
- * @param {Array} props.data - Array of data objects to display
- * @param {string} props.dataKey - Key in data object for segment values (default: 'value')
- * @param {string} props.nameKey - Key in data object for segment names (default: 'name')
- * @param {number} props.height - Height of the chart in pixels (default: 300)
- * @param {boolean} props.showLegend - Whether to show legend (default: true)
- * @param {boolean} props.isLoading - Whether to show loading state (default: false)
- * @param {string} props.className - Additional CSS classes (optional)
- * @param {Array} props.colors - Array of colors for segments (optional)
- * @param {number} props.innerRadius - Inner radius for donut chart (default: 0)
- * @param {Object} props.margin - Additional margin overrides (optional)
+ * @param {Array} [props.data] - Array of data objects to display
+ * @param {string} [props.dataKey='value'] - Key in data object for segment values
+ * @param {string} [props.nameKey='name'] - Key in data object for segment names
+ * @param {number} [props.height=300] - Height of the chart in pixels
+ * @param {boolean} [props.showLegend=true] - Whether to show legend
+ * @param {boolean} [props.isLoading=false] - Whether to show loading state
+ * @param {string} [props.className] - Additional CSS classes (optional)
+ * @param {Array} [props.colors] - Array of colors for segments (optional)
+ * @param {number} [props.innerRadius=0] - Inner radius for donut chart
+ * @param {Object} [props.margin] - Additional margin overrides (optional)
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered PieChart
  *
  * @example
- * <PieChart
- *   data={[{ name: 'Category A', value: 30 }, { name: 'Category B', value: 70 }]}
- *   height={400}
- *   showLegend={true}
- * />
+ * Basic usage
+ * <PieChart data={salesData} dataKey="sales" nameKey="category" height={400} />
+ *
+ * @example
+ * Donut chart
+ * <PieChart data={performanceData} innerRadius={60} height={300} />
+ *
+ * @example
+ * Custom colors
+ * <PieChart data={marketData} colors={['#ff6b6b', '#4ecdc4', '#45b7d1']} />
  */
 export default function PieChart({
   data = [],
@@ -63,12 +70,13 @@ export default function PieChart({
   className,
   colors,
   innerRadius = 0,
-  margin = {},
+  margin,
   // outerRadius, label, labelLine, paddingAngle, cornerRadius kept for API compat but managed internally
+  ...props
 }) {
   if (isLoading) {
     return (
-      <div className={className} style={{ height }}>
+      <div className={className} style={{ height }} {...props}>
         <Skeleton className="size-full" />
       </div>
     );
@@ -79,11 +87,12 @@ export default function PieChart({
       <div
         className={cn(
           className,
-          'flex items-center justify-center font-mono text-[13px] text-stone-500',
+          'flex items-center justify-center font-mono text-[0.85rem] text-(--color-text-muted)',
         )}
         style={{
           height,
         }}
+        {...props}
       >
         No data available
       </div>
@@ -108,7 +117,7 @@ export default function PieChart({
   }));
 
   return (
-    <ChartContainer config={config} className={className} style={{ height }}>
+    <ChartContainer config={config} className={className} style={{ height }} {...props}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart margin={{ top: 8, right: 8, bottom: 8, left: 8, ...margin }}>
           <Pie
