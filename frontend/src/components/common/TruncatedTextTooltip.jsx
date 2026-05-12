@@ -4,8 +4,30 @@ import PropTypes from 'prop-types';
 /**
  * TruncatedTextTooltip component that truncates text and shows full text in a tooltip
  * Follows the same truncation logic as the Chip component
+ *
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Text content to display and potentially truncate
+ * @param {number} [props.limit=30] - Character limit before truncation
+ * @param {number} [props.tooltipDelay=100] - Delay in milliseconds before showing tooltip
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered TruncatedTextTooltip component
+ *
+ * @example
+ * Basic usage
+ * <TruncatedTextTooltip>This is a long text that will be truncated...</TruncatedTextTooltip>
+ *
+ * @example
+ * Custom limit and delay
+ * <TruncatedTextTooltip limit={50} tooltipDelay={200}>
+ *   Very long text content here...
+ * </TruncatedTextTooltip>
  */
-export default function TruncatedTextTooltip({ children, limit = 30, tooltipDelay = 100 }) {
+export default function TruncatedTextTooltip({
+  children,
+  limit = 30,
+  tooltipDelay = 100,
+  ...props
+}) {
   // Extract text content from children
   let textContent = null;
 
@@ -25,7 +47,7 @@ export default function TruncatedTextTooltip({ children, limit = 30, tooltipDela
 
   // If no text content found, render children as-is
   if (!textContent) {
-    return <span>{children}</span>;
+    return <span {...props}>{children}</span>;
   }
 
   // Check if truncation is needed
@@ -47,7 +69,7 @@ export default function TruncatedTextTooltip({ children, limit = 30, tooltipDela
     );
   }
 
-  return textElement;
+  return <span {...props}>{textElement}</span>;
 }
 
 TruncatedTextTooltip.propTypes = {
