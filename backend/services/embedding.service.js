@@ -34,16 +34,25 @@ const client = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
  * logger.info(embedding.length); // 1536
  */
 export async function createEmbedding(text) {
+  const startTime = Date.now();
+
   if (!text || !text.trim()) {
     throw new Error('Cannot embed empty text');
   }
-  const res = await client.embeddings.create({
-    model: BACKEND_CONFIG.openai.embeddingModel || 'text-embedding-3-small',
-    input: text,
-  });
-  const embedding = res.data?.[0]?.embedding;
-  if (!embedding || !Array.isArray(embedding)) {
-    throw new Error('Invalid embedding returned from OpenAI');
+
+  try {
+    const res = await client.embeddings.create({
+      model: BACKEND_CONFIG.openai.embeddingModel || 'text-embedding-3-small',
+      input: text,
+    });
+    const embedding = res.data?.[0]?.embedding;
+    if (!embedding || !Array.isArray(embedding)) {
+      throw new Error('Invalid embedding returned from OpenAI');
+    }
+    logger.logOperation('createEmbedding', 'openai/embedding', 'success', Date.now() - startTime);
+    return embedding;
+  } catch (error) {
+    logger.logOperation('createEmbedding', 'openai/embedding', 'error', Date.now() - startTime);
+    throw error;
   }
-  return embedding;
 }
