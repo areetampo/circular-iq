@@ -21,7 +21,7 @@ async function checkDatabase() {
 
     if (dbType === 'supabase') {
       // Test Supabase connection with a simple query
-      const { data, error } = await client.from('documents').select('count').limit(1);
+      const { error } = await client.from('documents').select('count').limit(1);
 
       if (error) {
         throw error;
