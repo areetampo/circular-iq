@@ -27,7 +27,13 @@ export function setDatabaseClientOverride(client, type = 'supabase') {
  */
 export function getSupabaseClient() {
   if (!_supabaseClient) {
+    const startTime = Date.now();
+
     _supabaseClient = createSupabaseClient();
+
+    logger.logOperation('getSupabaseClient', 'db/client-init', 'success', Date.now() - startTime, {
+      clientType: 'supabase',
+    });
   }
   return _supabaseClient;
 }
@@ -38,6 +44,8 @@ export function getSupabaseClient() {
  */
 export function getAivenPgPool() {
   if (!_aivenPgPool) {
+    const startTime = Date.now();
+
     const cfg = BACKEND_CONFIG.aiven;
     const poolOptions = {
       max: cfg.connectionLimit,
@@ -67,6 +75,13 @@ export function getAivenPgPool() {
     }
 
     _aivenPgPool = new Pool(poolOptions);
+
+    logger.logOperation('getAivenPgPool', 'db/pool-init', 'success', Date.now() - startTime, {
+      clientType: 'aiven',
+      maxConnections: cfg.connectionLimit,
+      host: cfg.host,
+      database: cfg.database,
+    });
   }
   return _aivenPgPool;
 }
@@ -76,6 +91,8 @@ export function getAivenPgPool() {
  */
 export function getSupabasePgPool() {
   if (!_supabasePgPool) {
+    const startTime = Date.now();
+
     const cfg = BACKEND_CONFIG.supabase;
 
     _supabasePgPool = new Pool({
@@ -83,6 +100,11 @@ export function getSupabasePgPool() {
       ssl: { rejectUnauthorized: false },
       max: cfg.connectionLimit,
       idleTimeoutMillis: 30000,
+    });
+
+    logger.logOperation('getSupabasePgPool', 'db/pool-init', 'success', Date.now() - startTime, {
+      clientType: 'supabase-pool',
+      maxConnections: cfg.connectionLimit,
     });
   }
 
