@@ -6,6 +6,8 @@ export default function createProfileRouter(serviceSupabase) {
   const router = express.Router();
 
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
+    const startTime = Date.now();
+
     try {
       const { data, error } = await serviceSupabase
         .from('profiles')
@@ -15,6 +17,7 @@ export default function createProfileRouter(serviceSupabase) {
 
       if (error) {
         if (error.code === 'PGRST116') {
+          logger.logOperation('GET', '/profile', 404, Date.now() - startTime);
           return res.status(404).json({
             error: 'Profile not found',
             code: 'PROFILE_NOT_FOUND',
@@ -24,6 +27,7 @@ export default function createProfileRouter(serviceSupabase) {
         throw error;
       }
 
+      logger.logOperation('GET', '/profile', 200, Date.now() - startTime);
       res.json({
         id: data.id,
         username: data.username,
@@ -32,6 +36,7 @@ export default function createProfileRouter(serviceSupabase) {
       });
     } catch (err) {
       logger.error({ err }, 'Failed to fetch profile');
+      logger.logOperation('GET', '/profile', 500, Date.now() - startTime);
       res.status(500).json({
         error: 'Failed to fetch profile',
         code: 'INTERNAL_ERROR',
