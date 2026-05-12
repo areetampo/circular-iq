@@ -4,17 +4,21 @@ import PropTypes from 'prop-types';
 /**
  * Tilt3D — wraps any children with a mouse-tracked 3D tilt + reactive shadow.
  *
- * @prop {number}  perspective   - CSS perspective depth (default: 600)
- * @prop {object}  rotateRange   - Max tilt degrees { x: number, y: number } (default: { x: 8, y: 10 })
- * @prop {number}  shadowRange   - Max shadow offset in px (default: 6)
- * @prop {object}  springConfig  - Framer spring { stiffness, damping } (default: { stiffness: 200, damping: 20 })
- * @prop {'box'|'text'} shadowMode - Whether to apply boxShadow or textShadow (default: 'box')
- * @prop {boolean} shadow        - Whether to apply shadow effects (default: true)
- * @prop {string}  shadowColor   - Shadow color as RGB values (e.g., '0,0,0') (default: '0,0,0')
- * @prop {string}  shadowColorSoft - Soft shadow color as RGB values, falls back to shadowColor when unset
- * @prop {boolean} block         - Whether to use block display instead of inline-block (default: false)
- * @prop {string}  className
- * @prop {object}  style         - Extra styles on the inner motion element
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Children to wrap with 3D tilt effect
+ * @param {number} [props.perspective=600] - CSS perspective depth
+ * @param {Object} [props.rotateRange={ x: 8, y: 10 }] - Max tilt degrees { x: number, y: number }
+ * @param {number} [props.shadowRange=6] - Max shadow offset in px
+ * @param {Object} [props.springConfig={ stiffness: 200, damping: 20 }] - Framer spring { stiffness, damping }
+ * @param {'box'|'text'} [props.shadowMode='box'] - Whether to apply boxShadow or textShadow
+ * @param {boolean} [props.shadow=true] - Whether to apply shadow effects
+ * @param {string} [props.shadowColor='0,0,0'] - Shadow color as RGB values (e.g., '0,0,0')
+ * @param {string} [props.shadowColorSoft] - Soft shadow color as RGB values, falls back to shadowColor when unset
+ * @param {boolean} [props.block=false] - Whether to use block display instead of inline-block
+ * @param {string} [props.className] - Additional CSS classes
+ * @param {Object} [props.style] - Extra styles on the inner motion element
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered Tilt3D component
  */
 export default function Tilt3D({
   children,
