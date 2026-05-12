@@ -18,6 +18,7 @@
  * Note: This file is only for test setup and should not contain any actual test cases or assertions.
  */
 
+import { logger } from '@/utils/logger';
 import '@testing-library/jest-dom';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -48,9 +49,9 @@ if (!process.env.INTERNAL_BACKEND_API_KEY)
 
 // Fail tests if `useAuth` is called outside `AuthProvider` so missing provider
 // usage is caught by CI instead of silently falling back. This converts the
-// specific console.warn into a thrown error during tests.
-const _originalConsoleWarn = console.warn;
-console.warn = (...args) => {
+// specific logger.warn into a thrown error during tests.
+const _originalConsoleWarn = logger.warn;
+logger.warn = (...args) => {
   const msg = args[0] || '';
   if (typeof msg === 'string' && msg.includes('useAuth called outside AuthProvider')) {
     throw new Error(
