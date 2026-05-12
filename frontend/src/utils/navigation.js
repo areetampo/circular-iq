@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
  *
  * @param {string} [fallbackRoute='/'] - Route to go to when no internal history exists.
  * @returns {Function} A function that triggers the safe back navigation. Call this function
- *                     in response to user interactions (e.g., button click).
+ *                     in response to user interactions (e.g., native button click).
  *
  * @example
  * ✓ Correct usage
