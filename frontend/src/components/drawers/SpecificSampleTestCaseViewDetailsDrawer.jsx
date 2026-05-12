@@ -194,9 +194,10 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
                   </div>
                 )}
 
-                {/* Load this test case button */}
+                {/* Load this test case button - removed */}
+                {/* the toast that follows makes the drawer flicker */}
                 {/* <div className="flex justify-center mt-6">
-                  <Button size="lg" onClick={() => requestSelectCase(testCase)}>
+                  <Button size="lg" onPress={() => requestSelectCase(testCase)}>
                     Load this test case
                   </Button>
                 </div> */}
