@@ -26,16 +26,17 @@ const IMPACT_ARTIFACT_PATTERNS = [
  * @returns {Promise<Object>} Extracted metadata {industry, scale, strategy, circular_metrics}
  */
 export async function extractMetadata(businessProblem, businessSolution) {
-  const combinedText = `Problem: ${businessProblem}\n\nSolution: ${businessSolution}`;
+  const startTime = Date.now();
 
-  const systemPrompt = `You are an expert circular economy analyst. Extract structured metadata from the given business problem and solution.
+  const combinedText = `Problem: ${businessProblem}\n\nSolution: ${businessSolution}`;
+  const systemPrompt = `You are an expert circular economy analyst. Extract structured metadata from given business problem and solution.
 Return a JSON object with:
 - industry: One of [packaging, energy, waste_management, agriculture, manufacturing, textiles, electronics, water, transportation, construction, other]
 - scale: One of [prototype, pilot, regional, commercial, global]
 - r_strategy: Primary R-strategy from [Refuse, Reduce, Reuse, Repair, Refurbish, Remanufacture, Repurpose, Recycle, Recover]
 - primary_material: Main material/waste stream addressed (e.g., "plastic", "e-waste", "food waste")
 - geographic_focus: Primary region/market (e.g., "EU", "Asia", "North America", "global")
-- short_description: 1-sentence summary of the solution
+- short_description: 1-sentence summary of solution
 
 Be concise and precise. If uncertain, use "other" or infer from context.`;
 
@@ -53,9 +54,27 @@ Be concise and precise. If uncertain, use "other" or infer from context.`;
     });
 
     const metadata = JSON.parse(response.choices[0].message.content);
+    logger.logOperation(
+      'extractMetadata',
+      'openai/metadata-extraction',
+      'success',
+      Date.now() - startTime,
+      {
+        industry: metadata.industry,
+        scale: metadata.scale,
+        r_strategy: metadata.r_strategy,
+      },
+    );
     return metadata;
-  } catch (err) {
-    logger.warn({ err }, 'Metadata extraction failed, using fallback');
+  } catch (error) {
+    logger.logOperation(
+      'extractMetadata',
+      'openai/metadata-extraction',
+      'error',
+      Date.now() - startTime,
+      { error },
+    );
+    logger.warn({ error }, 'Metadata extraction failed, using fallback');
     // Fallback metadata if extraction fails
     return {
       industry: 'other',
@@ -147,6 +166,8 @@ export async function generateReasoning(
   context = null,
   emitter = null,
 ) {
+  const startTime = Date.now();
+
   // Validate inputs
   if (!businessProblem || !businessSolution) {
     throw new Error('Business problem and solution are required');
@@ -260,9 +281,26 @@ export async function generateReasoning(
       throw new Error('Audit generation returned malformed output. Please try again.');
     }
 
-    // Validate and enhance the response
+    // Validate and enhance response
+    logger.logOperation(
+      'generateReasoning',
+      'openai/audit-analysis',
+      'success',
+      Date.now() - startTime,
+      {
+        similarCasesCount: similarDocs.length,
+        overallScore: scores.overall_score,
+      },
+    );
     return enhanceAnalysis(analysis, similarDocs, scores);
   } catch (error) {
+    logger.logOperation(
+      'generateReasoning',
+      'openai/audit-analysis',
+      'error',
+      Date.now() - startTime,
+      { error },
+    );
     throw new Error(`Failed to generate audit analysis: ${error.message}`);
   }
 }
