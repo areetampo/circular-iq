@@ -26,6 +26,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.post('/', requireAuth(serviceSupabase), validateAssessment, async (req, res) => {
     const startTime = Date.now();
+
     try {
       const result = await assessmentsController.saveAssessment(
         serviceSupabase,
@@ -53,6 +54,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
+
     try {
       const result = await assessmentsController.fetchUserAssessments(
         serviceSupabase,
@@ -78,6 +80,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.get('/stats', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
+
     try {
       const stats = await assessmentsController.getAssessmentStats(serviceSupabase, req.user);
       logger.logOperation('GET', '/assessments/stats', 200, Date.now() - startTime);
@@ -99,6 +102,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.get('/public/:publicId', async (req, res) => {
     const startTime = Date.now();
+
     try {
       // Handle optional authentication using centralized auth service
       const { user } = await authenticateRequest(req, serviceSupabase, {
@@ -139,6 +143,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.get('/validate/:publicId', async (req, res) => {
     const startTime = Date.now();
+
     try {
       // Handle optional authentication using centralized auth service
       const { user } = await authenticateRequest(req, serviceSupabase, {
@@ -188,6 +193,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.get('/compare', async (req, res) => {
     const startTime = Date.now();
+
     const { id1, id2 } = req.query;
 
     // logger.info(
@@ -276,6 +282,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.get('/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
+
     try {
       const result = await assessmentsController.getAssessmentById(
         serviceSupabase,
@@ -311,6 +318,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.patch('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
+
     try {
       const result = await assessmentsController.updateAssessment(
         serviceSupabase,
@@ -347,6 +355,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
    */
   router.delete('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
+
     try {
       const result = await assessmentsController.deleteAssessment(
         serviceSupabase,
