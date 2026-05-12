@@ -2,19 +2,19 @@
  * Moving Grid Background Component
  *
  * Renders a subtle, animated grid of thin lines that slowly translates diagonally.
- * Designed as a professional, unobtrusive background for the beige-themed site.
+ * Designed as a professional, unobtrusive background for beige-themed site.
  *
- * CONFIGURATION (change these values in the config object below):
+ * CONFIGURATION (change these values in config object below):
  *   - cellSize: number (px) – spacing between grid lines (default 60)
- *   - lineWidth: number (px) – thickness of the lines (default 0.6)
- *   - strokeStyle: string – colour of the lines (default 'var(--color-bg-grid)')
- *   - globalAlpha: number – transparency of the lines (default 0.18)
+ *   - lineWidth: number (px) – thickness of lines (default 0.6)
+ *   - strokeStyle: string – colour of lines (default 'var(--color-bg-grid)')
+ *   - globalAlpha: number – transparency of lines (default 0.18)
  *   - speedX: number – horizontal translation speed (px per frame, default 0.08)
  *   - speedY: number – vertical translation speed (px per frame, default 0.08)
  *     (positive moves towards bottom-right; negative moves towards top-left)
  *
  * The grid repeats seamlessly by using modulo arithmetic on the translation offset.
- * On window resize, the canvas dimensions are updated and the offset is preserved.
+ * On window resize, canvas dimensions are updated and the offset is preserved.
  *
  * Usage:
  *   import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
@@ -179,3 +179,7 @@ export default function DriftingShapesBackground() {
 
   return <canvas ref={canvasRef} className="app__shape-canvas" />;
 }
+
+DriftingShapesBackground.propTypes = {
+  /** No props required for this component */
+};
