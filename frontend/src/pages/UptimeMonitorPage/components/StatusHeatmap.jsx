@@ -1,4 +1,5 @@
 import { Tooltip } from '@heroui/react';
+import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
 import { Tilt3D } from '@/components/common';
@@ -45,7 +46,25 @@ function computeLayout(containerWidth) {
   return { itemsPerRow: 1, itemWidth: MIN_ITEM_WIDTH };
 }
 
-export default function StatusHeatmap({ hours, hasNoData = false }) {
+/**
+ * StatusHeatmap - A heatmap showing endpoint status over time
+ * Displays hourly status data as a grid of colored cells with tooltips
+ *
+ * @param {Object} props - Component props
+ * @param {Array} props.hours - Array of hourly status data objects
+ * @param {boolean} [props.hasNoData=false] - Whether there is no data to display
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * @returns {JSX.Element} Rendered StatusHeatmap
+ *
+ * @example
+ * Basic usage
+ * <StatusHeatmap hours={statusData} />
+ *
+ * @example
+ * With no data state
+ * <StatusHeatmap hours={[]} hasNoData={true} />
+ */
+export default function StatusHeatmap({ hours, hasNoData = false, ...props }) {
   const containerRef = useRef(null);
   const [layout, setLayout] = useState({ itemsPerRow: IDEAL_ITEMS_PER_ROW, itemWidth: null });
 
@@ -74,13 +93,14 @@ export default function StatusHeatmap({ hours, hasNoData = false }) {
       rotateRange={{ x: 2, y: 0.5 }}
       block
       className="w-full overflow-x-auto rounded-2xl border-2 border-(--color-border-ui) bg-transparent p-4"
+      {...props}
     >
       <h3 className="mb-4 text-center font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
         Last 24h Status (every 5 min)
       </h3>
 
       {hasNoData || !hours || hours.length === 0 ? (
-        <div className="flex h-20 items-center justify-center text-sm text-(--color-text-muted)">
+        <div className="flex h-30 items-center justify-center text-sm text-(--color-text-muted)">
           No data available
         </div>
       ) : (
@@ -90,7 +110,7 @@ export default function StatusHeatmap({ hours, hasNoData = false }) {
               <div key={rowIdx} className="flex justify-center gap-0.5">
                 {row.map((h, idx) => (
                   <Tooltip key={idx} delay={0}>
-                    <Tooltip.Trigger>
+                    <Tooltip.Trigger tabIndex={0}>
                       <div
                         className={cn(
                           'h-6 shrink-0 rounded-sm',
@@ -113,3 +133,10 @@ export default function StatusHeatmap({ hours, hasNoData = false }) {
     </Tilt3D>
   );
 }
+
+StatusHeatmap.propTypes = {
+  /** Array of hour objects containing heatmap data */
+  hours: PropTypes.array.isRequired,
+  /** Whether there is no data to display */
+  hasNoData: PropTypes.bool,
+};
