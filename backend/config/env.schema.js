@@ -21,10 +21,10 @@ const baseEnvSchema = z.object({
     errorMap: () => ({ message: 'NODE_ENV must be development, test, staged, or production' }),
   }),
 
-  PORT: z.coerce.number().int().positive(),
+  PORT: z.coerce.number().int().positive('PORT must be a positive integer'),
 
-  APP_URL: z.string().trim().url('A valid APP_URL is required for CORS and Auth'),
-  API_URL: z.string().trim().url('A valid API_URL is required for CORS and Auth'),
+  APP_URL: z.string().trim().url('APP_URL must be a valid URL for CORS and Auth'),
+  API_URL: z.string().trim().url('API_URL must be a valid URL for CORS and Auth'),
 
   TEST_USER_NAME: z.string().trim().min(1, 'TEST_USER_NAME is required').optional(),
   TEST_USER_NAME_EXT: z.string().trim().min(1, 'TEST_USER_NAME_EXT is required').optional(),
@@ -32,11 +32,14 @@ const baseEnvSchema = z.object({
 
   ALLOWED_ORIGINS: commaSeparatedStringArraySchema.optional(),
 
-  OPENAI_API_KEY: z.string().trim().min(1, 'OpenAI API Key is required'),
+  OPENAI_API_KEY: z.string().trim().min(1, 'OPENAI_API_KEY is required for AI functionality'),
 
-  SUPABASE_URL: z.string().trim().url('Invalid SUPABASE_URL format'),
-  SUPABASE_ANON_KEY: z.string().trim().min(1, 'SUPABASE_ANON_KEY is required'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().trim().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
+  SUPABASE_URL: z.string().trim().url('SUPABASE_URL must be a valid URL'),
+  SUPABASE_ANON_KEY: z.string().trim().min(1, 'SUPABASE_ANON_KEY is required for Supabase access'),
+  SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .trim()
+    .min(1, 'SUPABASE_SERVICE_ROLE_KEY is required for Supabase admin access'),
   SUPABASE_HOST: z.string().trim().min(1, 'SUPABASE_HOST is required'),
   SUPABASE_PORT: z.coerce.number().int().positive('SUPABASE_PORT must be a positive integer'),
   SUPABASE_DATABASE: z.string().trim().min(1, 'SUPABASE_DATABASE is required'),
@@ -53,21 +56,30 @@ const baseEnvSchema = z.object({
   AIVEN_DATABASE: z.string().trim().min(1, 'AIVEN_DATABASE is required'),
   AIVEN_USER: z.string().trim().min(1, 'AIVEN_USER is required'),
   AIVEN_PASSWORD: z.string().trim().min(1, 'AIVEN_PASSWORD is required'),
-  AIVEN_SSL_MODE: z.enum(['disable', 'require', 'verify-ca', 'verify-full']),
+  AIVEN_SSL_MODE: z.enum(['disable', 'require', 'verify-ca', 'verify-full'], {
+    errorMap: () => ({
+      message: 'AIVEN_SSL_MODE must be disable, require, verify-ca, or verify-full',
+    }),
+  }),
   AIVEN_CONNECTION_LIMIT: z.coerce
     .number()
     .int()
     .positive('AIVEN_CONNECTION_LIMIT must be a positive integer'),
   AIVEN_CONNECTION_STRING: z.string().trim().min(1, 'AIVEN_CONNECTION_STRING is required'),
-  AIVEN_CA_CERT: z.string().trim().min(1, 'AIVEN_CA_CERT is required'),
+  AIVEN_CA_CERT: z.string().trim().min(1, 'AIVEN_CA_CERT is required for SSL verification'),
 
   USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema,
 
-  SCORING_MAX_FREE_TRIES: z.coerce.number().int().positive(),
+  ANON_SCORING_LIMIT: z.coerce
+    .number()
+    .int()
+    .positive('ANON_SCORING_LIMIT must be a positive integer'),
 
   UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema,
 
-  LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']),
+  LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error'], {
+    errorMap: () => ({ message: 'LOG_LEVEL must be info, debug, warn, or error' }),
+  }),
 
   API_AUTH_ENABLED: booleanSchema,
   API_KEY: z.string().trim(),
@@ -81,10 +93,14 @@ export const envSchema = baseEnvSchema
         errorMap: () => ({ message: 'NODE_ENV must be development, staged, test, or production' }),
       })
       .default('development'),
-    PORT: z.coerce.number().int().positive().default(3001),
+    PORT: z.coerce.number().int().positive('PORT must be a positive integer').default(3001),
 
     // Supabase defaults
-    SUPABASE_PORT: z.coerce.number().int().positive().default(5432),
+    SUPABASE_PORT: z.coerce
+      .number()
+      .int()
+      .positive('SUPABASE_PORT must be a positive integer')
+      .default(5432),
     SUPABASE_CONNECTION_LIMIT: z.coerce
       .number()
       .int()
@@ -92,21 +108,39 @@ export const envSchema = baseEnvSchema
       .default(20),
 
     // Aiven defaults
-    AIVEN_PORT: z.coerce.number().int().positive().default(5432),
+    AIVEN_PORT: z.coerce
+      .number()
+      .int()
+      .positive('AIVEN_PORT must be a positive integer')
+      .default(5432),
     AIVEN_CONNECTION_LIMIT: z.coerce
       .number()
       .int()
       .positive('AIVEN_CONNECTION_LIMIT must be a positive integer')
       .default(20),
-    AIVEN_SSL_MODE: z.enum(['disable', 'require', 'verify-ca', 'verify-full']).default('require'),
+    AIVEN_SSL_MODE: z
+      .enum(['disable', 'require', 'verify-ca', 'verify-full'], {
+        errorMap: () => ({
+          message: 'AIVEN_SSL_MODE must be disable, require, verify-ca, or verify-full',
+        }),
+      })
+      .default('require'),
 
     USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema.default(true),
 
-    SCORING_MAX_FREE_TRIES: z.coerce.number().int().positive().default(20),
+    ANON_SCORING_LIMIT: z.coerce
+      .number()
+      .int()
+      .positive('ANON_SCORING_LIMIT must be a positive integer')
+      .default(20),
 
     UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema.default(true),
 
-    LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']).default('info'),
+    LOG_LEVEL: z
+      .enum(['info', 'debug', 'warn', 'error'], {
+        errorMap: () => ({ message: 'LOG_LEVEL must be info, debug, warn, or error' }),
+      })
+      .default('info'),
 
     API_AUTH_ENABLED: booleanSchema.default(false),
     API_KEY: z.string().trim().default(''),

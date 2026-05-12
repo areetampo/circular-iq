@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 // Configuration
-export const SCORING_MAX_FREE_TRIES = BACKEND_CONFIG.scoring.maxFreeTries;
+export const ANON_SCORING_LIMIT = BACKEND_CONFIG.scoring.anonScoringLimit;
 
 /**
  * Extract real IP address handling proxies
