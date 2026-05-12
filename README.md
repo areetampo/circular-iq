@@ -96,12 +96,35 @@ The platform guides users through a structured assessment and returns a complete
 
 ### Uptime Monitoring System
 
-The application includes a comprehensive uptime monitoring system that tracks backend health:
+The application includes a comprehensive real-time uptime monitoring system that tracks backend health:
 
 - **Automated Health Checks**: Backend polls endpoints every 30 seconds in production
 - **Database Storage**: Results stored in `uptime_checks` table with 7-day retention
-- **Real-time Dashboard**: Frontend displays live uptime metrics, response times, and health distribution
+- **Real-time Dashboard**: Frontend displays live uptime metrics, response times, and health distribution via Server-Sent Events (SSE)
+- **SSE Streaming**: Live updates via `/api/uptime/stream` endpoint with automatic fallback to polling
 - **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
+- **Broadcast Architecture**: Uses `uptime.broadcaster.js` for managing SSE client connections and event broadcasting
+
+#### SSE Implementation Details
+
+**Backend SSE Components:**
+
+- `uptime.routes.js` - `/api/uptime/stream` endpoint with heartbeat every 30s
+- `uptime.broadcaster.js` - Manages SSE client Set and event broadcasting
+- `uptimePolling.service.js` - Polls endpoints and broadcasts `poll-complete` events
+
+**Frontend SSE Integration:**
+
+- `useUptimeMonitor.js` hook manages SSE connection with automatic fallback
+- Real-time updates via `poll-complete` events with endpoint results
+- Disconnect detection with manual reconnect capability
+- Countdown timer synchronized with actual backend polling cycle
+
+**SSE Events:**
+
+- `connected` - Initial connection confirmation
+- `poll-complete` - New uptime check results with timestamp and endpoint data
+- Heartbeat comments every 30s to maintain connection
 
 ### Deployment Architecture
 
@@ -361,7 +384,7 @@ AIVEN_CONNECTION_STRING=postgresql://avnadmin:[password]@host:25060/defaultdb?ss
 SUPABASE_CONNECTION_LIMIT=10
 
 # Optional
-SCORING_MAX_FREE_TRIES=5
+ANON_SCORING_LIMIT=5
 LOG_LEVEL=info
 API_AUTH_ENABLED=true
 API_KEY=your-api-key
@@ -375,7 +398,7 @@ VITE_APP_URL=http://localhost:5173
 VITE_API_URL=http://localhost:3001
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
-VITE_SCORING_MAX_FREE_TRIES=5
+VITE_ANON_SCORING_LIMIT=5
 ```
 
 **Important:** `INTERNAL_BACKEND_API_KEY` is **never** a `VITE_` prefixed variable. It lives only in Vercel server-side environment and is injected by `api/proxy.js`.
@@ -433,10 +456,11 @@ VITE_SCORING_MAX_FREE_TRIES=5
 
 ### Uptime Monitor
 
-| Method | Endpoint                          | Auth     | Description                                                 |
-| ------ | --------------------------------- | -------- | ----------------------------------------------------------- |
-| `GET`  | `/api/uptime/count`               | Optional | Get total number of uptime checks (optionally per endpoint) |
-| `GET`  | `/api/uptime/history/:endpointId` | Optional | Retrieve recent checks for specific endpoint (max 10000)    |
+| Method | Endpoint                          | Auth     | Description                                                   |
+| ------ | --------------------------------- | -------- | ------------------------------------------------------------- |
+| `GET`  | `/api/uptime/count`               | Optional | Get total number of uptime checks (optionally per endpoint)   |
+| `GET`  | `/api/uptime/history/:endpointId` | Optional | Retrieve recent checks for specific endpoint (max 10000)      |
+| `GET`  | `/api/uptime/stream`              | Optional | SSE stream for real-time uptime updates (fallback to polling) |
 
 ### User Profile
 
@@ -899,6 +923,6 @@ For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERE
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 10 May 2026
+**Last Updated:** 12 May 2026
 
 ---
