@@ -15,7 +15,7 @@ import LoaderIcon from './LoaderIcon';
  * icon and animates between different stage text when the stage changes.
  *
  * @param {Object} props - Component props
- * @param {boolean} props.loading - Whether the button is in a loading state
+ * @param {boolean} props.isLoading - Whether the button is in a loading state
  * @param {boolean} props.isValid - Whether the button action is currently valid/enabled
  * @param {Function} props.onPress - Callback function when the button is pressed
  * @param {string} props.currentStage - Current stage text to display during loading
@@ -29,7 +29,7 @@ import LoaderIcon from './LoaderIcon';
  *
  * @example
  * <ButtonStages
- *   loading={isLoading}
+ *   isLoading={isLoading}
  *   isValid={isFormValid}
  *   onPress={handleSubmit}
  *   currentStage="Validating input..."
@@ -40,7 +40,7 @@ import LoaderIcon from './LoaderIcon';
  * />
  */
 export default function ButtonStages({
-  loading,
+  isLoading,
   isValid,
   onPress,
   currentStage = 'Processing...',
@@ -62,7 +62,7 @@ export default function ButtonStages({
 
   // Handle transition between button text and loading content
   useEffect(() => {
-    if (loading) {
+    if (isLoading) {
       // Start exit of button text
       setShowNonLoading(false);
       // After exit animation, show loading content
@@ -84,7 +84,7 @@ export default function ButtonStages({
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [loading, currentStage]);
+  }, [isLoading, currentStage]);
 
   // Handle stage changes while loading is active AND content is visible
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function ButtonStages({
     };
   }, []);
 
-  const isDisabled = loading || !isValid;
+  const isDisabled = isLoading || !isValid;
 
   return (
     <Button
@@ -170,7 +170,7 @@ export default function ButtonStages({
 
 ButtonStages.propTypes = {
   /** Whether button is in a loading state */
-  loading: PropTypes.bool.isRequired,
+  isLoading: PropTypes.bool.isRequired,
   /** Whether button action is currently valid/enabled */
   isValid: PropTypes.bool.isRequired,
   /** Callback function when the button is pressed */
