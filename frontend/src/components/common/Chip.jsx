@@ -250,16 +250,17 @@ const getColorOverrides = (variant, color, active) => {
  * now co-located here — that block can be safely removed from index.css.
  *
  * @param {Object} props - Chip props
- * @param {string} props.variant - Chip variant:
+ * @param {string} [props.variant] - Chip variant:
  *   filter | tag | access-type | source | match | strategy |
  *   materials | factor | status | info | case | severity | score-pill
- * @param {string} props.size - Chip size (xs | sm | md | lg)
- * @param {string} props.color - Color override:
+ * @param {string} [props.size] - Chip size (xs | sm | md | lg)
+ * @param {string} [props.color] - Color override:
  *   default | accent | success | warning | danger | error |
  *   strong | decent | weak | high | medium | low | public | private
- * @param {boolean} props.active - Active state for filter variant
- * @param {string} props.className - Additional CSS classes
+ * @param {boolean} [props.active] - Active state for filter variant
+ * @param {string} [props.className] - Additional CSS classes
  * @param {ReactNode} props.children - Chip content
+ * @param {Object.<string, any>} props - Additional attributes to spread to the element
  */
 const Chip = forwardRef(function Chip(
   {
