@@ -38,18 +38,15 @@ export default function AuthLeftPanel() {
 
       {/* Buttons */}
       <div className="flex flex-col items-center justify-center gap-3">
-        <Button variant="results-action" as={HashLink} to="/#ce-assessment-form" smooth>
-          <MoveRight size={16} strokeWidth={2} />
-          <span>Start an Assessment</span>
+        <Button variant="bordered" as={HashLink} to="/#ce-assessment-form" smooth icon={MoveRight}>
+          Start an Assessment
         </Button>
         <div className="flex items-center justify-center gap-3">
-          <Button variant="success-soft" as={Link} to="/guide">
-            <TextSearch size={16} strokeWidth={2} />
-            <span>View Guide</span>
+          <Button variant="success-soft" as={Link} to="/guide" icon={TextSearch}>
+            View Guide
           </Button>
-          <Button variant="success-soft" as={Link} to="/solutions">
-            <Telescope size={16} strokeWidth={2} />
-            <span>Explore Solutions</span>
+          <Button variant="success-soft" as={Link} to="/solutions" icon={Telescope}>
+            Explore Solutions
           </Button>
         </div>
       </div>

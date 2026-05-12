@@ -177,7 +177,7 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
         <Button
           size="sm"
           variant="ghastly"
-          onClick={onSwitchToSignup}
+          onPress={onSwitchToSignup}
           className="font-medium underline"
         >
           Sign up
@@ -199,25 +199,26 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
             <User size={12} strokeWidth={2.5} />
             <span>Username: {FRONTEND_CONFIG.testCredentials.username}</span>
             <CopyButton
-              strokeWidth={2.5}
-              size={12}
-              value={FRONTEND_CONFIG.testCredentials.username}
+              variant="info-text"
+              size="sm"
+              copyValue={FRONTEND_CONFIG.testCredentials.username}
+              buttonCn="p-0 pl-1"
             />
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <KeyRound size={12} strokeWidth={2.5} />
             <span>Password: {FRONTEND_CONFIG.testCredentials.password}</span>
             <CopyButton
-              strokeWidth={2.5}
-              size={12}
-              value={FRONTEND_CONFIG.testCredentials.password}
+              variant="info-text"
+              size="sm"
+              copyValue={FRONTEND_CONFIG.testCredentials.password}
+              buttonCn="p-0 pl-1"
             />
           </div>
           <Button
-            size="md"
             variant="info-soft"
+            onPress={handleFillTestCredentials}
             className="py-0.5 tracking-wide shadow-sm transition-all duration-200 active:scale-95"
-            onClick={handleFillTestCredentials}
           >
             FILL
           </Button>

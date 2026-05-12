@@ -1,6 +1,7 @@
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleCheck, CircleDot, CircleX, Eye, EyeOff } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -45,6 +46,15 @@ const ValidationRule = ({ isValid, hasInput, children }) => (
     <span className="font-medium">{children}</span>
   </div>
 );
+
+ValidationRule.propTypes = {
+  /** Whether the validation passed */
+  isValid: PropTypes.bool.isRequired,
+  /** Whether the field has input */
+  hasInput: PropTypes.bool.isRequired,
+  /** The validation text */
+  children: PropTypes.node.isRequired,
+};
 
 /**
  * A signup form component that handles new user registration.
@@ -331,7 +341,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
         <Button
           size="sm"
           variant="ghastly"
-          onClick={onSwitchToLogin}
+          onPress={onSwitchToLogin}
           className="font-medium underline"
         >
           Sign in
@@ -347,5 +357,10 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
     </div>
   );
 });
+
+SignupForm.propTypes = {
+  /** Callback function to switch back to the login form view */
+  onSwitchToLogin: PropTypes.func.isRequired,
+};
 
 export default SignupForm;
