@@ -250,10 +250,13 @@ async function main() {
       logger.error('Cache is empty. Nothing to restore.');
       process.exit(1);
     }
+
+    const startTime = Date.now();
+
     logger.info({ count: cache.size }, 'Restoring embeddings from cache to Supabase (overwrite)');
+
     const entries = Array.from(cache.entries());
     let updated = 0;
-    const startTime = Date.now();
 
     for (let i = 0; i < entries.length; i += EMBEDDING_BATCH_SIZE) {
       const batch = entries.slice(i, i + EMBEDDING_BATCH_SIZE);
@@ -290,9 +293,14 @@ async function main() {
       return;
     }
 
+    const startTime = Date.now();
+
+    logger.info(
+      'Starting restore process: checking cache and updating Supabase with missing embeddings',
+    );
+
     let restored = 0;
     let missingInCache = 0;
-    const startTime = Date.now();
 
     for (let i = 0; i < missingRows.length; i += EMBEDDING_BATCH_SIZE) {
       const batch = missingRows.slice(i, i + EMBEDDING_BATCH_SIZE);
@@ -333,9 +341,11 @@ async function main() {
   // MODE: GEN-CACHE-ALL (generate all embeddings, update cache only)
   // --------------------------------------------------------------------------
   if (GEN_CACHE_ALL) {
-    logger.info('Generating embeddings for ALL rows (cache only, no Supabase writes)');
-    let generated = 0;
     const startTime = Date.now();
+
+    logger.info('Generating embeddings for ALL rows (cache only, no Supabase writes)');
+
+    let generated = 0;
 
     for (let i = 0; i < allRows.length; i += EMBEDDING_BATCH_SIZE) {
       const batch = allRows.slice(i, i + EMBEDDING_BATCH_SIZE);
@@ -369,17 +379,22 @@ async function main() {
   // --------------------------------------------------------------------------
   if (GEN_CACHE_MISSING) {
     const missingInCache = allRows.filter((row) => !cache.has(row.id));
+
     logger.info(
       { missing: missingInCache.length, cached: cache.size, total: allRows.length },
       'Cache status',
     );
+
     if (missingInCache.length === 0) {
       logger.info('Cache already contains all rows. Nothing to generate.');
       return;
     }
 
-    let generated = 0;
     const startTime = Date.now();
+
+    logger.info('Starting generation process: creating embeddings for missing cache entries');
+
+    let generated = 0;
 
     for (let i = 0; i < missingInCache.length; i += EMBEDDING_BATCH_SIZE) {
       const batch = missingInCache.slice(i, i + EMBEDDING_BATCH_SIZE);
@@ -411,9 +426,11 @@ async function main() {
   // --------------------------------------------------------------------------
   // DEFAULT MODE: generate all embeddings, overwrite cache + Supabase
   // --------------------------------------------------------------------------
-  logger.info('DEFAULT MODE: Generating embeddings for ALL rows (overwrite cache + Supabase)');
-  let generated = 0;
   const startTime = Date.now();
+
+  logger.info('DEFAULT MODE: Generating embeddings for ALL rows (overwrite cache + Supabase)');
+
+  let generated = 0;
 
   for (let i = 0; i < allRows.length; i += EMBEDDING_BATCH_SIZE) {
     const batch = allRows.slice(i, i + EMBEDDING_BATCH_SIZE);
