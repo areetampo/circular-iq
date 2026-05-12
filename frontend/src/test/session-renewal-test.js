@@ -3,6 +3,7 @@
  * This can be used in browser console to test the functionality
  */
 
+import { logger } from '@/utils/logger';
 import { getSessionId } from '@/utils/session';
 
 /**
@@ -11,7 +12,7 @@ import { getSessionId } from '@/utils/session';
  */
 export function testSessionIdRenewal() {
   const currentSessionId = getSessionId();
-  console.log('Current session_id:', currentSessionId);
+  logger.log('Current session_id:', currentSessionId);
 
   // Store current session ID for comparison
   window.testOldSessionId = currentSessionId;
@@ -29,9 +30,9 @@ export function compareSessionIds() {
   const newSessionId = getSessionId();
   const oldSessionId = window.testOldSessionId;
 
-  console.log('Old session_id:', oldSessionId);
-  console.log('New session_id:', newSessionId);
-  console.log('Session ID renewed:', oldSessionId !== newSessionId);
+  logger.log('Old session_id:', oldSessionId);
+  logger.log('New session_id:', newSessionId);
+  logger.log('Session ID renewed:', oldSessionId !== newSessionId);
 
   return {
     oldSessionId,
@@ -51,9 +52,9 @@ export function forceRenewSessionId() {
   const oldSessionId = getSessionId();
   const newSessionId = getSessionId(true); // Force renewal
 
-  console.log('Old session_id:', oldSessionId);
-  console.log('New session_id:', newSessionId);
-  console.log('Manual renewal successful:', oldSessionId !== newSessionId);
+  logger.log('Old session_id:', oldSessionId);
+  logger.log('New session_id:', newSessionId);
+  logger.log('Manual renewal successful:', oldSessionId !== newSessionId);
 
   return {
     oldSessionId,

@@ -8,11 +8,13 @@
  * 4. First-time visits start at top
  */
 
+import { logger } from '@/utils/logger';
+
 // Test helper functions
 const testScrollBehavior = {
   // Test 1: New results should scroll to top
   async testNewResultsScrollToTop() {
-    console.log('🧪 Test 1: New results should scroll to top');
+    logger.log('🧪 Test 1: New results should scroll to top');
 
     // Navigate to landing page
     window.location.href = '/';
@@ -20,13 +22,13 @@ const testScrollBehavior = {
 
     // Fill form and submit (this would normally trigger new results)
     // In real test, you'd fill the form and submit
-    console.log('✓ Navigate to /results with new result data');
+    logger.log('✓ Navigate to /results with new result data');
     window.location.href = '/results';
 
     // Check if scrolled to top
     setTimeout(() => {
       const isAtTop = window.scrollY === 0;
-      console.log(
+      logger.log(
         isAtTop ? '✓ PASSED: Scrolled to top for new results' : '✕ FAILED: Did not scroll to top',
       );
     }, 500);
@@ -34,7 +36,7 @@ const testScrollBehavior = {
 
   // Test 2: Back/forward navigation should preserve scroll position
   async testBackForwardPreservesScroll() {
-    console.log('🧪 Test 2: Back/forward navigation should preserve scroll position');
+    logger.log('🧪 Test 2: Back/forward navigation should preserve scroll position');
 
     // Navigate to a page and scroll down
     window.location.href = '/guide';
@@ -45,7 +47,7 @@ const testScrollBehavior = {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const scrollPosition = window.scrollY;
-    console.log(`Scrolled to position: ${scrollPosition}`);
+    logger.log(`Scrolled to position: ${scrollPosition}`);
 
     // Navigate away and back (simulating browser back/forward)
     window.location.href = '/';
@@ -58,18 +60,18 @@ const testScrollBehavior = {
     setTimeout(() => {
       const preservedScroll = window.scrollY;
       const isPreserved = Math.abs(preservedScroll - scrollPosition) < 50; // Allow small variance
-      console.log(
+      logger.log(
         isPreserved
           ? '✓ PASSED: Scroll position preserved'
           : '✕ FAILED: Scroll position not preserved',
       );
-      console.log(`Expected: ~${scrollPosition}, Got: ${preservedScroll}`);
+      logger.log(`Expected: ~${scrollPosition}, Got: ${preservedScroll}`);
     }, 500);
   },
 
   // Test 3: First-time visits should scroll to top
   async testFirstTimeVisitScrollsToTop() {
-    console.log('🧪 Test 3: First-time visits should scroll to top');
+    logger.log('🧪 Test 3: First-time visits should scroll to top');
 
     // Clear scroll memory (simulate fresh visit)
     localStorage.clear();
@@ -81,7 +83,7 @@ const testScrollBehavior = {
 
     setTimeout(() => {
       const isAtTop = window.scrollY === 0;
-      console.log(
+      logger.log(
         isAtTop
           ? '✓ PASSED: First-time visit scrolled to top'
           : '✕ FAILED: First-time visit did not scroll to top',
@@ -91,7 +93,7 @@ const testScrollBehavior = {
 
   // Test 4: Scroll memory expires after 3 minutes
   async testScrollMemoryExpiration() {
-    console.log('🧪 Test 4: Scroll memory expires after 3 minutes');
+    logger.log('🧪 Test 4: Scroll memory expires after 3 minutes');
 
     // Navigate and scroll
     window.location.href = '/guide';
@@ -101,7 +103,7 @@ const testScrollBehavior = {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const scrollPosition = window.scrollY;
-    console.log(`Initial scroll position: ${scrollPosition}`);
+    logger.log(`Initial scroll position: ${scrollPosition}`);
 
     // Navigate away
     window.location.href = '/';
@@ -109,7 +111,7 @@ const testScrollBehavior = {
 
     // Simulate time passage by manually expiring memory
     // In real implementation, this would happen automatically after 3 minutes
-    console.log('⏰ Simulating 3+ minute time passage...');
+    logger.log('⏰ Simulating 3+ minute time passage...');
 
     // Navigate back
     window.location.href = '/guide';
@@ -118,19 +120,19 @@ const testScrollBehavior = {
     setTimeout(() => {
       const newScrollPosition = window.scrollY;
       const isAtTop = newScrollPosition === 0;
-      console.log(
+      logger.log(
         isAtTop
           ? '✓ PASSED: Scroll memory expired, scrolled to top'
           : '✕ FAILED: Scroll memory did not expire',
       );
-      console.log(`Position after return: ${newScrollPosition}`);
+      logger.log(`Position after return: ${newScrollPosition}`);
     }, 500);
   },
 
   // Run all tests
   async runAllTests() {
-    console.log('🚀 Starting UI-123 Scroll Behavior Tests');
-    console.log('=====================================');
+    logger.log('🚀 Starting UI-123 Scroll Behavior Tests');
+    logger.log('=====================================');
 
     await this.testFirstTimeVisitScrollsToTop();
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -143,14 +145,14 @@ const testScrollBehavior = {
 
     await this.testScrollMemoryExpiration();
 
-    console.log('=====================================');
-    console.log('🏁 All tests completed!');
+    logger.log('=====================================');
+    logger.log('🏁 All tests completed!');
   },
 };
 
 // Make available in console
 window.testScrollBehavior = testScrollBehavior;
 
-console.log('🧪 Scroll behavior test helper loaded!');
-console.log('Run: testScrollBehavior.runAllTests() to execute all tests');
-console.log('Or run individual tests: testScrollBehavior.testNewResultsScrollToTop()');
+logger.log('🧪 Scroll behavior test helper loaded!');
+logger.log('Run: testScrollBehavior.runAllTests() to execute all tests');
+logger.log('Or run individual tests: testScrollBehavior.testNewResultsScrollToTop()');
