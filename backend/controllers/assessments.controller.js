@@ -522,6 +522,7 @@ export async function updateAssessment(supabase, user, id, updates) {
  */
 export async function deleteAssessment(supabase, user, id) {
   const startTime = Date.now();
+
   const userId = user.id;
 
   try {
