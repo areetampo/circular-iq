@@ -1,3 +1,8 @@
+/**
+ * @module GlobalActivity
+ * @description Composes Global Activity dashboard charts, KPIs, and distribution tables from analytics APIs.
+ */
+
 import { Table } from '@heroui/react';
 import { useMemo } from 'react';
 
@@ -44,6 +49,10 @@ const getMaterialColors = () => [
 const formatIndustry = (s) => (s ?? '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 // ─── Main ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Composes Global Activity dashboard charts, KPIs, and distribution tables from analytics APIs.
+ * @returns {import('react').ReactElement}
+ */
 export default function GlobalActivity() {
   // Only fetch user data if the section is shown
   const { user } = useAuth();
@@ -363,7 +372,7 @@ export default function GlobalActivity() {
 
           {/* Weekly trend — full width */}
           <ChartPanel
-            title={`Weekly Volume — last 12 weeks${weekOverWeekGrowth != null ? ` · ${weekOverWeekGrowth > 0 ? '+' : ''}${weekOverWeekGrowth}% WoW` : ''}`}
+            title={`Weekly Volume — last 12 weeks${weekOverWeekGrowth != null ? ` | ${weekOverWeekGrowth > 0 ? '+' : ''}${weekOverWeekGrowth}% WoW` : ''}`}
             isLoading={globalLoading}
             className="mb-4"
           >
@@ -398,6 +407,8 @@ export default function GlobalActivity() {
                 }}
                 height={270}
                 showLegend={true}
+                tickAngle={-25}
+                tickAnchor="end"
               />
             ) : (
               <EmptyChart />

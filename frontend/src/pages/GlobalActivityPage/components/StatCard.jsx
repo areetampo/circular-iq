@@ -1,3 +1,8 @@
+/**
+ * @module StatCard
+ * @description KPI metric tile with optional loading skeleton for the Global Activity dashboard.
+ */
+
 import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 

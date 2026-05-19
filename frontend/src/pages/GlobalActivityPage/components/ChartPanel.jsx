@@ -1,6 +1,12 @@
+/**
+ * @module ChartPanel
+ * @description Reusable chart panel with title, loading state, and empty fallback for the activity dashboard.
+ */
+
 import PropTypes from 'prop-types';
 
 import { Tilt3D } from '@/components/common';
+import { cn } from '@/utils/cn';
 
 /**
  * Chart panel component for wrapping charts with title and loading states
@@ -10,12 +16,15 @@ import { Tilt3D } from '@/components/common';
  * @param {boolean} [props.isLoading] - Whether data is currently loading
  * @param {string} [props.error] - Error message to display
  */
-export default function ChartPanel({ title, children, isLoading, error }) {
+export default function ChartPanel({ title, children, isLoading, error, className }) {
   return (
     <Tilt3D
       rotateRange={{ x: 2, y: 1.5 }}
       block
-      className="w-full rounded-[14px] border-2 border-(--color-border-ui) bg-transparent p-4"
+      className={cn(
+        'w-full rounded-[14px] border-2 border-(--color-border-ui) bg-transparent p-4',
+        className,
+      )}
     >
       {title && (
         <div className="mb-4 text-[0.9375rem] font-semibold text-(--color-text-secondary)">
@@ -45,4 +54,6 @@ ChartPanel.propTypes = {
   isLoading: PropTypes.bool,
   /** Error message to display */
   error: PropTypes.string,
+  /** Extra classes on the panel wrapper */
+  className: PropTypes.string,
 };

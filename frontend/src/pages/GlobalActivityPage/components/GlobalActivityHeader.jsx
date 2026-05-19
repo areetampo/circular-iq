@@ -1,3 +1,8 @@
+/**
+ * @module GlobalActivityHeader
+ * @description Page header and intro copy for the Global Activity dashboard.
+ */
+
 import { Globe, RotateCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 

@@ -1,3 +1,8 @@
+/**
+ * @module SingleValueChart
+ * @description Compact single-metric chart tile (e.g. average score) for the activity dashboard.
+ */
+
 import PropTypes from 'prop-types';
 
 /**

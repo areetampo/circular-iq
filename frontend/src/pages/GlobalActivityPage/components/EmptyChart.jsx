@@ -1,3 +1,8 @@
+/**
+ * @module EmptyChart
+ * @description Placeholder UI when a dashboard chart has no usable data.
+ */
+
 import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 

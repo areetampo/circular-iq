@@ -1,3 +1,8 @@
+/**
+ * @module DashboardSectionHeading
+ * @description Section title styling for grouped charts on the Global Activity page.
+ */
+
 import PropTypes from 'prop-types';
 
 import { Separator } from '@/components/common';
