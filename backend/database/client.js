@@ -1,8 +1,22 @@
+/**
+ * @module database.client
+ * @description Database client factory and connection pool management.
+ * Provides singleton instances of Supabase clients and PostgreSQL connection pools
+ * for both Supabase and Aiven databases. Supports test overrides for mocking.
+ *
+ * Key functions:
+ * - getSupabaseClient: Returns singleton Supabase client (service role)
+ * - getSupabasePgPool: Returns PostgreSQL pool for Supabase
+ * - getAivenPgPool: Returns PostgreSQL pool for Aiven
+ * - getDatabaseClient: Unified accessor based on configuration
+ * - setDatabaseClientOverride: Override for testing
+ * - closeAllPools: Cleanup function for test teardown
+ */
+
 import { Pool } from 'pg';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { createSupabaseClient } from '#database/supabase.client.js';
-import { logger } from '#utils/logger.js';
 
 let _supabaseClient = null;
 let _supabasePgPool = null;
@@ -13,9 +27,11 @@ let _overrideClient = null;
 let _overrideType = null;
 
 /**
- * For tests or other consumers that need to supply a custom client (e.g. the
- * mocked Supabase object used by the unit tests). The `type` string should be
- * either `'supabase'` or `'postgres'` to influence SQL vs RPC behavior.
+ * Sets a custom database client override for testing or special cases.
+ * The type string influences SQL vs RPC behavior in repositories.
+ *
+ * @param {Object} client - Custom database client (e.g., mocked Supabase object).
+ * @param {string} [type='supabase'] - Client type: 'supabase' or 'postgres'.
  */
 export function setDatabaseClientOverride(client, type = 'supabase') {
   _overrideClient = client;
@@ -23,7 +39,10 @@ export function setDatabaseClientOverride(client, type = 'supabase') {
 }
 
 /**
- * Return a singleton Supabase client (service role key).
+ * Returns a singleton Supabase client with service role key.
+ * Lazily initializes the client on first call.
+ *
+ * @returns {Object} Supabase client instance.
  */
 export function getSupabaseClient() {
   if (!_supabaseClient) {
@@ -39,8 +58,11 @@ export function getSupabaseClient() {
 }
 
 /**
- * Create or return an existing Postgres pool pointed at the Aiven instance.
- * The pool is lazily instantiated and reused.
+ * Creates or returns an existing PostgreSQL connection pool for Aiven.
+ * The pool is lazily instantiated and reused across calls.
+ * Supports SSL with CA certificate for secure connections.
+ *
+ * @returns {Pool} PostgreSQL connection pool instance.
  */
 export function getAivenPgPool() {
   if (!_aivenPgPool) {
@@ -87,7 +109,10 @@ export function getAivenPgPool() {
 }
 
 /**
+ * Creates or returns an existing PostgreSQL connection pool for Supabase.
+ * The pool is lazily instantiated and reused across calls.
  *
+ * @returns {Pool} PostgreSQL connection pool instance.
  */
 export function getSupabasePgPool() {
   if (!_supabasePgPool) {
@@ -112,8 +137,10 @@ export function getSupabasePgPool() {
 }
 
 /**
- * Unified accessor that returns whichever client is appropriate based on
- * configuration or override.
+ * Returns the appropriate database client based on configuration or override.
+ * Respects test overrides and the useSupabaseDocuments configuration flag.
+ *
+ * @returns {Object} Database client (Supabase client or PostgreSQL pool).
  */
 export function getDatabaseClient() {
   if (_overrideClient) {
@@ -128,9 +155,10 @@ export function getDatabaseClient() {
 }
 
 /**
- * Returns the effective database type for the current client. Used by the
- * repository to distinguish between supabase and postgres behaviors when an
- * override is present.
+ * Returns the effective database type for the current client.
+ * Used by repositories to distinguish between Supabase and PostgreSQL behaviors.
+ *
+ * @returns {string} Database type: 'supabase' or 'postgres'.
  */
 export function getDatabaseType() {
   if (_overrideClient) return _overrideType || 'supabase';
@@ -138,8 +166,11 @@ export function getDatabaseType() {
 }
 
 /**
- * Close all database connections and pools. Used in test cleanup.
- * This prevents open handles from hanging the test runner.
+ * Closes all database connections and pools.
+ * Used in test cleanup to prevent open handles from hanging the test runner.
+ * Includes a 3-second timeout for graceful shutdown.
+ *
+ * @returns {Promise<void>} Resolves when all pools are closed or timeout expires.
  */
 export async function closeAllPools() {
   logger.info('🔌 Closing all database connections...');
