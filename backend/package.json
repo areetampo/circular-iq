@@ -22,15 +22,15 @@
     "#utils/*": "./utils/*"
   },
   "scripts": {
-    "clean": "npx rimraf node_modules package-lock.json --glob",
+    "clean": "npx rimraf node_modules package-lock.json",
     "rei": "npm run clean && npm install",
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "datasets-scripts": "node pipeline/run_datasets_scripts.js",
-    "merge": "node pipeline/merge_datasets.js",
-    "chunk": "node pipeline/generate_chunks.js",
-    "embed": "node pipeline/generate_embeddings.js",
-    "store": "node pipeline/store_embeddings.js",
+    "datasets-scripts": "node pipeline/rag/run_datasets_scripts.js",
+    "merge": "node pipeline/rag/merge_datasets.js",
+    "chunk": "node pipeline/rag/generate_chunks.js",
+    "embed": "node pipeline/rag/generate_embeddings.js",
+    "store": "node pipeline/rag/store_embeddings.js",
     "populate": "npm run merge && npm run chunk && npm run embed && npm run store",
     "test": "node tests/run-tests.js",
     "prepare": "node -e \"try{require('husky').install()}catch(e){}\"",
@@ -52,12 +52,11 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "canvas": "^3.2.1",
-    "csv-writer": "^1.6.0",
     "@eslint/js": "^9.39.2",
     "axios": "^1.13.5",
     "csv-stringify": "^6.6.0",
     "eslint": "^9.39.2",
+    "exceljs": "^4.4.0",
     "globals": "^17.1.0",
     "google-translate-api-x": "^10.7.2",
     "got": "^14.6.6",
@@ -69,8 +68,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "supertest": "^6.3.4",
     "tabula-js": "^1.0.1",
-    "tiktoken": "^1.0.22",
-    "xlsx": "^0.18.5"
+    "tiktoken": "^1.0.22"
   },
   "engines": {
     "node": ">=18.0.0"
