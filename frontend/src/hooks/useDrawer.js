@@ -3,15 +3,35 @@ import { useRef, useState } from 'react';
 import DRAWER_TYPES from '@/constants/drawerTypes';
 
 /**
- * useDrawer
- * Local drawer stack: type, payload, open/close with animation timing.
- * @returns {Object}
+ * @module useDrawer
+ * @description Side-drawer state with open/close animation timing.
+ * Keeps the drawer mounted during the close transition, then unmounts after
+ * `CLOSE_ANIMATION_MS`. Consumed by `DrawerContext` and `DrawerManager`.
  */
 
 // Match the CSS transition duration used by Drawer (overlay/content)
 // reduced from 320ms to match the faster CSS transitions + small buffer
 const CLOSE_ANIMATION_MS = 200;
 
+/**
+ * Opens, animates, and unmounts side drawers by type with stable opener callbacks.
+ *
+ * @returns {{
+ *   drawer: { type: string|null, data: Object|null, isOpen: boolean },
+ *   isDrawerOpen: boolean,
+ *   onClose: () => void,
+ *   openAssessmentMethodologyDrawer: () => void,
+ *   openEvaluationCriteriaDrawer: () => void,
+ *   openBusinessProblemInfoDrawer: () => void,
+ *   openBusinessSolutionInfoDrawer: () => void,
+ *   openBusinessContextHeadingInfoDrawer: () => void,
+ *   openEvaluationParametersHeadingInfoDrawer: () => void,
+ *   openSpecificEvaluationParameterInfoDrawer: (paramKey: string) => void,
+ *   openSampleTestCasesHeadingInfoDrawer: () => void,
+ *   openSpecificSampleTestCaseViewDetailsDrawer: (testCase: Object) => void,
+ *   openResultsDatabaseEvidenceDetailsDrawer: (evidenceData: Object) => void
+ * }}
+ */
 export default function useDrawer() {
   // drawerState.type === null => no drawer mounted
   // when mounted: { type, data, isOpen }

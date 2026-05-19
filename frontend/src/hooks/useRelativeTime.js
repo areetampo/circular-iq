@@ -1,3 +1,8 @@
+/**
+ * @module useRelativeTime
+ * @description Live-updating relative time labels (e.g. "2 hours ago") from a timestamp.
+ */
+
 import { useEffect, useState } from 'react';
 
 import { formatRelativeTime } from '@/lib/formatting';

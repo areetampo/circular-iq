@@ -1,10 +1,15 @@
+/**
+ * @module useDrawerDirection
+ * @description Responsive drawer slide direction based on viewport width.
+ * Returns `bottom` at ≤768px (md breakpoint) and `right` on wider screens.
+ */
+
 import { useEffect, useState } from 'react';
 
 /**
- * useDrawerDirection
- * Returns drawer slide direction (`bottom` on narrow viewports, `right` on wider).
- * @param {Object} options
- * @returns {'bottom' | 'right'}
+ * Tracks drawer slide direction across window resize events.
+ *
+ * @returns {'bottom' | 'right'} Animation direction for the drawer component.
  */
 export default function useDrawerDirection(): 'bottom' | 'right' {
   // Switch from bottom → right at md breakpoint (768px) instead of sm (640px)

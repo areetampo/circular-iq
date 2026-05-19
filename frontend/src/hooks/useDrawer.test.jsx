@@ -1,8 +1,13 @@
+/**
+ * @module useDrawer.test
+ * @description Tests for drawer open/close state.
+ */
+
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import useDrawer from './useDrawer';
 
-// Simple harness component to exercise the hook directly
+/** Minimal component that opens/closes drawers via `useDrawer` for lifecycle tests. */
 function HookHarness() {
   const drawer = useDrawer();
   return (

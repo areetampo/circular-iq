@@ -1,11 +1,20 @@
+/**
+ * @module useExportState
+ * @description Manages CSV/PDF export loading state and wraps export handlers with toast feedback.
+ */
+
 import { toast } from '@heroui/react';
 import { useState } from 'react';
 
 /**
- * useExportState
- * Manages export-in-progress state and runs CSV/PDF export handlers with toasts.
- * @param {Object} options
- * @returns {Object}
+ * Export loading state and a shared executor for CSV/PDF download handlers.
+ *
+ * @returns {{
+ *   isExportingPDF: boolean,
+ *   isExportingCSV: boolean,
+ *   isExporting: boolean,
+ *   executeExport: (exportFn: Function, operationType?: 'CSV'|'PDF', ...args: *) => Promise<{success: boolean, message?: string}>
+ * }}
  */
 export default function useExportState() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);

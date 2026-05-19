@@ -1,4 +1,6 @@
 /**
+ * @module hooks
+ * @description Barrel re-exports for shared React hooks (auth, debounce, dialog, drawer, export, loading).
  * Barrel for root hooks (alphabetical). Import from `@/hooks/<name>` or from here.
  */
 export { default as useAuth } from './useAuth';

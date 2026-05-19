@@ -1,28 +1,12 @@
 /**
- * useDialog Hook
- * Central state management for dialogs
- * Same pattern as other modal/dialog hooks in this codebase
- *
- * Location: src/hooks/useDialog.js
- *
- * This hook manages a single dialogState object with:
- * - type: string identifying which dialog to render (required)
- * - data: optional payload passed to the dialog
+ * @module useDialog
+ * @description Central dialog stack for the app (single active dialog with priority).
+ * Higher-priority dialogs block lower-priority ones from opening.
+ * Consumed by `DialogContext` and `DialogManager`.
  *
  * @example
  * const { openDeleteAssessmentDialog, onClose, isDialogOpen } = useDialog();
- *
- * Open dialog with data :
- * openDeleteAssessmentDialog({ assessmentName: 'My Project' });
- *
- * Access state :
- * if (isDialogOpen) { ... }
- *
- * Close dialog :
- * onClose();
- *
- * @param {Object} options
- * @returns {Object}
+ * openDeleteAssessmentDialog({ assessmentName: 'My Project', onConfirm: handleDelete });
  */
 
 import { useCallback, useState } from 'react';
@@ -39,9 +23,21 @@ const DIALOG_PRIORITIES = {
 };
 
 /**
- * Enhanced dialog hook with priority support.
- * DialogState now contains: { type, data, priority }
- * Higher numeric priority prevents lower-priority dialogs from opening.
+ * Manages a single active modal with priority-based preemption.
+ *
+ * @returns {{
+ *   dialog: { type: string|null, data: Object|null, priority: number },
+ *   isDialogOpen: boolean,
+ *   onClose: () => void,
+ *   openDialogWithPriority: (type: string, data?: Object, priority?: number) => void,
+ *   openDeleteAssessmentDialog: (data: Object) => void,
+ *   openSaveAssessmentDialog: (data: Object) => void,
+ *   openRenameAssessmentDialog: (data: Object) => void,
+ *   openReplaceInputsDialog: (data: Object) => void,
+ *   openConfirmDialog: (data: Object) => void,
+ *   openResultsRestoreDialog: (data: Object) => void,
+ *   openLimitReachedDialog: (data: Object) => void
+ * }}
  */
 export default function useDialog() {
   const [dialogState, setDialogState] = useState({ type: null, data: null, priority: 0 });
@@ -134,12 +130,7 @@ export default function useDialog() {
   );
 
   const openResultsRestoreDialog = useCallback(
-    (data) =>
-      openDialogWithPriority(
-        DIALOGS.SESSION_RESULTS_RESTORE,
-        { onRestore: data?.onRestore, onDismiss: data?.onDismiss, sessionData: data?.sessionData },
-        DIALOG_PRIORITIES.HIGH,
-      ),
+    (data) => openDialogWithPriority(DIALOGS.SESSION_RESULTS_RESTORE, data, DIALOG_PRIORITIES.HIGH),
     [openDialogWithPriority],
   );
 
