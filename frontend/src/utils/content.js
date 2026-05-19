@@ -1,8 +1,13 @@
 /**
- * Content Utilities
- * Functions for extracting and parsing content from various sources
+ * @module content
+ * @description Content utilities for extracting and parsing data from various sources.
+ * Provides functions for extracting problem/solution pairs from case data,
+ * calculating match strength labels, and categorizing integrity gaps.
  *
- * Location: src/utils/content.js
+ * Functions:
+ * - extractProblemSolution: Extract problem and solution from similar case
+ * - getMatchStrength: Get match strength label based on similarity percentage
+ * - categorizeIntegrityGaps: Categorize integrity gaps (separate strengths from gaps)
  */
 
 /**
