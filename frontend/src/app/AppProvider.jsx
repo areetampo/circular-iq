@@ -1,12 +1,29 @@
+/**
+ * @module AppProvider
+ * @description Root provider stack: error boundary, auth, toasts, drawers, dialogs, React Query, and devtools.
+ * Wraps the entire app with necessary providers for error handling,
+ * authentication, dialogs, drawers, React Query, and loading indicators.
+ *
+ * Providers (in order):
+ * - ErrorBoundary: Global error handling
+ * - AuthProvider: Authentication state (SINGLE SHARED INSTANCE)
+ * - Toast.Provider: Toast notifications
+ * - DrawerProvider: Drawer state management
+ * - DialogProvider: Dialog state management
+ * - QueryClientProvider: React Query for data fetching
+ * - GlobalLoadingBar: Loading indicator
+ * - ReactQueryDevtools: Development debugging
+ */
+
 import { Toast, toast } from '@heroui/react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 
-import GlobalLoadingBar from '@/components/common/GlobalLoadingBar';
 import DrawerManager from '@/components/drawers/DrawerManager';
 import { ErrorBoundary } from '@/components/error-boundaries';
+import { GlobalLoadingBar } from '@/components/layout';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { DrawerProvider } from '@/contexts/DrawerContext';
@@ -70,15 +87,11 @@ const queryClient = new QueryClient({
 });
 
 /**
- * AppProvider wraps the entire app with necessary providers:
- * - ErrorBoundary for error handling
- * - Toast.Provider for toast notifications
- * - AuthProvider for authentication state (SINGLE SHARED INSTANCE) ← NEW
- * - ModalProvider for modal state (global modals)
- * - DialogProvider for dialog state (global dialogs) ← NEW
- * - QueryClientProvider for React Query
- * - GlobalLoadingBar for loading indicator
- * - ReactQueryDevtools for development debugging
+ * Wraps the app with global providers and enables browser scroll restoration.
+ *
+ * @param {Object} props
+ * @param {import('react').ReactNode} props.children - Routed page tree.
+ * @returns {import('react').ReactElement}
  */
 export default function AppProvider({ children }) {
   // Enable browser scroll restoration for back/forward navigation

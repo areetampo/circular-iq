@@ -1,11 +1,26 @@
+/**
+ * @module AppRoutes
+ * @description Application routing configuration with lazy-loaded pages.
+ * Defines all routes with error boundaries and authentication guards.
+ *
+ * Route structure:
+ * - Public routes: /, /auth, /guide, /results, /solutions, /global-activity, /uptime-monitor
+ * - Assessment routes: /assessments, /assessments/share, /assessments/share/:id, /assessments/compare
+ * - Protected routes: /assessments/:publicId (requires authentication)
+ *
+ * Order matters (React Router v6: first match wins):
+ * - Static path segments before dynamic (/assessments/compare before /assessments/:publicId)
+ * - Deeper share routes before shallower ones where relevant
+ */
+
 import PropTypes from 'prop-types';
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 
 import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
-import { LoaderComponent, ScrollToTop } from '@/components/common';
+import { LoaderComponent } from '@/components/common';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
-import { AppContainer, Footer, Navbar } from '@/components/layout';
+import { ScrollToTop, AppContainer, Footer, Navbar } from '@/components/layout';
 import { useAuth } from '@/hooks';
 
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
