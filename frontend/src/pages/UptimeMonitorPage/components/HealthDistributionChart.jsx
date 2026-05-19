@@ -1,65 +1,98 @@
-import PropTypes from 'prop-types';
+/**
+ * @module HealthDistributionChart
+ * @description Distribution of health-check outcomes across endpoints.
+ */
 
-import PieChart from '@/components/charts/PieChart';
-import { Tilt3D } from '@/components/common';
+import { useMemo } from 'react';
+
+import { PieChart } from '@/components/charts';
+import { DetailsBadge, Separator, Tilt3D } from '@/components/common';
+
+import { ENDPOINTS } from '../constants';
+import { useUptimeMonitor } from '../hooks/useUptimeMonitor';
+import { getHealthDistribution } from '../utils/uptimeCharts';
 
 /**
- * HealthDistributionChart - A pie chart showing health status distribution
- * Displays the distribution of healthy, degraded, unhealthy, and no data states
+ * Distribution of health-check outcomes across endpoints.
  *
- * @param {Object} props - Component props
- * @param {number} props.healthy - Number of healthy endpoints
- * @param {number} props.degraded - Number of degraded endpoints
- * @param {number} props.unhealthy - Number of unhealthy endpoints
- * @param {number} props.noData - Number of endpoints with no data
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element|null} Rendered HealthDistributionChart or null if no data
- *
- * @example
- * Basic usage
- * <HealthDistributionChart healthy={8} degraded={2} unhealthy={1} noData={0} />
- *
- * @example
- * With no data
- * <HealthDistributionChart healthy={0} degraded={0} unhealthy={0} noData={0} />
+ * @param {Object} props
+ * @returns {import('react').ReactElement}
  */
-export default function HealthDistributionChart({
-  healthy,
-  degraded,
-  unhealthy,
-  noData,
-  ...props
-}) {
-  const data = [
-    { name: 'Healthy', value: healthy },
-    { name: 'Degraded', value: degraded },
-    { name: 'Unhealthy', value: unhealthy },
-    { name: 'No Data', value: noData },
-  ].filter((d) => d.value > 0);
+export default function HealthDistributionChart({ ...props }) {
+  const { latestPollResults, history, loadingInitial } = useUptimeMonitor();
 
-  const hasAnyData = healthy + degraded + unhealthy + noData > 0;
+  const dist = useMemo(() => {
+    if (latestPollResults) {
+      const categories = {
+        healthy: { label: 'Healthy', count: 0, endpoints: [] },
+        degraded: { label: 'Degraded', count: 0, endpoints: [] },
+        unhealthy: { label: 'Unhealthy', count: 0, endpoints: [] },
+        noData: { label: 'No Data', count: 0, endpoints: [] },
+      };
 
-  const colors = [
-    'var(--color-success)',
-    'var(--color-warning)',
-    'var(--color-error)',
-    'var(--color-text-muted)',
-  ];
+      for (const ep of ENDPOINTS) {
+        const result = latestPollResults.find((r) => r.endpointId === ep.id);
+        if (!result) {
+          categories.noData.count++;
+          categories.noData.endpoints.push({ name: ep.label, ms: null });
+          continue;
+        }
+        if (result.up) {
+          if (result.responseTimeMs > 500) {
+            categories.degraded.count++;
+            categories.degraded.endpoints.push({ name: ep.label, ms: result.responseTimeMs });
+          } else {
+            categories.healthy.count++;
+            categories.healthy.endpoints.push({ name: ep.label, ms: result.responseTimeMs });
+          }
+        } else {
+          categories.unhealthy.count++;
+          categories.unhealthy.endpoints.push({
+            name: ep.label,
+            ms: result.responseTimeMs ?? null,
+          });
+        }
+      }
+
+      return Object.values(categories);
+    }
+
+    return getHealthDistribution(history, ENDPOINTS);
+  }, [latestPollResults, history]);
+
+  const isLoading = loadingInitial && !latestPollResults;
+
+  const data = useMemo(() => {
+    if (!dist) return [];
+    return dist
+      .filter((d) => d.count > 0)
+      .map((d) => ({ name: d.label, value: d.count, endpoints: d.endpoints }));
+  }, [dist]);
+
+  const colors = {
+    Healthy: 'var(--color-success)',
+    Degraded: 'var(--color-warning)',
+    Unhealthy: 'var(--color-error)',
+    'No Data': 'var(--color-text-muted)',
+  };
+
+  const hasAnyData = data.length > 0;
 
   return (
     <Tilt3D
+      {...props}
       rotateRange={{ x: 1, y: 1 }}
       block
-      className="rounded-2xl border-2 border-(--color-border-ui) bg-transparent p-4"
-      {...props}
+      className="h-full rounded-2xl border-2 border-(--color-border-ui) bg-transparent p-4"
     >
       <h3 className="mb-2 font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
-        Health Distribution
+        Health Distribution — most recent check
       </h3>
-      {!hasAnyData ? (
-        <div className="flex h-55 items-center justify-center text-sm text-(--color-text-muted)">
-          No data available
-        </div>
+
+      {isLoading ? (
+        <DetailsBadge variant="info" message="Fetching..." spinner className="h-55" />
+      ) : !hasAnyData ? (
+        <DetailsBadge variant="error" message="No data available" className="h-55" />
       ) : (
         <PieChart
           data={data}
@@ -67,20 +100,44 @@ export default function HealthDistributionChart({
           nameKey="name"
           height={220}
           showLegend={true}
-          colors={colors}
+          colors={data.map((d) => colors[d.name])}
+          tooltipContent={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              const { name, value, payload: dataPoint } = payload[0];
+              const segmentColor = colors[name];
+              return (
+                <div className="max-w-xs rounded-md border border-(--color-border-ui) bg-(--color-app-bg) px-2 py-1.5 shadow-md">
+                  <div className="mb-1 flex items-center gap-2 font-medium">
+                    <div
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: segmentColor }}
+                    />
+                    <span className="text-(--color-text-primary)">{name}</span>
+                    <span className="ml-auto font-mono text-xs">({value})</span>
+                  </div>
+                  <Separator wrapperCn="my-1" />
+                  {dataPoint.endpoints?.length > 0 && (
+                    <ul className="space-y-0.5">
+                      {dataPoint.endpoints.map((ep, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between gap-5 truncate text-xs text-(--color-text-secondary)"
+                        >
+                          <span>{ep.name}</span>
+                          {ep?.ms && <span className="font-mono">{ep.ms} ms</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            }
+            return null;
+          }}
         />
       )}
     </Tilt3D>
   );
 }
 
-HealthDistributionChart.propTypes = {
-  /** Number of healthy endpoints */
-  healthy: PropTypes.number.isRequired,
-  /** Number of degraded endpoints */
-  degraded: PropTypes.number.isRequired,
-  /** Number of unhealthy endpoints */
-  unhealthy: PropTypes.number.isRequired,
-  /** Number of endpoints with no data */
-  noData: PropTypes.number.isRequired,
-};
+HealthDistributionChart.propTypes = {};

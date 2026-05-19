@@ -1,8 +1,19 @@
-import PropTypes from 'prop-types';
+/**
+ * @module EndpointLatencyBarChart
+ * @description Bar chart of average latency per monitored endpoint.
+ */
+
+import { useEffect, useRef, useState } from 'react';
 
 import { BarChart } from '@/components/charts';
-import { Tilt3D } from '@/components/common';
+import { DetailsBadge, Tilt3D } from '@/components/common';
+import { formatDuration } from '@/lib/formatting';
 
+import { ENDPOINTS, LATENCY_CHART_HOURS } from '../constants';
+import { useUptimeMonitor } from '../hooks/useUptimeMonitor';
+import { fetchEndpointLatency } from '../utils/uptimeHelpers';
+
+/** @param {number} ms @returns {string} CSS colour variable for bar fill based on latency threshold. */
 function getLatencyColor(ms) {
   if (ms < 200) return 'var(--color-success)';
   if (ms < 500) return 'var(--color-warning)';
@@ -10,53 +21,68 @@ function getLatencyColor(ms) {
 }
 
 /**
- * EndpointLatencyBarChart - A bar chart showing average latency per endpoint
- * Displays average response times for each endpoint in a bar chart
+ * Bar chart of average latency per monitored endpoint.
  *
- * @param {Object} props - Component props
- * @param {Object} props.history - History object mapping endpoint IDs to check arrays
- * @param {Array} props.endpoints - Array of endpoint configuration objects
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element|null} Rendered EndpointLatencyBarChart or null if no data
- *
- * @example
- * Basic usage
- * <EndpointLatencyBarChart history={uptimeHistory} endpoints={endpointList} />
- *
- * @example
- * With empty data
- * <EndpointLatencyBarChart history={{}} endpoints={[]} />
+ * @param {Object} props
+ * @returns {import('react').ReactElement}
  */
-export default function EndpointLatencyBarChart({ history, endpoints, ...props }) {
-  const data = endpoints
-    .map((ep) => {
-      const checks = history[ep.id] || [];
-      const upChecks = checks.filter((c) => c.up && c.ms);
-      const avg = upChecks.length
-        ? upChecks.reduce((sum, c) => sum + c.ms, 0) / upChecks.length
-        : 0;
-      return { name: ep.label, avgLatency: Math.round(avg), barColor: getLatencyColor(avg) };
-    })
-    .filter((d) => !isNaN(d.avgLatency) && d.avgLatency > 0)
-    .sort((a, b) => b.avgLatency - a.avgLatency);
+export default function EndpointLatencyBarChart({ ...props }) {
+  const { pollCount } = useUptimeMonitor();
+  const [data, setData] = useState(null);
+  const [hours, setHours] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const firstLoadDone = useRef(false);
 
-  const hasData = data.length > 0;
-  const barColors = data.map((item) => getLatencyColor(item.avgLatency));
+  useEffect(() => {
+    let cancelled = false;
+    fetchEndpointLatency(LATENCY_CHART_HOURS)
+      .then(({ latency, hours: echoedHours }) => {
+        if (cancelled) return;
+        setHours(echoedHours);
+        const chartData = ENDPOINTS.map((ep) => {
+          const row = latency.find((r) => r.endpointId === ep.id);
+          return row ? { name: ep.label, avgLatency: row.avgMs, endpointId: ep.id } : null;
+        })
+          .filter(Boolean)
+          .filter((d) => d.avgLatency > 0)
+          .sort((a, b) => b.avgLatency - a.avgLatency);
+        setData(chartData);
+      })
+      .catch(() => {
+        if (!cancelled) setData([]);
+      })
+      .finally(() => {
+        if (!cancelled && !firstLoadDone.current) {
+          firstLoadDone.current = true;
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pollCount]);
+
+  const barColors = (data || []).map((item) => getLatencyColor(item.avgLatency));
+  const hasData = data && data.length > 0;
+
+  // Use echoed-back hours from the server for the heading, same pattern as daily-stats/heatmap
+  const windowLabel = hours ? formatDuration({ hours }) : null;
 
   return (
     <Tilt3D
+      {...props}
       rotateRange={{ x: 1, y: 1 }}
       block
       className="h-full rounded-2xl border-2 border-(--color-border-ui) bg-transparent p-4"
-      {...props}
     >
       <h3 className="mb-2 font-mono text-xs font-semibold tracking-widest text-(--color-text-muted) uppercase">
-        Avg Response Time by Endpoint (ms)
+        Avg Response Time by Endpoint{windowLabel && ` — last ${windowLabel}`}
       </h3>
-      {!hasData ? (
-        <div className="flex h-55 items-center justify-center text-sm text-(--color-text-muted)">
-          No data available
-        </div>
+
+      {loading ? (
+        <DetailsBadge variant="info" message="Fetching..." spinner className="h-55" />
+      ) : !hasData ? (
+        <DetailsBadge variant="error" message="No data available" className="h-55" />
       ) : (
         <BarChart
           data={data}
@@ -75,9 +101,4 @@ export default function EndpointLatencyBarChart({ history, endpoints, ...props }
   );
 }
 
-EndpointLatencyBarChart.propTypes = {
-  /** History object mapping endpoint IDs to check arrays */
-  history: PropTypes.object.isRequired,
-  /** Array of endpoint configuration objects */
-  endpoints: PropTypes.array.isRequired,
-};
+EndpointLatencyBarChart.propTypes = {};

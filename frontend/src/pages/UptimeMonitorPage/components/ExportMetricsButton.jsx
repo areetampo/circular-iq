@@ -1,82 +1,109 @@
+/**
+ * @module ExportMetricsButton
+ * @description Exports uptime history and aggregates to a downloadable metrics file.
+ */
+
 import { Tooltip } from '@heroui/react';
 import { Download } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 import { Button } from '@/components/common';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
+
+import { ENDPOINTS } from '../constants';
+import { fetchHistory } from '../utils/uptimeHelpers';
 
 /**
- * ExportMetricsButton - A button component for exporting uptime metrics as CSV
- * Downloads all stored metrics data in CSV format
+ * Fetches the full history for every endpoint (up to the configured max) and
+ * downloads the result as a timestamped CSV file.
  *
- * @param {Object} props - Component props
- * @param {Object} props.history - History object mapping endpoint IDs to check arrays
- * @param {Array} props.endpoints - Array of endpoint configuration objects
- * @param {boolean} [props.hasNoData=false] - Whether there is no data to export
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ExportMetricsButton
+ * Rows are sorted oldest-first within each endpoint, matching the order
+ * returned by {@link fetchHistory}.
  *
- * @example
- * Basic usage
- * <ExportMetricsButton history={uptimeHistory} endpoints={endpointList} />
- *
- * @example
- * With no data state
- * <ExportMetricsButton history={{}} endpoints={[]} hasNoData={true} />
+ * @returns {Promise<void>}
  */
-export default function ExportMetricsButton({ history, endpoints, hasNoData = false, ...props }) {
-  const handleExport = () => {
-    const data = [];
-    for (const ep of endpoints) {
-      const checks = history[ep.id] || [];
-      for (const check of checks) {
-        data.push({
-          endpoint: ep.id,
-          timestamp: new Date(check.ts).toISOString(),
-          up: check.up,
-          responseTimeMs: check.ms,
-          status: check.status,
-        });
-      }
+async function exportToCsv() {
+  const limit = FRONTEND_CONFIG.uptimeMonitor.maxHistoryPerEndpoint;
+
+  const results = await Promise.all(
+    ENDPOINTS.map((ep) => fetchHistory(ep.id, limit).then((checks) => ({ ep, checks }))),
+  );
+
+  const rows = [['endpoint', 'timestamp', 'up', 'responseTimeMs', 'status']];
+
+  for (const { ep, checks } of results) {
+    for (const check of checks) {
+      rows.push([
+        ep.id,
+        new Date(check.ts).toISOString(),
+        check.up,
+        check.ms ?? '',
+        check.status ?? '',
+      ]);
     }
-    const csvRows = [
-      ['endpoint', 'timestamp', 'up', 'responseTimeMs', 'status'],
-      ...data.map((row) => [row.endpoint, row.timestamp, row.up, row.responseTimeMs, row.status]),
-    ];
-    const csvContent = csvRows.map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `uptime_export_${new Date().toISOString().slice(0, 19)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  }
+
+  const csvContent = rows.map((row) => row.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `uptime_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Button that fetches the full uptime check history for every endpoint and
+ * downloads it as a CSV file. Disabled when there is no data to export.
+ *
+ * @param {Object}  props
+ * @param {boolean} [props.hasNoData=true] - Disables the button and shows a tooltip explaining why.
+ * @param {Object}  [props...]              - Additional props spread onto the underlying Button.
+ * @returns {JSX.Element}
+ */
+export default function ExportMetricsButton({ hasNoData = true, ...props }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleExport() {
+    if (hasNoData || loading) return;
+    setLoading(true);
+    try {
+      await exportToCsv();
+    } catch (err) {
+      logger.warn('Failed to export metrics', err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <Tooltip delay={0}>
-      <Tooltip.Trigger>
+      <Tooltip.Trigger tabIndex={0}>
         <Button
+          {...props}
           variant="ghost"
           icon={Download}
-          onPress={hasNoData ? undefined : handleExport}
-          isDisabled={hasNoData}
-          {...props}
+          isDisabled={hasNoData || loading}
+          isLoading={loading}
+          onPress={handleExport}
         >
-          Export CSV
+          {loading ? 'Exporting…' : 'Export CSV'}
         </Button>
       </Tooltip.Trigger>
       <Tooltip.Content>
-        {hasNoData ? 'No data to export' : 'Download all stored metrics as CSV"'}
+        {hasNoData
+          ? 'No data to export'
+          : loading
+            ? 'Fetching all endpoint history…'
+            : `Download full metrics history as CSV (max ${FRONTEND_CONFIG.uptimeMonitor.queryWindowDaysLimit} days)`}
       </Tooltip.Content>
     </Tooltip>
   );
 }
 
 ExportMetricsButton.propTypes = {
-  /** History object mapping endpoint IDs to check arrays */
-  history: PropTypes.object.isRequired,
-  /** Array of endpoint configuration objects */
-  endpoints: PropTypes.array.isRequired,
-  /** Whether there is no data to export */
+  /** Disables the button when there is nothing to export. */
   hasNoData: PropTypes.bool,
 };

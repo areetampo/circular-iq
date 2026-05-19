@@ -1,3 +1,8 @@
+/**
+ * @module SectionLabel
+ * @description Section heading with optional live check count for uptime monitor blocks.
+ */
+
 import PropTypes from 'prop-types';
 
 import { Separator } from '@/components/common';
@@ -27,7 +32,9 @@ export default function SectionLabel({ label, count, ...props }) {
         <span className="pl-2 font-mono text-sm font-bold tracking-[0.14em] text-(--color-text-muted) uppercase">
           {label}
         </span>
-        {count != null && <span className="text-sm text-(--color-text-muted)">{count}</span>}
+        {count != null && (
+          <span className="font-mono text-sm font-bold text-(--color-text-muted)">{count}</span>
+        )}
       </div>
       <Separator />
     </div>
