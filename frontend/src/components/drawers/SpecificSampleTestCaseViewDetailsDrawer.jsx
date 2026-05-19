@@ -1,3 +1,8 @@
+/**
+ * @module SpecificSampleTestCaseViewDetailsDrawer
+ * @description Info drawer — Specific Sample Test Case View Details Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import { PencilLine } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -14,6 +19,13 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
+/**
+ * Info drawer — Specific Sample Test Case View Details Drawer.
+ *
+ * @param {Object} props
+ * @param {Object} props.testCase
+ * @returns {import('react').ReactElement}
+ */
 export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   if (!testCase) return null;
 

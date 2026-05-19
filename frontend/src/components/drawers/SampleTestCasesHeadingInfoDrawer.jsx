@@ -1,3 +1,8 @@
+/**
+ * @module SampleTestCasesHeadingInfoDrawer
+ * @description Info drawer — Sample Test Cases Heading Info Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import { ClipboardPenLine, Lightbulb } from 'lucide-react';
 
@@ -5,6 +10,10 @@ import { SAMPLE_TEST_CASES_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
+/**
+ * Info drawer — Sample Test Cases Heading Info Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function SampleTestCasesHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();

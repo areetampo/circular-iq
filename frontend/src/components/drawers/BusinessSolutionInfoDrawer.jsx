@@ -1,3 +1,8 @@
+/**
+ * @module BusinessSolutionInfoDrawer
+ * @description Info drawer — Business Solution Info Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import {
   Check,
@@ -30,6 +35,10 @@ const COMPONENT_ICONS = {
   'Economic Viability': DollarSign,
 };
 
+/**
+ * Info drawer — Business Solution Info Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function BusinessSolutionInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();

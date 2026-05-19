@@ -1,3 +1,8 @@
+/**
+ * @module BusinessProblemInfoDrawer
+ * @description Info drawer — Business Problem Info Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import { ClipboardMinus, Globe, Info, MapPin, Target, TrendingUp, Users, Zap } from 'lucide-react';
 
@@ -15,6 +20,10 @@ const ELEMENT_ICONS = {
   'Urgency Indicators': Zap,
 };
 
+/**
+ * Info drawer — Business Problem Info Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function BusinessProblemInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();

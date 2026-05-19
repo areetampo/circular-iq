@@ -1,3 +1,8 @@
+/**
+ * @module DrawerManager
+ * @description Info drawer — Drawer Manager.
+ */
+
 import DRAWER_TYPES from '@/constants/drawerTypes';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 
@@ -12,6 +17,10 @@ import SampleTestCasesHeadingInfoDrawer from './SampleTestCasesHeadingInfoDrawer
 import SpecificEvaluationParameterInfoDrawer from './SpecificEvaluationParameterInfoDrawer';
 import SpecificSampleTestCaseViewDetailsDrawer from './SpecificSampleTestCaseViewDetailsDrawer';
 
+/**
+ * Info drawer — Drawer Manager.
+ * @returns {import('react').ReactElement}
+ */
 export default function DrawerManager() {
   const { drawer } = useGlobalDrawer();
 
@@ -58,4 +67,6 @@ export default function DrawerManager() {
   }
 }
 
-DrawerManager.propTypes = {};
+DrawerManager.propTypes = {
+  /** No props - gets drawer state directly from context */
+};

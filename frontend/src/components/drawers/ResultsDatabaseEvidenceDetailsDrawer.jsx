@@ -1,3 +1,8 @@
+/**
+ * @module ResultsDatabaseEvidenceDetailsDrawer
+ * @description Info drawer — Results Database Evidence Details Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import {
   AlertCircle,
@@ -21,6 +26,42 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 import { getMatchStrength } from '@/utils/content';
 
+/**
+ * Section block with icon heading and body text.
+ * @param {Object} props
+ * @param {string} props.title
+ * @param {import('react').ElementType} props.icon
+ * @param {import('react').ReactNode} props.content
+ * @param {import('react').ReactNode} [props.fallback]
+ * @returns {import('react').ReactElement|null}
+ */
+function DetailSection({ title, icon, content, fallback = null }) {
+  if (!content) return null;
+  return (
+    <div className="space-y-2">
+      <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
+        {title}
+        {React.createElement(icon, { strokeWidth: 2.5, size: 16, className: 'ml-2 inline' })}
+      </h4>
+      <p className="text-sm/relaxed text-(--color-text-secondary)">{content || fallback}</p>
+    </div>
+  );
+}
+
+DetailSection.propTypes = {
+  title: PropTypes.string.isRequired,
+  icon: PropTypes.elementType.isRequired,
+  content: PropTypes.node,
+  fallback: PropTypes.node,
+};
+
+/**
+ * Info drawer — Results Database Evidence Details Drawer.
+ *
+ * @param {Object} props
+ * @param {Object} props.data
+ * @returns {import('react').ReactElement}
+ */
 export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
   const { drawer, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();
@@ -28,20 +69,6 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
   // Check if this specific drawer is open and matches the expected type
   const isThisDrawerOpen =
     drawer?.type === DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS && drawer?.isOpen;
-
-  // Reusable component for sections with heading and content
-  const DetailSection = ({ title, icon, content, fallback = null }) => {
-    if (!content) return null;
-    return (
-      <div className="space-y-2">
-        <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
-          {title}
-          {React.createElement(icon, { strokeWidth: 2.5, size: 16, className: 'ml-2 inline' })}
-        </h4>
-        <p className="text-sm/relaxed text-(--color-text-secondary)">{content || fallback}</p>
-      </div>
-    );
-  };
 
   const matchPercentage = Math.round((data.similarity || 0) * 100).toFixed(1);
   const matchStrength = getMatchStrength(data.similarity || 0);

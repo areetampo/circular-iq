@@ -1,3 +1,8 @@
+/**
+ * @module EvaluationCriteriaDrawer
+ * @description Info drawer — Evaluation Criteria Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import { CircleDollarSign, ClipboardMinus, Link, Settings } from 'lucide-react';
 
@@ -6,6 +11,10 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
+/**
+ * Info drawer — Evaluation Criteria Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function EvaluationCriteriaDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();

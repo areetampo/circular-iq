@@ -1,3 +1,8 @@
+/**
+ * @module AssessmentMethodologyDrawer
+ * @description Info drawer — Assessment Methodology Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import {
   BookCopy,
@@ -16,6 +21,10 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
+/**
+ * Info drawer — Assessment Methodology Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function AssessmentMethodologyDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();

@@ -1,3 +1,8 @@
+/**
+ * @module SpecificEvaluationParameterInfoDrawer
+ * @description Info drawer — Specific Evaluation Parameter Info Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import PropTypes from 'prop-types';
 
@@ -8,6 +13,13 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
+/**
+ * Info drawer — Specific Evaluation Parameter Info Drawer.
+ *
+ * @param {Object} props
+ * @param {string} props.paramKey
+ * @returns {import('react').ReactElement}
+ */
 export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
   if (!paramKey) return null;
   const guidance = parameterGuidance[paramKey];

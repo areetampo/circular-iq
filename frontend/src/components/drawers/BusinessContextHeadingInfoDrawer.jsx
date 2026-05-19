@@ -1,3 +1,8 @@
+/**
+ * @module BusinessContextHeadingInfoDrawer
+ * @description Info drawer — Business Context Heading Info Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import { Lightbulb, MoveRight, Target } from 'lucide-react';
 
@@ -5,6 +10,10 @@ import { BUSINESS_CONTEXT_HEADING_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
+/**
+ * Info drawer — Business Context Heading Info Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function BusinessContextHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();

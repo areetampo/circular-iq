@@ -1,3 +1,8 @@
+/**
+ * @module EvaluationParametersHeadingInfoDrawer
+ * @description Info drawer — Evaluation Parameters Heading Info Drawer.
+ */
+
 import { Drawer } from '@heroui/react';
 import {
   BookCheck,
@@ -29,6 +34,10 @@ const FACTOR_ICONS = {
   tech_readiness: Cpu,
 };
 
+/**
+ * Info drawer — Evaluation Parameters Heading Info Drawer.
+ * @returns {import('react').ReactElement}
+ */
 export default function EvaluationParametersHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();
