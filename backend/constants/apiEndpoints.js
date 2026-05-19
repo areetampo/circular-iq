@@ -1,10 +1,24 @@
 /**
- * API Endpoints Configuration
+ * @module apiEndpoints
+ * @description Central registry of all available API endpoints with their HTTP methods and descriptions.
+ * Used for documentation, health checks, API discovery, and configuration.
  *
- * Contains all available API endpoints with their HTTP methods and descriptions.
- * Used for documentation, health checks, and API discovery.
+ * Endpoint categories:
+ * - Health & Root: System health monitoring and root endpoint
+ * - User Profile: User profile management
+ * - Search: Circular Economy case search
+ * - Scoring/RAG: RAG analysis and scoring with streaming support
+ * - Assessments: Assessment CRUD operations and comparisons
+ * - Uptime Monitor: Real-time uptime monitoring with SSE streaming
+ *
+ * @type {Array<{method: string, endpoint: string, description: string}>}
  */
 
+/**
+ * Array of API endpoint definitions.
+ * Each object contains the HTTP method, endpoint path, and description.
+ * @type {Array<{method: string, endpoint: string, description: string}>}
+ */
 export default [
   // Health & Root
   { method: 'GET', endpoint: '/health', description: 'Basic Health Check (Load Balancer)' },
@@ -106,11 +120,37 @@ export default [
   {
     method: 'GET',
     endpoint: '/api/uptime/history/:endpointId',
-    description: 'Retrieve recent checks for specific endpoint (max 10000)',
+    description: 'Retrieve recent checks for specific endpoint (max 86400)',
   },
   {
     method: 'GET',
     endpoint: '/api/uptime/stream',
     description: 'SSE stream for real-time uptime updates with fallback to polling',
+  },
+  {
+    method: 'GET',
+    endpoint: '/api/uptime/daily-stats',
+    description: 'Get daily uptime statistics for the last N days',
+  },
+  {
+    method: 'GET',
+    endpoint: '/api/uptime/heatmap-aggregated',
+    description: 'Get aggregated heatmap buckets for uptime visualization',
+  },
+  {
+    method: 'GET',
+    endpoint: '/api/uptime/global-trend',
+    description:
+      'Hourly avg response time across all endpoints for last N hours (supports clock-aligned)',
+  },
+  {
+    method: 'GET',
+    endpoint: '/api/uptime/endpoint-latency',
+    description: 'Per-endpoint avg latency scalar for last N hours',
+  },
+  {
+    method: 'GET',
+    endpoint: '/api/uptime/endpoint-buckets/:endpointId',
+    description: 'Bucketed avg response time for one endpoint (supports clock-aligned)',
   },
 ];
