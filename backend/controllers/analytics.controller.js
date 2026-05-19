@@ -1,14 +1,17 @@
 /**
- * Analytics Controller
- * Handles global dashboard stats, enhanced analytics, featured solutions,
- * document stats, and the global-stats endpoint used by the Dashboard page.
+ * @module analytics.controller
+ * @description Controller for analytics and dashboard statistics endpoints.
+ * Aggregates scoring logs, market RPC, and assessment stats for the Global Activity page.
+ *
+ * Endpoints:
+ * - POST /api/analytics/embeddings/reindex - Starts embedding pipeline reindex in background
+ * - GET /api/analytics/global-stats - Aggregates dashboard data from multiple sources
  */
 
 import { spawn } from 'child_process';
 import path from 'path';
 
 import { safeNumber } from '#utils/formatting.js';
-import { logger } from '#utils/logger.js';
 
 /**
  * Compute ISO week key in format YYYY-Www for a UTC date
@@ -31,10 +34,10 @@ function getISOWeekKey(date) {
 /**
  * POST /api/analytics/embeddings/reindex
  *
- * Starts the embedding pipeline reindex process in the background
- * Returns immediately with process ID for tracking
+ * Spawns detached `pipeline/rag/generate_embeddings.js` (reads archived chunks, writes embedded JSONL).
+ * Returns immediately with the child PID for tracking.
  *
- * @returns {Function} Express middleware handler
+ * @returns {import('express').RequestHandler} Express middleware handler
  */
 export function postEmbeddingsReindex() {
   return async (req, res) => {
@@ -42,7 +45,7 @@ export function postEmbeddingsReindex() {
 
     try {
       const scriptsDir = path.join(process.cwd(), 'backend');
-      const child = spawn(process.execPath, ['scripts/embed_and_store.js'], {
+      const child = spawn(process.execPath, ['pipeline/rag/generate_embeddings.js'], {
         cwd: scriptsDir,
         detached: true,
         stdio: 'ignore',
@@ -75,6 +78,9 @@ export function postEmbeddingsReindex() {
  *      assessment stats.
  *
  * Uses serviceSupabase — no RLS restriction, no PII returned.
+ *
+ * @param {Object} serviceSupabase - Service-role Supabase client.
+ * @returns {import('express').RequestHandler} Express middleware handler.
  */
 export function getGlobalStats(serviceSupabase) {
   return async (req, res) => {
