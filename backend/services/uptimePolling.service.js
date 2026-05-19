@@ -1,10 +1,16 @@
 /**
- * Uptime Polling Service
- * Periodically checks health endpoints and stores results in Supabase.
+ * @module uptimePolling.service
+ * @description Backend polling service for the uptime monitor.
+ * Runs only in production. On each cycle, pings all health endpoints in parallel,
+ * batch-inserts results into Supabase, and broadcasts a 'poll-complete' SSE event
+ * to all connected frontend clients via uptime.broadcaster.
+ *
+ * Guards against overlapping polls with an `isPolling` flag — if the previous cycle
+ * hasn't finished when the next interval fires, the new cycle is skipped.
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { UPTIME_ENDPOINTS } from '#constants/index.js';
+import { HEALTH_ENDPOINTS } from '#constants/index.js';
 import { getSupabaseClient } from '#database/client.js';
 import { broadcastUptimeEvent } from '#services/uptime.broadcaster.js';
 
@@ -12,53 +18,75 @@ let pollingInterval = null;
 let isPolling = false;
 
 /**
- * Ping a single endpoint and return the result.
- * @param {string} endpointId
- * @param {string} path
- * @returns {Promise<Object>}
+ * Ping a single health endpoint and normalize the result for DB insert and SSE broadcast.
+ *
+ * @param {string} endpointId - Key from HEALTH_ENDPOINTS (e.g. 'health', 'database').
+ * @param {string} path       - Route path appended to BACKEND_CONFIG.app.apiUrl.
+ * @returns {Promise<{
+ *   endpointId: string,
+ *   status: string,
+ *   up: boolean,
+ *   responseTimeMs: number,
+ *   payload: Object
+ * }>}
  */
 async function pingEndpoint(endpointId, path) {
   const start = Date.now();
+
   const url = `${BACKEND_CONFIG.app.apiUrl}${path}`;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
+
     const ms = Date.now() - start;
+
     const body = await res.json().catch(() => ({}));
     const result = {
       endpointId,
+      endpointPath: path,
       status: body.status ?? (res.ok ? 'healthy' : 'unhealthy'),
       up: res.ok,
       responseTimeMs: ms,
       payload: body,
     };
+
     logger.logOperation('pingEndpoint', 'uptime/check', 'success', ms, {
       endpointId,
+      endpointPath: path,
       up: result.up,
       responseTime: ms,
     });
+
     return result;
   } catch (error) {
     const ms = Date.now() - start;
+
     const result = {
       endpointId,
+      endpointPath: path,
       status: 'error',
       up: false,
       responseTimeMs: ms,
-      payload: { error: error.message },
+      payload: { error },
     };
+
     logger.logOperation('pingEndpoint', 'uptime/check', 'error', ms, {
       endpointId,
+      endpointPath: path,
       error,
     });
+
     return result;
   }
 }
 
 /**
- * Run a full poll of all endpoints, store results in Supabase and broadcast
+ * Run one poll cycle: ping all HEALTH_ENDPOINTS in parallel, batch-insert into uptime_checks,
+ * then broadcast 'poll-complete' to SSE clients. Skipped when a previous cycle is still running.
+ *
+ * @returns {Promise<void>}
  */
 async function runPoll() {
   if (isPolling) {
@@ -73,11 +101,12 @@ async function runPoll() {
 
   try {
     const supabase = getSupabaseClient();
-    const results = await Promise.all(UPTIME_ENDPOINTS.map((ep) => pingEndpoint(ep.id, ep.path)));
+    const results = await Promise.all(HEALTH_ENDPOINTS.map((ep) => pingEndpoint(ep.id, ep.path)));
 
     // single batch insert
     const rows = results.map((result) => ({
       endpoint_id: result.endpointId,
+      endpoint_path: result.endpointPath,
       status: result.status,
       up: result.up,
       response_time_ms: result.responseTimeMs,
@@ -100,6 +129,7 @@ async function runPoll() {
         timestamp: new Date().toISOString(),
         results: results.map((r) => ({
           endpointId: r.endpointId,
+          endpointPath: r.endpointPath,
           up: r.up,
           responseTimeMs: r.responseTimeMs,
           status: r.status,
@@ -114,7 +144,11 @@ async function runPoll() {
 }
 
 /**
- * Start the polling service (call once on server start).
+ * Starts the uptime polling service.
+ * Runs one poll immediately on call, then repeats on the configured interval.
+ * Safe to call multiple times — subsequent calls are no-ops if already running.
+ *
+ * @returns {void}
  */
 export function startUptimePolling() {
   if (pollingInterval) {
@@ -129,7 +163,10 @@ export function startUptimePolling() {
 }
 
 /**
- * Stop the polling service (graceful shutdown).
+ * Stops the uptime polling service and clears the interval.
+ * Called during graceful server shutdown.
+ *
+ * @returns {void}
  */
 export function stopUptimePolling() {
   if (pollingInterval) {
