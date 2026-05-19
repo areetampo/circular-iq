@@ -1,9 +1,20 @@
+/**
+ * @module chart
+ * @description Shared chart UI primitives for the application.
+ * Exposes chart container layout, tooltip rendering, legend helpers, and
+ * context-based color configuration for Recharts components.
+ */
+import PropTypes from 'prop-types';
 import * as React from 'react';
 import { Tooltip } from 'recharts';
 
 // ─── Context ────────────────────────────────────────────────────────────────
 const ChartContext = React.createContext(null);
 
+/**
+ * Reads chart configuration from the current chart context.
+ * @returns {{config: Object<string, {label?: string, color?: string, theme?: string}>}}
+ */
 function useChart() {
   const context = React.useContext(ChartContext);
   if (!context) throw new Error('useChart must be used within a ChartContainer');
@@ -12,6 +23,16 @@ function useChart() {
 
 // ─── ChartContainer ──────────────────────────────────────────────────────────
 // Wraps a Recharts chart. config maps series keys to labels/colors.
+/**
+ * Chart container wrapper that injects theme variables and layout for Recharts charts.
+ * @param {Object} props
+ * @param {string} [props.id] - Optional ID to use for the chart container.
+ * @param {string} [props.className] - Additional CSS class names.
+ * @param {React.ReactNode} props.children - Chart children elements.
+ * @param {Object} props.config - Series configuration mapping data keys to labels/colors.
+ * @param {Object} [props.style] - Inline styles for the container.
+ * @returns {JSX.Element}
+ */
 function ChartContainer({ id, className, children, config, style, ...props }) {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`;
@@ -33,6 +54,13 @@ function ChartContainer({ id, className, children, config, style, ...props }) {
 
 // ─── ChartStyle ───────────────────────────────────────────────────────────────
 // Injects per-chart CSS variables for colors
+/**
+ * Injects CSS custom properties for chart series colors directly into the chart wrapper.
+ * @param {Object} props
+ * @param {string} props.id - Chart container identifier.
+ * @param {Object} props.config - Series configuration mapping data keys to label/color values.
+ * @returns {JSX.Element|null}
+ */
 function ChartStyle({ id, config }) {
   const colorConfig = Object.entries(config).filter(([, v]) => v.color || v.theme);
   if (!colorConfig.length) return null;
@@ -42,9 +70,29 @@ function ChartStyle({ id, config }) {
   return <style>{`[data-chart="${id}"] {\n${vars}\n}`}</style>;
 }
 
+ChartStyle.propTypes = {
+  id: PropTypes.string.isRequired,
+  config: PropTypes.object.isRequired,
+};
+
 // ─── ChartTooltip ─────────────────────────────────────────────────────────────
 const ChartTooltip = Tooltip;
 
+/**
+ * Custom tooltip content renderer for Recharts charts.
+ * @param {Object} props
+ * @param {boolean} props.active - Whether the tooltip is active.
+ * @param {Array} props.payload - Tooltip payload data.
+ * @param {string} props.label - Tooltip label value.
+ * @param {string} [props.className] - Extra CSS classes.
+ * @param {boolean} [props.hideLabel=false] - Hide the label section.
+ * @param {boolean} [props.hideIndicator=false] - Hide the indicator dot/line.
+ * @param {'dot'|'line'} [props.indicator='dot'] - Indicator shape.
+ * @param {string} [props.nameKey] - Data key used for series names.
+ * @param {Function} [props.labelFormatter] - Formatter for tooltip labels.
+ * @param {Function} [props.formatter] - Formatter for tooltip values.
+ * @returns {JSX.Element|null}
+ */
 function ChartTooltipContent({
   active,
   payload,
@@ -107,6 +155,13 @@ function ChartTooltipContent({
 }
 
 // ─── ChartLegend ──────────────────────────────────────────────────────────────
+/**
+ * Custom legend renderer for chart data payloads.
+ * @param {Object} props
+ * @param {Array} props.payload - Legend payload items.
+ * @param {string} [props.className] - Extra CSS classes.
+ * @returns {JSX.Element|null}
+ */
 function ChartLegendContent({ payload, className }) {
   if (!payload?.length) return null;
 
@@ -126,5 +181,31 @@ function ChartLegendContent({ payload, className }) {
     </div>
   );
 }
+
+ChartContainer.propTypes = {
+  id: PropTypes.string,
+  className: PropTypes.string,
+  children: PropTypes.node.isRequired,
+  config: PropTypes.object,
+  style: PropTypes.object,
+};
+
+ChartTooltipContent.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.array,
+  label: PropTypes.string,
+  className: PropTypes.string,
+  hideLabel: PropTypes.bool,
+  hideIndicator: PropTypes.bool,
+  indicator: PropTypes.string,
+  nameKey: PropTypes.string,
+  labelFormatter: PropTypes.func,
+  formatter: PropTypes.func,
+};
+
+ChartLegendContent.propTypes = {
+  payload: PropTypes.array,
+  className: PropTypes.string,
+};
 
 export { ChartContainer, ChartLegendContent, ChartTooltip, ChartTooltipContent, useChart };
