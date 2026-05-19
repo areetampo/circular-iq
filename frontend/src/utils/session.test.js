@@ -1,3 +1,8 @@
+/**
+ * @module session.test
+ * @description Unit tests for session persistence utilities.
+ */
+
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { getSession, saveSession } from './session';

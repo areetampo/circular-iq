@@ -1,7 +1,13 @@
 /**
- * Session utilities
- * Unified session management for both anonymous and authenticated users
- * Uses a single localStorage structure with expiry handling
+ * @module session
+ * @description Session utilities for unified session management.
+ * Supports both anonymous and authenticated users with a single localStorage structure.
+ * Provides session ID generation, session data persistence, and retrieval.
+ *
+ * Functions:
+ * - getSessionId: Get or create session ID for user tracking
+ * - saveSession: Save session data (inputs, results, timestamp)
+ * - getSession: Retrieve current session data
  */
 
 import { loadEvaluationState, saveEvaluationState } from '@/lib/storage';
