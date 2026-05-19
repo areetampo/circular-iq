@@ -1,9 +1,18 @@
+/**
+ * @module ComparePageWrapper
+ * @description Layout wrapper for the manual two-ID assessment comparison flow.
+ */
+
 import { useSearchParams } from 'react-router-dom';
 
 import AssessmentComparisonPage from '@/pages/AssessmentComparisonPage/AssessmentComparisonPage';
 
 import { CompareForm } from './components';
 
+/**
+ * Layout wrapper for the manual two-ID assessment comparison flow.
+ * @returns {import('react').ReactElement}
+ */
 export default function ComparePageWrapper() {
   const [searchParams] = useSearchParams();
   const id1 = searchParams.get('id1');

@@ -1,14 +1,23 @@
+/**
+ * @module CompareForm
+ * @description Form to enter two assessment public IDs and navigate to comparison results.
+ */
+
 import { FieldError, Input, Label, TextField } from '@heroui/react';
 import { Files, MoveLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Button, DetailsBadge, Spinner } from '@/components/common';
+import { Button, DetailsBadge } from '@/components/common';
 import { useAssessmentValidation } from '@/features/assessments/hooks';
 import { clearCompareFormState, loadCompareFormState, saveCompareFormState } from '@/lib/storage';
 import { isValidUUID } from '@/lib/validation';
 import { useSafeBack } from '@/utils/navigation';
 
+/**
+ * Form to enter two assessment public IDs and navigate to comparison results.
+ * @returns {import('react').ReactElement}
+ */
 export default function CompareForm() {
   const navigate = useNavigate();
   const goBackSafely = useSafeBack();
@@ -241,11 +250,11 @@ export default function CompareForm() {
           <div>
             {/* Validation message display - show when validating and no error */}
             {validating && validationMessage && !error && (
-              <DetailsBadge variant="info" message={validationMessage} icon={Spinner} />
+              <DetailsBadge variant="info" message={validationMessage} spinner />
             )}
             {/* Loading state from validation query - show when auto-fetching */}
             {validationQuery.isLoading && !validating && !error && (
-              <DetailsBadge variant="info" message="Validating assessment IDs..." icon={Spinner} />
+              <DetailsBadge variant="info" message="Validating assessment IDs..." spinner />
             )}
             {/* Success state after auto-fetching completes - show ready message */}
             {!validating && !error && validationData && !validationMessage && (
