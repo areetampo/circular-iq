@@ -13,7 +13,7 @@ The frontend provides:
 2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
 3. **Solutions Search** — semantic search across 6,000+ real circular economy case studies
 4. **Global Activity** — live analytics from all scoring calls worldwide
-5. **Uptime Monitoring** — real-time system health dashboard with Server-Sent Events (SSE) streaming, 30-second polling fallback, and 7-day history
+5. **Uptime Monitoring** — real-time system health dashboard with SSE streaming, 30-second polling and toggleable clock-aligned bucket display
 6. **Export Functionality** — PDF reports and CSV data exports
 7. **Assessment History** — save, rename, delete, compare, and share assessments
 8. **Session Management** — automatic save/restore across browser sessions
@@ -40,52 +40,56 @@ The frontend provides:
 ```txt
 frontend/
 ├── api/
-│   └── proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
+│   └── proxy.js                      # Legacy helper; production routing uses vercel.json rewrite to backend
+│
+├── package.json                      # Frontend dependencies and scripts
+│
+├── public/                           # Static assets (app-bg.svg, site-logo images)
+│
 ├── src/
-│   ├── app/                     # Root component, routes, global providers
-│   │   ├── App.jsx              # Root component with providers and routing
-│   │   ├── AppRoutes.jsx        # All route definitions
-│   │   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
-│   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries (64 items)
-│   ├── contexts/                # React Context providers (Auth, Dialog, Drawer)
-│   ├── features/                # Feature modules: assessments, export, search, session (22 items)
-│   ├── hooks/                   # Custom React hooks (useAuth, useDebounce, etc.) (10 items)
-│   ├── lib/                     # API client, formatting, metadata, scoring, storage, supabase, validation (11 items)
-│   ├── pages/                   # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (91+ items)
-│   ├── config/                   # Frontend configuration with route definitions and query parameters (3 items)
-│   ├── constants/               # Evaluation data, industries, drawer constants (19 items)
-│   ├── index.css                # Global styles + Tailwind directives
-│   ├── main.jsx                 # React entry point
-│   ├── setupTests.js            # Vitest global setup
-│   ├── test/                    # Test files (4 items)
-│   ├── types/                   # TypeScript type definitions (1 item)
-│   └── utils/                   # Utility functions (12 items)
-├── public/                       # Static assets (app-bg.svg, site-logo images)
-├── vite.config.js               # Vite configuration with aliases and chunking
-├── vercel.json                  # Vercel deployment configuration
-├── vitest.config.js             # Vitest test configuration
-├── tsconfig.json                # TypeScript configuration
-├── tsconfig.node.json           # Node.js TypeScript configuration
-└── package.json                 # Frontend dependencies and scripts
+│   ├── app/                          # Root component, routes, global providers
+│   │   ├── App.jsx                   # Root component with providers and routing
+│   │   ├── AppProvider.jsx           # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
+│   │   └── AppRoutes.jsx             # All route definitions
+│   │
+│   ├── components/                   # Shared UI: charts, common, dialogs, drawers, export, layout, error-boundaries etc
+│   ├── config/                       # Frontend configuration with route definitions and query parameters
+│   ├── constants/                    # Evaluation data, industries, drawer + dialog constants etc
+│   ├── contexts/                     # React Context providers (Auth, Dialog, Drawer) etc
+│   ├── features/                     # Feature modules: assessments, export, search, session etc
+│   ├── hooks/                        # Custom React hooks (useAuth, useDebounce, etc.)
+│   ├── index.css                     # Global styles + Tailwind directives
+│   ├── lib/                          # API client, formatting, metadata, scoring, storage, supabase, validation etc
+│   ├── main.jsx                      # React entry point
+│   ├── pages/                        # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (90+ items)
+│   ├── setupTests.js                 # Vitest global setup
+│   ├── test/                         # Test files
+│   ├── types/                        # TypeScript type definitions
+│   └── utils/                        # Utility functions
+│
+├── tsconfig.json                     # TypeScript configuration
+├── tsconfig.node.json                # Node.js TypeScript configuration
+├── vercel.json                       # Vercel deployment configuration
+├── vite.config.js                    # Vite configuration with aliases and chunking
+└── vitest.config.js                  # Vitest test configuration
 ```
 
 ## Routes
 
-| Path                                     | Component            | Auth | Description                                 |
-| ---------------------------------------- | -------------------- | ---- | ------------------------------------------- |
-| `/`                                      | LandingPage          | No   | Assessment input form                       |
-| `/results`                               | ResultsPage          | No   | Interactive results display                 |
-| `/assessments`                           | MyAssessmentsPage    | Yes  | User's assessment history                   |
-| `/assessments/:id`                       | AssessmentViewPage   | Yes  | View/edit single assessment                 |
-| `/assessments/share`                     | SharePage            | No   | Share assessment form                       |
-| `/assessments/share/:id`                 | AssessmentViewPage   | No   | Direct shared assessment view               |
-| `/assessments/compare`                   | ComparePage          | No   | Compare two assessments                     |
-| `/assessments/compare?id1=:id1&id2=:id2` | ComparePage          | No   | Direct comparison link                      |
-| `/export/csv`                            | ExportCSV            | No   | CSV export (anonymous)                      |
-| `/export/pdf`                            | ExportPDF            | No   | PDF export (anonymous)                      |
-| `/global-activity`                       | `GlobalActivityPage` | No   | Global activity analytics                   |
-| `/uptime-monitor`                        | `UptimeMonitorPage`  | No   | System uptime monitoring with SSE streaming |
-| `*`                                      | `NotFoundPage`       | —    | 404                                         |
+| Path                           | Component          | Auth | Description                             |
+| ------------------------------ | ------------------ | ---- | --------------------------------------- |
+| `/`                            | LandingPage        | No   | Assessment input form                   |
+| `/results`                     | ResultsPage        | No   | Interactive results display             |
+| `/solutions`                   | SolutionsPage      | No   | Case study search and discovery         |
+| `/global-activity`             | GlobalActivityPage | No   | Global activity analytics               |
+| `/guide`                       | GuidePage          | No   | Product guide and instructions          |
+| `/assessments`                 | MyAssessmentsPage  | Yes  | User's assessment history               |
+| /assessments/:publicId         | ResultsPage        | Yes  | View user's own saved assessment        |
+| `/assessments/share`           | SharePage          | No   | Share assessment form                   |
+| `/assessments/share/:publicId` | AssessmentViewPage | No   | Direct shared assessment view           |
+| `/assessments/compare`         | ComparePageWrapper | No   | Compare two assessments                 |
+| `/uptime-monitor`              | UptimeMonitorPage  | No   | Real-time system health dashboard (SSE) |
+| `*`                            | `NotFoundPage`     | —    | 404                                     |
 
 ## Setup & Installation
 
@@ -136,7 +140,7 @@ VITE_ENABLE_ANALYTICS=true
 **Important notes:**
 
 1. **No Secret Keys in Frontend** — `INTERNAL_BACKEND_API_KEY` is **never** included in frontend env variables.
-2. **Proxy Pattern** — all API calls in production route through `/api/proxy`, which injects the secret key server-side via Vercel serverless function.
+2. **Proxy Pattern** — production uses `frontend/vercel.json` rewrite to route `/api/*` to the backend; development uses `VITE_API_URL` directly.
 3. **Anonymous Access** — frontend works without authentication; the backend enforces rate limits.
 
 ### Configuration Object
@@ -169,21 +173,17 @@ npm run clean       # Clean node_modules
 
 ## Architecture
 
-### Secure Proxy Architecture
+### Production API Routing
 
-To keep the backend API key secret, all frontend → backend requests flow through a Vercel serverless proxy:
+In production, Vercel rewrites `/api/*` requests to the backend host configured in `frontend/vercel.json`.
 
-Browser → /api/proxy?path=/api/score → Vercel Function → adds x-api-key → Backend
+Browser → `/api/<path>` → Vercel rewrite → backend service
 
 **How it works:**
 
-1. `buildApiUrl()` — returns `/api/proxy?path=...` in production, direct URL in development
-2. Proxy Function (`api/proxy.js`) — Vercel serverless function that:
-   - Reads `INTERNAL_BACKEND_API_KEY` from Vercel environment (server-only)
-   - Forwards all request headers (Authorization, User-Agent, IP)
-   - Adds `x-api-key` header with the secret
-   - Returns backend response to client
-3. Backend (`server/app.js`) — validates `x-api-key` via `apiKeyGuard` middleware
+1. `buildApiUrl()` returns a relative `/api/...` path in production and a direct `VITE_API_URL` URL in development.
+2. `frontend/vercel.json` rewrites frontend API requests to the backend host.
+3. `frontend/api/proxy.js` remains in the repo as a legacy helper, but it is not the primary API routing path in production.
 
 ### API Client Helper
 
@@ -630,7 +630,7 @@ import { cn } from '@/utils/cn';
 ✓ **Correct:**
 
 - `INTERNAL_BACKEND_API_KEY` lives only in Vercel server-side environment variables
-- Proxy function reads it server-side and injects `x-api-key` header
+- Production API routing uses `frontend/vercel.json` rewrite to route `/api/*` to backend
 - Frontend code and browser DevTools never have access to the secret
 
 ✗ **Never:**
@@ -649,7 +649,7 @@ import { cn } from '@/utils/cn';
 ### CORS & CSRF
 
 - Backend validates the `Origin` header against `ALLOWED_ORIGINS`
-- Proxy function adds required headers and forwards Authorization
+- Production API routing is controlled by `frontend/vercel.json` rewrite rules
 - Supabase handles auth tokens via secure HTTP-only cookies
 
 ## Troubleshooting
@@ -657,7 +657,7 @@ import { cn } from '@/utils/cn';
 ### "API calls failing with 401 Unauthorized"
 
 - Verify `INTERNAL_BACKEND_API_KEY` is set in Vercel environment (not `VITE_` prefixed)
-- Check `api/proxy.js` is forwarding the `x-api-key` header
+- If using the legacy proxy helper, check `frontend/api/proxy.js` and backend `apiKeyGuard` configuration
 - Confirm backend `apiKeyGuard` middleware is active
 
 ### "CORS errors in browser console"
@@ -776,24 +776,22 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 
 **Current routes** (from `src/app/AppRoutes.jsx`):
 
-```code
+```txt
 /                           → LandingPage          (assessment input)
 /auth                       → AuthPage             (login/signup)
 /guide                      → GuidePage            (help & methodology)
 /results                    → ResultsPage          (session-based scoring results)
-/assessments                → MyAssessmentsPage    (saved history, public)
-/assessments/:publicId      → ResultsPage          (view saved assessment, auth required)
-/assessments/share           → SharePage           (share form, no auth)
-/assessments/share/:id        → AssessmentViewPage  (public shared view, no auth)
-/assessments/compare         → ComparePageWrapper  (comparison form & results, public)
-/assessments/compare?id1=...&id2=... → AssessmentComparisonPage (side-by-side comparison, public)
-/solutions                  → SolutionsPage        (solutions overview)
+/solutions                  → SolutionsPage        (case study search — keyword + hybrid)
 /global-activity            → GlobalActivityPage   (global analytics)
-/uptime-monitor             → UptimeMonitorPage   (system uptime monitoring)
+/assessments                → MyAssessmentsPage    (saved assessment history)
+/assessments/share          → SharePage            (share form, no auth)
+/assessments/share/:id      → AssessmentViewPage   (public shared view, no auth)
+/assessments/compare        → ComparePageWrapper   (comparison form & results)
+/assessments/:publicId      → ResultsPage          (view saved assessment, auth required)
+/uptime-monitor             → UptimeMonitorPage    (system uptime monitoring)
 *                           → NotFoundPage
 ```
 
-... (rest of the code remains the same)
 **Related files:**
 
 - `src/app/AppRoutes.jsx` — route definitions
@@ -973,7 +971,7 @@ const isValidParameter = validKeys.includes(parameterKey);
 
 ### Available Components
 
-- **Common**: Button, Brand, Switch, DetailsDisplay, LoaderComponent, LoaderIcon, GlobalLoadingBar, ScrollToTop
+- **Common**: Button, Brand, Switch, DetailsDisplay, LoaderComponent, LoaderIcon, etc.
 - **Charts**: BarChart, LineChart, PieChart, RadarChart
 - **Dialogs**: SaveAssessmentDialog, DeleteAssessmentDialog, RenameAssessmentDialog, ResultsRestoreDialog, ConfirmDialog, LimitReachedDialog, ReplaceInputsDialog
 - **Drawers**: ResultsDatabaseEvidenceDetailsDrawer, AssessmentMethodologyDrawer, info drawers for evaluation parameters and sample test cases
@@ -988,80 +986,72 @@ See [src/components/dialogs/README.md](./src/components/dialogs/README.md) for c
 
 ## Frontend Routes
 
-The application uses React Router v6 with lazy-loaded components. All routes are defined in `src/app/AppRoutes.jsx`.
+The application uses React Router v7 with lazy-loaded components. All routes are defined in `src/app/AppRoutes.jsx`.
 
 ### Public Routes (No Authentication Required)
 
-| Path                     | Description                                      | Query Parameters                          |
-| ------------------------ | ------------------------------------------------ | ----------------------------------------- |
-| `/`                      | Main landing page with app overview              | None                                      |
-| `/auth`                  | Login and signup page                            | None                                      |
-| `/guide`                 | Comprehensive user guide and documentation       | None                                      |
-| `/results`               | Assessment results from session/navigation state | None (uses React Router state)            |
-| `/assessments/share`     | Public assessment share gateway form             | None                                      |
-| `/assessments/share/:id` | Public assessment share gateway                  | `id` - Assessment public ID (UUID format) |
+| Path                     | Description                                      | Query Parameters                                                     |
+| ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------- |
+| `/`                      | Main landing page with app overview              | None                                                                 |
+| `/auth`                  | Login and signup page                            | `mode` (`login`\|`signup`), `from` (redirect URL after login)        |
+| `/guide`                 | Comprehensive user guide and documentation       | None                                                                 |
+| `/results`               | Assessment results from session/navigation state | None (uses React Router state)                                       |
+| `/solutions`             | Search 6,000+ circular economy case studies      | `searchQuery`, `mode`, `page`, `strategies`, `categories`, `sources` |
+| `/global-activity`       | Live insights from all assessments worldwide     | None                                                                 |
+| `/assessments`           | User's saved assessment list                     | `industry`, `page`, `pageSize`, `search`, `sortBy`                   |
+| `/assessments/share`     | Public assessment share gateway form             | None                                                                 |
+| `/assessments/share/:id` | Direct shared assessment view                    | `id` path param — assessment public ID (UUID)                        |
+| `/assessments/compare`   | Assessment comparison tool or selection form     | `id1`, `id2`                                                         |
+| `/uptime-monitor`        | System uptime and health dashboard               | None                                                                 |
 
 ### Protected Routes (Authentication Required)
 
-#### `/dashboard` - Global Intelligence Dashboard
+Only one route is protected at the router level:
 
-Two-tab dashboard with search solutions and global activity.
+#### `/assessments/:publicId` — View Saved Assessment
 
-**Query Parameters:**
-
-- `activeTab` (string, default: `search`) - Tab selection: `search` or `global`
-- `searchQuery` (string) - Search query for solutions (min 2 characters)
-- `mode` (string, default: `hybrid`) - Search mode: `keyword` or `hybrid`
-- `page` (number, default: `1`) - Pagination page number (min 1)
-- `strategies` (string) - Comma-separated circular strategy filters
-- `categories` (string) - Comma-separated category filters
-- `sources` (string) - Comma-separated source filters
-
-**Behavior:**
-
-- Switching to global tab strips all search-specific parameters
-- Invalid parameters are validated against actual results and dropped
-- Orphan parameters cleaned up on mount when no searchQuery
-
-#### `/assessments` - My Assessments
-
-User assessment management with filtering and pagination.
-
-**Query Parameters:**
-
-- `industry` (string, default: `all`) - Comma-separated industry filters or `all`
-- `page` (number, default: `1`) - Pagination page number
-- `pageSize` (number, default: `10`) - Items per page: `5|10|20|50|100`
-- `search` (string) - Search term for filtering assessments
-- `sortBy` (string, default: `created_at_desc`) - Sort field and order (e.g., `title_asc`)
-
-**Behavior:**
-
-- All filter parameters persist in URL for shareable filtered lists
-- Invalid pageSize defaults to 10
-- URL parameters are read on component mount
-
-#### `/assessments/compare` - Compare Assessments
-
-Assessment comparison tool or selection form.
-
-**Query Parameters:**
-
-- `id1` (string) - First assessment public ID (UUID format)
-- `id2` (string) - Second assessment public ID (UUID format)
-
-**Behavior:**
-
-- If both `id1` and `id2` are present, shows comparison page
-- Otherwise shows selection form
-
-#### `/assessments/:publicId` - Assessment Details
-
-View detailed assessment results (owned by user).
+Renders `ResultsPage` with `isViewFromMyAssessments={true}`. Used by authenticated users to view their own saved assessment records.
 
 **Path Parameters:**
 
-- `publicId` - Assessment public ID
+- `publicId` — assessment public ID (UUID format)
+
+**Behavior:**
+
+- Unauthenticated users are redirected to `/auth` with `state.from` set for redirect-back after login
+- Shows loading spinner during authentication check
+
+### Route Query Parameters
+
+#### `/auth`
+
+- `mode` (string, default: `login`) — `login` or `signup`
+- `from` (string) — Redirect path after successful authentication
+
+#### `/solutions`
+
+- `searchQuery` (string) — Search query; minimum 2 chars to trigger fetch
+- `mode` (string, default: `hybrid`) — `keyword` or `hybrid`; invalid values fall back to `hybrid`
+- `page` (number, default: `1`) — Page number; omitted from URL when 1
+- `strategies` (string) — Comma-separated strategy filters; validated against result values
+- `categories` (string) — Comma-separated category filters; validated against result values
+- `sources` (string) — Comma-separated source filters; validated against result values
+
+#### `/assessments`
+
+- `industry` (string, default: `all`) — Comma-separated industry filters or `all`
+- `page` (number, default: `1`) — Pagination page number
+- `pageSize` (number, default: `10`) — Items per page: `5|10|20|50|100`; invalid value defaults to `10`
+- `search` (string) — Text filter for assessment names
+- `sortBy` (string, default: `created_at_desc`) — Sort field and direction (e.g., `title_asc`)
+
+All filter parameters persist in URL for shareable filtered lists.
+
+#### `/assessments/compare`
+
+- `id1` (string) — First assessment public ID (UUID format)
+- `id2` (string) — Second assessment public ID (UUID format)
+- If both present: renders comparison view; otherwise renders selection form
 
 ### Route Behavior Patterns
 
@@ -1072,9 +1062,9 @@ View detailed assessment results (owned by user).
 
 #### URL State Management
 
-- **Dashboard**: URL is single source of truth for all search state
-- **Assessments**: Filter parameters persist in URL for shareability
-- Invalid parameters are validated and cleaned up
+- **Solutions**: URL is the single source of truth for all search and filter state — see [URL State Management](#url-state-management-solutionssearch) below
+- **Assessments**: All filter parameters persist in URL for shareable filtered lists
+- Invalid parameters are validated and cleaned up on mount or after results load
 
 #### Navigation State
 
@@ -1083,39 +1073,72 @@ View detailed assessment results (owned by user).
 
 #### Lazy Loading
 
-All routes use lazy loading for optimal performance:
+All page components are lazy-loaded for optimal bundle splitting:
 
 ```js
-const DashboardPage = lazy(() => import('@/pages/DashboardPage/DashboardPage'));
+const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 ```
+
+---
 
 ## URL State Management (SolutionsSearch)
 
-`SolutionsSearch` uses URL as the single source of truth — no `useState` for any search-derived value. All state is derived from `searchParams` on every render:
+`SolutionsSearch` uses URL as the single source of truth — no `useState` for any search-derived value. All state is derived from `searchParams` via `useMemo` on every render:
 
 ```js
-const query = searchParams.get('searchQuery') || '';
-const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
-  ? searchParams.get('mode')
-  : 'hybrid';
-const page = parseInt(searchParams.get('page') || '1', 10);
-const activeStrategies = parseMultiParam(searchParams.get('strategies'));
-// ...
+const searchState = useMemo(() => {
+  const query = searchParams.get('searchQuery') || '';
+  const mode = ['keyword', 'hybrid'].includes(searchParams.get('mode'))
+    ? searchParams.get('mode')
+    : 'hybrid';
+  const pageRaw = parseInt(searchParams.get('page') || '1', 10);
+  const page = Number.isNaN(pageRaw) || pageRaw < 1 ? 1 : pageRaw;
+  return {
+    query,
+    mode,
+    page,
+    activeStrategies: parseMultiParam(searchParams.get('strategies')),
+    activeCategories: parseMultiParam(searchParams.get('categories')),
+    activeSources: parseMultiParam(searchParams.get('sources')),
+  };
+}, [searchParams]);
 ```
 
 URL params and their defaults:
 
-| Param         | Default  | Notes                                                              |
-| ------------- | -------- | ------------------------------------------------------------------ |
-| `activeTab`   | `search` | `search` or `global`; normalised on mount                          |
-| `searchQuery` | (none)   | Absence = empty search; all other search params stripped if absent |
-| `mode`        | `hybrid` | `keyword` or `hybrid`; invalid values fall back to `hybrid`        |
-| `page`        | `1`      | Omitted when page is 1; clamped to valid range after results load  |
-| `strategies`  | (none)   | Comma-separated; validated against actual result values            |
-| `categories`  | (none)   | Comma-separated; validated against actual result values            |
-| `sources`     | (none)   | Comma-separated; validated against actual result values            |
+| Param         | Default  | Notes                                                                       |
+| ------------- | -------- | --------------------------------------------------------------------------- |
+| `searchQuery` | (none)   | Absence = empty search; all filter/page params stripped if absent           |
+| `mode`        | `hybrid` | `keyword` or `hybrid`; invalid values corrected to `hybrid` on mount        |
+| `page`        | `1`      | Omitted from URL when page is 1; clamped to valid range after results load  |
+| `strategies`  | (none)   | Comma-separated; each value validated against current result set after load |
+| `categories`  | (none)   | Comma-separated; validated against current result set after load            |
+| `sources`     | (none)   | Comma-separated; validated against current result set after load            |
 
-Three validation effects run after results load: page clamp, filter value validation (drops params not present in current results), and orphan param cleanup on mount.
+**Three cleanup/validation effects:**
+
+1. **Mount (runs once, atomic)** — corrects an invalid `mode` value to `hybrid` AND strips stale `page`/`strategies`/`categories`/`sources` params when no `searchQuery` is present. Both corrections are applied in a single `setSearchParams` call to prevent race conditions.
+
+2. **Page clamp** — after results load, if the current `page` exceeds `totalPages`, resets `page` to 1 (by omitting the param).
+
+3. **Filter validation** — after results load, drops any `strategies`, `categories`, or `sources` values that are not present in the current result set. Uses functional `setSearchParams` to always read the latest params, avoiding stale-closure drops.
+
+**Query change behaviour:**
+
+- When the query value changes, `page` and all filters are reset (derived from the previous result set, now stale).
+- When the query is cleared, all search params except `mode` are removed.
+
+**Other details:**
+
+- Fetch debounced 250ms; requires minimum 2 non-whitespace chars (`shouldSearch`)
+- Stale-time: 10 min (keyword) / 5 min (hybrid); `gcTime`: 30 min
+- `placeholderData: keepPreviousData` prevents flicker between queries
+- Background-fetch spinner shown when `isFetching && !isLoading`
+- Stale-data refresh button shown when `isStale && !isFetching`
+- Prefetches hybrid results on hover over the mode toggle when in keyword mode
+- Page size is 5 items per page (hardcoded `ITEMS_PER_PAGE`, not a URL param)
+
+---
 
 ## Performance Optimisation
 
@@ -1203,4 +1226,4 @@ For issues or questions:
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 12 May 2026
+**Last Updated:** 20 May 2026
