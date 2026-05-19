@@ -1,3 +1,11 @@
+/**
+ * @module scoring.service
+ * @description OpenAI-based services for scoring, metadata extraction, and circular economy analysis.
+ * Provides LLM-powered functions for structured metadata extraction, reasoning generation,
+ * gap analysis calculations, and similar case text cleaning. Uses gpt-4o-mini for all operations.
+ * Supports dependency injection of OpenAI client for testing.
+ */
+
 import OpenAI from 'openai';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
@@ -6,6 +14,12 @@ let openaiClient = new OpenAI({
   apiKey: BACKEND_CONFIG.openai.apiKey,
 });
 
+/**
+ * Set the OpenAI client instance for this service module.
+ * Used by tests to inject mock or test OpenAI clients.
+ *
+ * @param {import('openai').OpenAI} client - OpenAI client instance.
+ */
 export function setOpenAIClient(client) {
   openaiClient = client;
 }
@@ -19,11 +33,27 @@ const IMPACT_ARTIFACT_PATTERNS = [
 ];
 
 /**
- * Extract structured metadata (industry, scale, strategy) from problem/solution
+ * Extract structured metadata from circular economy business problem and solution.
+ * Calls gpt-4o-mini to analyze and classify the business idea across multiple dimensions.
  *
- * @param {string} businessProblem - The environmental/circular economy problem addressed
- * @param {string} businessSolution - How the business solves the problem
- * @returns {Promise<Object>} Extracted metadata {industry, scale, strategy, circular_metrics}
+ * @param {string} businessProblem - Description of the environmental/circular economy problem addressed.
+ * @param {string} businessSolution - Description of how the business solves the identified problem.
+ * @returns {Promise<Object>} Extracted metadata.
+ * @returns {string} returns.industry - Business industry category (packaging, energy, waste_management, etc.).
+ * @returns {string} returns.scale - Solution maturity level (prototype, pilot, regional, commercial, global).
+ * @returns {string} returns.r_strategy - Primary circular economy R-strategy (Refuse, Reduce, Reuse, Repair, etc.).
+ * @returns {string} returns.primary_material - Main material or waste stream being addressed.
+ * @returns {string} returns.geographic_focus - Primary target region or market.
+ * @returns {string} returns.short_description - One-sentence summary of the solution.
+ * @throws {Error} If API call fails (error is logged, fallback metadata returned).
+ *
+ * @example
+ * const meta = await extractMetadata(
+ *   'Textile waste is a major environmental problem',
+ *   'We create biodegradable fabrics from agricultural waste'
+ * );
+ * logger.info({meta_industry: meta.industry}); // 'textiles'
+ * logger.info({meta_r_strategy: meta.r_strategy}); // 'Recycle'
  */
 export async function extractMetadata(businessProblem, businessSolution) {
   const startTime = Date.now();
@@ -88,11 +118,29 @@ Be concise and precise. If uncertain, use "other" or infer from context.`;
 }
 
 /**
- * Calculate gap analysis comparing user scores to benchmarks from similar cases
+ * Calculate gap analysis comparing user scores against benchmarks from similar cases.
+ * Builds percentile distributions (p25, p50, p75) for each factor and classifies
+ * user performance as below_average, average, or above_average.
  *
- * @param {Object} userScores - User's calculated scores {overall_score, sub_scores}
- * @param {Array} similarCases - Top matching cases from database
- * @returns {Object} Gap analysis with benchmarks and recommendations
+ * @param {Object} userScores - User's calculated scores.
+ * @param {number} userScores.overall_score - Aggregated overall score.
+ * @param {Object} userScores.sub_scores - Per-factor scores (keys are factor names).
+ * @param {number} userScores.sub_scores[key] - Score for a specific factor.
+ * @param {Object[]} [similarCases=[]] - Top matching cases from database for comparison.
+ * @param {Object} similarCases[].metadata - Case metadata object.
+ * @param {Object} similarCases[].metadata.scores - Scores object with per-factor values.
+ * @returns {Object} Gap analysis results.
+ * @returns {boolean} returns.has_benchmarks - Whether benchmarks were successfully calculated.
+ * @returns {Object} returns.comparisons - Per-factor comparison data (if has_benchmarks=true).
+ * @returns {string[]} returns.opportunities - List of factors where user scores below average.
+ * @returns {string[]} returns.strengths - List of factors where user scores above average.
+ *
+ * @example
+ * const gaps = calculateGapAnalysis(
+ *   { overall_score: 65, sub_scores: { innovation: 70, sustainability: 55 } },
+ *   [{metadata: {scores: {innovation: 75, sustainability: 60}}}]
+ * );
+ * logger.info({gaps_opportunities: gaps.opportunities}); // ['sustainability'] if below benchmark
  */
 export function calculateGapAnalysis(userScores, similarCases = []) {
   if (!similarCases.length) return { has_benchmarks: false };
@@ -156,6 +204,8 @@ export function calculateGapAnalysis(userScores, similarCases = []) {
  * @param {string} businessSolution - How the business solves the problem
  * @param {Object} scores - Calculated scores object with overall_score and sub_scores
  * @param {Array} similarDocs - Top matching documents from database with similarity scores
+ * @param {Object|null} [context=null] - Optional business context metadata for the prompt
+ * @param {Function|null} [emitter=null] - SSE progress callback `(stage, message, data?)` for streaming route
  * @returns {Promise<Object>} Complete audit analysis with evidence-based recommendations
  */
 export async function generateReasoning(
@@ -353,6 +403,18 @@ function buildGapContext(gapAnalysis) {
   return `GAP ANALYSIS SUMMARY:\n${parts.join('\n')}\n\n`;
 }
 
+/**
+ * Assembles the LLM user prompt with business inputs, parameter scores, similar cases, and gap context.
+ *
+ * @param {string} businessProblem - User's problem statement.
+ * @param {string} businessSolution - User's proposed solution.
+ * @param {Object} scores - Normalised parameter scores keyed by parameter id.
+ * @param {Array<Object>} similarDocs - Top vector-search matches from the knowledge base.
+ * @param {string} contextText - Serialized business-context fields.
+ * @param {string} [gapContext=''] - Optional gap-analysis summary block.
+ * @param {Object|null} [context=null] - Raw business context object for structured hints.
+ * @returns {string} Full user message sent to the audit model.
+ */
 function buildUserPrompt(
   businessProblem,
   businessSolution,
