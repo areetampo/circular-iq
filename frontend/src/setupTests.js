@@ -1,4 +1,6 @@
 /**
+ * @module setupTests
+ * @description Vitest/Jest global setup: matchers, mocks, and test environment defaults.
  * @jest-environment jsdom
  *
  * setupTests.js
