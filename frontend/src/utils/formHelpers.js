@@ -1,5 +1,6 @@
 /**
- * Form utility functions to reduce code duplication
+ * @module formHelpers
+ * @description Input-quality heuristics for the landing-page evaluation form (spam / gibberish detection).
  */
 
 /**
