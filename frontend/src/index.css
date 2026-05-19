@@ -32,10 +32,6 @@
 
 @theme {
   /* ============================================= */
-  /*  BASE COLOR VALUES                           */
-  /* ============================================= */
-
-  /* ============================================= */
   /*  FONTS                                       */
   /* ============================================= */
   --font-sans: 'Fredoka';
@@ -54,43 +50,6 @@
   --font-fredoka: 'Fredoka';
   --font-sniglet: 'Sniglet';
   --font-jua: 'Jua';
-
-  /* ============================================= */
-  /*  CUSTOM COLOR SCALES (referencing base colors) */
-  /* ============================================= */
-  /* Primary (Emerald/Green for circular economy theme) */
-  --color-primary-50: #f0f8f5;
-  --color-primary-100: #ddf0eb;
-  --color-primary-200: #c1e6ca;
-  --color-primary-300: #a5ddb0;
-  --color-primary-400: #6bc86f;
-  --color-primary-500: #34a83a;
-  --color-primary-600: #2d9432;
-  --color-primary-700: #26802a;
-  --color-primary-800: #1f6c23;
-  --color-primary-900: #1a581d;
-
-  /* Accent (Orange) */
-  --color-accent-50: #fff9f0;
-  --color-accent-100: #ffe0b2;
-  --color-accent-200: #ffc880;
-  --color-accent-300: #ffb74d;
-  --color-accent-400: #ffa726;
-  --color-accent-500: #ff9800;
-  --color-accent-600: #f57c00;
-  --color-accent-700: #e65100;
-
-  /* Secondary (Blue) */
-  --color-secondary-50: #eff6ff;
-  --color-secondary-100: #dbeafe;
-  --color-secondary-200: #bfdbfe;
-  --color-secondary-300: #93c5fd;
-  --color-secondary-400: #60a5fa;
-  --color-secondary-500: #3b82f6;
-  --color-secondary-600: #2563eb;
-  --color-secondary-700: #1d4ed8;
-  --color-secondary-800: #1e40af;
-  --color-secondary-900: #1e3a8a;
 
   /* ============================================= */
   /*  ANIMATIONS                                  */
@@ -155,58 +114,6 @@
 /* ============================================= */
 
 :root {
-  /* ============================================= */
-  /*  BASE COLOR VALUES                           */
-  /* ============================================= */
-
-  /* Primary Colors */
-  --base-primary-50: #f0f8f5;
-  --base-primary-100: #ddf0eb;
-  --base-primary-200: #c1e6ca;
-  --base-primary-300: #a5ddb0;
-  --base-primary-400: #6bc86f;
-  --base-primary-500: #34a83a;
-  --base-primary-600: #2d9432;
-  --base-primary-700: #26802a;
-  --base-primary-800: #1f6c23;
-  --base-primary-900: #1a581d;
-
-  /* Accent Colors */
-  --base-accent-50: #fff9f0;
-  --base-accent-100: #ffe0b2;
-  --base-accent-200: #ffc880;
-  --base-accent-300: #ffb74d;
-  --base-accent-400: #ffa726;
-  --base-accent-500: #ff9800;
-  --base-accent-600: #f57c00;
-  --base-accent-700: #e65100;
-
-  /* Secondary Colors */
-  --base-secondary-50: #eff6ff;
-  --base-secondary-100: #dbeafe;
-  --base-secondary-200: #bfdbfe;
-  --base-secondary-300: #93c5fd;
-  --base-secondary-400: #60a5fa;
-  --base-secondary-500: #3b82f6;
-  --base-secondary-600: #2563eb;
-  --base-secondary-700: #1d4ed8;
-  --base-secondary-800: #1e40af;
-  --base-secondary-900: #1e3a8a;
-
-  /* Neutral/Base Colors */
-  --base-white: #ffffff;
-  --base-black: #000000;
-  --base-gray-50: #f9f9f9;
-  --base-gray-100: #f0f0f0;
-  --base-gray-200: #e0e0e0;
-  --base-gray-300: #d0d0d0;
-  --base-gray-400: #b0b0b0;
-  --base-gray-500: #999999;
-  --base-gray-600: #666666;
-  --base-gray-700: #333333;
-  --base-gray-800: #1a1a1a;
-  --base-gray-900: #0a0a0a;
-
   /* ============================================= */
   /*  THEME VARIABLES                             */
   /* ============================================= */
@@ -486,26 +393,19 @@
   --color-accent-hover: var(--theme-accent-hover);
 
   --color-success: var(--theme-success);
-  --color-success-b: #64a678;
   --color-success-hover: var(--theme-success-hover);
   --color-success-soft-ui: var(--theme-success-soft-ui);
   --color-warning: var(--theme-warning);
-  --color-warning-b: #efdac1;
   --color-warning-soft-ui: var(--theme-warning-soft-ui);
   --color-warning-soft-mid: rgba(176, 125, 58, 0.2);
   --color-error: var(--theme-error);
-  --color-error-b: #ebc9c9;
   --color-error-soft-ui: var(--theme-error-soft-ui);
   --color-danger: var(--theme-danger);
-  --color-danger-b: #c75353;
   --color-danger-soft-ui: var(--theme-danger-soft-ui);
   --color-info: #455771;
-  --color-info-b: #b3c8e452;
   --color-info-soft: rgba(69, 87, 113, 0.06);
   --color-info-soft-ui: oklch(from var(--color-info) l c h / 0.08);
   --color-muted: #9a8f82;
-  --color-subtle: #9a8f82;
-  --color-subtle-fg: #5a4f42;
   --color-surface: #f5f0e8;
   --color-surface-raised: rgba(240, 234, 224, 0.85);
   --color-bg-field: rgba(245, 240, 232, 0.5);
@@ -530,14 +430,6 @@
   --chart-5: #5a4f42;
   --chart-6: #9a8f82;
 
-  /* Additional Hardcoded Color Variables */
-  /* Bright/Accent Colors */
-  --color-purple: #9c27b0;
-  --color-pink: #e91e63;
-  --color-cyan: #00bcd4;
-  --color-deep-orange: #ff5722;
-  --color-light-green: #8bc34a;
-
   /* Score/Status Colors */
   /* Original strategy alignment colors (preserved) */
   --color-score-high: #6b8f71;
@@ -556,12 +448,7 @@
   /* Background Colors */
 
   /* Text Colors */
-  --color-text-dark-green: var(--theme-icon-success);
   --color-text-label: var(--theme-icon-success);
-  --color-text-black-77: #00000077;
-
-  /* Shadow/Overlay Colors */
-  --color-shadow-dark: rgba(0, 0, 0, 0.08);
 
   /* Additional Material Colors for Dashboard */
   --color-material-plum: #7a5c7a;
@@ -574,10 +461,6 @@
   --color-score-high-opacity: rgba(74, 124, 89, 0.75);
   --color-score-mid-opacity: rgba(176, 125, 58, 0.75);
   --color-score-low-opacity: rgba(139, 58, 58, 0.75);
-
-  /* ============================================= */
-  /*  ADDITIONAL HARDCODED COLOR VARIABLES          */
-  /* ============================================= */
 
   /* Chip Variant Colors */
   --color-chip-strategy-bg: #c3e6c3;
@@ -634,11 +517,6 @@
 
   /* General UI Colors */
   --color-ui-brown: #8b6f47; /* Used by LoaderIcon.jsx via getComputedStyle */
-  --color-ui-brown-ssr: #8b6f47;
-  --color-bg-success-light: #e8f5e9;
-  --color-bg-info-light: #e3f2fd;
-  --color-bg-warning-light: #fff3e0;
-  --color-bg-danger-light: #ffebee;
 
   /* Dark Mode Colors */
   --color-dark-bg: #0a0a0a;
@@ -662,8 +540,6 @@
   --color-info-alpha-20: rgba(69, 87, 113, 0.2);
   --color-info-alpha-50: rgba(69, 87, 113, 0.5);
   --color-success-alpha-50: rgba(74, 124, 89, 0.5);
-
-  /* New variables from ui-105 fixes */
   --color-bg-card-faint: rgba(245, 240, 232, 0.45);
   --color-bg-card-selected: rgba(245, 240, 232, 0.55);
   --color-success-soft-15: rgba(74, 124, 89, 0.15); /* for BenchmarkTable */
@@ -695,10 +571,13 @@
   --color-warning-soft-10: rgba(176, 125, 58, 0.1);
 
   /* Pre-computed rgba variables moved from @theme */
-  --color-accent-100-10: rgba(255, 224, 178, 0.1);
   --color-error-border-strong: rgba(139, 58, 58, 0.3);
   --color-bg-alpha-50: rgba(245, 240, 232, 0.5);
   --color-bg-alpha-60: rgba(245, 240, 232, 0.6);
+
+  /* Uptime-Monitor clock-aligned */
+  --color-clock-aligned-block: rgba(168, 85, 247, 1);
+  --color-clock-aligned-text: rgba(60, 3, 102, 1);
 }
 
 /* ============================================= */
@@ -1008,7 +887,7 @@
   [data-slot='backdrop'].drawer__backdrop,
   .drawer__backdrop--opaque,
   .drawer__backdrop--blur {
-    @apply bg-transparent! backdrop-blur-[3px]!;
+    @apply bg-transparent! backdrop-blur-[1px]!;
   }
 
   .drawer__dialog,
@@ -1680,7 +1559,7 @@
     @apply rounded-md border! border-(--color-border-strong)! bg-(--color-input-bg)! text-(--color-text-primary)! transition-[border-color]! duration-150!;
   }
   input:focus {
-    @apply border-(--accent)! shadow-[0_0_0_3px_var(--color-accent-light)]! outline-none!;
+    @apply border-accent! shadow-[0_0_0_3px_var(--color-accent-light)]! outline-none!;
   }
 
   /* <Input />  wrapped in div with className="number-input-field" -> used in MyAssessmentsPage and SolutionsSearch */
@@ -1915,15 +1794,15 @@
   /* ============================================= */
   .slider__track,
   [data-slot='track'].slider__track {
-    @apply bg-(--accent-soft);
+    @apply bg-accent-soft;
   }
   .slider__filler,
   [data-slot='filler'].slider__filler {
-    @apply bg-(--accent);
+    @apply bg-accent;
   }
   .slider__thumb,
   [data-slot='thumb'].slider__thumb {
-    @apply border-(--accent) bg-(--accent);
+    @apply border-accent bg-accent;
   }
 
   /* ============================================= */
@@ -2027,34 +1906,58 @@
   /* ============================================= */
   /*  SWITCH OVERRIDES                            */
   /* ============================================= */
-  .switch__control {
-    @apply border! border-(--color-switch-border)! bg-(--color-switch-track)!;
+
+  /* Track colors – mirrors the checkbox color tokens */
+  .switch {
+    --switch-control-bg: var(--color-checkbox-bg);
+    --switch-control-bg-hover: var(--color-checkbox-hover-bg);
+    --switch-control-bg-checked: var(--color-checkbox);
+    --switch-control-bg-checked-hover: var(--color-checkbox-hover);
   }
 
-  .switch__control[data-selected='true'] {
-    @apply border! border-(--color-switch-border-on)! bg-(--color-switch-track-on)!;
+  /* Focus ring */
+  .switch:focus-visible .switch__control,
+  .switch[data-focus-visible='true'] .switch__control {
+    @apply outline-2 outline-offset-2 outline-(--color-checkbox);
   }
 
+  /* Thumb: warm cream instead of stark white */
   .switch__thumb {
-    @apply border border-(--color-switch-border-thumb) bg-white!;
+    background-color: #f0e8da !important;
+    border: 1px solid rgba(139, 111, 71, 0.25) !important;
   }
 
-  .switch__control:hover {
-    @apply bg-(--color-switch-track-hover)!;
+  /* Icon: warm muted brown off, checkbox brown on */
+  .switch__icon {
+    color: rgba(139, 111, 71, 0.4);
+  }
+  .switch[data-selected='true'] .switch__icon,
+  .switch[aria-checked='true'] .switch__icon {
+    color: var(--color-checkbox);
   }
 
-  .switch__control[data-selected='true']:hover {
-    @apply bg-(--color-switch-track-on-hover)!;
+  /* Group hover */
+  .group\/switch:hover .switch__control {
+    background-color: var(--switch-control-bg-hover);
+  }
+  .group\/switch:hover .switch__control[data-selected='true'] {
+    background-color: var(--switch-control-bg-checked-hover);
   }
 
-  .switch[aria-disabled='true'] .switch__control,
-  .switch:disabled .switch__control {
-    @apply border-(--color-switch-border-disabled)! bg-(--color-switch-track-disabled)!;
+  /* Disabled: cursor + readable muted state, not invisible */
+  .switch[data-disabled='true'],
+  .switch[aria-disabled='true'] {
+    @apply cursor-not-allowed opacity-55;
+  }
+  .switch[data-disabled='true'] .switch__thumb,
+  .switch[aria-disabled='true'] .switch__thumb {
+    background-color: #ddd4c6 !important;
+    border-color: rgba(139, 111, 71, 0.15) !important;
   }
 
-  .switch[aria-disabled='true'] .switch__thumb,
-  .switch:disabled .switch__thumb {
-    @apply border-none! bg-(--color-switch-thumb-disabled)!;
+  /* Switch label under switch content */
+  .switch .switch__content {
+    @apply pt-[1.5px];
   }
 
   /* ============================================= */
