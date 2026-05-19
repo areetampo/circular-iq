@@ -1,3 +1,8 @@
+/**
+ * @module IndustryFilterChip
+ * @description Toggle chip for filtering assessments by industry on My Assessments.
+ */
+
 import PropTypes from 'prop-types';
 import React from 'react';
 

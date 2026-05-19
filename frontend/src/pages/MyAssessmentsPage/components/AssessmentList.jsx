@@ -1,3 +1,9 @@
+/**
+ * @module AssessmentList
+ * @description Saved-assessment list UI for My Assessments: card rows with view, export,
+ * re-evaluate, rename, delete, and compare-selection controls. Includes loading skeletons.
+ */
+
 import { Checkbox, Label, Skeleton } from '@heroui/react';
 import { Download, Eye, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -12,6 +18,20 @@ import { cn } from '@/utils/cn';
 const scoreColor = (s) =>
   s >= 75 ? '--color-success' : s >= 50 ? '--color-warning' : '--color-error';
 
+/**
+ * Single assessment row: metadata, score chip, actions, and compare/public toggles.
+ *
+ * @param {Object} props
+ * @param {Object} props.assessment - Assessment record from the list API.
+ * @param {boolean} props.isSelected - Whether this row is selected for comparison.
+ * @param {Function} props.onToggleSelect - `(id: string) => void`
+ * @param {Function} props.onView - `(id: string) => void`
+ * @param {Function} props.onRename - `(assessment: Object) => void`
+ * @param {Function} props.onDelete - `(id: string) => void`
+ * @param {Function} props.onPrefetch - `(id: string) => void`
+ * @param {Function} props.onTogglePublic - `(id: string) => Promise<void>`
+ * @returns {JSX.Element}
+ */
 const AssessmentListItem = React.memo(function AssessmentListItem({
   assessment,
   isSelected,
@@ -388,6 +408,11 @@ const AssessmentCardSkeleton = () => (
   </div>
 );
 
+/**
+ * Full-page loading skeleton for the assessments list (header + three card placeholders).
+ *
+ * @returns {import('react').ReactElement}
+ */
 export const AssessmentListSkeleton = () => (
   <div className="mt-8 space-y-2">
     <div className="mb-4 flex flex-col items-center justify-center gap-3">
@@ -406,16 +431,23 @@ export const AssessmentListSkeleton = () => (
   </div>
 );
 
-// Assessment List Component (wrapper for list items)
+/**
+ * Maps `assessments` to {@link AssessmentListItem} rows; spreads list-level handlers via `props`.
+ *
+ * @param {Object} props
+ * @param {Array<Object>} props.assessments
+ * @param {Set<string>} props.selectedIds - Ids selected for comparison.
+ * @returns {JSX.Element}
+ */
 export const AssessmentList = ({ assessments, selectedIds, ...props }) => (
   <div className="space-y-0">
     {assessments.map((assessment) => (
       <AssessmentListItem
+        {...props}
         key={assessment.id}
         assessment={assessment}
         isSelected={selectedIds.has(assessment.id)}
         selectedIds={selectedIds}
-        {...props}
       />
     ))}
   </div>
@@ -423,4 +455,11 @@ export const AssessmentList = ({ assessments, selectedIds, ...props }) => (
 
 AssessmentList.propTypes = {
   assessments: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedIds: PropTypes.instanceOf(Set).isRequired,
+  onToggleSelect: PropTypes.func.isRequired,
+  onView: PropTypes.func.isRequired,
+  onRename: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onPrefetch: PropTypes.func.isRequired,
+  onTogglePublic: PropTypes.func.isRequired,
 };

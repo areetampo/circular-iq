@@ -1,3 +1,8 @@
+/**
+ * @module StatsGrid
+ * @description Summary statistics grid (counts, averages) above the assessments list.
+ */
+
 import { Popover } from '@heroui/react';
 import { Minus } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -36,6 +41,25 @@ const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
   </Tilt3D>
 );
 
+StatCard.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  subtitle: PropTypes.string.isRequired,
+  color: PropTypes.string,
+  fontSize: PropTypes.oneOf(['28px', '24px', '20px', '18px']),
+};
+
+/**
+ * Summary statistics grid (counts, averages) above the assessments list.
+ *
+ * @param {Object} props
+ * @param {number|string} props.averageScore
+ * @param {number} props.totalAssessments
+ * @param {number} props.highestScore
+ * @param {number} props.lowestScore
+ * @param {Array<Object>|Array<string>} props.topIndustries
+ * @returns {import('react').ReactElement}
+ */
 export default function StatsGrid({
   averageScore,
   totalAssessments,

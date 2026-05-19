@@ -1,3 +1,8 @@
+/**
+ * @module FilterBar
+ * @description Search, sort, and industry filter controls for the saved assessments list.
+ */
+
 import { ListBox, SearchField, Select, Tooltip } from '@heroui/react';
 import { Scale, Share2, TrendingUpDown } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -7,6 +12,23 @@ import { Button } from '@/components/common';
 
 import IndustryFilterChip from './IndustryFilterChip';
 
+/**
+ * Search, sort, and industry filter controls for the saved assessments list.
+ *
+ * @param {Object} props
+ * @param {string} props.sortBy
+ * @param {Function} props.setSortBy
+ * @param {Function} props.setPage
+ * @param {string} props.searchTerm
+ * @param {Function} props.setSearchTerm
+ * @param {Array<string>} props.industryOptions
+ * @param {Set<string>|Array<string>} props.selectedIndustries
+ * @param {Function} props.handleToggleIndustry
+ * @param {Function} props.formatIndustryLabel
+ * @param {Set<string>} props.selectedIds
+ * @param {string} props.compareUrl
+ * @returns {import('react').ReactElement}
+ */
 export default function FilterBar({
   sortBy,
   setSortBy,
@@ -100,7 +122,7 @@ export default function FilterBar({
             Compare Others
           </Button>
           <Tooltip delay={0}>
-            <Tooltip.Trigger>
+            <Tooltip.Trigger tabIndex={0}>
               <Button
                 variant="bordered"
                 icon={TrendingUpDown}

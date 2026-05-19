@@ -1,3 +1,8 @@
+/**
+ * @module MyAssessmentsPage
+ * @description Authenticated saved-assessments hub: filters, stats, list, and compare selection.
+ */
+
 import { Input, Label, ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -30,6 +35,10 @@ import { parseSortBy } from '@/utils/sortUtils';
 
 import { AssessmentList, AssessmentListSkeleton, FilterBar, StatsGrid } from './components';
 
+/**
+ * Loads user assessments with pagination, filtering, and comparison mode.
+ * @returns {import('react').ReactElement}
+ */
 export default function MyAssessmentsPage() {
   const { isAuthenticated, authLoading } = useAuth();
   const location = useLocation();
@@ -60,31 +69,31 @@ export default function MyAssessmentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    logger.info('INIT URL READING DEBUG: Reading URL parameters');
+    // logger.info('INIT URL READING DEBUG: Reading URL parameters');
 
     const industries = searchParams.get('industry');
-    logger.info('INIT URL READING DEBUG: industries from URL:', industries);
+    // logger.info('INIT URL READING DEBUG: industries from URL:', industries);
     if (industries) setSelectedIndustries(industries.split(',').filter(Boolean));
 
     const p = Number(searchParams.get('page') || 1);
-    logger.info('INIT URL READING DEBUG: page from URL:', p);
+    // logger.info('INIT URL READING DEBUG: page from URL:', p);
     if (!Number.isNaN(p) && p > 0) setPage(p);
 
     const ps = Number(searchParams.get('pageSize') || 10);
-    logger.info('INIT URL READING DEBUG: pageSize from URL:', ps);
+    // logger.info('INIT URL READING DEBUG: pageSize from URL:', ps);
     if (!Number.isNaN(ps) && ps > 0 && pageSizeOptions.includes(ps)) setPageSize(ps);
     else if (!Number.isNaN(ps) && ps > 0) setPageSize(10); // Default to 10 for invalid sizes
 
     const s = searchParams.get('search');
-    logger.info('INIT URL READING DEBUG: search from URL:', s);
+    // logger.info('INIT URL READING DEBUG: search from URL:', s);
     if (s) setSearchTerm(s);
 
     const sb = searchParams.get('sortBy');
-    logger.info('INIT URL READING DEBUG: sortBy from URL:', sb);
+    // logger.info('INIT URL READING DEBUG: sortBy from URL:', sb);
     if (sb) setSortBy(sb);
 
     // Mark as initialized after reading URL parameters
-    logger.info('INIT URL READING DEBUG: Setting isInitialized to true');
+    // logger.info('INIT URL READING DEBUG: Setting isInitialized to true');
 
     setIsInitialized(true);
 
@@ -102,17 +111,17 @@ export default function MyAssessmentsPage() {
   useEffect(() => {
     // Don't sync URL parameters during initialization to prevent overriding initial values
     if (!isInitialized) {
-      logger.info('URL SYNC DEBUG: Skipping - not initialized');
+      // logger.info('URL SYNC DEBUG: Skipping - not initialized');
       return;
     }
 
-    logger.info('URL SYNC DEBUG: Syncing URL params', {
-      selectedIndustries,
-      page,
-      pageSize,
-      searchTerm,
-      sortBy,
-    });
+    // logger.info('URL SYNC DEBUG: Syncing URL params', {
+    //   selectedIndustries,
+    //   page,
+    //   pageSize,
+    //   searchTerm,
+    //   sortBy,
+    // });
 
     const params = new URLSearchParams(searchParams);
 
@@ -142,7 +151,7 @@ export default function MyAssessmentsPage() {
     if (sortBy && sortBy !== 'created_at_desc') params.set('sortBy', sortBy);
     else params.delete('sortBy');
 
-    logger.info('URL SYNC DEBUG: Setting URL params:', params.toString());
+    // logger.info('URL SYNC DEBUG: Setting URL params:', params.toString());
     setSearchParams(params, { replace: true });
   }, [selectedIndustries, page, pageSize, searchTerm, sortBy, isInitialized]);
 
@@ -235,17 +244,17 @@ export default function MyAssessmentsPage() {
     : [];
 
   useEffect(() => {
-    logger.info('PAGE RESET DEBUG:', {
-      isInitialized,
-      page,
-      debouncedSearchTerm,
-      selectedIndustryKey,
-      debouncedSortBy,
-      previousFilterValues,
-    });
+    // logger.info('PAGE RESET DEBUG:', {
+    //   isInitialized,
+    //   page,
+    //   debouncedSearchTerm,
+    //   selectedIndustryKey,
+    //   debouncedSortBy,
+    //   previousFilterValues,
+    // });
 
     if (!isInitialized) {
-      logger.info('PAGE RESET DEBUG: Skipping - not initialized');
+      // logger.info('PAGE RESET DEBUG: Skipping - not initialized');
       return;
     }
 
@@ -255,10 +264,10 @@ export default function MyAssessmentsPage() {
       previousFilterValues.selectedIndustryKey !== selectedIndustryKey ||
       previousFilterValues.debouncedSortBy !== debouncedSortBy;
 
-    logger.info('PAGE RESET DEBUG: Filters changed?', filtersChanged);
+    // logger.info('PAGE RESET DEBUG: Filters changed?', filtersChanged);
 
     if (filtersChanged && page > 1) {
-      logger.info('PAGE RESET DEBUG: Resetting page from', page, 'to 1');
+      // logger.info('PAGE RESET DEBUG: Resetting page from', page, 'to 1');
       setPage(1);
       // Update previous values after reset
       setPreviousFilterValues({
@@ -267,7 +276,7 @@ export default function MyAssessmentsPage() {
         debouncedSortBy,
       });
     } else {
-      logger.info('PAGE RESET DEBUG: Not resetting - filters unchanged or page is', page);
+      // logger.info('PAGE RESET DEBUG: Not resetting - filters unchanged or page is', page);
       // Still update previous values to track current state
       setPreviousFilterValues({
         debouncedSearchTerm,
@@ -1134,3 +1143,5 @@ export default function MyAssessmentsPage() {
     </div>
   );
 }
+
+MyAssessmentsPage.propTypes = {};
