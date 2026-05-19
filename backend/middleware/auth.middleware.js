@@ -1,22 +1,26 @@
 /**
- * Authentication Middleware
- *
- * Verifies Supabase user token from Authorization header
- * Attaches user to req.user for downstream handlers
+ * @module auth.middleware
+ * @description Authentication middleware for Express routes.
+ * Verifies Supabase user tokens from Authorization headers and attaches
+ * authenticated user information to request objects for downstream handlers.
+ * Includes test mode bypass for development/testing scenarios.
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { logger } from '#utils/logger.js';
 
 /**
- * requireAuth middleware
- * Verifies bearer token from Authorization header using Supabase
+ * Middleware: Require valid Supabase authentication.
+ * Verifies bearer token from Authorization header and attaches user to req.user.
+ * In test mode, automatically attaches a mock user without token verification.
  *
- * @param {Object} supabase - Supabase client instance
- * @returns {Function} Express middleware
+ * @param {Object} serviceSupabase - Supabase client instance for token verification.
+ * @returns {Function} Express middleware function.
  *
  * @example
- * app.use(requireAuth(supabaseClient));
+ * import { requireAuth } from '#middleware/auth.middleware.js';
+ * router.get('/profile', requireAuth(supabaseClient), (req, res) => {
+ *   logger.info({reqUserId: req.user.id}); // Authenticated user's ID
+ * });
  */
 export function requireAuth(serviceSupabase) {
   return async (req, res, next) => {
