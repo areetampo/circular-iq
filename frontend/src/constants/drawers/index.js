@@ -1,5 +1,8 @@
 /**
- * Drawer constants index - exports all drawer content constants
+ * @module drawers
+ * @description Central export point for drawer content constants.
+ * Re-exports all drawer-related content including evaluation criteria,
+ * business context, parameter guidance, and sample test cases.
  */
 
 // Separated constants files

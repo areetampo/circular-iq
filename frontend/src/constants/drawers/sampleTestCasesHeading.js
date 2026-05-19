@@ -1,7 +1,13 @@
 /**
- * Constants for Sample Test Cases Heading Info Drawer
+ * @module sampleTestCasesHeading
+ * @description Content for the sample test cases heading drawer.
+ * Explains what test cases are, their benefits, and how to use them.
  */
 
+/**
+ * Sample test cases heading content object.
+ * @type {Object}
+ */
 export const SAMPLE_TEST_CASES_HEADING_CONTENT = {
   heading: 'Sample Test Cases',
   description:

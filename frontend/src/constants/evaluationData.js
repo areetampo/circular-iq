@@ -1,11 +1,8 @@
 /**
- * Evaluation Data and Parameter Guidance
- *
- * Provides:
- * - Educational content for info modals
- * - Calibration guidance for parameter sliders
- * - Benchmark examples for each factor
- * - Score interpretation scales
+ * @module evaluationData
+ * @description Evaluation data and parameter guidance for circular economy assessment.
+ * Provides educational content, calibration guidance, benchmark examples,
+ * and score interpretation scales for all 8 evaluation factors.
  */
 
 /**
@@ -533,7 +530,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.42_0.132_145/_0.1)] bg-[oklch(0.96_0.028_145/_0.8)] text-[oklch(0.32_0.152_145)]',
     unselected:
-      'border-[oklch(0.70_0.062_145/_0.1)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.98_0.015_145/_0.15)]',
+      'border-[oklch(0.70_0.062_145/_0.1)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.98_0.015_145/_0.15)]',
   },
   // ≥80 — Emerald green (very good score)
   {
@@ -541,7 +538,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.48_0.118_145/_0.1)] bg-[oklch(0.95_0.032_145/_0.75)] text-[oklch(0.38_0.138_145)]',
     unselected:
-      'border-[oklch(0.72_0.058_145/_0.1)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.97_0.018_145/_0.14)]',
+      'border-[oklch(0.72_0.058_145/_0.1)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.97_0.018_145/_0.14)]',
   },
   // ≥70 — Sage green (good score)
   {
@@ -549,7 +546,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.54_0.104_145/_0.1)] bg-[oklch(0.94_0.036_145/_0.7)] text-[oklch(0.44_0.124_145)]',
     unselected:
-      'border-[oklch(0.74_0.054_145/_0.1)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.021_145/_0.13)]',
+      'border-[oklch(0.74_0.054_145/_0.1)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.021_145/_0.13)]',
   },
   // ≥60 — Light olive (moderate-high score)
   {
@@ -557,7 +554,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.60_0.090_120/_0.3)] bg-[oklch(0.94_0.034_120/_0.68)] text-[oklch(0.50_0.110_120)]',
     unselected:
-      'border-[oklch(0.76_0.050_120/_0.34)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.020_120/_0.12)]',
+      'border-[oklch(0.76_0.050_120/_0.34)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.020_120/_0.12)]',
   },
   // ≥50 — Warm moss (moderate score)
   {
@@ -565,7 +562,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.62_0.078_95/_0.3)] bg-[oklch(0.94_0.032_95/_0.65)] text-[oklch(0.52_0.098_95)]',
     unselected:
-      'border-[oklch(0.78_0.046_95/_0.32)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.019_95/_0.11)]',
+      'border-[oklch(0.78_0.046_95/_0.32)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.019_95/_0.11)]',
   },
   // ≥40 — Golden tan (moderate-low score)
   {
@@ -573,7 +570,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.64_0.066_68/_0.3)] bg-[oklch(0.94_0.030_68/_0.62)] text-[oklch(0.54_0.086_68)]',
     unselected:
-      'border-[oklch(0.80_0.042_68/_0.3)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.018_68/_0.1)]',
+      'border-[oklch(0.80_0.042_68/_0.3)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.018_68/_0.1)]',
   },
   // ≥30 — Warm amber (low score)
   {
@@ -581,7 +578,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.66_0.054_55/_0.3)] bg-[oklch(0.94_0.028_55/_0.6)] text-[oklch(0.56_0.074_55)]',
     unselected:
-      'border-[oklch(0.82_0.038_55/_0.28)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.017_55/_0.09)]',
+      'border-[oklch(0.82_0.038_55/_0.28)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.017_55/_0.09)]',
   },
   // ≥20 — Sandy orange (very low score)
   {
@@ -589,7 +586,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.68_0.042_35/_0.3)] bg-[oklch(0.94_0.026_35/_0.58)] text-[oklch(0.58_0.062_35)]',
     unselected:
-      'border-[oklch(0.84_0.034_35/_0.26)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.016_35/_0.08)]',
+      'border-[oklch(0.84_0.034_35/_0.26)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.016_35/_0.08)]',
   },
   // ≥10 — Terracotta (critical score)
   {
@@ -597,7 +594,7 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.70_0.030_20/_0.3)] bg-[oklch(0.94_0.024_20/_0.56)] text-[oklch(0.60_0.050_20)]',
     unselected:
-      'border-[oklch(0.86_0.030_20/_0.24)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.015_20/_0.07)]',
+      'border-[oklch(0.86_0.030_20/_0.24)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.015_20/_0.07)]',
   },
   // ≥0 — Deep red (worst score)
   {
@@ -605,6 +602,6 @@ export const TIER_CONFIG = [
     selected:
       'border-[oklch(0.72_0.018_10)] bg-[oklch(0.94_0.022_10/_0.54)] text-[oklch(0.62_0.038_10)]',
     unselected:
-      'border-[oklch(0.88_0.026_10/_0.22)] bg-transparent text-[var(--color-text-secondary)] hover:bg-[oklch(0.96_0.014_10/_0.06)]',
+      'border-[oklch(0.88_0.026_10/_0.22)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.014_10/_0.06)]',
   },
 ];

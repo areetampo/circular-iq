@@ -1,3 +1,14 @@
+/**
+ * @module evaluationCriteriaDrawer
+ * @description Content for the evaluation criteria drawer.
+ * Explains the three core value dimensions (Access, Embedded, Processing)
+ * with their factors and calculation steps.
+ */
+
+/**
+ * Evaluation criteria content object.
+ * @type {Object}
+ */
 export const EVALUATION_CRITERIA_CONTENT = {
   heading: 'Evaluation Criteria',
   subheading: 'Three core value dimensions with specific factors',

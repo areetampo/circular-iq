@@ -1,4 +1,6 @@
 /**
+ * @module frontendRoutes
+ * @description Constants — frontend Routes.
  * Frontend Routes Configuration
  *
  * Contains all frontend routes with their metadata, query parameters, and behavior patterns.

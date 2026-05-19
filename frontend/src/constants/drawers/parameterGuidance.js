@@ -1,5 +1,16 @@
+/**
+ * @module parameterGuidance
+ * @description Parameter guidance content for drawer info modals.
+ * Provides detailed guidance for each of the 8 evaluation parameters
+ * including icons, definitions, methodology, calibration, scale, and examples.
+ */
+
 import { Cog, DollarSign, Globe, Shield, TrendingUp, Users, Zap } from 'lucide-react';
 
+/**
+ * Parameter guidance object with detailed information for each evaluation factor.
+ * @type {Object}
+ */
 export const parameterGuidance = {
   public_participation: {
     icon: Users,

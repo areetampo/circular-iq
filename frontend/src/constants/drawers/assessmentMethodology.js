@@ -1,5 +1,16 @@
+/**
+ * @module assessmentMethodology
+ * @description Content for the assessment methodology drawer.
+ * Explains the evaluation framework including semantic analysis, AI reasoning,
+ * multi-dimensional scoring, and integrity validation with data source information.
+ */
+
 import { Bot, ChartColumn, CircleCheck, Search } from 'lucide-react';
 
+/**
+ * Assessment methodology content object.
+ * @type {Object}
+ */
 export const ASSESSMENT_METHODOLOGY_CONTENT = {
   title: 'Assessment Methodology',
   subtitle: 'How we evaluate circular economy initiatives',
@@ -9,44 +20,44 @@ export const ASSESSMENT_METHODOLOGY_CONTENT = {
       title: 'Semantic Analysis',
       description:
         'Uses OpenAI text-embedding-3-small (1536 dimensions) to find the most relevant projects matching your business model and problem space.',
-      accentBorder: 'border-[var(--accent)]',
+      accentBorder: '',
       gradientFrom: '',
       gradientTo: '',
       iconBg: '',
-      iconColor: 'text-[var(--color-secondary-500)]',
+      iconColor: 'text-gray-600',
     },
     {
       icon: Bot,
       title: 'AI Reasoning',
       description:
         'GPT-4o-mini analyzes your submission against 3 similar cases with strict evidence-based reasoning and integrity checking.',
-      accentBorder: 'border-[var(--accent)]',
+      accentBorder: '',
       gradientFrom: '',
       gradientTo: '',
       iconBg: '',
-      iconColor: 'text-[var(--color-primary-500)]',
+      iconColor: 'text-emerald-600',
     },
     {
       icon: ChartColumn,
       title: 'Multi-Dimensional Scoring',
       description:
         'Evaluates across 8 weighted parameters covering material innovation, circularity loops, market viability, and environmental impact.',
-      accentBorder: 'border-[var(--accent)]',
+      accentBorder: '',
       gradientFrom: '',
       gradientTo: '',
       iconBg: '',
-      iconColor: 'text-[var(--color-success)]',
+      iconColor: 'text-(--color-success)',
     },
     {
       icon: CircleCheck,
       title: 'Integrity Validation',
       description:
         'Cross-references your self-assessed scores against real-world benchmarks to identify overestimations and provide honest feedback.',
-      accentBorder: 'border-[var(--accent)]',
+      accentBorder: '',
       gradientFrom: '',
       gradientTo: '',
       iconBg: '',
-      iconColor: 'text-[var(--color-warning)]',
+      iconColor: 'text-(--color-warning)',
     },
   ],
   dataSources: {

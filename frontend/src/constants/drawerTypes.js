@@ -1,4 +1,6 @@
 /**
+ * @module drawerTypes
+ * @description Constants — drawer Types.
  * Drawer Type Constants
  * Defines all available drawer types in the application
  * Used for centralized dialog state management via DrawerManager

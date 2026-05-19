@@ -1,10 +1,20 @@
+/**
+ * @module groupStyleConfig
+ * @description Styling configuration for parameter groups in the UI.
+ * Provides icons, colors, and Tailwind classes for the three main parameter
+ * categories: Access Value, Embedded Value, and Processing Value.
+ */
+
 import { CircleDollarSign, Cpu, Users } from 'lucide-react';
 
 import { cn } from '@/utils/cn.js';
 
 import { parameterGroups } from './evaluationData.js';
 
-// Shared group style configuration for parameter-themed UI (icons + Tailwind classes)
+/**
+ * Shared group style configuration for parameter-themed UI (icons + Tailwind classes).
+ * @type {Object}
+ */
 export const GROUP_STYLE_CONFIG = {
   'Access Value': {
     Icon: Users,

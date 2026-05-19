@@ -1,4 +1,6 @@
 /**
+ * @module dialogTypes
+ * @description Constants — dialog Types.
  * Dialog Type Constants
  * Defines all available dialog types in the application
  * Used for centralized dialog state management via DialogManager
