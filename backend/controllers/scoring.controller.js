@@ -1,13 +1,27 @@
 /**
- * Scoring Controller
+ * @module scoring.controller
+ * @description Controller for the scoring/assessment pipeline.
  * Handles /api/score — validates input, runs scoring pipeline,
  * calls LLM audit, vector search, enrichment layers, and logs results.
+ *
+ * Key functions:
+ * - enforceAnonymousUsage: Enforces anonymous usage limits with IP-based tracking
+ * - performScoring: Main scoring pipeline with vector search and AI analysis
+ *
+ * Pipeline steps:
+ * 1. Input validation (junk detection, parameter validation)
+ * 2. Deterministic score calculation
+ * 3. Vector search for similar cases
+ * 4. R-strategy alignment calculation
+ * 5. Integrity gap identification
+ * 6. AI-powered audit generation
+ * 7. Gap analysis and benchmarking
+ * 8. Response compilation and logging
  */
 
 import crypto from 'crypto';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
-import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#config/embedding.js';
 import { documentsRepository } from '#database/index.js';
 import {
   calculateRStrategyAlignment,
@@ -27,6 +41,7 @@ import {
   extractIPAddress,
   getIdentifierFromRequest,
 } from '#utils/anonymousTracking.js';
+import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#utils/embedding.js';
 
 /**
  * Enforce anonymous usage limits
@@ -126,9 +141,10 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // Create a timeout promise that rejects after 3 seconds
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
+      const t = setTimeout(() => {
         reject(new Error('Database RPC call timeout'));
       }, 3000);
+      t.unref(); // Don't keep the process alive just for this timeout
     });
 
     // Race the database call against the timeout
@@ -177,7 +193,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
       };
     }
 
-    const { current_count, is_allowed } = result;
+    const { current_count, is_allowed, last_used_at } = result;
 
     logger.info({ currentCount: current_count, isAllowed: is_allowed }, 'Usage check result');
 
@@ -196,6 +212,7 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
           remaining: 0,
           currentCount: current_count,
           anonScoringLimit: ANON_SCORING_LIMIT,
+          lastUsedAt: last_used_at,
           scoringRateLimiter: false,
         },
       };
