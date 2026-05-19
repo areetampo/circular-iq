@@ -1,3 +1,8 @@
+/**
+ * @module BarChart
+ * @description Chart wrapper — Bar Chart.
+ */
+
 import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 import {
@@ -81,6 +86,7 @@ export default function BarChart({
   tickAngle = 0,
   tickAnchor = 'end',
   margin = {},
+  showGrid = true,
   ...props
 }) {
   if (isLoading) {
@@ -127,7 +133,7 @@ export default function BarChart({
   const useBarColors = barColors && barColors.length === data.length;
 
   return (
-    <ChartContainer config={config} className={className} style={{ height }} {...props}>
+    <ChartContainer {...props} config={config} className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart
           data={data}
@@ -140,7 +146,13 @@ export default function BarChart({
           }}
           barCategoryGap="20%"
         >
-          <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" strokeDasharray="3 3" />
+          {showGrid && (
+            <CartesianGrid
+              vertical={false}
+              stroke="var(--color-chart-grid)"
+              strokeDasharray="3 3"
+            />
+          )}
           <XAxis
             dataKey={xAxisKey}
             tick={{ ...TICK_STYLE, textAnchor: tickAngle !== 0 ? tickAnchor : 'middle' }}
@@ -243,4 +255,5 @@ BarChart.propTypes = {
   tickAngle: PropTypes.number,
   tickAnchor: PropTypes.string,
   margin: PropTypes.object,
+  showGrid: PropTypes.bool,
 };

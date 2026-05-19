@@ -1,3 +1,8 @@
+/**
+ * @module PieChart
+ * @description Chart wrapper — Pie Chart.
+ */
+
 import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 import {
@@ -70,13 +75,14 @@ export default function PieChart({
   className,
   colors,
   innerRadius = 0,
+  tooltipContent,
   margin,
   // outerRadius, label, labelLine, paddingAngle, cornerRadius kept for API compat but managed internally
   ...props
 }) {
   if (isLoading) {
     return (
-      <div className={className} style={{ height }} {...props}>
+      <div {...props} className={className} style={{ height }}>
         <Skeleton className="size-full" />
       </div>
     );
@@ -85,6 +91,7 @@ export default function PieChart({
   if (!data.length) {
     return (
       <div
+        {...props}
         className={cn(
           className,
           'flex items-center justify-center font-mono text-[0.85rem] text-(--color-text-muted)',
@@ -92,7 +99,6 @@ export default function PieChart({
         style={{
           height,
         }}
-        {...props}
       >
         No data available
       </div>
@@ -117,7 +123,7 @@ export default function PieChart({
   }));
 
   return (
-    <ChartContainer config={config} className={className} style={{ height }} {...props}>
+    <ChartContainer {...props} config={config} className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart margin={{ top: 8, right: 8, bottom: 8, left: 8, ...margin }}>
           <Pie
@@ -136,7 +142,7 @@ export default function PieChart({
               <Cell key={i} fill={palette[i % palette.length]} />
             ))}
           </Pie>
-          <Tooltip content={<ChartTooltipContent hideLabel />} />
+          <Tooltip content={tooltipContent || <ChartTooltipContent hideLabel />} />
           {showLegend && (
             <Legend
               content={<ChartLegendContent payload={legendPayload} />}
@@ -160,6 +166,7 @@ PieChart.propTypes = {
   className: PropTypes.string,
   colors: PropTypes.arrayOf(PropTypes.string),
   innerRadius: PropTypes.number,
+  tooltipContent: PropTypes.elementType,
   outerRadius: PropTypes.number,
   paddingAngle: PropTypes.number,
   cornerRadius: PropTypes.number,

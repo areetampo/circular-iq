@@ -1,3 +1,8 @@
+/**
+ * @module RadarChart
+ * @description Chart wrapper — Radar Chart.
+ */
+
 import PropTypes from 'prop-types';
 import {
   Legend,
@@ -84,7 +89,7 @@ function RadarChartComponent({
     data[0]?.subject !== undefined ? 'subject' : data[0]?.factor !== undefined ? 'factor' : 'name';
 
   return (
-    <ChartContainer config={config} className={className} style={{ height }} {...props}>
+    <ChartContainer {...props} config={config} className={className} style={{ height }}>
       <ResponsiveContainer width="100%" height={height}>
         <RechartsRadarChart
           data={data}
