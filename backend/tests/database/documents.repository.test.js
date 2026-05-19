@@ -1,13 +1,25 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+/**
+ * @module tests/database/documents.repository.test
+ * @description Unit tests for `DocumentsRepository` (Supabase RPC vs Aiven SQL paths).
+ */
 
-import { setDatabaseClientOverride } from '#database/index.js';
+import assert from 'node:assert/strict';
+import test, { after } from 'node:test';
+
+import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
+
 import { DocumentsRepository } from '#database/repositories/documents.repository.js';
 
-// Helpers to reset overrides after each test
+/** Clears `setDatabaseClientOverride` so the next test uses the default client. */
 function clearOverride() {
   setDatabaseClientOverride(null);
 }
+
+after(async () => {
+  // Release DB pool handles so the Node.js test runner can exit cleanly.
+  // Without this the process hangs on open connections and gets killed (exit code null).
+  await closeAllPools();
+});
 
 test('countByCategory returns scalar from supabase and honors override', async () => {
   let rpcCalled = false;
@@ -38,7 +50,8 @@ test('countByCategory returns aliased count from postgres and honors override', 
   const mockPg = {
     query: async (sql, params) => {
       queryCalled = true;
-      assert.ok(sql.includes('as count'));
+      // Use case‑insensitive check for 'as count'
+      assert.ok(/AS count/i.test(sql));
       assert.deepStrictEqual(params, ['bar']);
       return { rows: [{ count: 5 }] };
     },
