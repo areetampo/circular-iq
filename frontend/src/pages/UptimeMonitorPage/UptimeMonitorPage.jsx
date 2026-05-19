@@ -1,4 +1,9 @@
-import { Tooltip } from '@heroui/react';
+/**
+ * @module UptimeMonitorPage
+ * @description Operational dashboard for API/database health checks and uptime history.
+ */
+
+import { Label, Switch, Tooltip } from '@heroui/react';
 import { Activity, Minus, RotateCw, ServerCog, ServerOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -17,39 +22,42 @@ import {
   UptimeMonitorSkeleton,
   UptimeOverTimeChart,
 } from './components';
-import { ENDPOINTS } from './constants';
+import { ENDPOINTS, REFETCH_INTERVAL_MS } from './constants';
 import { useUptimeMonitor } from './hooks/useUptimeMonitor';
-import {
-  getGlobalResponseTrend,
-  getHealthDistribution,
-  getLast24hStatus5min,
-  getUptimeOverTime,
-} from './utils/uptimeCharts';
 
+/**
+ * Composes uptime charts, endpoint cards, and SSE-driven live updates.
+ * @returns {import('react').ReactElement}
+ */
 export default function UptimeMonitorPage() {
-  const { history, loadingInitial, nextUpdateSeconds, isUsingFallback, reconnect, isReconnecting } =
-    useUptimeMonitor();
+  const {
+    history,
+    loadingInitial,
+    nextUpdateSeconds,
+    isUsingFallback,
+    reconnect,
+    isReconnecting,
+    dbTotalChecks,
+  } = useUptimeMonitor();
 
-  // to re-render "Real‑time updates disconnected – falling back to polling." DetailsDisplay
   const [fallbackTrigger, setFallbackTrigger] = useState(0);
   useEffect(() => {
-    if (isUsingFallback) {
-      setFallbackTrigger((prev) => prev + 1);
-    }
+    if (isUsingFallback) setFallbackTrigger((prev) => prev + 1);
   }, [isUsingFallback]);
 
-  if (loadingInitial) {
-    return <UptimeMonitorSkeleton />;
-  }
+  // Clock-aligned buckets toggle — passed down to all bucketed chart components.
+  // false = rolling window (default behaviour, unchanged)
+  // true  = bucket edges snap to nearest clock mark (whole hours, whole 15-min slots, etc.)
+  const [clockAligned, setClockAligned] = useState(true);
+
+  if (loadingInitial) return <UptimeMonitorSkeleton />;
 
   const totalChecks = Object.values(history).reduce((sum, checks) => sum + checks.length, 0);
-
   const allChecks = ENDPOINTS.flatMap((e) => history[e.id] ?? []);
   const overallUp = ENDPOINTS.every((e) => {
     const last = (history[e.id] ?? []).slice(-1)[0];
     return !last || last.up;
   });
-
   const overallUptime = (() => {
     const perEp = ENDPOINTS.map((e) => {
       const c = history[e.id] ?? [];
@@ -60,31 +68,17 @@ export default function UptimeMonitorPage() {
   })();
 
   const hasNoData = !loadingInitial && totalChecks === 0;
-
   const overallStatusLabel = hasNoData ? 'unreachable' : overallUp ? 'all systems go' : 'degraded';
-
-  const overallStatusClass = hasNoData
-    ? 'text-(--color-error)'
-    : overallUp
-      ? 'text-(--color-success)'
-      : 'text-(--color-error)';
-
-  const headerIconClass = hasNoData
-    ? 'text-(--color-error)'
-    : overallUp
-      ? 'text-(--color-success)'
-      : 'text-(--color-error)';
-
-  const healthDist = getHealthDistribution(history, ENDPOINTS);
-  const globalTrend = getGlobalResponseTrend(history, ENDPOINTS);
-  const uptimeOverTime = getUptimeOverTime(history, ENDPOINTS);
-  const heatmapData = getLast24hStatus5min(history, ENDPOINTS);
+  const overallStatusClass =
+    hasNoData || !overallUp ? 'text-(--color-error)' : 'text-(--color-success)';
+  const headerIconClass =
+    hasNoData || !overallUp ? 'text-(--color-error)' : 'text-(--color-success)';
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 sm:px-6">
       {/* Header */}
       <div className="flex items-end justify-between gap-4 pt-6">
-        {/* Left section - heading and subheading */}
+        {/* Left */}
         <div>
           <h1 className="flex items-center gap-3 font-sans text-[2rem] font-medium tracking-[-0.02em] text-(--color-text-primary)">
             <Activity size={28} strokeWidth={2.5} className={headerIconClass} />
@@ -96,22 +90,59 @@ export default function UptimeMonitorPage() {
               Server-polling <span className="font-mono">{ENDPOINTS.length}</span> endpoints every{' '}
               <span className="font-mono">30s</span>
             </span>
-            {!hasNoData && (
+            {dbTotalChecks && (
               <>
                 <Minus size={16} strokeWidth={2} />
                 <span>
-                  <span className="font-mono">{totalChecks}</span> total checks stored
+                  <span className="font-mono">{dbTotalChecks}</span> total checks
                 </span>
               </>
             )}
           </p>
+
+          {/* Clock-aligned toggle */}
+          <Switch
+            id="toggle-clock-aligned-buckets"
+            size="sm"
+            isSelected={clockAligned}
+            onChange={setClockAligned}
+            className="pl-1"
+          >
+            <Tooltip delay={0}>
+              <Tooltip.Trigger tabIndex={0} className="flex items-center gap-2">
+                <Switch.Control>
+                  <Switch.Thumb>
+                    <Switch.Icon />
+                  </Switch.Thumb>
+                </Switch.Control>
+                <Switch.Content>
+                  <Label
+                    htmlFor="toggle-clock-aligned-buckets"
+                    className={cn(
+                      'font-sniglet text-[0.7rem] tracking-wider text-mauve-500 uppercase',
+                      !clockAligned && 'text-(--color-text-muted)',
+                    )}
+                  >
+                    Clock-aligned buckets
+                  </Label>
+                </Switch.Content>
+              </Tooltip.Trigger>
+              <Tooltip.Content placement="bottom">
+                <p className="whitespace-pre-wrap">
+                  {clockAligned
+                    ? 'Bucket edges snap to whole clock marks\n(e.g. 04:00, 04:15…).\nThe newest bucket is partial.'
+                    : 'Rolling window — bucket edges shift with each page load.'}
+                </p>
+              </Tooltip.Content>
+            </Tooltip>
+          </Switch>
         </div>
 
-        {/* Right section*/}
+        {/* Right */}
         <div className="flex flex-col items-end gap-1.5">
-          <div className="flex gap-3">
-            {/* reconnect, export csv buttons */}
-            {isUsingFallback && (
+          <div className="flex items-center gap-3">
+            {/* Reconnect button */}
+            {(isUsingFallback || isReconnecting || hasNoData) && (
               <Tooltip delay={0}>
                 <Tooltip.Trigger tabIndex={0}>
                   <Button
@@ -133,14 +164,12 @@ export default function UptimeMonitorPage() {
               </Tooltip>
             )}
 
-            {/* export metric button */}
-            {!hasNoData && (
-              <ExportMetricsButton history={history} endpoints={ENDPOINTS} hasNoData={hasNoData} />
-            )}
+            {/* Export CSV */}
+            {!hasNoData && <ExportMetricsButton hasNoData={hasNoData} />}
           </div>
 
           <div className="flex gap-2 pr-1">
-            {/* Connection status indicator – always shown */}
+            {/* Connection status */}
             <Tooltip delay={0}>
               <Tooltip.Trigger tabIndex={0}>
                 <div
@@ -172,7 +201,7 @@ export default function UptimeMonitorPage() {
                             ? 'bg-(--color-warning)'
                             : 'bg-(--color-success)',
                       )}
-                    ></span>
+                    />
                   </span>
                 </div>
               </Tooltip.Trigger>
@@ -185,7 +214,7 @@ export default function UptimeMonitorPage() {
               </Tooltip.Content>
             </Tooltip>
 
-            {/* next check countdown */}
+            {/* Countdown */}
             {!hasNoData && (
               <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
                 Next update in {nextUpdateSeconds.toString().padStart(2, '0')}s
@@ -232,28 +261,25 @@ export default function UptimeMonitorPage() {
         <StatSummaryCard
           title="Total checks"
           value={hasNoData ? '—' : allChecks.length}
-          subtext="in database"
+          subtext="fetched in session"
         />
-        <StatSummaryCard title="Update interval" value="30s" subtext="server polling" />
+        <StatSummaryCard
+          title="Update interval"
+          value={`${REFETCH_INTERVAL_MS / 1000}s`}
+          subtext="server polling"
+        />
       </div>
 
-      {/* Charts 2x2 */}
+      {/* Charts 2x2 — clockAligned passed to bucketed charts only */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <HealthDistributionChart
-          healthy={healthDist.healthy}
-          degraded={healthDist.degraded}
-          unhealthy={healthDist.unhealthy}
-          noData={healthDist.noData}
-        />
-        <GlobalResponseTrendChart data={globalTrend} hasNoData={hasNoData} />
-        <UptimeOverTimeChart data={uptimeOverTime} />
-        <EndpointLatencyBarChart history={history} endpoints={ENDPOINTS} />
+        <HealthDistributionChart />
+        <GlobalResponseTrendChart clockAligned={clockAligned} />
+        <UptimeOverTimeChart />
+        <EndpointLatencyBarChart />
       </div>
 
-      {/* Full‑width heatmap */}
-      <div className="w-full">
-        <StatusHeatmap hours={heatmapData} hasNoData={hasNoData} />
-      </div>
+      {/* Heatmap */}
+      <StatusHeatmap clockAligned={clockAligned} />
 
       {/* Endpoint Cards */}
       <SectionLabel label="Endpoints" count={ENDPOINTS.length} />
@@ -263,7 +289,8 @@ export default function UptimeMonitorPage() {
             key={ep.id}
             endpoint={ep}
             checks={history[ep.id] ?? []}
-            checking={false} // no active frontend checking
+            checking={false}
+            clockAligned={clockAligned}
           />
         ))}
       </div>
