@@ -1,3 +1,8 @@
+/**
+ * @module tests/services/scoring-logic-enrichment.test
+ * @description Unit tests for deterministic scoring helpers in `scoring.logic.js`.
+ */
+
 import {
   calculateParameterConsistency,
   calculateRStrategyAlignment,
@@ -5,7 +10,15 @@ import {
   generateWeightedScoreCard,
 } from '#services/scoring.logic.js';
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
+
+import { closeAllPools } from '#database/index.js';
+
+after(async () => {
+  // scoring.logic.js may transitively open DB handles at import time.
+  // Release them so the test runner can exit cleanly instead of timing out.
+  await closeAllPools();
+});
 
 const weights = {
   public_participation: 0.15,

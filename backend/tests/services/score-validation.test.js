@@ -1,3 +1,8 @@
+/**
+ * @module tests/services/score-validation.test
+ * @description Integration tests for scoring input validation and `/api/score` error responses.
+ */
+
 import '#config/loadEnv.js';
 import assert from 'node:assert';
 import { after, before, test } from 'node:test';
@@ -9,30 +14,32 @@ import { closeAllPools } from '#database/index.js';
 
 let app;
 
-// Get API key from environment for test authentication
 const TEST_API_KEY = process.env.API_KEY || 'test-api-key';
 const AUTH_ENABLED = BACKEND_CONFIG.app.apiAuthEnabled;
 
 before(async () => {
-  const mod = await import('#server/index.js');
-  app = mod.default || mod.app || mod;
+  // Use app.js (not index.js) — index.js calls app.listen() which binds a port
+  // that keeps the process alive. app.js exports the Express app directly;
+  // supertest spins up its own ephemeral server per-request and closes it.
+  const mod = await import('#server/app.js');
+  app = mod.default;
 });
 
 after(async () => {
-  // Close all database pools and connections to prevent hanging
   await closeAllPools();
+  // Allow a brief moment for async cleanup before the test runner exits naturally.
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  // NOTE: Do NOT call process.exit() here — it kills the child process before
+  // the Node.js test runner can flush its TAP output, causing "exit code null".
+  // The runner will exit on its own once all handles are closed via closeAllPools().
 });
 
-// POST /score input validation tests
 test('POST /score rejects missing businessProblem', async () => {
   const validSolution =
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessSolution: validSolution,
@@ -57,10 +64,7 @@ test('POST /score rejects businessProblem shorter than 200 chars', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: 'Short problem',
@@ -85,10 +89,7 @@ test('POST /score rejects businessSolution shorter than 200 chars', async () => 
     'Our company is struggling with plastic waste management in our manufacturing process. We generate tons of plastic waste monthly that ends up in landfills. This is not only environmentally harmful but also costly in terms of waste disposal fees and lost material value. We need a comprehensive solution that can help us reduce, reuse, or recycle this plastic waste more effectively.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
@@ -115,16 +116,12 @@ test('POST /score rejects missing parameters object', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
     businessSolution: validSolution,
   });
-
   assert.strictEqual(res.status, 400, 'Should reject missing parameters');
 });
 
@@ -135,10 +132,7 @@ test('POST /score rejects parameter value outside 0-100 range', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
@@ -165,10 +159,7 @@ test('POST /score rejects negative parameter value', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
@@ -195,10 +186,7 @@ test('POST /score rejects non-numeric parameter', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
@@ -225,10 +213,7 @@ test('POST /score requires all 8 parameters', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
@@ -255,10 +240,7 @@ test('POST /score accepts valid input with all 8 parameters', async () => {
     'Implement a closed-loop plastic recycling system that transforms manufacturing waste into raw materials for new products. This includes installing advanced sorting technology, partnering with local recycling facilities, and redesigning packaging to use recycled content. The system would track waste streams and create value from what was previously considered waste.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: validProblem,
@@ -275,12 +257,7 @@ test('POST /score accepts valid input with all 8 parameters', async () => {
     },
   });
 
-  // May return 200 if processing succeeds, or 500 if OpenAI/DB fails
   assert(res.status === 200 || res.status === 500, 'Valid input should be accepted');
-
-  // When successful, response MUST include original inputs so callers
-  // can persist a complete snapshot. If endpoint returned 500 we skip
-  // assertions to avoid flaky failures when external services are down.
   if (res.status === 200) {
     assert.strictEqual(res.body.businessProblem, validProblem);
     assert.strictEqual(res.body.businessSolution, validSolution);
@@ -295,10 +272,7 @@ test('POST /score accepts boundary values (0 and 100)', async () => {
     'Implement regenerative agriculture practices including drip irrigation systems, cover cropping, and composting. These methods will improve water retention, enhance soil organic matter, and reduce dependence on chemical inputs. The approach focuses on long-term sustainability and resilience.';
 
   const requestBuilder = request(app).post('/api/score');
-
-  if (AUTH_ENABLED) {
-    requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
-  }
+  if (AUTH_ENABLED) requestBuilder.set('Authorization', `Bearer ${TEST_API_KEY}`);
 
   const res = await requestBuilder.send({
     businessProblem: boundaryProblem,
