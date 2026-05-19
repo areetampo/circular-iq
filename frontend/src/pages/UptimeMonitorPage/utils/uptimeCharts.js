@@ -1,128 +1,82 @@
 /**
- * Aggregate checks into 5‑minute buckets for the last 24h (288 columns)
- * Returns array of { timeLabel, anyFailure, hasData, averageMs }
- * timeLabel format: "HH:MM" (24h, e.g. "14:30")
+ * @module uptimeCharts
+ * @description Pure chart data transformers for the Uptime Monitor page.
+ * Derives pie-chart categories and recent line-chart points from in-memory
+ * check history (no API calls).
  */
-export function getLast24hStatus5min(history, endpoints) {
-  const now = Date.now();
-  const buckets = [];
-  const totalBuckets = 24 * 12; // 24h * 12 (5-min intervals)
 
-  for (let i = totalBuckets - 1; i >= 0; i--) {
-    const bucketStart = now - (i + 1) * 5 * 60 * 1000;
-    const bucketEnd = now - i * 5 * 60 * 1000;
-    let anyFailure = false;
-    let hasData = false;
-    let totalMs = 0;
-    let count = 0;
-
-    for (const ep of endpoints) {
-      const checks = history[ep.id] || [];
-      const checksInBucket = checks.filter((c) => c.ts >= bucketStart && c.ts < bucketEnd);
-      if (checksInBucket.some((c) => !c.up)) anyFailure = true;
-      if (checksInBucket.length > 0) hasData = true;
-      const avgMs =
-        checksInBucket.reduce((sum, c) => sum + (c.ms || 0), 0) / (checksInBucket.length || 1);
-      if (checksInBucket.length > 0) {
-        totalMs += avgMs;
-        count++;
-      }
-    }
-
-    const date = new Date(bucketStart);
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const timeLabel = `${hours}:${minutes}`;
-
-    buckets.push({
-      timeLabel,
-      anyFailure: hasData && anyFailure, // only mark failure if there is data and a failure occurred
-      hasData,
-      averageMs: count ? Math.round(totalMs / count) : null,
-    });
-  }
-  return buckets;
-}
+import { formatTimestamp } from '@/lib/formatting';
 
 /**
- * Compute overall uptime percentage over time (daily buckets)
- * Returns array of { dayLabel, uptimePct }
- */
-export function getUptimeOverTime(history, endpoints) {
-  const checksByDay = new Map();
-  for (const ep of endpoints) {
-    const checks = history[ep.id] || [];
-    for (const check of checks) {
-      const day = new Date(check.ts).toISOString().slice(0, 10);
-      if (!checksByDay.has(day)) checksByDay.set(day, []);
-      checksByDay.get(day).push(check);
-    }
-  }
-  const sortedDays = Array.from(checksByDay.keys()).sort();
-  return sortedDays.map((day) => {
-    const dayChecks = checksByDay.get(day);
-    const upCount = dayChecks.filter((c) => c.up).length;
-    const pct = dayChecks.length ? (upCount / dayChecks.length) * 100 : 100;
-    return { dayLabel: day, uptimePct: Math.round(pct) };
-  });
-}
-
-/**
- * Health distribution: count of endpoints with healthy/degraded/unhealthy/noData based on latest check
+ * Classifies each endpoint's latest check into health distribution buckets
+ * for the pie chart.
+ *
+ * Thresholds:
+ * - healthy   — up and response ≤ 500 ms
+ * - degraded  — up but response > 500 ms
+ * - unhealthy — latest check is down
+ * - no data   — no checks in history
+ *
+ * @param {Record<string, Array<{ up: boolean, ms: number|null }>>} history
+ *   Endpoint id → normalised checks (oldest-first).
+ * @param {Array<{ id: string, label: string }>} endpoints - Monitored endpoint definitions.
+ * @returns {Array<{ label: string, count: number, endpoints: Array<{ name: string, ms: number|null }> }>}
  */
 export function getHealthDistribution(history, endpoints) {
-  let healthy = 0,
-    degraded = 0,
-    unhealthy = 0,
-    noData = 0;
+  const categories = {
+    healthy: { label: 'Healthy', count: 0, endpoints: [] },
+    degraded: { label: 'Degraded', count: 0, endpoints: [] },
+    unhealthy: { label: 'Unhealthy', count: 0, endpoints: [] },
+    noData: { label: 'No Data', count: 0, endpoints: [] },
+  };
 
   for (const ep of endpoints) {
     const checks = history[ep.id] || [];
     if (!checks.length) {
-      noData++;
+      categories.noData.count++;
+      categories.noData.endpoints.push({ name: ep.label, ms: null });
       continue;
     }
     const latest = checks[checks.length - 1];
-    if (!latest.up) unhealthy++;
-    else {
-      const pct = (checks.filter((c) => c.up).length / checks.length) * 100;
-      if (pct >= 99) healthy++;
-      else if (pct >= 95) degraded++;
-      else unhealthy++;
+    if (latest.up) {
+      if (latest.ms !== null && latest.ms > 500) {
+        categories.degraded.count++;
+        categories.degraded.endpoints.push({ name: ep.label, ms: latest.ms });
+      } else {
+        categories.healthy.count++;
+        categories.healthy.endpoints.push({ name: ep.label, ms: latest.ms });
+      }
+    } else {
+      categories.unhealthy.count++;
+      categories.unhealthy.endpoints.push({ name: ep.label, ms: latest.ms });
     }
   }
 
-  return { healthy, degraded, unhealthy, noData };
+  return Object.values(categories);
 }
 
 /**
- * Global average response time over time (hourly buckets)
- * Now correctly checks only checks within each hour.
+ * Filters checks to the last N minutes and maps them to chart-friendly points.
+ * Down checks render with `ms: null` so the line breaks visually.
+ *
+ * @param {Array<{ ts: number, up: boolean, ms: number|null }>} checks - Endpoint checks.
+ * @param {number} minutes - Lookback window in minutes.
+ * @returns {Array<{ label: string, ms: number|null }>}
  */
-export function getGlobalResponseTrend(history, endpoints) {
+export function getRecentRawChecks(checks, minutes) {
+  if (!checks || !checks.length) return [];
   const now = Date.now();
-  const hours = [];
-  for (let i = 23; i >= 0; i--) {
-    const hourStart = now - (i + 1) * 3600000;
-    const hourEnd = now - i * 3600000;
-    let totalMs = 0;
-    let count = 0;
-    for (const ep of endpoints) {
-      const checks = history[ep.id] || [];
-      const checksInHour = checks.filter((c) => c.ts >= hourStart && c.ts < hourEnd);
-      const avgMs =
-        checksInHour.reduce((sum, c) => sum + (c.ms || 0), 0) / (checksInHour.length || 1);
-      if (checksInHour.length > 0) {
-        totalMs += avgMs;
-        count++;
-      }
-    }
-    const date = new Date(hourStart);
-    const hourLabel = date.getHours().toString().padStart(2, '0'); // only hour, e.g., "08", "14"
-    hours.push({
-      hourLabel,
-      avgResponseTime: count ? Math.round(totalMs / count) : null,
-    });
-  }
-  return hours;
+  const cutoff = now - minutes * 60 * 1000;
+  return checks
+    .filter((c) => c.ts >= cutoff)
+    .map((c) => ({
+      label: formatTimestamp(c.ts, {
+        showYear: false,
+        showMonth: false,
+        showDay: false,
+        showSeconds: true,
+        use24Hour: true,
+      }),
+      ms: c.up ? c.ms : null,
+    }));
 }
