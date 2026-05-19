@@ -14,16 +14,8 @@
 #
 # ─────────────────────────────────────────────────────────────────────
 
-SKIP_BUILD="${SKIP_BUILD:-false}"
 SKIP_TESTS="${SKIP_TESTS:-false}"
-
-# ─── Build ───────────────────────────────────────────────────────────
-if [ "$SKIP_BUILD" = true ]; then
-  echo "⫸ Skipping build (SKIP_BUILD=true)"
-else
-  echo "⫸ Checking builds in all workspaces..."
-  npm run build || { echo "✕ Build failed! Check your code before pushing."; exit 1; }
-fi
+SKIP_BUILD="${SKIP_BUILD:-false}"
 
 # ─── Tests ───────────────────────────────────────────────────────────
 if [ "$SKIP_TESTS" = true ]; then
@@ -31,6 +23,14 @@ if [ "$SKIP_TESTS" = true ]; then
 else
   echo "⫸ Running test suites..."
   npm test || { echo "✕ Tests failed! Push aborted."; exit 1; }
+fi
+
+# ─── Build ───────────────────────────────────────────────────────────
+if [ "$SKIP_BUILD" = true ]; then
+  echo "⫸ Skipping build (SKIP_BUILD=true)"
+else
+  echo "⫸ Checking builds in all workspaces..."
+  npm run build || { echo "✕ Build failed! Check your code before pushing."; exit 1; }
 fi
 
 echo "✓ Everything looks good. Pushing now..."
