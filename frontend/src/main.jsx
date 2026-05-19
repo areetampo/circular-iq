@@ -1,4 +1,6 @@
 /**
+ * @module main
+ * @description React application entry: StrictMode, BrowserRouter, root mount, and Vercel analytics.
  * Frontend Entry Point
  *
  * Initializes the React application with:
