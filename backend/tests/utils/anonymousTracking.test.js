@@ -1,3 +1,8 @@
+/**
+ * @module tests/utils/anonymousTracking.test
+ * @description Unit tests for anonymous identifier hashing and IP/UA extraction helpers.
+ */
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

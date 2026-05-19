@@ -1,7 +1,10 @@
+/**
+ * @module tests/utils/logger.test
+ * @description Unit tests for the shared Pino logger wrapper (`logOperation`, level methods).
+ */
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
-import { logger } from '#utils/logger.js';
 
 test('logger exports', () => {
   assert.strictEqual(typeof logger.info, 'function');
