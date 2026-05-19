@@ -1,4 +1,6 @@
 /**
+ * @module AssessmentViewPageSkeleton
+ * @description Loading skeleton for the read-only assessment view page.
  * AssessmentViewPageSkeleton Component
  * Skeleton for AssessmentViewPage (/assessments/share/:id)
  * Accurately matches the actual component structure and layout
@@ -7,6 +9,10 @@ import { Skeleton } from '@heroui/react';
 
 import { Separator } from '@/components/common';
 
+/**
+ * Loading skeleton for the read-only assessment view page.
+ * @returns {import('react').ReactElement}
+ */
 export default function AssessmentViewPageSkeleton() {
   return (
     <div className="w-full space-y-0">

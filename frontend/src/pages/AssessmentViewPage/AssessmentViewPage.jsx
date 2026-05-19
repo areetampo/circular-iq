@@ -1,4 +1,10 @@
+/**
+ * @module AssessmentViewPage
+ * @description Read-only view of one saved assessment (same column layout as comparison).
+ */
+
 import { Eye, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -12,6 +18,10 @@ import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/as
 import AssessmentViewPageSkeleton from '@/pages/AssessmentViewPage/components/AssessmentViewPageSkeleton';
 import { useSafeBack } from '@/utils/navigation';
 
+/**
+ * Loads a single assessment by route `publicId` for viewing.
+ * @returns {import('react').ReactElement}
+ */
 export default function AssessmentViewPage({ publicId: propPublicId }) {
   const { id: urlParamId } = useParams();
   const navigate = useNavigate();
@@ -144,4 +154,6 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
   );
 }
 
-AssessmentViewPage.propTypes = {};
+AssessmentViewPage.propTypes = {
+  publicId: PropTypes.string,
+};
