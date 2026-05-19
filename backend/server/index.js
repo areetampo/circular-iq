@@ -1,22 +1,34 @@
-/** Entry point. Starts the HTTP server. */
+/**
+ * @module index
+ * @description Server entry point and HTTP server lifecycle management.
+ * Starts the Express HTTP server, initializes background services (uptime monitoring),
+ * and handles graceful shutdown on SIGTERM/SIGINT signals.
+ *
+ * Responsibilities:
+ * - Start HTTP server on configured port
+ * - Display formatted server startup information
+ * - Initialize uptime polling and cleanup tasks
+ * - Handle graceful shutdown with background task draining
+ * - Global unhandled rejection error handling
+ *
+ * Environment-specific behavior:
+ * - Development: Shows detailed startup banner with configuration
+ * - Test: Skips server startup and uptime monitoring
+ * - Production: Enables uptime monitoring and cleanup tasks
+ */
 
 import boxen from 'boxen';
 import chalk from 'chalk';
 
+import app from '#server/app.js';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getSupabaseClient } from '#database/index.js';
-import app from '#server/app.js';
 import { startUptimePolling, stopUptimePolling } from '#services/uptimePolling.service.js';
-import { logger } from '#utils/logger.js';
-
-globalThis.logger = logger;
 
 let serverInstance = null;
 let uptimeCleanupInterval = null;
 
-/**
- * 🎨 UI THEME & FORMATTERS
- */
+/** Chalk theme tokens for the development startup banner. */
 const theme = {
   primary: chalk.cyan.bold,
   secondary: chalk.white,
@@ -28,7 +40,11 @@ const theme = {
   url: chalk.underline.blueBright,
 };
 
-// Fixes the multi-line wrapping issue by indenting subsequent lines
+/**
+ * Formats a list of URLs for the startup banner (multi-line with indentation).
+ * @param {string[]|null|undefined} list
+ * @returns {string} Chalk-formatted string
+ */
 const formatList = (list) => {
   if (!list || list.length === 0) return theme.danger('not set');
   const indentation = ' '.repeat(23); // Matches the label + separator width
@@ -37,10 +53,21 @@ const formatList = (list) => {
     .join('\n');
 };
 
+/**
+ * Renders a single config row for the startup banner.
+ * @param {string} label
+ * @param {string} value - Pre-formatted chalk string
+ * @returns {string}
+ */
 const renderRow = (label, value) => {
   return `${theme.primary(label.padEnd(20))} ${theme.dim('│')} ${value}`;
 };
 
+/**
+ * Returns a colored HTTP method badge for the API service map.
+ * @param {string} method - HTTP verb (GET, POST, etc.)
+ * @returns {string} Chalk-formatted badge
+ */
 const badge = (method) => {
   const styles = {
     GET: chalk.bgBlue.black.bold,
@@ -52,6 +79,13 @@ const badge = (method) => {
   return (styles[method] || chalk.bgWhite.black)(` ${method.padEnd(5)} `);
 };
 
+/**
+ * Starts the HTTP server and uptime background tasks (when enabled).
+ * Registers SIGTERM/SIGINT handlers for graceful shutdown.
+ * Idempotent — returns the existing instance if already listening.
+ *
+ * @returns {import('http').Server|undefined} Node HTTP server, or undefined in test mode
+ */
 export function startServer() {
   if (serverInstance) return serverInstance;
 
@@ -179,13 +213,11 @@ export function startServer() {
       const runCleanup = async () => {
         try {
           const supabase = getSupabaseClient();
-          const days = retentionDays;
-          const { data, error } = await supabase.rpc('cleanup_old_uptime_checks', { days });
+          const { data, error } = await supabase.rpc('cleanup_old_uptime_checks', {
+            retentionDays,
+          });
           if (error) throw error;
-          logger.info(
-            { retentionDays: days, deletedRows: data },
-            'Uptime history cleanup completed',
-          );
+          logger.info({ retentionDays, deletedRows: data }, 'Uptime history cleanup completed');
         } catch (err) {
           logger.error({ err }, 'Uptime cleanup failed');
         }
@@ -231,6 +263,12 @@ export function startServer() {
   });
 }
 
+/**
+ * Closes the HTTP server gracefully.
+ * Used in tests to tear down without killing the process.
+ *
+ * @returns {Promise<void>} Resolves when the server has closed
+ */
 export function stopServer() {
   if (!serverInstance) return Promise.resolve();
 
@@ -256,4 +294,8 @@ if (BACKEND_CONFIG.nodeEnv !== 'test') {
   startServer();
 }
 
+/**
+ * Re-export of the Express app from `#server/app.js` (same singleton).
+ * @type {import('express').Express}
+ */
 export default app;
