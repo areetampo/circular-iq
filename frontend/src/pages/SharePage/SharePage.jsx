@@ -1,13 +1,22 @@
+/**
+ * @module SharePage
+ * @description Public share entry: validate an assessment public ID and open the read-only results view.
+ */
+
 import { FieldError, Input, Label, TextField } from '@heroui/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, DetailsBadge, Spinner } from '@/components/common';
+import { Button, DetailsBadge } from '@/components/common';
 import { useAssessmentValidationSingle } from '@/features/assessments/hooks';
 import { useAuth } from '@/hooks';
 import { clearShareFormState, loadShareFormState, saveShareFormState } from '@/lib/storage';
 import { isValidUUID } from '@/lib/validation';
 
+/**
+ * Form to look up and navigate to a shared assessment by public UUID.
+ * @returns {import('react').ReactElement}
+ */
 export default function SharePage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -195,11 +204,11 @@ export default function SharePage() {
           <div>
             {/* Validation message display - show when validating and no error */}
             {validating && validationMessage && !error && (
-              <DetailsBadge variant="info" message={validationMessage} icon={Spinner} />
+              <DetailsBadge variant="info" message={validationMessage} spinner />
             )}
             {/* Loading state from validation query - show when auto-fetching */}
             {validationQuery.isLoading && !validating && !error && (
-              <DetailsBadge variant="info" message="Validating assessment ID..." icon={Spinner} />
+              <DetailsBadge variant="info" message="Validating assessment ID..." spinner />
             )}
             {/* Success state after auto-fetching completes - show ready message */}
             {!validating && !error && validationData && !validationMessage && (
