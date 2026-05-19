@@ -1,6 +1,5 @@
 ﻿# Circular Economy Evaluator
 
-[![Live Site](https://img.shields.io/badge/Live%20Site-xern.vercel.app-8B7355?logo=vercel&logoColor=white)](https://xern.vercel.app)
 ![Node](https://img.shields.io/badge/node-18+-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Stack](https://img.shields.io/badge/stack-React%20%2B%20Express-blue)
@@ -8,12 +7,12 @@
 ![AI](https://img.shields.io/badge/AI-OpenAI-412991?logo=openai&logoColor=white)
 ![Deployment](https://img.shields.io/badge/deploy-Vercel%20%2B%20Render-black?logo=vercel)
 
-AI-powered platform for evaluating circular economy business initiatives against a knowledge base of 40,000+ real-world case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
+AI-powered platform for evaluating circular economy business initiatives against a knowledge base of case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
 - **Author:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com)
 - **Repository:** [areetampo/circular-economy](https://github.com/areetampo/circular-economy)
 - **License:** MIT
-- **Monitoring:** UptimeRobot, Vercel Serverless Ping Function, Github Workflows
+- **Monitoring:** GitHub keep-alive workflow and optional Vercel ping helper
 
 ## Overview
 
@@ -66,12 +65,12 @@ The platform guides users through a structured assessment and returns a complete
 │  Database Layer (Supabase PostgreSQL + pgvector / Aiven)                    │
 │  ├─ documents — vector-searchable knowledge base (40k+ chunks)              │
 │  ├─ user_assessments — user-saved results with all enrichment columns       │
-│  ├─ scoring_results_log — immutable log of every scoring call               │
-│  ├─ ce_cases — circular economy cases knowledge base                        │
+│  ├─ RPC functions — hybrid search, market data, assessment stats            │
 │  ├─ user_profiles — user preferences                                        │
 │  ├─ anonymous_usage — rate limiting + session tracking                      │
-│  ├─ uptime_checks — health monitoring history                               │
-│  └─ RPC functions — hybrid search, market data, assessment stats            │
+│  ├─ scoring_results_log — immutable log of every scoring call               │
+│  ├─ ce_cases — circular economy cases knowledge base                        │
+│  └── uptime_checks — health monitoring history                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -90,48 +89,28 @@ The platform guides users through a structured assessment and returns a complete
 | **AI — Reasoning** | GPT-4o-mini | LLM audit, enrichment, metadata extraction |
 | **State** | TanStack React Query | Server state, caching, background refetch |
 | **Auth** | Supabase Auth | User authentication + Row Level Security |
-| **Monitoring & Deployment** | UptimeRobot, Vercel Serverless Ping Function, Github Workflows | Monitoring and deployment |
+| **Monitoring & Deployment** | Built-in uptime monitoring service, UptimeRobot, GitHub keep-alive workflow, Vercel ping helper | Monitoring and deployment |
 
 ## Monitoring & Deployment
 
 ### Uptime Monitoring System
 
-The application includes a comprehensive real-time uptime monitoring system that tracks backend health:
+The application includes a real-time uptime monitoring dashboard that tracks all backend health endpoints:
 
-- **Automated Health Checks**: Backend polls endpoints every 30 seconds in production
-- **Database Storage**: Results stored in `uptime_checks` table with 7-day retention
-- **Real-time Dashboard**: Frontend displays live uptime metrics, response times, and health distribution via Server-Sent Events (SSE)
-- **SSE Streaming**: Live updates via `/api/uptime/stream` endpoint with automatic fallback to polling
-- **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
-- **Broadcast Architecture**: Uses `uptime.broadcaster.js` for managing SSE client connections and event broadcasting
+- **Backend polling** — production-only; pings all health endpoints every 30s, batch-inserts results into `uptime_checks`, then broadcasts a `poll-complete` SSE event to all connected clients
+- **30-day retention** — configurable via `UPTIME_CHECKS_RETENTION_DAYS`; cleanup runs daily in production
+- **SSE streaming** — `/api/uptime/stream` delivers live updates instantly; frontend falls back to HTTP polling automatically if the connection drops
+- **Clock-aligned buckets** — toggleable UI feature that snaps all chart bucket boundaries to clean clock marks (whole hours, whole 15-min slots) instead of rolling from the current moment
+- **DB aggregation** — all chart data (heatmaps, trend lines, latency bars) is computed server-side via SQL RPCs; no client-side number crunching on large datasets
 
-#### SSE Implementation Details
-
-**Backend SSE Components:**
-
-- `uptime.routes.js` - `/api/uptime/stream` endpoint with heartbeat every 30s
-- `uptime.broadcaster.js` - Manages SSE client Set and event broadcasting
-- `uptimePolling.service.js` - Polls endpoints and broadcasts `poll-complete` events
-
-**Frontend SSE Integration:**
-
-- `useUptimeMonitor.js` hook manages SSE connection with automatic fallback
-- Real-time updates via `poll-complete` events with endpoint results
-- Disconnect detection with manual reconnect capability
-- Countdown timer synchronized with actual backend polling cycle
-
-**SSE Events:**
-
-- `connected` - Initial connection confirmation
-- `poll-complete` - New uptime check results with timestamp and endpoint data
-- Heartbeat comments every 30s to maintain connection
+See [`frontend/src/pages/UptimeMonitorPage/README.md`](./frontend/src/pages/UptimeMonitorPage/README.md) for full architecture, API reference, SQL functions, constants, and SSE event documentation.
 
 ### Deployment Architecture
 
 - **Frontend**: Vercel (serverless deployment)
 - **Backend**: Render (Node.js service)
 - **Database**: Supabase PostgreSQL with pgvector
-- **Monitoring**: UptimeRobot + built-in uptime monitoring
+- **Monitoring**: Built-in uptime monitoring dashboard + UptimeRobot + GitHub keep-alive workflow + optional Vercel ping helper
 - **CI/CD**: GitHub workflows with automated migration on push
 
 ## Key Features
@@ -217,94 +196,118 @@ Global Activity includes manual refresh button with "updated N minutes ago" time
 
 ```txt
 ├── backend/
-│   ├── config/                      # Centralised config, env schema, embedding constants, chunk config
-│   ├── constants/                   # API endpoints, uptime endpoints constants
-│   ├── controllers/                 # Route handlers (analytics, scoring, assessments, search)
-│   │   ├── analytics.controller.js   # Analytics, global-stats, featured solutions, document stats
-│   │   ├── assessments.controller.js # Assessment CRUD, market analysis, comparison
-│   │   ├── scoring.controller.js     # Full scoring pipeline orchestration + log
-│   │   └── search.controller.js      # ce_cases search functionality
+│   ├── .gitignore
+│   ├── .renderignore
+│   ├── DATASETS_REFERENCE.md                       # Complete inventory of all 32 datasets
+│   ├── HEALTH_ENDPOINTS.md                         # Health check endpoints documentation
+│   ├── PIPELINE_ADDING_DATASETS.md                 # How to add new dataset sources
+│   ├── PIPELINE_RUNNING.md                         # How to run data processing pipeline
+│   ├── README.md
+│   ├── package.json
+│   ├── requirements-dev.txt
+│   │
+│   ├── config/                                     # Centralised config, env schema
+│   │
+│   ├── constants/                                  # API endpoints, uptime endpoints constants
+│   │
+│   ├── controllers/                                # Route handlers (analytics, scoring, assessments, search)
+│   │   ├── analytics.controller.js                 # Analytics, global-stats, featured solutions, document stats
+│   │   ├── assessments.controller.js               # Assessment CRUD, market analysis, comparison
+│   │   ├── scoring.controller.js                   # Full scoring pipeline orchestration + log
+│   │   └── search.controller.js                    # ce_cases search functionality
+│   │
 │   ├── database/
-│   │   ├── diagnostics/             # Read-only monitoring queries (sizes, performance, health, schema, vector)
-│   │   ├── migrations/              # SQL migration files 01–07 (run in Supabase SQL editor)
-│   │   ├── queries/                 # Stable reusable read queries called by app code
-│   │   ├── scripts/                 # Manual one-off operational SQL (backfills, repairs)
-│   │   ├── repositories/            # Data access layer (documents.repository.js, ce_cases.repository.js)
-│   │   ├── client.js                # Dual-backend DB client factory (Supabase or Aiven)
-│   │   ├── supabase.client.js       # Supabase client factory (anon + service-role)
-│   │   └── README.md                # Database layer documentation
-│   ├── middleware/                  # Auth guard (API key + JWT) + Zod validation
-│   ├── pipeline/                    # Data processing stages (10+ pipeline scripts)
-│   │   ├── create_samples.js         # Generate test/sample data for development
-│   │   ├── embed_ce_cases.js         # Embed ce_cases knowledge base
-│   │   ├── generate_chunks.js        # Stage 2: semantic chunking → chunks.json
-│   │   ├── generate_embeddings.js    # Stage 3: OpenAI embeddings → embedded_chunks.json
-│   │   ├── generate_test_inputs.js   # Generate test assessment inputs
-│   │   ├── ingest_ce_cases.js        # Ingest ce_cases data
-│   │   ├── merge_datasets.js         # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
-│   │   ├── run_datasets_scripts.js   # Orchestrate all dataset extraction scripts in sequence
-│   │   ├── run_test_assessments.js   # Run test assessments
-│   │   └── store_embeddings.js       # Stage 4: store vectors in documents table (Supabase or Aiven)
-│   ├── routes/                      # Thin Express wrappers — HTTP definition only
-│   │   ├── analytics.routes.js   # GET /api/analytics/...
-│   │   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/...
-│   │   ├── health.routes.js      # GET /health/* endpoints
-│   │   ├── scoring.routes.js     # POST /api/score
-│   │   ├── search.routes.js      # GET /api/search/ce-cases
-│   │   └── uptime.routes.js     # GET/POST /api/uptime/* endpoints
-│   ├── server/                      # Entry point (index.js), app factory (app.js), bootstrap
-│   ├── services/                    # Business logic: scoring.service, scoring.logic, embedding.service, health.service
-│   │   ├── auth.service.js          # Authentication service
-│   │   ├── embedding.service.js     # OpenAI API: embed text, batch handling, exponential backoff
-│   │   ├── health.service.js         # Health check endpoints and system monitoring
-│   │   ├── scoring.logic.js         # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
-│   │   ├── scoring.service.js       # Full scoring pipeline orchestration
-│   │   └── uptimePolling.service.js # Uptime monitoring polling service
-│   ├── tests/                       # Backend test suite (api/, database/, services/)
-│   │   ├── run-tests.js               # Test runner script
-│   │   └── *.test.js files           # Unit and integration tests
-│   ├── utils/                       # anonymousTracking.js, datasetsUtils.js etc
-│   ├── DATASETS_REFERENCE.md    # Complete inventory of all 32 datasets
-│   ├── HEALTH_ENDPOINTS.md      # Health check endpoints documentation
-│   ├── PIPELINE_ADDING_DATASETS.md  # How to add new dataset sources
-│   ├── PIPELINE_RUNNING.md      # How to run data processing pipeline
-│   ├── .gitignore, .renderignore
-│   ├── requirements-dev.txt, package.json
-│   └── README.md
-│
-├── frontend/
-│   ├── api/proxy.js                 # Vercel serverless proxy — injects x-api-key server-side
-│   ├── src/
-│   │   ├── app/                     # Root component, routes, global providers
-│   │   │   ├── App.jsx              # Root component with providers and routing
-│   │   │   ├── AppRoutes.jsx        # All route definitions
-│   │   │   └── AppProvider.jsx      # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
-│   │   ├── components/              # Shared UI: auth, charts, common, dialogs, drawers, export, layout, error-boundaries (64 items)
-│   │   ├── contexts/                # React Context providers (Auth, Dialog, Drawer)
-│   │   ├── features/                # Feature modules: assessments, export, search, session (22 items)
-│   │   ├── hooks/                   # Custom React hooks (useAuth, useDebounce, etc.) (10 items)
-│   │   ├── lib/                     # API client, formatting, metadata, scoring, storage, supabase, validation (11 items)
-│   │   ├── pages/                   # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (91+ items)
-│   │   ├── config/                   # Frontend configuration with route definitions and query parameters (3 items)
-│   │   ├── constants/               # Evaluation data, industries, drawer constants (19 items)
-│   │   ├── index.css                # Global styles + Tailwind directives
-│   │   ├── main.jsx                 # React entry point
-│   │   ├── setupTests.js            # Vitest global setup
-│   │   ├── test/                    # Test files (4 items)
-│   │   ├── types/                   # TypeScript type definitions (1 item)
-│   │   └── utils/                   # Utility functions (12 items)
-│   ├── public/                       # Static assets (app-bg.svg, site-logo images)
-│   ├── vite.config.js               # Vite configuration with aliases and chunking
-│   ├── vercel.json                  # Vercel deployment configuration
-│   ├── vitest.config.js             # Vitest test configuration
-│   ├── tsconfig.json                # TypeScript configuration
-│   ├── tsconfig.node.json           # Node.js TypeScript configuration
-│   └── package.json                 # Frontend dependencies and scripts
+│   │   ├── README.md                               # Database layer documentation
+│   │   ├── client.js                               # Dual-backend DB client factory (Supabase or Aiven)
+│   │   ├── supabase.client.js                      # Supabase client factory (anon + service-role)
+│   │   │
+│   │   ├── diagnostics/                            # Read-only monitoring queries (sizes, performance, health, schema, vector)
+│   │   ├── migrations/                             # SQL migration files 00–07 (run in Supabase SQL editor)
+│   │   └── repositories/                           # Data access layer (documents.repository.js, ce_cases.repository.js)
+│   │
+│   ├── middleware/                                 # Auth guard (API key + JWT) + Zod validation
+│   │
+│   ├── pipeline/                                   # Data processing scripts
+│   │   │
+│   │   ├── ce_cases/                               # For solutions search functionality via database/migrations/05_ce_cases
+│   │   │   ├── embed_ce_cases.js                   # Embed ce_cases knowledge base
+│   │   │   └── ingest_ce_cases.js                  # Ingest ce_cases data
+│   │   │
+│   │   ├── populate_scoring_results/               # Generate test inputs, run scoring pipeline and save calculated results
+│   │   │   ├── generate_test_inputs.js             # Generate test assessment inputs
+│   │   │   └── run_and_save_test_assessments.js    # Run and save test assessments results
+│   │   │
+│   │   └── rag/                                    #
+│   │       ├── run_datasets_scripts.js             # Satge 0: Orchestrate all dataset extraction scripts in sequence
+│   │       ├── merge_datasets.js                   # Stage 1: merge all processed CSVs + manual_entries/ → combined_input.csv
+│   │       ├── create_samples.js                   # (Optional) Generate test/sample data from combined_input.csv
+│   │       ├── generate_chunks.js                  # Stage 2: semantic chunking → chunks.json
+│   │       ├── generate_embeddings.js              # Stage 3: OpenAI embeddings → embedded_chunks.json
+│   │       └── store_embeddings.js                 # Stage 4: store vectors in documents table (Supabase or Aiven)
+│   │
+│   ├── routes/                                     # Thin Express wrappers — HTTP definition only
+│   │   ├── analytics.routes.js                     # GET /api/analytics/...
+│   │   ├── assessments.routes.js                   # POST/GET/PATCH/DELETE /api/assessments/...
+│   │   ├── health.routes.js                        # GET /health/* endpoints
+│   │   ├── scoring.routes.js                       # POST /api/score
+│   │   ├── search.routes.js                        # GET /api/search/ce-cases
+│   │   └── uptime.routes.js                        # GET/POST /api/uptime/* endpoints
+│   │
+│   ├── server/                                     # Entry point (index.js), app factory (app.js), bootstrap
+│   │
+│   ├── services/                                   # Business logic: scoring.service, scoring.logic, embedding.service, health.service
+│   │   ├── auth.service.js                         # Authentication service
+│   │   ├── embedding.service.js                    # OpenAI API: embed text, batch handling, exponential backoff
+│   │   ├── health.service.js                       # Health check endpoints and system monitoring
+│   │   ├── scoring.logic.js                        # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
+│   │   ├── scoring.service.js                      # Full scoring pipeline orchestration
+│   │   └── uptimePolling.service.js                # Uptime monitoring polling service
+│   │
+│   ├── tests/                                      # Backend test suite (api/, database/, services/)
+│   │   ├── run-tests.js                            # Test runner script
+│   │   └── *.test.js files                         # Unit and integration tests
+│   │
+│   └── utils/                                      # anonymousTracking.js, datasetsUtils.js, embedding config, chunk config etc
 │
 ├── env/
-│   └── .env.example                 # Environment variable template
+│   └── .env.example                                # Environment variable template
 │
-└── package.json                     # Root workspace scripts (dev:backend, dev:frontend, etc.)
+├── frontend/
+│   ├── api/
+│   │   └── proxy.js                                # Legacy Vercel proxy helper; production uses vercel.json rewrite to backend
+│   │
+│   ├── package.json                                # Frontend dependencies and scripts
+│   │
+│   ├── public/                                     # Static assets (app-bg.svg, site-logo images)
+│   │
+│   ├── src/
+│   │   ├── app/                                    # Root component, routes, global providers
+│   │   │   ├── App.jsx                             # Root component with providers and routing
+│   │   │   ├── AppProvider.jsx                     # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
+│   │   │   └── AppRoutes.jsx                       # All route definitions
+│   │   │
+│   │   ├── components/                             # Shared UI: charts, common, dialogs, drawers, export, layout, error-boundaries etc
+│   │   ├── config/                                 # Frontend configuration with route definitions and query parameters
+│   │   ├── constants/                              # Evaluation data, industries, drawer + dialog constants etc
+│   │   ├── contexts/                               # React Context providers (Auth, Dialog, Drawer) etc
+│   │   ├── features/                               # Feature modules: assessments, export, search, session etc
+│   │   ├── hooks/                                  # Custom React hooks (useAuth, useDebounce, etc.)
+│   │   ├── index.css                               # Global styles + Tailwind directives
+│   │   ├── lib/                                    # API client, formatting, metadata, scoring, storage, supabase, validation etc
+│   │   ├── main.jsx                                # React entry point
+│   │   ├── pages/                                  # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (90+ items)
+│   │   ├── setupTests.js                           # Vitest global setup
+│   │   ├── test/                                   # Test files
+│   │   ├── types/                                  # TypeScript type definitions
+│   │   └── utils/                                  # Utility functions
+│   │
+│   ├── tsconfig.json                               # TypeScript configuration
+│   ├── tsconfig.node.json                          # Node.js TypeScript configuration
+│   ├── vercel.json                                 # Vercel deployment configuration
+│   ├── vite.config.js                              # Vite configuration with aliases and chunking
+│   └── vitest.config.js                            # Vitest test configuration
+│
+└── package.json                                    # Root workspace scripts (dev:backend, dev:frontend, etc.)
 ```
 
 ## Quick Start
@@ -333,9 +336,10 @@ cp env/.env.example env/.env.frontend
 
 # 4. Database migrations
 # Run in order via Supabase SQL editor:
+#   backend/database/migrations/00_app_settings.sql
 #   backend/database/migrations/01_vector_infrastructure.sql
-#   backend/database/migrations/02_user_profiles.sql
-#   backend/database/migrations/03_user_assessments.sql
+#   backend/database/migrations/02_user_assessments.sql
+#   backend/database/migrations/03_user_profiles.sql
 #   backend/database/migrations/04_anonymous_usage.sql
 #   backend/database/migrations/05_results_logs.sql
 #   backend/database/migrations/06_ce_cases.sql
@@ -398,10 +402,9 @@ VITE_APP_URL=http://localhost:5173
 VITE_API_URL=http://localhost:3001
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
-VITE_ANON_SCORING_LIMIT=5
 ```
 
-**Important:** `INTERNAL_BACKEND_API_KEY` is **never** a `VITE_` prefixed variable. It lives only in Vercel server-side environment and is injected by `api/proxy.js`.
+**Important:** `INTERNAL_BACKEND_API_KEY` is **never** a `VITE_` prefixed variable. It lives only in Vercel server-side environment and is used by the legacy `api/proxy.js`.
 
 ## API Reference
 
@@ -456,11 +459,16 @@ VITE_ANON_SCORING_LIMIT=5
 
 ### Uptime Monitor
 
-| Method | Endpoint                          | Auth     | Description                                                   |
-| ------ | --------------------------------- | -------- | ------------------------------------------------------------- |
-| `GET`  | `/api/uptime/count`               | Optional | Get total number of uptime checks (optionally per endpoint)   |
-| `GET`  | `/api/uptime/history/:endpointId` | Optional | Retrieve recent checks for specific endpoint (max 10000)      |
-| `GET`  | `/api/uptime/stream`              | Optional | SSE stream for real-time uptime updates (fallback to polling) |
+| Method | Endpoint                                   | Auth     | Description                                                   |
+| ------ | ------------------------------------------ | -------- | ------------------------------------------------------------- |
+| `GET`  | `/api/uptime/count`                        | Optional | Get total number of uptime checks (optionally per endpoint)   |
+| `GET`  | `/api/uptime/history/:endpointId`          | Optional | Retrieve recent checks for specific endpoint (max 86400)      |
+| `GET`  | `/api/uptime/stream`                       | Optional | SSE stream for real-time uptime updates (fallback to polling) |
+| `GET`  | `/api/uptime/daily-stats`                  | Optional | Get daily uptime statistics for the last N days               |
+| `GET`  | `/api/uptime/heatmap-aggregated`           | Optional | Get aggregated heatmap buckets for uptime visualization       |
+| `GET`  | `/api/uptime/global-trend`                 | Optional | Get hourly avg response time across all endpoints             |
+| `GET`  | `/api/uptime/endpoint-latency`             | Optional | Get per-endpoint avg latency scalar                           |
+| `GET`  | `/api/uptime/endpoint-buckets/:endpointId` | Optional | Get bucketed avg response time for one endpoint               |
 
 ### User Profile
 
@@ -497,36 +505,36 @@ Get the authenticated user's profile information. Requires authentication.
 ### Complete Data Lifecycle
 
 ```txt
-1️⃣  RAW SOURCE DATA (datasets/raw/*)
+1)  RAW SOURCE DATA (datasets/raw/*)
     ↓ extract_*.js or scrape_*.js (35 scripts)
 
-2️⃣  PROCESSED DATASETS (datasets/processed/*.csv)
+2)  PROCESSED DATASETS (datasets/processed/*.csv)
     Standard columns: id, problem, solution, materials, circular_strategy,
     category, impact, source_url, metadata_json — 32 total datasets
 
-3️⃣  MANUAL ENTRIES (datasets/manual_entries/manual_entries.csv)
+3)  MANUAL ENTRIES (datasets/manual_entries/manual_entries.csv)
     User-contributed problem/solution pairs (same column format)
 
-4️⃣  MERGED INPUT → npm run merge
+4)  MERGED INPUT → `npm run merge -w backend`
     Concatenates all CSVs + manual_entries, dedupes, validates
     Output: datasets/out/combined_input.csv (50,000+ rows)
 
-5️⃣  SEMANTIC CHUNKS → npm run chunk
+5)  SEMANTIC CHUNKS → `npm run chunk -w backend`
     Per-field chunking: problem_solution, problem, solution, impact, materials
     Metadata extraction: industry, category, r_strategy, scale, primary_material, geographic_focus
     Output: datasets/out/chunks.json (14,000–19,000 chunks)
 
-6️⃣  VECTOR EMBEDDINGS → npm run embed
+6)  VECTOR EMBEDDINGS → `npm run embed -w backend`
     OpenAI text-embedding-3-small, 1536 dims
     Batch: 20 chunks/call, 500ms delay, exponential backoff on rate limits
     Output: datasets/out/embedded_chunks.json
 
-7️⃣  DATABASE STORAGE → npm run store
+7)  DATABASE STORAGE → `npm run store -w backend`
     Inserts into documents table via configured backend (Supabase or Aiven)
     Creates/maintains HNSW index for fast similarity search
     Resume mode (--resume): skips already-stored documents by chunk_id
 
-8️⃣  QUERY & SCORING (Live API)
+8)  QUERY & SCORING (Live API)
     POST /api/score → hybrid search RPC → scoring → Layer 2 → LLM audit → Layer 3
 ```
 
@@ -689,17 +697,18 @@ npx vitest --watch                                             # Watch mode
 
 ### Frontend — Vercel
 
-The frontend deploys as a static SPA with a serverless proxy function:
+The frontend deploys as a static SPA on Vercel.
+Production API routing is handled by `frontend/vercel.json`, which rewrites `/api/*` requests directly to the backend service.
 
 ```txt
-Browser → /api/proxy?path=/api/score → Vercel Function → injects x-api-key → Backend
+Browser → /api/<path> → Vercel rewrite → backend service
 ```
 
 1. Connect GitHub repo to Vercel
 2. Set environment variables in Vercel dashboard:
    - All `VITE_*` variables (client-visible)
    - `INTERNAL_BACKEND_API_KEY` (server-only, never `VITE_` prefixed)
-3. Verify `vercel.json`: `/api/*` → serverless functions; all other routes → `index.html`
+3. Verify `frontend/vercel.json` rewrites `/api/*` to the backend host
 4. Deploy — automatic on push to main, or manual trigger in dashboard
 
 ### Backend — Render / any Node host
@@ -716,7 +725,7 @@ Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and a
 - [ ] All `VITE_*` variables set in Vercel
 - [ ] `INTERNAL_BACKEND_API_KEY` set in Vercel (server-only, not in git)
 - [ ] Backend `ALLOWED_ORIGINS` includes Vercel domains and custom domain
-- [ ] Database migrations 01–05 applied to production Supabase
+- [ ] Database migrations 00–07 applied to production Supabase
 - [ ] `npm run build` succeeds without errors
 - [ ] `npm test` passes for both backend and frontend
 - [ ] Preview environment tested before promoting to production
@@ -764,12 +773,13 @@ Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and a
 - RRF (Reciprocal Rank Fusion) combination is robust across diverse query types
 - Structured metadata filtering (industry, R-strategy, scale) narrows candidates before re-ranking
 
-### Vercel proxy for API key security
+### Production API Routing
 
-- `INTERNAL_BACKEND_API_KEY` lives only in Vercel server-side environment
-- `api/proxy.js` serverless function reads it and injects `x-api-key` on every request
-- Frontend code and browser DevTools can never expose the secret
-- All production API calls route through the proxy transparently via `buildApiUrl()`
+- `INTERNAL_BACKEND_API_KEY` lives only in Vercel server-side environment — never in any `VITE_` variable
+- `frontend/vercel.json` rewrites all `/api/*` requests to the backend host server-side
+- `buildApiUrl()` returns a relative `/api/...` path in production and a direct `VITE_API_URL` URL in development
+- Frontend code and browser DevTools never have access to the secret
+- `frontend/api/proxy.js` remains in the repo as a legacy helper but is not the active production routing path
 
 ### Batch embedding with resume mode
 
@@ -883,14 +893,14 @@ npm run embed -- --dry-run  # test locally without API calls
 
 **Wrong chunk count:**
 
-- Check `MIN_PROBLEM/SOLUTION_LENGTH` thresholds in `config/chunk.js`
+- Check `MIN_PROBLEM/SOLUTION_LENGTH` thresholds in `utils/chunk.js`
 - Review console for "Skipping record" warnings
 
 **API calls failing with 401 from frontend:**
 
 - Verify `INTERNAL_BACKEND_API_KEY` is set in Vercel environment
-- Check `api/proxy.js` is forwarding the `x-api-key` header
 - Confirm backend `apiKeyGuard` middleware is enabled
+- If using the legacy proxy helper, check `frontend/api/proxy.js` and backend `apiKeyGuard` configuration.
 
 **CORS errors in browser console:**
 
@@ -923,6 +933,6 @@ For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERE
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 12 May 2026
+**Last Updated:** 20 May 2026
 
 ---
