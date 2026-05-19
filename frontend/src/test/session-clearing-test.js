@@ -1,4 +1,6 @@
 /**
+ * @module session-clearing-test
+ * @description Manual/integration checks for clearing session storage on sign-out.
  * Test utility to verify session_evaluation_state clearing on auth events
  * This can be used in browser console to test the functionality
  */

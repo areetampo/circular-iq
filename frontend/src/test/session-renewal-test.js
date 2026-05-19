@@ -1,4 +1,6 @@
 /**
+ * @module session-renewal-test
+ * @description Manual/integration checks for session renewal and token refresh behaviour.
  * Test utility to verify session_id renewal on login
  * This can be used in browser console to test the functionality
  */
