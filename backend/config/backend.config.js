@@ -1,11 +1,10 @@
 /**
- * Backend Configuration
+ * @module backend.config
+ * @description Central configuration loader and validator for the backend application.
+ * Loads and validates environment variables via Zod schemas, freezes configuration
+ * immutably to prevent runtime changes, and supports strict mode for CI/CD environments.
  *
- * Loads and validates environment variables via Zod schemas.
- * Freezes configuration immutably to prevent runtime changes.
- * Supports strict mode for CI/CD environments.
- *
- * Environment sources (in order):
+ * Environment sources (in order of precedence):
  * 1. env/.env.{NODE_ENV} (loaded by loadEnv.js)
  * 2. env/.env.local (if exists, for development overrides)
  * 3. Process environment variables
@@ -17,6 +16,8 @@
  * - database: PostgreSQL/Supabase connection details
  * - openai: OpenAI API configuration
  * - aiven: Optional Aiven PostgreSQL pool details
+ * - uptime: Uptime monitoring configuration
+ * - scoring: Scoring and database function configuration
  */
 
 import '#config/loadEnv.js';
@@ -24,7 +25,7 @@ import '#config/loadEnv.js';
 import pino from 'pino';
 
 import { envSchema, testEnvSchema } from '#config/env.schema.js';
-import { API_ENDPOINTS, UPTIME_ENDPOINTS } from '#constants/index.js';
+import { API_ENDPOINTS, HEALTH_ENDPOINTS } from '#constants/index.js';
 
 const logger = pino({
   name: 'backend.config',
@@ -84,6 +85,11 @@ if (env.STRICT_ENV) {
 /* Deep Freeze */
 /* ------------------------------ */
 
+/**
+ * Recursively freezes an object and all its nested properties to prevent runtime modifications.
+ * @param {Object} obj - The object to deeply freeze.
+ * @returns {Object} The frozen object (same reference, now immutable).
+ */
 const deepFreeze = (obj) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     if (obj[prop] !== null && typeof obj[prop] === 'object' && !Object.isFrozen(obj[prop])) {
@@ -108,10 +114,13 @@ const DB_FUNCTIONS = Object.freeze([
   'search_documents_by_category',
   'search_documents_hybrid',
   'search_documents_hybrid_filtered',
-  'truncate_documents',
+  'find_recent_documents',
   'get_document_statistics',
   'count_documents_by_category',
-  'find_recent_documents',
+  'truncate_documents',
+  'update_updated_at_column',
+  'safe_jsonb_cast',
+  'backfill_document_metadata',
 ]);
 
 /**
@@ -133,6 +142,11 @@ const buildDatabaseConfig = () => ({
   },
 });
 
+/**
+ * Parses and deduplicates allowed CORS origins from environment variables.
+ * Combines explicitly allowed origins with the frontend app URL.
+ * @returns {Array<string>} Deduplicated array of allowed origin URLs.
+ */
 const parseAllowedOrigins = () => {
   const origins = env.ALLOWED_ORIGINS ?? [];
   const frontend = env.APP_URL ? [env.APP_URL] : [];
@@ -203,11 +217,13 @@ export const BACKEND_CONFIG = deepFreeze({
   },
 
   uptime: {
-    pollIntervalMs: 30 * 1000, // 30 seconds
-    retentionDays: 7, // 7 days
     pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
+    pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS, // 30 seconds
+    maxHistoryPerEndpoint: env.UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 30s interval -> 2/min * 60min * 24h * 28d = 80640 max checks per endpoint -> 30d = 86400 chosen as sufficient
+    queryWindowDaysLimit: env.UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
+    retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS, // 30 days
     cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
-    cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
-    endpoints: UPTIME_ENDPOINTS.map((endpoint) => endpoint.path),
+    cleanupIntervalDurationMs: env.UPTIME_CHECKS_CLEANUP_INTERVAL_MS, // 24 hours
+    endpoints: HEALTH_ENDPOINTS.map((endpoint) => endpoint.path),
   },
 });
