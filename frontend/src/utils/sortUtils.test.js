@@ -1,3 +1,8 @@
+/**
+ * @module sortUtils.test
+ * @description Unit tests for assessment list sort parsing.
+ */
+
 /* global describe, it, expect */
 
 import { parseSortBy } from './sortUtils';
