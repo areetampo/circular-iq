@@ -1,4 +1,6 @@
 /**
+ * @module DriftingShapesBackground
+ * @description Animated floating shapes background used on marketing and auth layouts.
  * Moving Grid Background Component
  *
  * Renders a subtle, animated grid of thin lines that slowly translates diagonally.
@@ -162,7 +164,13 @@ class MovingGrid {
   }
 }
 
-export default function DriftingShapesBackground() {
+/**
+ * Animated floating shapes background used on marketing and auth layouts.
+ *
+ * @param {Object} props
+ * @returns {import('react').ReactElement}
+ */
+export default function DriftingShapesBackground({ ...props }) {
   const canvasRef = useRef(null);
   const instanceRef = useRef(null);
 
@@ -177,9 +185,7 @@ export default function DriftingShapesBackground() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="app__shape-canvas" />;
+  return <canvas {...props} ref={canvasRef} className="app__shape-canvas" />;
 }
 
-DriftingShapesBackground.propTypes = {
-  /** No props required for this component */
-};
+DriftingShapesBackground.propTypes = {};
