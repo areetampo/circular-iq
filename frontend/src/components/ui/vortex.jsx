@@ -1,0 +1,270 @@
+'use client';
+/**
+ * @module vortex
+ * @description Canvas-based vortex particle animation component.
+ * Creates a procedural particle background with motion blur and glow effects.
+ */
+import { motion } from 'motion/react';
+import PropTypes from 'prop-types';
+import { useEffect, useRef } from 'react';
+import { createNoise3D } from 'simplex-noise';
+
+import { cn } from '@/utils/cn';
+
+/**
+ * Vortex renders a full-screen particle canvas background.
+ * @param {Object} props
+ * @param {number} [props.particleCount=700] - Number of particles to render.
+ * @param {number} [props.rangeY=100] - Vertical spread of particles around center.
+ * @param {number} [props.baseSpeed=0.0] - Base particle speed.
+ * @param {number} [props.rangeSpeed=1.5] - Additional speed variation.
+ * @param {number} [props.baseRadius=1] - Base particle radius.
+ * @param {string} [props.backgroundColor='#000000'] - Background color for the canvas.
+ * @param {string} [props.className] - CSS classes for the content wrapper.
+ * @param {string} [props.containerClassName] - CSS classes for the container element.
+ * @param {import('react').ReactNode} [props.children] - Foreground content rendered above the canvas.
+ * @returns {JSX.Element}
+ */
+export const Vortex = (props) => {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const animationFrameId = useRef();
+  const particleCount = props.particleCount || 700;
+  const particlePropCount = 9;
+  const particlePropsLength = particleCount * particlePropCount;
+  const rangeY = props.rangeY || 100;
+  const baseTTL = 50;
+  const rangeTTL = 150;
+  const baseSpeed = props.baseSpeed || 0.0;
+  const rangeSpeed = props.rangeSpeed || 1.5;
+  const baseRadius = props.baseRadius || 1;
+  const rangeRadius = props.rangeRadius || 2;
+  const baseHue = props.baseHue || 22;
+  const rangeHue = 20;
+  const noiseSteps = 3;
+  const xOff = 0.00125;
+  const yOff = 0.00125;
+  const zOff = 0.0005;
+  const backgroundColor = props.backgroundColor || '#000000';
+  let tick = 0;
+  const noise3D = createNoise3D();
+  let particleProps = new Float32Array(particlePropsLength);
+  let center = [0, 0];
+
+  const TAU = 2 * Math.PI;
+  const rand = (n) => n * Math.random();
+  const randRange = (n) => n - rand(2 * n);
+  const fadeInOut = (t, m) => {
+    let hm = 0.5 * m;
+    return Math.abs(((t + hm) % m) - hm) / hm;
+  };
+  const lerp = (n1, n2, speed) => (1 - speed) * n1 + speed * n2;
+
+  const setup = () => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (canvas && container) {
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        resize(canvas);
+        initParticles();
+        draw(canvas, ctx);
+      }
+    }
+  };
+
+  const initParticles = () => {
+    tick = 0;
+    // simplex = new SimplexNoise();
+    particleProps = new Float32Array(particlePropsLength);
+
+    for (let i = 0; i < particlePropsLength; i += particlePropCount) {
+      initParticle(i);
+    }
+  };
+
+  const initParticle = (i) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let x, y, vx, vy, life, ttl, speed, radius, hue;
+
+    x = rand(canvas.width);
+    y = center[1] + randRange(rangeY);
+    vx = 0;
+    vy = 0;
+    life = 0;
+    ttl = baseTTL + rand(rangeTTL);
+    speed = baseSpeed + rand(rangeSpeed);
+    radius = baseRadius + rand(rangeRadius);
+    hue = baseHue + rand(rangeHue);
+
+    particleProps.set([x, y, vx, vy, life, ttl, speed, radius, hue], i);
+  };
+
+  const draw = (canvas, ctx) => {
+    tick++;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawParticles(ctx);
+    renderGlow(canvas, ctx);
+    renderToScreen(canvas, ctx);
+
+    animationFrameId.current = window.requestAnimationFrame(() => draw(canvas, ctx));
+  };
+
+  const drawParticles = (ctx) => {
+    for (let i = 0; i < particlePropsLength; i += particlePropCount) {
+      updateParticle(i, ctx);
+    }
+  };
+
+  const updateParticle = (i, ctx) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let i2 = 1 + i,
+      i3 = 2 + i,
+      i4 = 3 + i,
+      i5 = 4 + i,
+      i6 = 5 + i,
+      i7 = 6 + i,
+      i8 = 7 + i,
+      i9 = 8 + i;
+    let n, x, y, vx, vy, life, ttl, speed, x2, y2, radius, hue;
+
+    x = particleProps[i];
+    y = particleProps[i2];
+    n = noise3D(x * xOff, y * yOff, tick * zOff) * noiseSteps * TAU;
+    vx = lerp(particleProps[i3], Math.cos(n), 0.5);
+    vy = lerp(particleProps[i4], Math.sin(n), 0.5);
+    life = particleProps[i5];
+    ttl = particleProps[i6];
+    speed = particleProps[i7];
+    x2 = x + vx * speed;
+    y2 = y + vy * speed;
+    radius = particleProps[i8];
+    hue = particleProps[i9];
+
+    drawParticle(x, y, x2, y2, life, ttl, radius, hue, ctx);
+
+    life++;
+
+    particleProps[i] = x2;
+    particleProps[i2] = y2;
+    particleProps[i3] = vx;
+    particleProps[i4] = vy;
+    particleProps[i5] = life;
+
+    if (checkBounds(x, y, canvas) || life > ttl) {
+      initParticle(i);
+    }
+  };
+
+  const drawParticle = (x, y, x2, y2, life, ttl, radius, hue, ctx) => {
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineWidth = radius;
+    ctx.strokeStyle = `hsla(${hue},70%,38%,${fadeInOut(life, ttl) * 0.32})`;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
+  };
+
+  const checkBounds = (x, y, canvas) => {
+    return x > canvas.width || x < 0 || y > canvas.height || y < 0;
+  };
+
+  const resize = (canvas) => {
+    // Use the container's bounds instead of the entire browser window
+    const width = containerRef.current?.clientWidth || window.innerWidth;
+    const height = containerRef.current?.clientHeight || window.innerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    center[0] = 0.5 * canvas.width;
+    center[1] = 0.5 * canvas.height;
+  };
+
+  const renderGlow = (canvas, ctx) => {
+    ctx.save();
+    ctx.filter = 'blur(10px) brightness(90%)';
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.12;
+    ctx.drawImage(canvas, 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.filter = 'blur(3px) brightness(95%)';
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.08;
+    ctx.drawImage(canvas, 0, 0);
+    ctx.restore();
+  };
+
+  const renderToScreen = (canvas, ctx) => {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.6;
+    ctx.drawImage(canvas, 0, 0);
+    ctx.restore();
+  };
+
+  const handleResize = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (canvas && ctx) {
+      resize(canvas);
+    }
+  };
+
+  useEffect(() => {
+    setup();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div className={cn('relative h-full w-full', props.containerClassName)}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        ref={containerRef}
+        className="absolute inset-0 z-0 flex h-full w-full items-center justify-center bg-transparent"
+      >
+        <canvas ref={canvasRef}></canvas>
+      </motion.div>
+      <div className={cn('relative z-10', props.className)}>{props.children}</div>
+    </div>
+  );
+};
+
+Vortex.propTypes = {
+  particleCount: PropTypes.number,
+  rangeY: PropTypes.number,
+  baseSpeed: PropTypes.number,
+  rangeSpeed: PropTypes.number,
+  baseRadius: PropTypes.number,
+  rangeRadius: PropTypes.number,
+  baseHue: PropTypes.number,
+  backgroundColor: PropTypes.string,
+  className: PropTypes.string,
+  containerClassName: PropTypes.string,
+  children: PropTypes.node,
+};
