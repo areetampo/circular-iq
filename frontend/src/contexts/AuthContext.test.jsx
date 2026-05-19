@@ -1,3 +1,8 @@
+/**
+ * @module AuthContext.test
+ * @description Tests for AuthContext provider behaviour.
+ */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
@@ -16,6 +21,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { AuthProvider, useAuth } from './AuthContext';
 
+/** Test harness that exposes `useAuth` state as DOM text for assertions. */
 function Consumer() {
   const { authLoading, isAuthenticated, user, profile } = useAuth();
   return (

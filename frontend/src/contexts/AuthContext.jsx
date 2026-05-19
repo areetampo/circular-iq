@@ -1,8 +1,13 @@
 /**
- * Authentication Context
+ * @module AuthContext
+ * @description Single source of truth for Supabase authentication state.
  *
- * Provides a single shared instance of authentication state across the entire app.
- * This prevents each component from re-initializing auth state when calling useAuth().
+ * Responsibilities:
+ * - Initializes session once on mount and subscribes to auth state changes.
+ * - Fetches backend user profile when a session is present (with timeout).
+ * - Clears evaluation session storage on login/logout transitions.
+ * - Renews anonymous session_id on login to separate tracked sessions.
+ * - Exposes useAuth() for stable, shared auth state across the app.
  */
 
 import PropTypes from 'prop-types';
@@ -59,9 +64,11 @@ async function fetchUserProfile(token, timeoutMs = 5000) {
 }
 
 /**
- * AuthProvider - Wraps the app and provides auth state to all children
+ * Provides auth state to the React tree. Mount once at the app root.
  *
- * This ensures auth state is initialized ONCE and shared across all components.
+ * @param {Object} props
+ * @param {import('react').ReactNode} props.children
+ * @returns {import('react').ReactElement}
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -142,12 +149,12 @@ export function AuthProvider({ children }) {
           }
         } else {
           // Session restoration - don't clear anything
-          logger.info('[SESSION_RESTORED]', {
-            userId: newSession.user.id,
-            wasAuthenticated,
-            isNowAuthenticated,
-            isAuthEvent,
-          });
+          // logger.info('[SESSION_RESTORED]', {
+          //   userId: newSession.user.id,
+          //   wasAuthenticated,
+          //   isNowAuthenticated,
+          //   isAuthEvent,
+          // });
         }
 
         // Fetch full user profile from backend (includes additional profile data)
@@ -262,12 +269,18 @@ AuthProvider.propTypes = {
 };
 
 /**
- * useAuth hook - Access shared auth state from context
+ * Access shared auth state from AuthContext.
+ * Returns a safe unauthenticated fallback when used outside AuthProvider (tests, isolated renders).
  *
- * This hook now returns the SAME auth state instance across all components,
- * preventing re-initialization and duplicate loading states.
- *
- * @returns {Object} { user, profile, authLoading, isAuthenticated, session, token, signOut }
+ * @returns {{
+ *   user: Object|null,
+ *   profile: Object|null,
+ *   session: Object|null,
+ *   authLoading: boolean,
+ *   isAuthenticated: boolean,
+ *   token: string|null,
+ *   signOut: () => Promise<void>
+ * }}
  */
 export function useAuth() {
   const context = useContext(AuthContext);
