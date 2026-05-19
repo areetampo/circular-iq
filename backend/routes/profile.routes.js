@@ -1,10 +1,31 @@
+/**
+ * @module profile.routes
+ * @description Express router for user profile endpoints.
+ * Provides authenticated endpoints for fetching and managing user profile data.
+ * All endpoints require valid Supabase authentication.
+ *
+ * Routes:
+ *   GET /                           — Fetch authenticated user's profile data
+ */
+
 import express from 'express';
 
 import { requireAuth } from '#middleware/auth.middleware.js';
 
+/**
+ * Creates the profile router.
+ *
+ * @param {Object} serviceSupabase - Service-role Supabase client instance.
+ * @returns {express.Router} Configured Express router with profile endpoints.
+ */
 export default function createProfileRouter(serviceSupabase) {
   const router = express.Router();
 
+  /**
+   * GET /
+   * Returns the authenticated user's profile (`id`, `username`, `created_at`, `updated_at`).
+   * Requires Bearer token via `requireAuth`. 404 when profile row is missing.
+   */
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
 
