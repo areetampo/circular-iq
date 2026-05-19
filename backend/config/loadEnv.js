@@ -1,9 +1,16 @@
 /**
- * loadEnv.js
+ * @module loadEnv
+ * @description Environment variable loader for the backend application.
+ * Loads environment variables from .env files based on the current NODE_ENV.
  *
- * Responsible for loading environment variables from .env files based on the current NODE_ENV.
- * In production, it relies solely on actual environment variables from dashboard for security and performance.
- * In development and test environments, it loads variables from .env.backend.
+ * Behavior by environment:
+ * - production: Relies solely on actual environment variables from deployment dashboard
+ *   for security and performance (no .env file loading).
+ * - development: Loads variables from env/.env.backend.
+ * - test: Loads variables from env/.env.test.
+ *
+ * The module locates the monorepo root by searching for the .git directory,
+ * ensuring it can find the env/ directory regardless of where the script is run from.
  */
 
 import fs from 'fs';
@@ -18,12 +25,12 @@ const IS_PROD = NODE_ENV === 'production';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Helper function to find the monorepo root by looking for a .git directory.
- * This allows us to reliably locate the 'env' directory regardless of where this script is run from.
- * If .git is not found (e.g., in some CI/CD environments), it falls back to the provided startPath.
- * You can modify this to check for other files like 'package.json' if .git is not suitable for your environment.
+ * Finds the monorepo root directory by searching upward for the .git directory.
+ * This allows reliable location of the 'env' directory regardless of where the script is run from.
+ * If .git is not found (e.g., in some CI/CD environments), falls back to the provided startPath.
+ *
  * @param {string} startPath - The initial path to start searching from (usually __dirname).
- * @returns {string} - The path to the monorepo root or the startPath if .git is not found.
+ * @returns {string} The path to the monorepo root or the startPath if .git is not found.
  */
 function getMonorepoRoot(startPath) {
   let currentPath = startPath;
