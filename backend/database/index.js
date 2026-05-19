@@ -1,12 +1,26 @@
-import { getSupabaseClient } from '#database/client.js';
+/**
+ * @module database
+ * @description Central export point for database clients and repositories.
+ * Provides singleton instances of repositories and re-exports database client
+ * utilities for convenient importing throughout the application.
+ *
+ * Exports:
+ * - documentsRepository: Singleton DocumentsRepository instance
+ * - ceCasesRepository:   Singleton CeCasesRepository instance
+ * - Client utilities:    getSupabaseClient, getSupabasePgPool, getAivenPgPool,
+ *                        getDatabaseClient, getDatabaseType,
+ *                        setDatabaseClientOverride, closeAllPools
+ * - Supabase factories:  createSupabaseClient, createSupabaseAnonClient
+ */
+
+import { CeCasesRepository } from '#database/repositories/ce_cases.repository.js';
 import { DocumentsRepository } from '#database/repositories/documents.repository.js';
 
-// create a single repository instance and reuse it; it will determine
-// type internally (honoring any overrides set for testing).
+/** Singleton DocumentsRepository — honours test client overrides via client.js. */
 export const documentsRepository = new DocumentsRepository();
 
-// export helpers in case other consumers need direct clients
-export const supabase = getSupabaseClient();
+/** Singleton CeCasesRepository — always backed by the Supabase service-role client. */
+export const ceCasesRepository = new CeCasesRepository();
 
 export { createSupabaseAnonClient, createSupabaseClient } from '#database/supabase.client.js';
 
@@ -19,5 +33,3 @@ export {
   getSupabasePgPool,
   setDatabaseClientOverride,
 } from '#database/client.js';
-
-export * as ce_cases from '#database/repositories/ce_cases.repository.js';
