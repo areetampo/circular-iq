@@ -1,21 +1,19 @@
 /**
- * Search Controller
+ * @module search.controller
+ * @description Handlers for `GET /api/search/ce-cases` (keyword and hybrid CE case search).
  *
- * Handles GET /api/search/ce-cases
- * Supports two modes:
- *   - keyword (default): fast full-text search, no OpenAI call
- *   - hybrid:            semantic vector search + keyword scoring (calls OpenAI to embed the query)
+ * Modes:
+ *   - `keyword` (default) — full-text search, no OpenAI call
+ *   - `hybrid` — vector similarity + keyword scoring (embeds query via OpenAI)
  *
  * Query parameters:
- *   q             {string}  Required. The search query.
- *   mode          {string}  "keyword" | "hybrid". Default: "keyword".
- *   limit         {number}  Max results to return. Default: 20. Max: 50.
- *   vector_weight {number}  0.0–1.0, hybrid mode only. Default: 0.7.
- *
- * @module search.controller
+ *   q             {string}  Required search string.
+ *   mode          {string}  `keyword` | `hybrid`. Default: `keyword`.
+ *   limit         {number}  Max results (1–50). Default: 20.
+ *   vector_weight {number}  Hybrid only, 0.0–1.0. Default: 0.7.
  */
 
-import { ce_cases } from '#database/index.js';
+import { ceCasesRepository } from '#database/index.js';
 import { createEmbedding } from '#services/embedding.service.js';
 
 const MAX_QUERY_LENGTH = 500;
@@ -127,7 +125,7 @@ export function searchCeCases(supabase) {
       let rawResults;
 
       if (mode === 'keyword') {
-        rawResults = await ce_cases.searchKeyword(supabase, query, limit);
+        rawResults = await ceCasesRepository.searchKeyword(supabase, query, limit);
       } else {
         // Hybrid: embed the query first, then pass vector + keyword to RPC
         let queryEmbedding;
@@ -142,7 +140,7 @@ export function searchCeCases(supabase) {
           });
         }
 
-        rawResults = await ce_cases.searchHybrid(
+        rawResults = await ceCasesRepository.searchHybrid(
           supabase,
           queryEmbedding,
           query,
