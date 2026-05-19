@@ -1,4 +1,3 @@
-
 /**
  * extract_mendeley.js
  *
@@ -8,7 +7,7 @@
  * to balance coverage across research categories while maintaining diversity.
  *
  * Features:
- *   - XLSX (Excel) file parsing with multiple sheet support
+ *   - XLSX (Excel) file parsing with multiple sheet support (via ExcelJS)
  *   - Reservoir sampling for efficient random selection from large populations
  *   - Category-based research classification (SMI, SBM, etc.)
  *   - Academic metadata preservation (authors, DOI, keywords, publication year)
@@ -29,17 +28,17 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 import {
-    cleanText,
-    DATASET_KEYS,
-    DATASET_LOOKUP,
-    ensureDir,
-    getDatasetProcessedCsvPath,
-    getDatasetRawDir,
-    verifyPathsExist,
-    writeCsv,
+  cleanText,
+  DATASET_KEYS,
+  DATASET_LOOKUP,
+  ensureDir,
+  getDatasetProcessedCsvPath,
+  getDatasetRawDir,
+  verifyPathsExist,
+  writeCsv,
 } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
@@ -65,7 +64,58 @@ const SBM_SAMPLE_SIZE = 150;
 
 const MAX_ROWS = 300; // Maximum number of rows
 
+// -------------------- ExcelJS Helpers --------------------
+
+/**
+ * Drop-in replacement for XLSX.readFile().
+ * Returns an object shaped like { SheetNames: string[], Sheets: { [name]: worksheet } }
+ * so all downstream code can stay identical.
+ */
+async function readWorkbook(filePath) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filePath);
+  return {
+    SheetNames: workbook.worksheets.map((ws) => ws.name),
+    Sheets: Object.fromEntries(
+      workbook.worksheets.map((ws) => [ws.name, ws])
+    ),
+  };
+}
+
+/**
+ * Drop-in replacement for XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }).
+ * Returns an array-of-arrays where every cell value is a primitive (string / number / boolean).
+ * Gaps between cells are filled with '' to match the defval: '' behaviour.
+ * Rich-text, formula results, and hyperlink objects are unwrapped to plain strings.
+ */
+function sheetToJson(sheet) {
+  const rows = [];
+  sheet.eachRow({ includeEmpty: true }, (row) => {
+    const values = [];
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      // Fill any sparse gaps with empty string (mirrors defval: '')
+      while (values.length < colNumber - 1) values.push('');
+
+      let v = cell.value;
+
+      // Unwrap ExcelJS object types to plain primitives
+      if (v !== null && typeof v === 'object') {
+        if (v.richText)          v = v.richText.map((r) => r.text).join('');
+        else if (v.text)         v = v.text;
+        else if (v.result !== undefined) v = v.result; // formula cell → use cached result
+        else if (v.hyperlink)    v = v.hyperlink;
+        else                     v = String(v);
+      }
+
+      values.push(v ?? '');
+    });
+    rows.push(values);
+  });
+  return rows;
+}
+
 // -------------------- Helpers --------------------
+
 // Reservoir sampling for efficient random selection from large arrays
 function randomSample(arr, sampleSize) {
   if (arr.length <= sampleSize) return arr;
@@ -135,7 +185,8 @@ function scoreRow(row) {
 }
 
 // -------------------- Processors --------------------
-function processMaskLCA() {
+
+async function processMaskLCA() {
   logger.info('📄 Processing Mask LCA ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.mask_lca);
@@ -144,17 +195,17 @@ function processMaskLCA() {
     return rows;
   }
 
-  const workbook = XLSX.readFile(filePath);
+  const workbook = await readWorkbook(filePath);
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const data = sheetToJson(sheet);
 
   if (data.length < 3) {
     logger.warn('‼ ️  Mask LCA sheet has insufficient rows.');
     return rows;
   }
 
-  // Locate header row (contains "Process" and "Material flows")
+  // Locate header row (contains "Material flows")
   let headerRowIndex = -1;
   let materialColIdx = -1;
   for (let i = 0; i < data.length; i++) {
@@ -219,7 +270,7 @@ function processMaskLCA() {
   return rows;
 }
 
-function processSMESurvey() {
+async function processSMESurvey() {
   logger.info('📄 Processing SME Survey (keeping only score = 5) ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.sme_practices);
@@ -228,9 +279,9 @@ function processSMESurvey() {
     return rows;
   }
 
-  const workbook = XLSX.readFile(filePath);
+  const workbook = await readWorkbook(filePath);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const data = sheetToJson(sheet);
 
   if (data.length < 2) return rows;
 
@@ -261,7 +312,6 @@ function processSMESurvey() {
           problem: cleanText(
             `Improving ${categoryMatch.toLowerCase()} practices in SME supply chains`,
           ),
-          // Include the full question in the solution for better searchability
           solution: cleanText(
             `${business} - Successful ${categoryMatch} strategy (Score: ${score}/5): ${colName}`,
           ),
@@ -289,7 +339,7 @@ function processSMESurvey() {
   return sampled;
 }
 
-function processSWARA() {
+async function processSWARA() {
   logger.info('📄 Processing SWARA Challenges ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.bwm_scores);
@@ -298,12 +348,12 @@ function processSWARA() {
     return rows;
   }
 
-  const workbook = XLSX.readFile(filePath);
+  const workbook = await readWorkbook(filePath);
   const sheetName =
     workbook.SheetNames.find((name) => name.toLowerCase().includes('challenge')) ||
     workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const data = sheetToJson(sheet);
 
   let startRow = -1;
   for (let i = 0; i < data.length; i++) {
@@ -357,16 +407,16 @@ function processSWARA() {
       }),
     });
     logger.info(
-    { challengeCode: bestChallenge, geoMean: bestGeoMean.toFixed(4) },
-    'Extracted top challenge'
-  );
+      { challengeCode: bestChallenge, geoMean: bestGeoMean.toFixed(4) },
+      'Extracted top challenge'
+    );
   } else {
     logger.warn('‼ ️  No valid challenge data found.');
   }
   return rows;
 }
 
-function processNetworkCentrality() {
+async function processNetworkCentrality() {
   logger.info('📄 Processing Network Centrality Scores ...');
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.network_scores);
@@ -375,7 +425,7 @@ function processNetworkCentrality() {
     return rows;
   }
 
-  const workbook = XLSX.readFile(filePath);
+  const workbook = await readWorkbook(filePath);
   const targetSheetName = workbook.SheetNames.find(
     (name) => /network|scenario/i.test(name) && !/flow|figure/i.test(name),
   );
@@ -384,7 +434,7 @@ function processNetworkCentrality() {
     return rows;
   }
   const sheet = workbook.Sheets[targetSheetName];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const data = sheetToJson(sheet);
 
   if (data.length < 3) return rows;
 
@@ -444,7 +494,7 @@ function processNetworkCentrality() {
   return rows;
 }
 
-function processSustainableBusinessModel() {
+async function processSustainableBusinessModel() {
   logger.info(
     { sampleSize: SBM_SAMPLE_SIZE },
     'Processing Sustainable Business Model CSV'
@@ -456,9 +506,9 @@ function processSustainableBusinessModel() {
     return rows;
   }
 
-  const workbook = XLSX.readFile(filePath);
+  const workbook = await readWorkbook(filePath);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const data = sheetToJson(sheet);
 
   if (data.length < 2) return rows;
 
@@ -510,11 +560,11 @@ async function main() {
   logger.info('🚀 Starting Mendeley Excel extraction...\n');
   await ensureDir(path.dirname(OUTPUT_PATH));
 
-  const maskRows = processMaskLCA();
-  const smeRows = processSMESurvey();
-  const swaraRows = processSWARA();
-  const networkRows = processNetworkCentrality();
-  const sbmRows = processSustainableBusinessModel();
+  const maskRows    = await processMaskLCA();
+  const smeRows     = await processSMESurvey();
+  const swaraRows   = await processSWARA();
+  const networkRows = await processNetworkCentrality();
+  const sbmRows     = await processSustainableBusinessModel();
 
   let allRows = [...maskRows, ...smeRows, ...swaraRows, ...networkRows, ...sbmRows];
 
@@ -532,7 +582,6 @@ async function main() {
     logger.info({ maxRows: MAX_ROWS }, 'Applying intelligent filtering');
 
     // 1. Identify rows from small, high‑value sources (keep all of them)
-    //    We detect them by metadata fields rather than category, because category can be ambiguous.
     const isHighValue = (row) => {
       if (!row.metadata_json) return false;
       try {
