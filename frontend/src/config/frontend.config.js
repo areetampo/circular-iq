@@ -1,8 +1,18 @@
+/**
+ * @module frontend.config
+ * @description Validated, frozen frontend configuration from Vite env vars.
+ * Exports FRONTEND_CONFIG (app URL, API URL, Supabase keys, anon scoring limit, routes).
+ * In test mode, validation is bypassed with safe defaults.
+ */
+
 import { FRONTEND_ROUTES } from '@/constants';
 
 import { frontendSchema } from './env.schema';
 
 const rawEnv = {
+  MODE: import.meta.env.MODE || process.env.MODE || process.env.NODE_ENV || 'development',
+  PROD: import.meta.env.PROD ?? process.env.NODE_ENV === 'production',
+
   VITE_APP_URL: import.meta.env.VITE_APP_URL || process.env.VITE_APP_URL || 'http://localhost:5173',
   VITE_API_URL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:3000',
 
@@ -17,11 +27,18 @@ const rawEnv = {
   VITE_SUPABASE_ANON_KEY:
     import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'test-key',
 
-  VITE_ANON_SCORING_LIMIT:
-    import.meta.env.VITE_ANON_SCORING_LIMIT || process.env.VITE_ANON_SCORING_LIMIT || '20',
-
-  MODE: import.meta.env.MODE || process.env.MODE || process.env.NODE_ENV || 'development',
-  PROD: import.meta.env.PROD ?? process.env.NODE_ENV === 'production',
+  VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS:
+    import.meta.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS ||
+    process.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS ||
+    30000,
+  VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT:
+    import.meta.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT ||
+    process.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT ||
+    86400,
+  VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT:
+    import.meta.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ||
+    process.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ||
+    28,
 };
 
 const result = frontendSchema.safeParse(rawEnv);
@@ -43,6 +60,9 @@ let validatedConfig;
 const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
 if (isTest) {
   validatedConfig = {
+    isProd: false,
+    mode: 'test',
+
     appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
     apiUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
 
@@ -58,15 +78,10 @@ if (isTest) {
     },
 
     uptimeMonitor: {
-      refetchIntervalMs: 30_000, // Frontend polling interval for uptime monitor data (matches backend)
+      refetchIntervalMs: import.meta.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS ?? 30000, // Frontend polling interval for uptime monitor data (matches backend)
+      maxHistoryPerEndpoint: import.meta.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT ?? 86400, // 30s interval -> 2/min * 60min * 24h * 28d = 80640 max checks per endpoint -> 30d = 86400 chosen as sufficient
+      queryWindowDaysLimit: import.meta.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ?? 28, // 28 days
     },
-
-    scoring: {
-      anonScoringLimit: Number(import.meta.env.VITE_ANON_SCORING_LIMIT) || 20,
-    },
-
-    isProd: false,
-    mode: 'test',
   };
   // Skip all validation in test mode
 } else {
@@ -87,6 +102,9 @@ if (isTest) {
       throw new Error('Production build cannot use localhost API URL');
     }
     validatedConfig = {
+      isProd: env.PROD,
+      mode: env.MODE,
+
       appUrl: env.VITE_APP_URL,
       apiUrl: env.VITE_API_URL,
 
@@ -102,19 +120,30 @@ if (isTest) {
       },
 
       uptimeMonitor: {
-        refetchIntervalMs: 30_000, // Frontend polling interval for uptime monitor data (matches backend)
+        refetchIntervalMs: env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS, // Frontend polling interval for uptime monitor data (matches backend)
+        maxHistoryPerEndpoint: env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 30s interval -> 2/min * 60min * 24h * 28d = 80640 max checks per endpoint -> 30d = 86400 chosen as sufficient
+        queryWindowDaysLimit: env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
       },
-
-      scoring: {
-        anonScoringLimit: env.VITE_ANON_SCORING_LIMIT,
-      },
-
-      isProd: env.PROD,
-      mode: env.MODE,
     };
   }
 }
 
+/**
+ * Frozen frontend configuration object.
+ * Contains validated environment variables, routes, and behavior patterns.
+ *
+ * @type {Object}
+ * @property {string} appUrl - Frontend application URL.
+ * @property {string} apiUrl - Backend API URL.
+ * @property {Object} testCredentials - Test user credentials.
+ * @property {Object} supabase - Supabase configuration.
+ * @property {Object} uptimeMonitor - Uptime monitor settings.
+ * @property {Object} scoring - Scoring configuration.
+ * @property {boolean} isProd - Production mode flag.
+ * @property {string} mode - Current environment mode.
+ * @property {Object} routes - Frontend route definitions.
+ * @property {Object} routePatterns - Route behavior patterns.
+ */
 export const FRONTEND_CONFIG = deepFreeze({
   ...validatedConfig,
 
