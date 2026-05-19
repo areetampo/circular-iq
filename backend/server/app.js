@@ -1,5 +1,26 @@
-/** Express app factory. Mounts routes and middleware. */
-// Express application instance separated from start logic for testing and layering
+/**
+ * @module app
+ * @description Express application factory and middleware configuration.
+ * Creates and configures the Express app with all routes, middleware, and error handlers.
+ * Separated from server startup logic for testability and modular architecture.
+ *
+ * Key features:
+ * - CORS configuration with origin validation
+ * - API key authentication middleware
+ * - Route mounting for all API endpoints
+ * - Global error handling
+ * - Security headers via Helmet
+ *
+ * Routes mounted:
+ * - /health - Health check endpoints (public)
+ * - /api/uptime - Uptime monitoring (public)
+ * - /api/analytics - Analytics and statistics (public)
+ * - /api/search - CE cases search (public)
+ * - /api/score - Scoring/assessment (public with rate limiting)
+ * - /api/assessments - Assessment CRUD (requires auth)
+ * - /api/profile - User profile (requires auth)
+ */
+
 import '#server/bootstrap.js';
 
 import { Buffer } from 'buffer';
@@ -231,4 +252,8 @@ app.use((err, req, res, next) => {
   });
 });
 
+/**
+ * Configured Express application (middleware + routes). Import for tests or `index.js` startup.
+ * @type {import('express').Express}
+ */
 export default app;
