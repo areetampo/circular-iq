@@ -1,3 +1,8 @@
+/**
+ * @module ResultsRestoreDialog.simple.test
+ * @description Lightweight tests for ResultsRestoreDialog.
+ */
+
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';

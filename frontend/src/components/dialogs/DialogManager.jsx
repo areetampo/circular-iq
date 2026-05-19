@@ -1,9 +1,7 @@
 /**
- * Dialog Manager
- * Central renderer for all dialogs in the application
- * Rendered in AppContainer.jsx to ensure dialogs always render at correct z-index
- *
- * Location: src/components/dialogs/DialogManager.jsx
+ * @module DialogManager
+ * @description Central renderer for all app dialogs; switches on `dialog.type` from `useGlobalDialog()`.
+ * Mounted in `AppContainer` so overlays sit at the correct z-index.
  *
  * This component:
  * 1. Gets the global dialog state via useGlobalDialog()
@@ -35,6 +33,10 @@ import ReplaceInputsDialog from './ReplaceInputsDialog';
 import ResultsRestoreDialog from './ResultsRestoreDialog';
 import SaveAssessmentDialog from './SaveAssessmentDialog';
 
+/**
+ * Renders the active dialog component from global dialog state.
+ * @returns {import('react').ReactElement|null}
+ */
 function DialogManagerContent() {
   // Get dialog state directly from context instead of props
   // This allows React.memo() to work properly without prop reference issues
@@ -60,7 +62,12 @@ function DialogManagerContent() {
       return <ReplaceInputsDialog />;
 
     case DIALOG_TYPES.LIMIT_REACHED:
-      return <LimitReachedDialog anonScoringLimit={data?.anonScoringLimit} />;
+      return (
+        <LimitReachedDialog
+          anonScoringLimit={data?.anonScoringLimit}
+          lastUsedAt={data?.lastUsedAt}
+        />
+      );
 
     case DIALOG_TYPES.CONFIRM:
       return (
@@ -76,7 +83,7 @@ function DialogManagerContent() {
       );
 
     case DIALOG_TYPES.SESSION_RESULTS_RESTORE:
-      return <ResultsRestoreDialog sessionData={data?.sessionData} onDismiss={data?.onDismiss} />;
+      return <ResultsRestoreDialog />;
 
     default:
       logger.warn('Unknown dialog type:', type);

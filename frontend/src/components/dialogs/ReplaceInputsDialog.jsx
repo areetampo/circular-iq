@@ -1,11 +1,6 @@
 /**
- * Replace Inputs Dialog
- * Specialized confirmation dialog for replacing form inputs
- * Uses success status to indicate positive action
- *
- * Now uses centralized dialog state via useGlobalDialog()
- *
- * Location: src/components/dialogs/ReplaceInputsDialog.jsx
+ * @module ReplaceInputsDialog
+ * @description Confirms overwriting current landing-page inputs with a sample or restored scenario.
  */
 
 import { AlertDialog } from '@heroui/react';

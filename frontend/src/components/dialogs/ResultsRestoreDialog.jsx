@@ -1,3 +1,8 @@
+/**
+ * @module ResultsRestoreDialog
+ * @description Offers to restore a prior evaluation session (results snapshot and/or landing inputs).
+ */
+
 import { AlertDialog, Checkbox, Label } from '@heroui/react';
 import { ExternalLink, FileCheck, RefreshCw } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -294,10 +299,6 @@ const ResultsRestoreDialog = React.memo(function ResultsRestoreDialog() {
 
   return <MemoizedContent key="session-restore-dialog" />;
 });
-
-ResultsRestoreDialog.propTypes = {
-  // Props are no longer used - dialog gets data from useGlobalDialog
-};
 
 // Legacy export for backward compatibility
 ResultsRestoreDialog.Content = ResultsRestoreDialogContent;

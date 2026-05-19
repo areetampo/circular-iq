@@ -1,3 +1,8 @@
+/**
+ * @module LimitReachedDialog
+ * @description Shown when anonymous users hit the scoring limit; prompts sign-in and lists account benefits.
+ */
+
 import { AlertDialog } from '@heroui/react';
 import { Angry, FileDown, InfinityIcon, Orbit, Save, Share, TextSearch } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -6,7 +11,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
-export default function LimitReachedDialog({ anonScoringLimit }) {
+/**
+ * Anonymous scoring limit gate with sign-in CTA and feature highlights.
+ *
+ * @param {Object} props
+ * @param {number} props.anonScoringLimit - Max anonymous evaluations allowed.
+ * @param {string|number|Date} [props.lastUsedAt] - Timestamp of the last anonymous score (for messaging).
+ * @returns {import('react').ReactElement|null} Null when the dialog is closed.
+ */
+export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
   const { isDialogOpen, onClose } = useGlobalDialog();
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,15 +27,6 @@ export default function LimitReachedDialog({ anonScoringLimit }) {
   if (!isDialogOpen) {
     return null;
   }
-
-  const handleSignUp = () => {
-    onClose();
-    navigate('/auth', { state: { mode: 'signup', from: location } });
-  };
-
-  const handleClose = () => {
-    onClose();
-  };
 
   const LIMIT_REACHED_DIALOG_POINTS = [
     { icon: InfinityIcon, text: 'Unlimited evaluations' },
@@ -32,6 +36,20 @@ export default function LimitReachedDialog({ anonScoringLimit }) {
     { icon: Save, text: 'Save and compare results' },
     { icon: FileDown, text: 'Export reports (PDF, CSV)' },
   ];
+
+  const daysLeft = Math.ceil(
+    (new Date(lastUsedAt).getTime() + 30 * 24 * 60 * 60 * 1000 - Date.now()) /
+      (1000 * 60 * 60 * 24),
+  );
+
+  const handleSignUp = () => {
+    onClose();
+    navigate('/auth', { state: { mode: 'signup', from: location } });
+  };
+
+  const handleClose = () => {
+    onClose();
+  };
 
   return (
     <AlertDialog>
@@ -61,8 +79,11 @@ export default function LimitReachedDialog({ anonScoringLimit }) {
                   <span className="font-semibold text-(--color-text-primary)">
                     {anonScoringLimit}
                   </span>{' '}
-                  free evaluations. Create an account to continue assessing your circular economy
-                  initiatives:
+                  free evaluations. Try again in{' '}
+                  <span className="font-semibold text-(--color-text-primary)">
+                    {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
+                  </span>{' '}
+                  or create an account to continue assessing your circular economy initiatives:
                   <ul className="mt-4 space-y-2 text-left">
                     {LIMIT_REACHED_DIALOG_POINTS.map((point, idx) => (
                       <li key={idx} className="flex items-center gap-2">
@@ -95,4 +116,5 @@ export default function LimitReachedDialog({ anonScoringLimit }) {
 
 LimitReachedDialog.propTypes = {
   anonScoringLimit: PropTypes.number,
+  lastUsedAt: PropTypes.string,
 };

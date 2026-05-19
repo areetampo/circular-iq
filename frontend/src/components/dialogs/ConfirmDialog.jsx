@@ -1,10 +1,6 @@
 /**
- * Reusable Confirmation Dialog (Now uses centralized dialog state)
- * AlertDialog-based confirmation dialog using HeroUI v3 compound syntax
- *
- * Now uses centralized dialog state via useGlobalDialog()
- *
- * Location: src/components/dialogs/ConfirmDialog.jsx
+ * @module ConfirmDialog
+ * @description Generic AlertDialog confirmation (default or destructive) driven by `openConfirmDialog` payload.
  */
 
 import { AlertDialog } from '@heroui/react';
@@ -16,9 +12,17 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Reusable confirmation dialog
+ * Renders when `openConfirmDialog` is active; props are supplied by `DialogManager` from dialog data.
  *
- * Gets all data from centralized dialog state via DialogManager
+ * @param {Object} props
+ * @param {string} [props.title='Confirm'] - Dialog title.
+ * @param {string} [props.description] - Body copy.
+ * @param {string} [props.confirmText='Confirm'] - Primary button label.
+ * @param {string} [props.cancelText='Cancel'] - Dismiss button label.
+ * @param {Function|null} [props.onConfirm] - Async/sync handler when user confirms.
+ * @param {'default'|'destructive'} [props.variant='default'] - Visual style for the confirm action.
+ * @param {boolean} [props.isLoading=false] - Disables actions while an operation runs.
+ * @returns {import('react').ReactElement|null}
  *
  * @example
  * In pages/components:

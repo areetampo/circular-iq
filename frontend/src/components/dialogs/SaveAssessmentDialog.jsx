@@ -1,11 +1,7 @@
 /**
- * Save Assessment Dialog
- * Specialized dialog for saving assessments with a name
- * Uses HeroUI v3 AlertDialog compound syntax
- *
- * Now uses centralized dialog state via useGlobalDialog()
- *
- * Location: src/components/dialogs/SaveAssessmentDialog.jsx
+ * @module SaveAssessmentDialog
+ * @description Save-assessment flow: name, visibility, and benchmark opt-in before persisting results.
+ * Uses global dialog state via `useGlobalDialog()` and HeroUI AlertDialog.
  *
  * @example
  * In a component using useGlobalDialog hook:
@@ -200,6 +196,14 @@ SaveAssessmentDialogContent.propTypes = {
 const MemoizedContent = React.memo(SaveAssessmentDialogContent);
 
 // Memoized wrapper - only renders content when dialog is actually open
+/**
+ * Mounts save dialog content when `isDialogOpen`; otherwise returns null.
+ *
+ * @param {Object} props
+ * @param {string} [props.defaultName=''] - Prefilled assessment title.
+ * @param {Object|null} [props.scoringResult=null] - Result payload passed to the save handler.
+ * @returns {import('react').ReactElement|null}
+ */
 export default function SaveAssessmentDialog({ defaultName = '', scoringResult = null }) {
   const { isDialogOpen } = useGlobalDialog();
 

@@ -1,11 +1,6 @@
 /**
- * Rename Assessment Dialog
- * Specialized dialog for renaming assessments
- * Uses HeroUI v3 AlertDialog compound syntax
- *
- * Now uses centralized dialog state via useGlobalDialog()
- *
- * Location: src/components/dialogs/RenameAssessmentDialog.jsx
+ * @module RenameAssessmentDialog
+ * @description Rename a saved assessment title with validation (3–50 characters).
  *
  * @example
  * In a component using useGlobalDialog hook:
@@ -25,9 +20,11 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Specialized dialog for renaming assessments
+ * Rename dialog; `onRename` is read from `dialog.data` set by `openRenameAssessmentDialog`.
  *
- * Gets data from centralized dialog state (DialogManager passes defaultName prop)
+ * @param {Object} props
+ * @param {string} [props.defaultName=''] - Current title prefilled in the input.
+ * @returns {import('react').ReactElement|null}
  */
 export default function RenameAssessmentDialog({ defaultName = '' }) {
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();

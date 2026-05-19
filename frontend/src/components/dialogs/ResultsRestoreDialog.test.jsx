@@ -1,3 +1,8 @@
+/**
+ * @module ResultsRestoreDialog.test
+ * @description Tests for results restore dialog flows.
+ */
+
 import { fireEvent, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';

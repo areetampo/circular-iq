@@ -1,9 +1,6 @@
 /**
- * Delete Assessment Dialog
- * Specialized dialog for confirming assessment deletion
- * Uses compact dialog pattern with AlertDialog
- *
- * Location: src/components/dialogs/DeleteAssessmentDialog.jsx
+ * @module DeleteAssessmentDialog
+ * @description Confirms permanent deletion of a saved assessment (compact AlertDialog).
  */
 
 import { AlertDialog } from '@heroui/react';
