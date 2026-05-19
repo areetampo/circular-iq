@@ -13,7 +13,7 @@ The backend is the core of the RAG (Retrieval-Augmented Generation) system:
 2. **Hybrid Search** — combines semantic vector similarity (pgvector HNSW) with BM25 keyword matching
 3. **Assessment Scoring** — 8-dimensional scoring system with 3-layer enrichment (deterministic + LLM)
 4. **API Layer** — REST endpoints for scoring, assessment management, analytics, and search
-5. **Uptime Monitoring** — automated health checks every 30 seconds with 7-day retention and real-time dashboard
+5. **Uptime Monitoring** — automated health checks every 30 seconds with 30-day retention and real-time dashboard
 6. **Analytics** — global dashboard stats from `scoring_results_log` covering all users and sessions
 
 ## Layered Architecture
@@ -44,182 +44,129 @@ The backend is the core of the RAG (Retrieval-Augmented Generation) system:
 
 ```txt
 backend/
-├── server/
-│   ├── index.js              # Entry point — startServer() / stopServer()
-│   ├── app.js                # Express app factory — mounts routes and middleware
-│   └── bootstrap.js          # Pre-flight startup (env validation, DB ping)
+├── .gitignore
+├── .renderignore
+├── DATASETS_REFERENCE.md                       # Complete inventory of all 32 datasets
+├── HEALTH_ENDPOINTS.md                         # Health check endpoints documentation
+├── PIPELINE_ADDING_DATASETS.md                 # How to add new dataset sources
+├── PIPELINE_RUNNING.md                         # How to run data processing pipeline
+├── README.md
+├── package.json
+├── requirements-dev.txt
 │
 ├── config/
-│   ├── backend.config.js     # Central config object (reads env, includes test defaults)
-│   ├── env.schema.js         # Zod schema for environment variable validation
-│   ├── embedding.js          # OpenAI embedding model constants (model name, 1536 dims)
-│   ├── chunk.js              # Chunking config (min/max sizes, overlap, length thresholds)
-│   └── loadEnv.js            # Loads .env.backend before app initialisation
+│   ├── backend.config.js                       # Central config object (reads env, includes test defaults)
+│   ├── env.schema.js                           # Zod schema for environment variable validation
+│   └── loadEnv.js                              # Loads .env.backend before app initialisation
 │
-├── routes/                   # Thin Express wrappers — HTTP definition only
-│   ├── analytics.routes.js   # GET /api/analytics/...
-│   ├── assessments.routes.js # POST/GET/PATCH/DELETE /api/assessments/...
-│   ├── health.routes.js      # GET /health/* endpoints
-│   ├── profile.routes.js     # GET /api/profile endpoint
-│   ├── scoring.routes.js     # POST /api/score
-│   ├── search.routes.js      # GET /api/search/ce-cases
-│   └── uptime.routes.js     # GET/POST /api/uptime/* endpoints
+├── constants/
+│   ├── apiEndpoints.js                         # Centralized API endpoint definitions
+│   ├── healthEndpoints.js                      # Uptime monitoring endpoint definitions
+│   └── index.js                                # Constants barrel export
 │
-├── controllers/                  # Request handlers — validate, delegate, format
-│   ├── analytics.controller.js   # Analytics, global-stats, featured solutions, document stats
-│   ├── assessments.controller.js # Assessment CRUD, market analysis, comparison
-│   ├── scoring.controller.js     # Full scoring pipeline orchestration + log
-│   └── search.controller.js      # ce_cases search functionality
-│
-├── services/                    # Business logic: scoring.service, scoring.logic, embedding.service, health.service
-│   ├── auth.service.js          # Authentication service
-│   ├── embedding.service.js     # OpenAI API: embed text, batch handling, exponential backoff
-│   ├── health.service.js         # Health check endpoints and system monitoring
-│   ├── scoring.logic.js         # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
-│   ├── scoring.service.js       # Full scoring pipeline orchestration
-│   └── uptimePolling.service.js # Uptime monitoring polling service
-│
-├── middleware/
-│   ├── auth.middleware.js        # API key guard (x-api-key) + Supabase JWT verification
-│   └── validation.middleware.js  # Zod-based request body validation
+├── controllers/                                # Request handlers — validate, delegate, format
+│   ├── analytics.controller.js                 # Analytics, global-stats, featured solutions, document stats
+│   ├── assessments.controller.js               # Assessment CRUD, market analysis, comparison
+│   ├── scoring.controller.js                   # Full scoring pipeline orchestration + log
+│   └── search.controller.js                    # ce_cases search functionality
 │
 ├── database/
-│   ├── client.js                          # Dual-backend client factory (returns Supabase or Aiven client)
-│   ├── index.js                           # Exports documentsRepository singleton
-│   ├── supabase.client.js                 # Supabase client initialisation (anon + service-role)
-│   ├── diagnostics/                       # Read-only monitoring queries (sizes, performance, health, schema, vector)
-│   ├── queries/                           # Stable reusable read queries called by app code
-│   ├── scripts/                           # Manual one-off operational SQL (backfills, repairs)
-│   ├── repositories/
-│   │   ├── ce_cases.repository.js         # CE cases search functions
-│   │   └── documents.repository.js        # All documents table access (matchDocuments, searchHybrid, etc.)
-│   └── migrations/                        # Run in Supabase SQL editor in order
-│       ├── 01_vector_infrastructure.sql   # pgvector + halfvec extension, documents table + HNSW index
-│       ├── 02_user_profiles.sql           # user_profiles table
-│       ├── 03_user_assessments.sql        # assessments table (v3) + get_market_data/get_assessment_statistics RPCs
-│       ├── 04_anonymous_usage.sql         # anonymous_usage table + rate limiting logic
-│       ├── 05_results_logs.sql            # scoring_results_log table (append-only audit log)
-│       ├── 06_ce_cases.sql                # ce_cases table with hybrid search functions
-│       └── 07_uptime_monitor.sql          # uptime_checks table for monitoring history
+│   ├── client.js                               # Dual-backend client factory (returns Supabase or Aiven client)
+│   ├── index.js                                # Exports documentsRepository singleton
+│   ├── supabase.client.js                      # Supabase client initialisation (anon + service-role)
+│   │
+│   ├── diagnostics/                            # Read-only monitoring queries (sizes, performance, health, schema, vector)
+│   │
+│   ├── migrations/                             # Run in Supabase SQL editor in order
+│   │   ├── 00_app_settings.sql                 # app.settings table + app.get_setting() accessor (prerequisite)
+│   │   ├── 01_vector_infrastructure.sql        # pgvector + halfvec extension, documents table + HNSW index
+│   │   ├── 02_user_assessments.sql             # assessments table (v3) + get_market_data/get_assessment_statistics RPCs
+│   │   ├── 03_user_profiles.sql                # user_profiles table
+│   │   ├── 04_anonymous_usage.sql              # anonymous_usage table + rate limiting logic
+│   │   ├── 05_results_logs.sql                 # scoring_results_log table (append-only audit log)
+│   │   ├── 06_ce_cases.sql                     # ce_cases table with hybrid search functions
+│   │   └── 07_uptime_monitor.sql               # uptime_checks table for monitoring history
+│   │
+│   └── repositories/
+│       ├── ce_cases.repository.js              # CE cases search functions
+│       └── documents.repository.js             # All documents table access (matchDocuments, searchHybrid, etc.)
 │
-├── pipeline/ # Data processing stages (10 scripts)
-│ ├── create_samples.js # Generate test/sample data for development
-│ ├── embed_ce_cases.js # Embed ce_cases knowledge base
-│ ├── generate_chunks.js # Stage 2: semantic chunking → chunks.json
-│ ├── generate_embeddings.js # Stage 3: OpenAI embeddings → embedded_chunks.json
-│ ├── generate_test_inputs.js # Generate test assessment inputs
-│ ├── ingest_ce_cases.js # Ingest ce_cases data
-│ ├── merge_datasets.js # Stage 1: merge all processed/ CSVs + manual_entries/ → combined_input.csv
-│ ├── run_datasets_scripts.js # Orchestrate all dataset extraction scripts in sequence
-│ ├── run_test_assessments.js # Run test assessments
-│ ├── store_embeddings.js # Stage 4: store vectors in documents table (Supabase or Aiven)
-│ └── datasetsUtils.js # DATASETS registry, path constants, formatId() helper
+├── middleware/
+│   ├── auth.middleware.js                      # API key guard (x-api-key) + Supabase JWT verification
+│   └── validation.middleware.js                # Zod-based request body validation
 │
-├── utils/
-│ ├── anonymousTracking.js # IP hashing, identifier generation (no PII stored)
-│ ├── datasetsUtils.js # DATASETS registry, path constants, formatId() helper
-│ ├── formatting.js # Text formatting utilities
-│ └── logger.js # Logging utilities
-├── constants/ # API endpoints, uptime endpoints constants
-│ ├── apiEndpoints.js # Centralized API endpoint definitions
-│ ├── index.js # Constants barrel export
-│ └── uptimeEndpoints.js # Uptime monitoring endpoint definitions
+├── pipeline/                                   # Data processing scripts
+│   │
+│   ├── ce_cases/                               # For solutions search functionality via database/migrations/05_ce_cases
+│   │   ├── embed_ce_cases.js                   # Embed ce_cases knowledge base
+│   │   └── ingest_ce_cases.js                  # Ingest ce_cases data
+│   │
+│   ├── populate_scoring_results/
+│   │   ├── generate_test_inputs.js             # Generate test assessment inputs
+│   │   └── run_and_save_test_assessments.js    # Run and save test assessments results
+│   │
+│   └── rag/
+│       ├── run_datasets_scripts.js             # Satge 0: Orchestrate all dataset extraction scripts in sequence
+│       ├── merge_datasets.js                   # Stage 1: merge all processed CSVs + manual_entries/ → combined_input.csv
+│       ├── create_samples.js                   # (Optional) Generate test/sample data from combined_input.csv
+│       ├── generate_chunks.js                  # Stage 2: semantic chunking → chunks.json
+│       ├── generate_embeddings.js              # Stage 3: OpenAI embeddings → embedded_chunks.json
+│       └── store_embeddings.js                 # Stage 4: store vectors in documents table (Supabase or Aiven)
 │
-├── config/ # Centralised config, env schema, embedding constants, chunk config
-├── middleware/ # Auth guard (API key + JWT) + Zod validation
-├── pipeline/ # Data processing stages (10 scripts)
-├── routes/ # Thin Express wrappers — HTTP definition only
-├── server/ # Entry point (index.js), app factory (app.js), bootstrap
-├── services/ # Business logic: scoring.service, scoring.logic, embedding.service, health.service, uptimePolling.service
-├── tests/ # Backend test suite
-│ ├── api/ # API endpoint tests (10 test files)
-│ │ ├── analytics-missing-endpoints.test.js
-│ │ ├── analytics.enhanced.test.js
-│ │ ├── analytics.featured.test.js
-│ │ ├── anonymous.test.js
-│ │ ├── api-auth.test.js
-│ │ ├── apiKeyGuard.test.js
-│ │ ├── assessments-routes.test.js
-│ │ ├── health.test.js
-│ │ ├── misc-endpoints.test.js
-│ │ └── scoring.rpc.test.js
-│ ├── database/ # Database tests (1 test file)
-│ ├── services/ # Service layer tests (2 test files)
-│ │ ├── score-validation.test.js
-│ │ └── scoring-logic-enrichment.test.js
-│ ├── utils/ # Utility tests (2 test files)
-│ ├── run-tests.js # Main test runner
-│ ├── run-tests-simple.js # Simple test runner
-│ └── setup.js # Test setup and configuration
-├── DATASETS_REFERENCE.md ## Complete inventory of all 32 datasets
-├── HEALTH_ENDPOINTS.md # Health check endpoints documentation
-├── PIPELINE_ADDING_DATASETS.md # How to add new dataset sources
-├── PIPELINE_RUNNING.md # How to run data processing pipeline
-├── .gitignore, .renderignore
-├── requirements-dev.txt, package.json
-└── README.md
-
+├── routes/                                     # Thin Express wrappers — HTTP definition only
+│   ├── analytics.routes.js                     # GET /api/analytics/...
+│   ├── assessments.routes.js                   # POST/GET/PATCH/DELETE /api/assessments/...
+│   ├── health.routes.js                        # GET /health/* endpoints
+│   ├── profile.routes.js                       # GET /api/profile endpoint
+│   ├── scoring.routes.js                       # POST /api/score
+│   ├── search.routes.js                        # GET /api/search/ce-cases
+│   └── uptime.routes.js                        # GET/POST /api/uptime/* endpoints
+│
+├── server/
+│   ├── app.js                                  # Express app factory — mounts routes and middleware
+│   ├── bootstrap.js                            # Pre-flight startup (env validation, DB ping)
+│   └── index.js                                # Entry point — startServer() / stopServer()
+│
+├── services/                                   # Business logic services
+│   ├── auth.service.js                         # Authentication service
+│   ├── embedding.service.js                    # OpenAI API: embed text, batch handling, exponential backoff
+│   ├── health.service.js                       # Health check endpoints and system monitoring
+│   ├── scoring.logic.js                        # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
+│   ├── scoring.service.js                      # Full scoring pipeline orchestration
+│   └── uptimePolling.service.js                # Uptime monitoring polling service
+│
+├── tests/
+│   ├── api/                                    # API endpoint tests
+│   │   ├── analytics-missing-endpoints.test.js
+│   │   ├── analytics.enhanced.test.js
+│   │   ├── analytics.featured.test.js
+│   │   ├── anonymous.test.js
+│   │   ├── api-auth.test.js
+│   │   ├── apiKeyGuard.test.js
+│   │   ├── assessments-routes.test.js
+│   │   ├── health.test.js
+│   │   ├── misc-endpoints.test.js
+│   │   └── scoring.rpc.test.js
+│   │
+│   ├── database/                               # Database tests
+│   │
+│   ├── services/                               # Service layer tests
+│   │   ├── score-validation.test.js
+│   │   └── scoring-logic-enrichment.test.js
+│   │
+│   ├── utils/                                  # Utility tests
+│   │
+│   ├── run-tests.js                            # Main test runner
+│   └── setup.js                                # Test setup and configuration
+│
+└── utils/
+    ├── anonymousTracking.js                    # IP hashing, identifier generation (no PII stored)
+    ├── chunk.js                                # Chunking config (min/max sizes, overlap, length thresholds)
+    ├── datasetsUtils.js                        # DATASETS registry, path constants, formatId() helper
+    ├── embedding.js                            # OpenAI embedding model constants (model name, 1536 dims)
+    ├── formatting.js                           # Text formatting utilities
+    └── logger.js                               # Logging utilities
 ```
-
-## Uptime Monitoring System
-
-The backend includes a comprehensive uptime monitoring system that tracks health endpoint status with real-time streaming capabilities:
-
-### Architecture
-
-- **Polling Service**: Runs every 30 seconds in production (`NODE_ENV=production` only)
-- **Health Checks**: Monitors `/health`, `/health/database`, `/health/openai`, and other endpoints
-- **Data Storage**: Stores results in `uptime_checks` table with 7-day retention
-- **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`
-- **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
-- **SSE Streaming**: Real-time updates via `/api/uptime/stream` endpoint with client connection management
-- **Broadcast System**: `uptime.broadcaster.js` manages SSE client connections and event broadcasting
-- **Fallback Mechanism**: Automatic fallback to polling when SSE connection is lost
-
-### Configuration
-
-```js
-// backend.config.js
-uptime: {
-  pollingEnabled: env.NODE_ENV === 'production', // Production-only polling
-  pollIntervalMs: 30 * 1000, // 30 seconds
-  retentionDays: 7, // Data retention period
-  cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
-  cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
-  endpoints: [
-    { id: 'health', path: '/health' },
-    { id: 'database', path: '/health/database' },
-    { id: 'openai', path: '/health/openai' },
-    // ... more endpoints
-  ]
-}
-```
-
-### Environment-Controlled Cleanup
-
-The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable:
-
-- **Default**: `true` - wipes the `uptime_checks` table on server start
-- **Set to `false`**: preserves existing uptime data across server restarts
-- **Location**: Configured in `backend.config.js` under `uptime.cleanupOnStart`
-
-This replaces the previous pre-push hook approach, giving you more control over when the uptime table is reset.
-
-### API Endpoints
-
-| Method | Endpoint                          | Description                      |
-| ------ | --------------------------------- | -------------------------------- |
-| GET    | `/api/uptime/count`               | Total uptime checks count        |
-| GET    | `/api/uptime/history/:endpointId` | Historical data for endpoint     |
-| GET    | `/api/uptime/stream`              | SSE stream for real-time updates |
-
-### Each Layer's Responsibilities
-
-1. **Routes** — define HTTP methods, paths, and rate limiting. No business logic. Delegate to controllers.
-2. **Controllers** — handle requests, validate input, format responses, call services.
-3. **Services** — core business logic and integrations. No HTTP context (no req/res).
-4. **Utilities** — shared helper functions, path constants, ID formatting.
-5. **Database** — Supabase client initialization, DocumentsRepository, migrations.
 
 ## Scoring Pipeline
 
@@ -266,6 +213,19 @@ This replaces the previous pre-push hook approach, giving you more control over 
 
 ## Database Tables
 
+### `app.settings`
+
+Global runtime configuration consumed by SQL functions via `app.get_setting()`. Defined in `00_app_settings.sql`, which **must run before** `07_uptime_monitor.sql`.
+
+**Keys used by the uptime monitor:**
+
+| Key                                         | Default | Description                                                                                      |
+| ------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `uptime_checks-query_window_days`           | `28`    | Maximum analytics query window in days. All time-range functions cap their window to this value. |
+| `uptime_checks-uptime_warning_threshold_ms` | `1000`  | Average response time threshold (ms) above which a heatmap bucket is flagged `is_warning=true`.  |
+
+**Access:** `service_role` only. No direct PostgREST access — all reads flow through `app.get_setting(key)` inside `SECURITY DEFINER` functions.
+
 ### `documents`
 
 Vector-searchable knowledge base. Key columns: `content`, `embedding` (halfvec 1536), `industry`, `category`, `source`, `metadata` (JSONB: r_strategy, scale, primary_material, geographic_focus, fields, word_count, chunk_type, source_id, source_row).
@@ -298,10 +258,6 @@ CREATE INDEX idx_documents_embedding ON documents
   USING hnsw(embedding extensions.halfvec_cosine_ops);
 CREATE INDEX idx_documents_created_at ON documents(created_at);
 ```
-
-### `user_profiles`
-
-User profile data linked to Supabase Auth. Stores user preferences, display information, and assessment statistics. Key columns: `username`, `display_name`, `avatar_url`, `bio`, `assessment_count`, `last_assessment_at`.
 
 ### `user_assessments`
 
@@ -342,6 +298,10 @@ User-saved assessments. Fully aligned with the scoring API response — all prom
 - `get_assessment_statistics(user_uuid)` — per-user or global aggregate stats
 - `get_market_data()` — per-industry/scale/strategy benchmarks from opted-in public assessments
 
+### `user_profiles`
+
+User profile data linked to Supabase Auth. Stores user preferences, display information, and assessment statistics. Key columns: `username`, `display_name`, `avatar_url`, `bio`, `assessment_count`, `last_assessment_at`.
+
 ### `anonymous_usage`
 
 Enables free-tier rate limiting without storing PII. Uses SHA-256 fingerprinting of (IP + User-Agent) for device identification. Key columns: `identifier_hash`, `usage_count`, `last_blocked_at`.
@@ -356,7 +316,7 @@ Access rules:
 - **Authenticated users** can SELECT their own rows
 - **Frontend cannot query directly** — must go through `GET /api/analytics/global-stats` backend endpoint
 
-Used by `GET /api/analytics/global-stats` for Dashboard data — wider coverage than `assessments` since it includes all anonymous and unsaved calls.
+Used by `GET /api/analytics/global-stats` for Global Activity data — wider coverage than `assessments` since it includes all anonymous and unsaved calls.
 
 ### `ce_cases`
 
@@ -371,27 +331,42 @@ Circular economy case studies knowledge base for search functionality. Key colum
 
 ### `uptime_checks`
 
-Stores health check monitoring data with automatic cleanup and production-only polling:
+Stores health check monitoring data with automatic cleanup and production-only polling.
+
+> **Prerequisite:** `00_app_settings.sql` must be applied before `07_uptime_monitor.sql`. The analytics functions read runtime configuration from `app.settings` via `app.get_setting()`.
 
 **Key columns:**
 
-| Column             | Type        | Description                |
-| ------------------ | ----------- | -------------------------- |
-| `endpoint_id`      | TEXT        | Health endpoint identifier |
-| `status`           | TEXT        | Response status string     |
-| `up`               | BOOLEAN     | Endpoint availability      |
-| `response_time_ms` | INTEGER     | Latency measurement        |
-| `payload`          | JSONB       | Full health check response |
-| `created_at`       | TIMESTAMPTZ | Check timestamp            |
+| Column             | Type        | Description                                        |
+| ------------------ | ----------- | -------------------------------------------------- |
+| `endpoint_id`      | TEXT        | Health endpoint identifier (e.g. `"health"`)       |
+| `endpoint_path`    | TEXT        | API route of the endpoint (e.g. `"/health"`)       |
+| `status`           | TEXT        | Response status string (e.g. `"ok"`, `"degraded"`) |
+| `up`               | BOOLEAN     | Endpoint availability                              |
+| `response_time_ms` | INTEGER     | Latency measurement (NULL for failed checks)       |
+| `payload`          | JSONB       | Full health check response (debug only)            |
+| `created_at`       | TIMESTAMPTZ | Check timestamp                                    |
 
 **Features:**
 
-- 7-day automatic data retention
+- Configurable automatic data retention (default 30 days)
 - Production-only polling to avoid dev data duplication
 - Optimized indexes for time-series queries
 - Autovacuum tuning for high-frequency inserts
 
-**Cleanup Function:** `cleanup_old_uptime_checks(days)` - removes old records
+**SQL Functions:** Seven DB-level functions defined in `07_uptime_monitor.sql`:
+
+| Function                                                                  | Description                                                                                                  |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `get_uptime_check_count_estimate()`                                       | Fast approximate row count via `pg_class.reltuples` — avoids a full table scan. Used for display stats only. |
+| `get_daily_uptime_stats(days)`                                            | Daily average uptime % across all endpoints.                                                                 |
+| `get_heatmap_buckets(bucket_minutes, days, reference_ts, clock_aligned)`  | Bucketed heatmap data across all endpoints, anchored to a caller-supplied reference timestamp.               |
+| `get_global_response_trend(hours, clock_aligned)`                         | Hourly avg response time across all endpoints.                                                               |
+| `get_endpoint_avg_latency(hours)`                                         | Per-endpoint avg latency scalar for successful checks.                                                       |
+| `get_endpoint_buckets(endpoint_id, bucket_minutes, hours, clock_aligned)` | Bucketed data for a single endpoint.                                                                         |
+| `cleanup_old_uptime_checks(days)`                                         | Deletes rows older than N days. `days=0` performs a full TRUNCATE.                                           |
+
+All functions are `SECURITY DEFINER`, locked to `service_role`, and cap their time window at the `uptime_checks-query_window_days` app setting. Three support `p_clock_aligned` for UTC clock-mark boundary snapping. See `frontend/src/pages/UptimeMonitorPage/README.md` for full signatures.
 
 ### RPC Functions
 
@@ -509,7 +484,7 @@ Maintenance endpoint to reindex embeddings. Requires admin access. Used for data
 
 #### GET `/api/analytics/global-stats`
 
-See the full response shape documented above in the [GET /api/analytics/global-stats](#get-apianalyticsglobal-stats) section.
+Global activity stats from scoring_results_log.
 
 ### Search
 
@@ -597,8 +572,10 @@ Validate assessment ID exists and is shareable. Supports user access to their ow
 | Method | Endpoint                          | Auth | Description                                                      |
 | ------ | --------------------------------- | ---- | ---------------------------------------------------------------- |
 | `GET`  | `/api/uptime/count`               | None | Get total number of uptime checks (optionally per endpoint)      |
-| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 10000)         |
+| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 86400)         |
 | `GET`  | `/api/uptime/stream`              | None | SSE stream for real-time uptime updates with fallback to polling |
+| `GET`  | `/api/uptime/daily-stats`         | None | Get daily uptime statistics for the last N days                  |
+| `GET`  | `/api/uptime/heatmap-aggregated`  | None | Get aggregated heatmap buckets for uptime visualization          |
 
 #### GET `/api/uptime/count`
 
@@ -626,7 +603,7 @@ Retrieve recent uptime checks for a specific endpoint.
 
 **Query Parameters:**
 
-- `limit` — number of results to return (default 10000, max 10000)
+- `limit` — number of results to return (frontend default 3500, backend max 86400)
 
 **Response:**
 
@@ -639,7 +616,7 @@ Retrieve recent uptime checks for a specific endpoint.
       "status": "ok",
       "up": true,
       "responseTimeMs": 45,
-      "payload": {...},
+      "payload": {},
       "createdAt": "2026-01-15T10:30:00.000Z"
     }
   ]
@@ -695,6 +672,80 @@ X-Accel-Buffering: no
 - 30-second heartbeat to prevent connection timeouts
 - Error handling with automatic client cleanup on disconnect
 
+#### GET `/api/uptime/daily-stats`
+
+Get daily uptime statistics for the last N days. Returns uptime percentage per day for trend analysis.
+
+**Query Parameters:**
+
+- `days` — number of days to retrieve (default 28, min 1, max `queryWindowDaysLimit`)
+
+**Response:**
+
+```json
+{
+  "stats": [
+    {
+      "day": "2026-01-15",
+      "uptimePct": 99.5
+    },
+    {
+      "day": "2026-01-14",
+      "uptimePct": 98.2
+    }
+  ],
+  "days": 28
+}
+```
+
+**Notes:**
+
+- Uses Supabase RPC function `get_daily_uptime_stats`
+- Day format is YYYY-MM-DD
+- Uptime percentage is calculated from all checks for that day
+- Maximum `queryWindowDaysLimit` days of data can be retrieved (capped by `uptime_checks-query_window_days` app setting, default 28)
+
+#### GET `/api/uptime/heatmap-aggregated`
+
+Get aggregated heatmap buckets for uptime visualization. Returns time-bucketed data aligned to a reference timestamp for consistent client-side rendering.
+
+**Query Parameters:**
+
+- `bucketMinutes` — size of each time bucket in minutes (default 60, min 1, max `60 * 24 * queryWindowDaysLimit`)
+- `days` — number of days to retrieve (default 28, min 1, max `queryWindowDaysLimit`)
+- `reference` — reference timestamp in milliseconds (default: current time)
+- `clockAligned` — when `true`, snaps bucket edges to nearest UTC clock mark; default `true`
+
+**Response:**
+
+```json
+{
+  "buckets": [
+    {
+      "startTime": "2026-01-15T10:00:00.000Z",
+      "endTime": "2026-01-15T11:00:00.000Z",
+      "anyFailure": false,
+      "hasData": true,
+      "averageMs": 245,
+      "isWarning": false,
+      "failureDetails": [],
+      "isPartial": false
+    }
+  ],
+  "days": 28,
+  "bucketMinutes": 180,
+  "clockAligned": true
+}
+```
+
+**Notes:**
+
+- Uses Supabase RPC `get_heatmap_buckets(bucket_minutes, days, reference_ts, p_clock_aligned)`
+- `failureDetails` is an array of `{ endpointId, endpointPath, ts }` objects — one entry per failed check
+- `isPartial` marks the last bucket whose time window hasn't closed yet (rendered purple in UI)
+- `isWarning` is `true` when average response time exceeds the `uptime_checks-uptime_warning_threshold_ms` app setting (default 1000ms) with no failures
+- `clockAligned=true` snaps boundaries to UTC clock marks; `true` (default) rolls from reference
+
 ### Profile Endpoint
 
 #### GET `/api/profile`
@@ -711,6 +762,65 @@ Get the authenticated user's profile information. Requires authentication.
   "updated_at": "2026-01-20T14:22:00.000Z"
 }
 ```
+
+## Uptime Monitoring System
+
+The backend includes a comprehensive uptime monitoring system that tracks health endpoint status with real-time streaming capabilities:
+
+### Architecture
+
+- **Polling Service**: Runs every 30 seconds in production (`NODE_ENV=production` only)
+- **Health Checks**: Monitors `/health`, `/health/database`, `/health/openai`, and other endpoints
+- **Data Storage**: Stores results in `uptime_checks` table with 30-day retention (configurable via `UPTIME_CHECKS_RETENTION_DAYS`)
+- **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`
+- **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
+- **SSE Streaming**: Real-time updates via `/api/uptime/stream` endpoint with client connection management
+- **Clock-Aligned Buckets**: Toggleable UI feature — bucket boundaries snap to clean UTC clock marks instead of rolling windows
+- **Broadcast System**: `uptime.broadcaster.js` manages SSE client connections and event broadcasting
+- **Fallback Mechanism**: Automatic fallback to polling when SSE connection is lost
+- **Runtime Config**: Warning threshold and query window cap are read from `app.settings` via `app.get_setting()` — no hardcoded constants in SQL functions
+
+### Configuration
+
+```js
+// backend.config.js
+uptime: {
+  pollingEnabled: env.NODE_ENV === 'production', // Production-only polling
+  pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS, // Polling interval in milliseconds
+  retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS, // Number of days to keep uptime history
+  cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
+  cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
+  endpoints: [
+    { id: 'health', path: '/health' },
+    { id: 'database', path: '/health/database' },
+    { id: 'openai', path: '/health/openai' },
+    // ... more endpoints
+  ]
+}
+```
+
+### Environment-Controlled Cleanup
+
+The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable:
+
+- **Default**: `true` - wipes the `uptime_checks` table on server start
+- **Set to `false`**: preserves existing uptime data across server restarts
+- **Location**: Configured in `backend.config.js` under `uptime.cleanupOnStart`
+
+This replaces the previous pre-push hook approach, giving you more control over when the uptime table is reset.
+
+### API Endpoints
+
+| Method | Endpoint                                                                                | Description                                              |
+| ------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| GET    | `/api/uptime/count`                                                                     | Total checks stored in DB                                |
+| GET    | `/api/uptime/history/:endpointId`                                                       | Raw checks for one endpoint (max 86400)                  |
+| GET    | `/api/uptime/stream`                                                                    | SSE stream — pushes `poll-complete` events               |
+| GET    | `/api/uptime/daily-stats?days=28`                                                       | Daily uptime % per day (max `queryWindowDaysLimit` days) |
+| GET    | `/api/uptime/heatmap-aggregated?bucketMinutes=180&days=28&clockAligned=false`           | Bucketed heatmap data, supports clock-aligned            |
+| GET    | `/api/uptime/global-trend?hours=24&clockAligned=false`                                  | Hourly avg response time across all endpoints            |
+| GET    | `/api/uptime/endpoint-latency?hours=24`                                                 | Per-endpoint avg latency scalar                          |
+| GET    | `/api/uptime/endpoint-buckets/:endpointId?bucketMinutes=15&hours=24&clockAligned=false` | Bucketed data for one endpoint                           |
 
 ## Security Features
 
@@ -783,8 +893,8 @@ cp env/.env.example env/.env.backend
 
 1. `config/backend.config.js` — central config object with test defaults
 2. `config/env.schema.js` — Zod schema for environment variable validation
-3. `config/embedding.js` — embedding model name and dimension constants
-4. `config/chunk.js` — chunking parameters (min length, overlap, etc.)
+3. `utils/embedding.js` — embedding model name and dimension constants
+4. `utils/chunk.js` — chunking parameters (min length, overlap, etc.)
 5. `config/loadEnv.js` — Environment loading utilities
 6. `utils/datasetsUtils.js` — dataset filesystem path constants and DATASETS registry
 
@@ -828,7 +938,7 @@ The `documents` table has `industry` and `category` as first-class indexed colum
 
 ### Storage Pipeline
 
-The ingestion pipeline (`pipeline/store_embeddings.js`) automatically populates both:
+The ingestion pipeline (`pipeline/rag/store_embeddings.js`) automatically populates both:
 
 ```js
 await supabase.from('documents').insert({
@@ -1212,4 +1322,4 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 **LICENSE:** MIT
 **Author:** Areeb Ahmed Zahoori
-**Last Updated:** 12 May 2026
+**Last Updated:** 20 May 2026
