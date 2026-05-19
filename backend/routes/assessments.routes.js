@@ -1,8 +1,20 @@
 /**
- * Assessments Routes
- * Defines endpoint structure and delegates to assessments controller
- * - Routes only handle Express middleware, validation, error formatting
- * - All business logic delegated to assessments.controller
+ * @module assessments.routes
+ * @description Express router for assessment CRUD operations.
+ * Provides endpoints for creating, retrieving, sharing, and comparing circular economy
+ * business assessments. All endpoints enforce authentication, validation, and appropriate
+ * access control rules. Routes delegate to assessments.controller.js for business logic.
+ *
+ * Routes:
+ *   POST /                          — Save a completed assessment result
+ *   GET /                           — Retrieve list of user's assessments with filtering
+ *   GET /stats                      — Retrieve aggregate statistics for user's assessments
+ *   GET /public/:publicId           — Retrieve a publicly shared assessment (optional auth)
+ *   GET /validate/:publicId         — Validate a public assessment ID and shareability
+ *   GET /compare                    — Compare two assessments with privacy enforcement
+ *   GET /:publicId                  — Fetch one assessment by public id (auth required)
+ *   PATCH /:id                      — Update assessment name/metadata (auth required)
+ *   DELETE /:id                     — Delete an assessment (auth required)
  */
 
 import express from 'express';
@@ -13,16 +25,18 @@ import { validateAssessment } from '#middleware/validation.middleware.js';
 import { authenticateRequest } from '#services/auth.service.js';
 
 /**
- * Create assessments router
- * @param {Object} supabase - Supabase client instance
- * @returns {express.Router} Express router with assessment endpoints
+ * Creates the assessments router.
+ *
+ * @param {Object} serviceSupabase - Service-role Supabase client for unrestricted queries.
+ * @returns {express.Router} Configured Express router with assessment endpoints.
  */
 export default function createAssessmentsRouter(serviceSupabase) {
   const router = express.Router();
 
   /**
    * POST /
-   * Save a completed assessment result
+   * Saves a completed assessment (validated body + raw scoring result).
+   * Returns 201 `{ id, message, assessment }`; 400 on title validation failure.
    */
   router.post('/', requireAuth(serviceSupabase), validateAssessment, async (req, res) => {
     const startTime = Date.now();
@@ -50,7 +64,9 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /
-   * Retrieve list of user's assessments with filtering and pagination
+   * Lists the authenticated user's assessments with filtering, sorting, and pagination.
+   * Query: `industry`, `sortBy`, `order`, `page`, `pageSize`, `search`, `createdFrom`, `createdTo`, `minScore`, `maxScore`.
+   * Returns `{ assessments, pagination }`.
    */
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
