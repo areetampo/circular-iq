@@ -1,27 +1,47 @@
 #!/usr/bin/env node
 /**
- * Backend Test Runner - Fixed Version
+ * @module tests/run-tests
+ * @description Loads `tests/setup.js`, then runs the Node.js built-in test runner over `backend/tests`.
  *
- * This wrapper script ensures test environment is set up (env/.env.test loaded and validated)
- * before running any tests. It then delegates to Node's built-in test runner.
- *
- * Note: Analytics tests have been updated to align with existing endpoints.
- * All tests are now included by default.
- *
- * Usage:
- *   node tests/run-tests.js                    # Run all tests
- *   node tests/run-tests.js --include-analytics # Run all tests (legacy flag, no effect)
- *   npm test
+ * @example
+ * node backend/tests/run-tests.js
+ * npm test
  */
 
 import './setup.js';
-
-import { logger } from '#utils/logger.js';
 
 logger.info('Running tests with Node.js built-in test runner');
 
 const { execSync } = await import('child_process');
 
+/**
+ * Tests that make real external API calls (OpenAI embeddings + audit generation)
+ * can take 50-60 s for two scoring requests. Give them a generous timeout so the
+ * child process isn't killed before it can report results.
+ */
+const SLOW_TESTS = new Set(['tests/services/score-validation.test.js']);
+
+/** Default per-file timeout (ms). Slow tests use SLOW_TIMEOUT instead. */
+const DEFAULT_TIMEOUT = 30000;
+const SLOW_TIMEOUT = 120000; // 2 minutes — covers two ~26 s OpenAI round-trips + overhead
+
+/**
+ * Why --test-force-exit:
+ * Several test files import modules (database/index.js, server/app.js) that
+ * create Supabase clients via @supabase/supabase-js. The Supabase JS client
+ * opens persistent fetch/WebSocket handles internally and exposes no .close()
+ * method, so closeAllPools() cannot release them. Without --test-force-exit the
+ * child process hangs after all tests pass, eventually hitting the setup.js
+ * 5-minute watchdog which kills it with a test failure. --test-force-exit tells
+ * Node's built-in test runner to call process.exit(0|1) as soon as all tests
+ * finish, bypassing the open-handle wait entirely.
+ */
+const FORCE_EXIT_FLAG = '--test-force-exit';
+
+/**
+ * Executes the configured Node test file list via `execSync`.
+ * @returns {Promise<void>}
+ */
 async function runTests() {
   // Ensure NODE_ENV is set to test for all test runs
   if (process.env.NODE_ENV !== 'test') {
@@ -59,11 +79,13 @@ async function runTests() {
     // Run all tests in sequence to avoid hanging
     for (const testFile of testsToRun) {
       logger.info(`\n🧪 Running ${testFile}...`);
+      const timeout = SLOW_TESTS.has(testFile) ? SLOW_TIMEOUT : DEFAULT_TIMEOUT;
       try {
-        execSync(`node --test ${testFile}`, {
+        execSync(`node --import ./tests/setup.js --test ${FORCE_EXIT_FLAG} ${testFile}`, {
           cwd: process.cwd(),
-          env: process.env,
+          env: { ...process.env },
           stdio: 'inherit',
+          timeout,
         });
         logger.info(`✓ ${testFile} completed`);
       } catch (error) {
@@ -81,7 +103,7 @@ async function runTests() {
 
     process.exit(0);
   } catch (error) {
-    logger.error('Test execution failed:', error.message);
+    logger.error({ error }, 'Test execution failed');
     if (global.clearGlobalTimeout) {
       global.clearGlobalTimeout();
     }
