@@ -1,6 +1,8 @@
 /**
- * Health Check Service
- * Provides comprehensive health monitoring for all backend services and dependencies
+ * @module health.service
+ * @description Health monitoring service for backend dependencies.
+ * Provides comprehensive health checks for database, OpenAI API, system resources,
+ * and configuration integrity. Supports individual checks and aggregated system health.
  */
 
 import { performance } from 'perf_hooks';
@@ -32,6 +34,7 @@ async function checkDatabase() {
     }
 
     const responseTime = Math.round(performance.now() - startTime);
+    logger.logOperation('checkDatabase', 'health/database', 'success', responseTime);
 
     return {
       status: 'healthy',
@@ -40,6 +43,11 @@ async function checkDatabase() {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
+    const responseTime = Math.round(performance.now() - startTime);
+    logger.logOperation('checkDatabase', 'health/database', 'error', responseTime, {
+      error,
+    });
+
     return {
       status: 'unhealthy',
       type: dbType,
@@ -60,6 +68,9 @@ async function checkAivenDatabase() {
     // Check if Aiven is configured (has host or connection string)
     const hasAivenConfig = BACKEND_CONFIG.aiven.host || BACKEND_CONFIG.aiven.connectionString;
     if (!hasAivenConfig) {
+      const responseTime = Math.round(performance.now() - startTime);
+      logger.logOperation('checkAivenDatabase', 'health/aiven', 'disabled', responseTime);
+
       return {
         status: 'disabled',
         reason: 'Aiven not configured (no host or connection string)',
@@ -73,6 +84,8 @@ async function checkAivenDatabase() {
     await pool.query('SELECT 1');
 
     const responseTime = Math.round(performance.now() - startTime);
+    logger.logOperation('checkAivenDatabase', 'health/aiven', 'success', responseTime);
+
     return {
       status: 'healthy',
       type: 'aiven',
@@ -80,6 +93,11 @@ async function checkAivenDatabase() {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
+    const responseTime = Math.round(performance.now() - startTime);
+    logger.logOperation('checkAivenDatabase', 'health/aiven', 'error', responseTime, {
+      error,
+    });
+
     return {
       status: 'unhealthy',
       type: 'aiven',
@@ -98,6 +116,9 @@ async function checkOpenAI() {
 
   try {
     if (!BACKEND_CONFIG.openai.apiKey) {
+      const responseTime = Math.round(performance.now() - startTime);
+      logger.logOperation('checkOpenAI', 'health/openai', 'disabled', responseTime);
+
       return {
         status: 'disabled',
         reason: 'API key not configured',
@@ -124,6 +145,7 @@ async function checkOpenAI() {
     }
 
     const responseTime = Math.round(performance.now() - startTime);
+    logger.logOperation('checkOpenAI', 'health/openai', 'success', responseTime);
 
     return {
       status: 'healthy',
@@ -131,6 +153,11 @@ async function checkOpenAI() {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
+    const responseTime = Math.round(performance.now() - startTime);
+    logger.logOperation('checkOpenAI', 'health/openai', 'error', responseTime, {
+      error,
+    });
+
     return {
       status: 'unhealthy',
       error: error.message,
