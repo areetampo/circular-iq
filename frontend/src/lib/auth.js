@@ -1,10 +1,7 @@
 /**
- * ============================================
- * AUTH HELPERS  —  src/lib/auth.js
- * ============================================
+ * @module auth
+ * @description Authentication helpers for username-based Supabase auth.
  * Single module that owns the username → Supabase identity mapping.
- *
- * WHY THIS EXISTS:
  * Supabase Auth requires an email-format identifier internally. This app uses
  * username-only auth; a DB trigger maps every username to an internal domain at
  * signup. That domain is an implementation detail of the infrastructure layer

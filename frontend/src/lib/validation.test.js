@@ -1,3 +1,8 @@
+/**
+ * @module validation.test
+ * @description Unit tests for Zod schemas and validators.
+ */
+
 import { describe, expect, it } from 'vitest';
 
 import { getCharacterCount, validateInput } from '@/lib/validation';

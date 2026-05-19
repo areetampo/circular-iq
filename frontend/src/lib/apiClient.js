@@ -1,4 +1,9 @@
-/** Builds proxied API URLs for backend requests. */
+/**
+ * @module apiClient
+ * @description API client utility for building proxied API URLs.
+ * In production, routes through Vercel rewrites to the backend.
+ * In development, goes directly to the backend API URL.
+ */
 
 import { FRONTEND_CONFIG } from '@/config';
 

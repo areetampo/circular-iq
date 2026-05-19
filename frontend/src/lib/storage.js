@@ -1,10 +1,13 @@
-/** LocalStorage helpers with JSON serialisation.
+/**
+ * @module storage
+ * @description LocalStorage and sessionStorage helpers with JSON serialisation.
+ * Provides functions for managing evaluation state, share form state,
+ * and compare form state with expiry handling.
  *
  * Storage Keys:
- * - session_id: Unique identifier for this browser session
  * - session_evaluation_state: Current evaluation form state + unsaved results
- *
- * Location: src/lib/storage.js
+ * - share_form_state: Share form assessment ID
+ * - compare_form_state: Compare form assessment IDs
  */
 
 // ============================================================================
@@ -23,6 +26,7 @@ const SESSION_EXPIRY_DAYS = 30;
  * @param {Object} state - State to save (can be partial)
  * @param {Object} state.inputs - User inputs (businessProblem, businessSolution, parameters)
  * @param {Object|null} state.results - Complete results object (null to clear, undefined to preserve existing)
+ * @returns {boolean} True when persisted successfully.
  */
 export function saveEvaluationState(state) {
   try {
@@ -115,8 +119,15 @@ export function saveEvaluationState(state) {
 }
 
 /**
- * Load evaluation state from localStorage
- * Returns null if expired or not found
+ * Loads evaluation state from localStorage.
+ * Clears and returns null when the 30-day expiry has passed.
+ *
+ * @returns {{
+ *   inputs: { businessProblem: string, businessSolution: string, evaluationParameters: Object, businessContext: Object },
+ *   results: Object|null,
+ *   timestamp: string,
+ *   expiresAt: string
+ * }|null}
  */
 export function loadEvaluationState() {
   try {
@@ -140,7 +151,8 @@ export function loadEvaluationState() {
 }
 
 /**
- * Clear evaluation state from localStorage
+ * Removes evaluation state from localStorage.
+ * @returns {boolean} True when cleared successfully.
  */
 export function clearEvaluationState() {
   try {
@@ -153,7 +165,8 @@ export function clearEvaluationState() {
 }
 
 /**
- * Check if evaluation state has any meaningful content
+ * Returns whether persisted evaluation state contains non-empty inputs or saved results.
+ * @returns {boolean}
  */
 export function hasEvaluationContent() {
   const state = loadEvaluationState();
@@ -183,6 +196,7 @@ const FORM_EXPIRY_HOURS = 24; // Forms persist for 24 hours
 /**
  * Save share form state to sessionStorage
  * @param {string} publicId - The assessment ID to persist
+ * @returns {boolean} True when persisted successfully.
  */
 export function saveShareFormState(publicId) {
   try {
@@ -200,8 +214,8 @@ export function saveShareFormState(publicId) {
 }
 
 /**
- * Load share form state from sessionStorage
- * Returns null if expired or not found
+ * Loads share form state from sessionStorage (24h expiry).
+ * @returns {{ publicId: string, timestamp: string, expiresAt: string }|null}
  */
 export function loadShareFormState() {
   try {
@@ -224,7 +238,8 @@ export function loadShareFormState() {
 }
 
 /**
- * Clear share form state from sessionStorage
+ * Removes share form state from sessionStorage.
+ * @returns {boolean} True when cleared successfully.
  */
 export function clearShareFormState() {
   try {
@@ -240,6 +255,7 @@ export function clearShareFormState() {
  * Save compare form state to sessionStorage
  * @param {string} publicId1 - First assessment ID
  * @param {string} publicId2 - Second assessment ID
+ * @returns {boolean} True when persisted successfully.
  */
 export function saveCompareFormState(publicId1, publicId2) {
   try {
@@ -258,8 +274,8 @@ export function saveCompareFormState(publicId1, publicId2) {
 }
 
 /**
- * Load compare form state from sessionStorage
- * Returns null if expired or not found
+ * Loads compare form state from sessionStorage (24h expiry).
+ * @returns {{ publicId1: string, publicId2: string, timestamp: string, expiresAt: string }|null}
  */
 export function loadCompareFormState() {
   try {
@@ -282,7 +298,8 @@ export function loadCompareFormState() {
 }
 
 /**
- * Clear compare form state from sessionStorage
+ * Removes compare form state from sessionStorage.
+ * @returns {boolean} True when cleared successfully.
  */
 export function clearCompareFormState() {
   try {

@@ -1,4 +1,8 @@
-/** Score classification helpers */
+/**
+ * @module scoring
+ * @description Score classification and formatting helpers.
+ * Provides functions for formatting factor names to readable title case.
+ */
 
 /**
  * Format factor names to readable title case

@@ -1,4 +1,9 @@
-/** Input validation and character counting helpers. */
+/**
+ * @module validation
+ * @description Input validation and character counting helpers.
+ * Provides functions for character counting, input validation, UUID validation,
+ * and Zod schemas for authentication (username/password) validation.
+ */
 
 import { z } from 'zod';
 
@@ -81,6 +86,15 @@ export function isValidUUID(uuid) {
 // Single source of truth for all length / pattern rules.
 // Referenced in both schemas and in the hint text rendered below each input.
 
+/**
+ * Shared username/password length and pattern rules for auth forms.
+ * Mirrors backend `force_internal_email` trigger and `profiles` CHECK constraints.
+ *
+ * @type {{
+ *   USERNAME: { MIN_LENGTH: number, MAX_LENGTH: number, PATTERN: RegExp, PATTERN_DESC: string },
+ *   PASSWORD: { MIN_LENGTH: number, MAX_LENGTH: number, PATTERN: RegExp, PATTERN_DESC: string }
+ * }}
+ */
 export const AUTH_VALIDATION = {
   USERNAME: {
     MIN_LENGTH: 3,
@@ -121,6 +135,11 @@ export const AUTH_VALIDATION = {
 // Only enforces that both fields are non-empty and within length bounds.
 // No pattern/character rules: those belong to signup. A wrong-but-syntactically-
 // valid credential just gets a generic 'incorrect username or password' from the server.
+
+/**
+ * Zod schema for login form — minimal length checks only (no pattern rules).
+ * @type {import('zod').ZodObject<{username: import('zod').ZodString, password: import('zod').ZodString}>}
+ */
 export const loginSchema = z.object({
   username: z
     .string()
@@ -143,6 +162,10 @@ export const loginSchema = z.object({
 // Signup Schema
 // ============================================
 
+/**
+ * Zod schema for signup form — full username/password rules plus confirm-password match.
+ * @type {import('zod').ZodEffects<import('zod').ZodObject>}
+ */
 export const signupSchema = z
   .object({
     username: z

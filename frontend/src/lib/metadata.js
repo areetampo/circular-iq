@@ -1,6 +1,16 @@
-/** Extracts industry from assessment results. */
+/**
+ * @module metadata
+ * @description Metadata extraction helpers for assessment results.
+ * Provides functions to extract fields like industry from assessment objects
+ * with support for nested structures (result_json, metadata).
+ */
 
-// Internal helper function - not exported
+/**
+ * Reads `field` from an assessment object, checking top-level, `result_json`, and `metadata`.
+ * @param {Object|null|undefined} obj - Assessment or scoring result payload.
+ * @param {string} field - Property name to resolve (e.g. `'industry'`).
+ * @returns {*|null} Resolved value or `null` when absent.
+ */
 function getField(obj, field) {
   if (!obj) return null;
 
@@ -20,8 +30,17 @@ function getField(obj, field) {
   return null;
 }
 
+/**
+ * Extract industry from an assessment or scoring result (checks top-level, result_json, metadata).
+ * @param {Object|null|undefined} obj - Assessment or result object
+ * @returns {string|null}
+ */
 export function getIndustry(obj) {
   return getField(obj, 'industry');
 }
 
+/**
+ * Default export mirroring named helpers for legacy imports.
+ * @type {{ getIndustry: typeof getIndustry }}
+ */
 export default { getIndustry };

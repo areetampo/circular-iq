@@ -1,33 +1,54 @@
-/** Date, number, and string formatting helpers. */
+/**
+ * @module formatting
+ * @description Date, number, URL, and string formatting helpers shared across the app.
+ * Used by results pages, uptime monitor charts, navbar, and assessment lists.
+ */
 
 /**
  * Formats a timestamp into a human-readable string.
+ *
  * @param {number|string|Date} timestamp - The value to format.
  * @param {Object} [options={}] - Configuration for the output format.
+ * @param {boolean} [options.showYear=true] - Include year in output.
+ * @param {boolean} [options.showMonth=true] - Include month in output.
+ * @param {boolean} [options.showDay=true] - Include day in output.
  * @param {boolean} [options.showSeconds=false] - Whether to include seconds.
  * @param {boolean} [options.showMilliseconds=false] - Whether to include milliseconds.
  * @param {boolean} [options.use24Hour=false] - Use 24-hour format instead of AM/PM.
+ * @param {boolean} [options.showTimezone=true] - Append short timezone name (e.g. GMT).
  * @returns {string} The formatted date string or an error message.
  */
 export function formatTimestamp(
   timestamp,
-  { showSeconds = false, showMilliseconds = false, use24Hour = false } = {},
+  {
+    showYear = true,
+    showMonth = true,
+    showDay = true,
+    showSeconds = false,
+    showMilliseconds = false,
+    use24Hour = false,
+    showTimezone = true,
+  } = {},
 ) {
   if (!timestamp) return '[Unknown time]';
 
   const d = new Date(timestamp);
   if (isNaN(d.getTime())) return '[Invalid timestamp]';
 
-  return d.toLocaleString('en-GB', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  const localeOptions = {
     hour: '2-digit',
     minute: '2-digit',
-    second: showSeconds || showMilliseconds ? '2-digit' : undefined,
-    fractionalSecondDigits: showMilliseconds ? 3 : undefined,
     hour12: !use24Hour,
-  });
+  };
+
+  if (showYear) localeOptions.year = 'numeric';
+  if (showMonth) localeOptions.month = 'short';
+  if (showDay) localeOptions.day = 'numeric';
+  if (showSeconds || showMilliseconds) localeOptions.second = '2-digit';
+  if (showMilliseconds) localeOptions.fractionalSecondDigits = 3;
+  if (showTimezone) localeOptions.timeZoneName = 'short';
+
+  return d.toLocaleString('en-GB', localeOptions);
 }
 
 /**
@@ -60,23 +81,23 @@ export function formatRelativeTime(timestamp) {
   const diffHrs = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHrs / 24);
 
-  // pluralise: p(2, 'hr', 'hrs') → "2 hrs"
+  // pluralise: p(2, 'hr', 'hrs') ΓåÆ "2 hrs"
   const p = (n, singular, plural = singular + 's') => `${n} ${n === 1 ? singular : plural}`;
 
   // 1. Under 1 minute
   if (diffMins < 1) return `${p(diffSecs, 'second', 'seconds')} ago`;
 
-  // 2. Under 1 hour — mins only
+  // 2. Under 1 hour ΓÇö mins only
   if (diffHrs < 1) return `${p(diffMins, 'min', 'mins')} ago`;
 
-  // 3 & 4. Under 24 hours — hr[s] + min[s] (omit mins if 0)
+  // 3 & 4. Under 24 hours ΓÇö hr[s] + min[s] (omit mins if 0)
   if (diffDays < 1) {
     const m = diffMins % 60;
     const minPart = m > 0 ? ` ${p(m, 'min', 'mins')}` : '';
     return `${p(diffHrs, 'hr', 'hrs')}${minPart} ago`;
   }
 
-  // 5 & 6. Under 7 days — day[s] + hr[s] (omit hrs if 0)
+  // 5 & 6. Under 7 days ΓÇö day[s] + hr[s] (omit hrs if 0)
   if (diffDays < 7) {
     const h = diffHrs % 24;
     const hrPart = h > 0 ? ` ${p(h, 'hr', 'hrs')}` : '';
@@ -97,14 +118,14 @@ export function formatRelativeTime(timestamp) {
     calMonths += 12;
   }
 
-  // Convert remaining calendar days → week string or day string (never both)
+  // Convert remaining calendar days ΓåÆ week string or day string (never both)
   const subUnit = (d) => {
     if (d <= 0) return '';
     if (d >= 7) return ` ${p(Math.floor(d / 7), 'w', 'w')}`;
     return ` ${p(d, 'day', 'days')}`;
   };
 
-  // 7. Under 1 calendar month — weeks + days (omit days if 0)
+  // 7. Under 1 calendar month ΓÇö weeks + days (omit days if 0)
   //    (we reach here only when calYears === 0 && calMonths === 0)
   if (calYears === 0 && calMonths === 0) {
     const weeks = Math.floor(diffDays / 7);
@@ -113,12 +134,12 @@ export function formatRelativeTime(timestamp) {
     return `${p(weeks, 'w', 'w')}${dayPart} ago`;
   }
 
-  // 8. Under 1 year — mo + (weeks or days, omit if 0)
+  // 8. Under 1 year ΓÇö mo + (weeks or days, omit if 0)
   if (calYears === 0) {
     return `${p(calMonths, 'mo', 'mo')}${subUnit(calDays)} ago`;
   }
 
-  // 9. 1+ years — yr[s] + month[s]  OR  yr[s] + w  OR  yr[s] only
+  // 9. 1+ years ΓÇö yr[s] + month[s]  OR  yr[s] + w  OR  yr[s] only
   //    (days < 7 are discarded at the year scale)
   let suffix = '';
   if (calMonths > 0) {
@@ -170,7 +191,7 @@ export function formatProcessingTime(timeMs) {
 /**
  * Removes a specific number of characters from the end of a string
  * and appends an ellipsis.
- * * @param {string} str - The target string.
+ * @param {string} str - The target string.
  * @param {number} charsToRemove - How many characters to cut off.
  * @returns {string} The truncated string.
  */
@@ -248,9 +269,61 @@ export function cleanUrl(urlStr, options = {}) {
 }
 
 /**
- * Get initials from username
- * @param {string} username - Username string
- * @returns {string} Initials (max 2 chars)
+ * Converts a duration object to a compact human-readable label.
+ * All fields are optional and summed before formatting.
+ *
+ * @param {Object} [duration={}]
+ * @param {number} [duration.days=0]
+ * @param {number} [duration.hours=0]
+ * @param {number} [duration.minutes=0]
+ * @returns {string} e.g. "15 mins", "1 day", "1 hr 20 mins"
+ *
+ * @example
+ * formatDuration({ minutes: 15 }); // "15 mins"
+ * formatDuration({ hours: 24 }); // "1 day"
+ */
+export function formatDuration({ days = 0, hours = 0, minutes = 0 } = {}) {
+  const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
+  if (totalMinutes <= 0) return '0 mins';
+  if (totalMinutes === 24 * 60) return '1 day';
+
+  const wholeDays = Math.floor(totalMinutes / (24 * 60));
+  const remainder = totalMinutes % (24 * 60);
+  const wholeHours = Math.floor(remainder / 60);
+  const wholeMinutes = remainder % 60;
+
+  const parts = [];
+  if (wholeDays > 0) parts.push(`${wholeDays} day${wholeDays === 1 ? '' : 's'}`);
+  if (wholeHours > 0) parts.push(`${wholeHours} hr${wholeHours === 1 ? '' : 's'}`);
+  if (wholeMinutes > 0 || parts.length === 0) {
+    parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
+  }
+
+  return parts.join(' ');
+}
+
+/**
+ * Returns the user's local timezone label for chart axis subtitles.
+ *
+ * @param {Object} [options={}]
+ * @param {'minimal'|'full'} [options.style='minimal'] - `minimal` uses short name (e.g. GMT+1).
+ * @returns {string}
+ */
+export function getTimezoneLabel({ style = 'minimal' } = {}) {
+  const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (style === 'full') return resolved;
+
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZoneName: 'short' }).formatToParts(
+    new Date(),
+  );
+  return parts.find((p) => p.type === 'timeZoneName')?.value ?? resolved;
+}
+
+/**
+ * Get initials from username.
+ *
+ * @param {string} username - Username string.
+ * @returns {string} Initials (max 2 chars).
  */
 export function getUserInitials(username) {
   if (!username) return '-';

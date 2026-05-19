@@ -1,3 +1,8 @@
+/**
+ * @module formatting.test
+ * @description Unit tests for formatting helpers.
+ */
+
 import { describe, expect, it } from 'vitest';
 
 import { toTitleCase } from './formatting';

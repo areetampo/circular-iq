@@ -1,4 +1,8 @@
-/** Initialised Supabase client singleton. */
+/**
+ * @module supabase
+ * @description Initialised Supabase client singleton.
+ * Creates and exports a Supabase client using environment variables.
+ */
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -13,4 +17,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+/**
+ * Shared Supabase client for auth session and realtime (anon key).
+ * @type {import('@supabase/supabase-js').SupabaseClient}
+ */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
