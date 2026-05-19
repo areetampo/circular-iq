@@ -1,3 +1,10 @@
+/**
+ * @module guidePageContent
+ * @description Content for the Guide page.
+ * Provides comprehensive guide content including getting started instructions,
+ * scoring and benchmarking explanations, results interpretation, and evaluation parameters.
+ */
+
 // Import all drawer content
 import { Cog, DollarSign, Users } from 'lucide-react';
 
