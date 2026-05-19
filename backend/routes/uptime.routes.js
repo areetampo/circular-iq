@@ -283,7 +283,7 @@ export default function createUptimeRouter() {
       const { data, error } = await supabase.rpc('get_heatmap_buckets', {
         bucket_minutes: bucketMinutes,
         days,
-        reference_ts: reference,
+        p_reference_ts: reference,
         p_clock_aligned: clockAligned,
       });
 
