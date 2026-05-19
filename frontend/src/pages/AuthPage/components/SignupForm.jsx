@@ -1,3 +1,8 @@
+/**
+ * @module SignupForm
+ * @description Registration form for new users (username/password via Supabase).
+ */
+
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CircleCheck, CircleDot, CircleX, Eye, EyeOff } from 'lucide-react';
@@ -23,11 +28,12 @@ import {
 import { cn } from '@/utils/cn';
 
 /**
- * Reusable validation rule component.
- * @param {boolean} isValid - Whether the validation passed.
- * @param {boolean} hasInput - Whether the field has input.
- * @param {React.ReactNode} children - The validation text.
- * @returns {React.ReactNode} The validation rule component.
+ * Inline signup validation hint with pass/fail/neutral icon states.
+ *
+ * @param {boolean} isValid - Whether the rule currently passes.
+ * @param {boolean} hasInput - Whether the user has typed in the field.
+ * @param {import('react').ReactNode} children - Rule label text.
+ * @returns {import('react').ReactElement}
  */
 const ValidationRule = ({ isValid, hasInput, children }) => (
   <div

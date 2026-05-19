@@ -1,8 +1,21 @@
+/**
+ * @module AuthBrandHeader
+ * @description Branded header (logo and product name) on authentication pages.
+ */
+
 import PropTypes from 'prop-types';
 
 import { SiteFullName, SiteLogo, SiteName } from '@/components/common';
 import { cn } from '@/utils/cn';
 
+/**
+ * Branded header (logo and product name) on authentication pages.
+ *
+ * @param {Object} props
+ * @param {string} props.className
+ * @param {string} props.layout
+ * @returns {import('react').ReactElement}
+ */
 export default function AuthBrandHeader({ className, layout = 'col' }) {
   return (
     <div

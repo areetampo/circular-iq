@@ -1,6 +1,12 @@
+/**
+ * @module LoginForm
+ * @description Username/password sign-in form backed by Supabase auth helpers.
+ */
+
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, KeyRound, Minus, User } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -227,5 +233,9 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
     </div>
   );
 });
+
+LoginForm.propTypes = {
+  onSwitchToSignup: PropTypes.func.isRequired,
+};
 
 export default LoginForm;
