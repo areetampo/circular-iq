@@ -1,11 +1,34 @@
 /**
- * Assessments Controller
- * CRUD operations for user assessments: save, fetch, update, delete,
- * public sharing, market analysis per assessment.
+ * @module assessments.controller
+ * @description Controller for assessment CRUD operations and related functionality.
+ * Handles saving, fetching, updating, deleting user assessments, public sharing,
+ * assessment comparisons, and market analysis per assessment.
+ *
+ * Key functions:
+ * - saveAssessment: Create a new assessment with validation
+ * - fetchUserAssessments: List user assessments with filtering, sorting, pagination
+ * - getAssessmentByPublicId: Fetch public assessment by public ID
+ * - getAssessmentById: Fetch assessment by internal ID (auth required)
+ * - updateAssessment: Update assessment fields
+ * - deleteAssessment: Delete an assessment
+ * - compareAssessments: Compare two assessments with visibility rules
  */
 
 /**
- * Save a new assessment
+ * Saves a new assessment to the database with validation.
+ * Validates title length, result structure, and handles duplicate name errors.
+ *
+ * @param {Object} supabase - Supabase client instance.
+ * @param {Object} user - Authenticated user object with id property.
+ * @param {Object} validatedBody - Validated request body from schema validation.
+ * @param {string} validatedBody.name - Assessment title.
+ * @param {string} validatedBody.industry - Industry classification.
+ * @param {Object} validatedBody.result_json - Scoring result JSON.
+ * @param {boolean} validatedBody.is_public - Whether assessment is publicly visible.
+ * @param {boolean} validatedBody.contribute_to_global_benchmarks - Whether to include in global benchmarks.
+ * @param {Object} rawBody - Raw request body with scoring result.
+ * @returns {Promise<{id: string, message: string, assessment: Object}>} Saved assessment data.
+ * @throws {Error} If validation fails or database error occurs.
  */
 export async function saveAssessment(supabase, user, validatedBody, rawBody) {
   const startTime = Date.now();
@@ -128,7 +151,24 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody) {
 }
 
 /**
- * Fetch user's assessments with filtering, sorting, pagination
+ * Fetches user's assessments with filtering, sorting, and pagination.
+ * Supports filtering by industry, date range, score range, and text search.
+ *
+ * @param {Object} supabase - Supabase client instance.
+ * @param {Object} user - Authenticated user object with id property (can be null for anonymous).
+ * @param {Object} query - Query parameters for filtering and pagination.
+ * @param {string} [query.industry] - Comma-separated list of industries to filter by.
+ * @param {string} [query.sortBy='created_at'] - Field to sort by (created_at, overall_score, title).
+ * @param {string} [query.order='desc'] - Sort order (asc or desc).
+ * @param {number} [query.page=1] - Page number for pagination.
+ * @param {number} [query.pageSize=20] - Number of items per page (max 100).
+ * @param {string} [query.search] - Text search term for title and industry.
+ * @param {string} [query.createdFrom] - ISO date string for start of date range.
+ * @param {string} [query.createdTo] - ISO date string for end of date range.
+ * @param {number} [query.minScore] - Minimum overall score to include.
+ * @param {number} [query.maxScore] - Maximum overall score to include.
+ * @returns {Promise<{assessments: Array, pagination: Object}>} Paginated assessment list.
+ * @throws {Error} If database query fails.
  */
 export async function fetchUserAssessments(supabase, user, query) {
   const startTime = Date.now();
@@ -217,7 +257,27 @@ export async function fetchUserAssessments(supabase, user, query) {
 }
 
 /**
- * Get aggregate statistics for user's assessments
+ * Returns aggregate statistics for the authenticated user's saved assessments.
+ * Delegates to the `get_assessment_statistics` RPC.
+ *
+ * @param {Object} supabase - Supabase client (user-scoped or service-role).
+ * @param {Object} user - Authenticated user with `id`.
+ * @returns {Promise<{
+ *   totalAssessments: number,
+ *   completedAssessments: number,
+ *   averageScore: number,
+ *   medianScore: number,
+ *   minScore: number|null,
+ *   maxScore: number|null,
+ *   avgConfidence: number|null,
+ *   avgTechnicalFeasibility: number|null,
+ *   avgEconomicViability: number|null,
+ *   avgCircularityPotential: number|null,
+ *   assessmentsByIndustry: Object,
+ *   assessmentsByRisk: Object,
+ *   assessmentsByScale: Object
+ * }>}
+ * @throws {Error} If the RPC call fails.
  */
 export async function getAssessmentStats(supabase, user) {
   const startTime = Date.now();
@@ -270,9 +330,14 @@ export async function getAssessmentStats(supabase, user) {
 }
 
 /**
- * Fetch a public assessment by public_id
- * Users can access their own assessments regardless of public status
- * Other users can only access public assessments
+ * Fetches an assessment by `public_id` with visibility rules.
+ * Owners may access private assessments; other users require `is_public === true`.
+ *
+ * @param {Object} supabase - Supabase client.
+ * @param {Object|null} user - Authenticated user (optional for anonymous access).
+ * @param {string} publicId - UUID public identifier.
+ * @returns {Promise<{assessment: Object, readonly: boolean}>} Assessment row and edit flag.
+ * @throws {Error} With `code` `NOT_FOUND` or `FORBIDDEN` when access is denied.
  */
 export async function getPublicAssessment(supabase, user, publicId) {
   const startTime = Date.now();
@@ -327,8 +392,14 @@ export async function getPublicAssessment(supabase, user, publicId) {
 }
 
 /**
- * Validate a public assessment ID
- * Users can always validate their own assessments regardless of public status
+ * Validates that a `public_id` exists and is accessible under visibility rules.
+ * Owners may validate private assessments; other callers require a public assessment.
+ *
+ * @param {Object} supabase - Supabase client.
+ * @param {string} publicId - UUID public identifier.
+ * @param {Object|null} [user=null] - Authenticated user for ownership checks.
+ * @returns {Promise<{valid: true, isOwner: boolean, isPublic: boolean}>}
+ * @throws {Error} With `code` `INVALID_FORMAT`, `NOT_FOUND`, or `FORBIDDEN`.
  */
 export async function validatePublicId(supabase, publicId, user = null) {
   const startTime = Date.now();
@@ -415,7 +486,14 @@ export async function validatePublicId(supabase, publicId, user = null) {
 }
 
 /**
- * Fetch a single assessment by publicId (user-specific)
+ * Fetches a single assessment owned by the authenticated user.
+ * When `user` is omitted, returns the first row matching `public_id` (service-role use).
+ *
+ * @param {Object} supabase - Supabase client.
+ * @param {Object|null} user - Authenticated user (filters by `user_id` when present).
+ * @param {string} publicId - UUID public identifier.
+ * @returns {Promise<Object>} Full assessment row.
+ * @throws {Error} With `code` `NOT_FOUND` when no matching row exists.
  */
 export async function getAssessmentById(supabase, user, publicId) {
   const startTime = Date.now();
@@ -447,7 +525,15 @@ export async function getAssessmentById(supabase, user, publicId) {
 }
 
 /**
- * Update assessment fields
+ * Updates assessment fields with validation.
+ * Validates title length if being updated and handles duplicate name errors.
+ *
+ * @param {Object} supabase - Supabase client instance.
+ * @param {Object} user - Authenticated user object with id property.
+ * @param {string} id - Internal assessment ID to update.
+ * @param {Object} updates - Fields to update (e.g., title, is_public, etc.).
+ * @returns {Promise<{assessment: Object, message: string}>} Updated assessment data.
+ * @throws {Error} If validation fails, not found, or unauthorized.
  */
 export async function updateAssessment(supabase, user, id, updates) {
   const startTime = Date.now();
@@ -518,7 +604,14 @@ export async function updateAssessment(supabase, user, id, updates) {
 }
 
 /**
- * Delete an assessment
+ * Deletes an assessment by ID for the authenticated user.
+ * Verifies ownership before deletion.
+ *
+ * @param {Object} supabase - Supabase client instance.
+ * @param {Object} user - Authenticated user object with id property.
+ * @param {string} id - Internal assessment ID to delete.
+ * @returns {Promise<{message: string, id: string}>} Deletion confirmation.
+ * @throws {Error} If not found or unauthorized.
  */
 export async function deleteAssessment(supabase, user, id) {
   const startTime = Date.now();
@@ -567,8 +660,16 @@ export async function deleteAssessment(supabase, user, id) {
 }
 
 /**
- * Compare two assessments with visibility rules
- * For public access (user is null), both assessments must be public
+ * Compares two assessments with visibility rules enforced.
+ * For public access (user is null), both assessments must be public.
+ * Authenticated users can compare their own assessments or public ones.
+ *
+ * @param {Object} supabase - Supabase client instance.
+ * @param {Object|null} user - Authenticated user object (null for anonymous access).
+ * @param {string} publicId1 - Public ID of the first assessment.
+ * @param {string} publicId2 - Public ID of the second assessment.
+ * @returns {Promise<{assessment1: Object, assessment2: Object}>} Both assessment objects.
+ * @throws {Error} If IDs are invalid, not found, or access is denied.
  */
 export async function compareAssessments(supabase, user, publicId1, publicId2) {
   const startTime = Date.now();
