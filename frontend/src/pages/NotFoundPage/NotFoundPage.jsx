@@ -1,8 +1,17 @@
+/**
+ * @module NotFoundPage
+ * @description 404 fallback route with navigation back to the app.
+ */
+
 import { BarChart3, Compass, Files, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Button, Separator } from '@/components/common';
 
+/**
+ * Friendly not-found message and link home.
+ * @returns {import('react').ReactElement}
+ */
 export default function NotFoundPage() {
   return (
     <div className="flex min-h-[80vh] w-full flex-col items-center justify-center px-6 py-16 text-center">
