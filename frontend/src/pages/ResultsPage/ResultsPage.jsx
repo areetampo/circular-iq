@@ -1,3 +1,8 @@
+/**
+ * @module ResultsPage
+ * @description Displays scoring results, audit breakdown, and actions (save, export, share) for live, saved, or public assessments.
+ */
+
 import { Checkbox, Label, toast } from '@heroui/react';
 import { ExternalLink, MoveLeft, MoveRight, NotebookPen, RotateCw } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -55,6 +60,14 @@ import {
   WeightedScoreCard,
 } from './components';
 
+/**
+ * Renders the full results dashboard from session, route params, or public share mode.
+ *
+ * @param {Object} props
+ * @param {boolean} [props.isViewFromMyAssessments=false] - Loaded from My Assessments (saved record).
+ * @param {boolean} [props.isPublicShare=false] - Read-only public share view.
+ * @returns {import('react').ReactElement}
+ */
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
 

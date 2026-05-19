@@ -1,3 +1,8 @@
+/**
+ * @module ResultsActionBar
+ * @description Sticky action bar: export, save, rename, delete, re-evaluate, and navigation on Results.
+ */
+
 import { toast } from '@heroui/react';
 import { CircleX, Download, Eye, FolderPen, MoveLeft, RefreshCw, Save } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -87,7 +92,7 @@ export default function ResultsActionBar({
   };
 
   return (
-    <div className="mb-2 flex flex-col justify-center gap-1" {...props}>
+    <div {...props} className="mb-2 flex flex-col justify-center gap-1">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left group - navigation */}
         <div className="flex items-center gap-3">

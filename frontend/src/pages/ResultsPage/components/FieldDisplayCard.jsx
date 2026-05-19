@@ -1,13 +1,21 @@
+/**
+ * @module FieldDisplayCard
+ * @description Tilt card for a labeled metadata field (value plus help text) on Results.
+ */
+
 import PropTypes from 'prop-types';
 
 import { Tilt3D } from '@/components/common';
 import { toTitleCase } from '@/lib/formatting';
 
 /**
- * FieldDisplayCard Component
- * Reusable card component for displaying field information with consistent styling
+ * Displays a labeled metadata field with optional help text inside a tilt card.
  *
- * Location: src/pages/ResultsPage/components/FieldDisplayCard.jsx
+ * @param {Object} props
+ * @param {string} props.label - Field label (shown uppercase).
+ * @param {string} [props.value] - Field value; title-cased for display.
+ * @param {string} props.helpText - Supporting explanation below the value.
+ * @returns {import('react').ReactElement}
  */
 export default function FieldDisplayCard({ label, value, helpText }) {
   return (

@@ -1,3 +1,8 @@
+/**
+ * @module ParameterConsistencyCard
+ * @description Parameter consistency score and factor-level variance explanation.
+ */
+
 import PropTypes from 'prop-types';
 
 import { Chip } from '@/components/common';
@@ -36,13 +41,13 @@ export default function ParameterConsistencyCard({ actualResult, ...props }) {
 
   return (
     <ScoreCard
+      {...props}
       title="Self-Assessment Reliability"
       description="Internal consistency of your 8 parameter scores"
       score={score}
       rating={`${rating} Consistency`}
       message={interpretation}
       scoreColor={getScoreColor(score)}
-      {...props}
     >
       {issues.length > 0 && (
         <div className="space-y-2">

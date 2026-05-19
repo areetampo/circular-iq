@@ -1,11 +1,24 @@
+/**
+ * @module StrengthsGapsCard
+ * @description Combined strengths and gaps summary from audit analysis.
+ */
+
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 
+/**
+ * Combined strengths and gaps summary from audit analysis.
+ *
+ * @param {Object} props
+ * @param {Array<string>} props.strengths
+ * @param {Array<string>} props.gaps
+ * @returns {import('react').ReactElement}
+ */
 export default function StrengthsGapsCard({ strengths, gaps, ...props }) {
   return (
-    <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent" {...props}>
+    <div {...props} className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
       <div className="p-2 sm:p-4">
         <SectionHeading variant="small" className="mb-6">
           Strengths & Gaps

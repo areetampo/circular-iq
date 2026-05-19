@@ -1,4 +1,6 @@
 /**
+ * @module ResultsSkeleton
+ * @description Full-page loading skeleton while assessment results are fetched.
  * ResultsSkeleton Component
  * Clean skeleton with no borders, only content skeletons preserving exact spacing
  */
@@ -6,6 +8,10 @@ import { Skeleton } from '@heroui/react';
 
 import { Separator } from '@/components/common';
 
+/**
+ * Full-page loading skeleton while assessment results are fetched.
+ * @returns {import('react').ReactElement}
+ */
 export default function ResultsSkeleton() {
   return (
     <div className="mx-auto max-w-5xl">

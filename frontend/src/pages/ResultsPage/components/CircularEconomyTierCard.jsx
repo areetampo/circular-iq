@@ -1,3 +1,8 @@
+/**
+ * @module CircularEconomyTierCard
+ * @description Displays circular economy tier classification and explanatory copy.
+ */
+
 import { Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 

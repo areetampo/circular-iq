@@ -1,3 +1,8 @@
+/**
+ * @module CaseSummaryAccordions
+ * @description Expandable accordions summarizing matched CE cases from vector search.
+ */
+
 import { Accordion } from '@heroui/react';
 import { BarChart2, Globe, Lightbulb, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -7,7 +12,17 @@ import { SectionHeading, Tilt3D } from '@/components/common';
 import { parameterLabels, validKeys } from '@/constants/evaluationData';
 import { toTitleCase } from '@/lib/formatting';
 
-// Reusable accordion item component
+/**
+ * Single accordion panel with icon header for case-summary sections.
+ * @param {Object} props
+ * @param {string} props.id
+ * @param {import('lucide-react').LucideIcon} props.icon
+ * @param {string} props.iconColor - Tailwind colour token suffix.
+ * @param {string} props.title
+ * @param {string} props.description
+ * @param {import('react').ReactNode} props.children
+ * @returns {import('react').ReactElement}
+ */
 function AccordionItem({ id, icon, iconColor, title, description, children }) {
   return (
     <Tilt3D
@@ -38,7 +53,13 @@ function AccordionItem({ id, icon, iconColor, title, description, children }) {
   );
 }
 
-// Reusable field display component
+/**
+ * Label/value row for business-context fields inside an accordion.
+ * @param {Object} props
+ * @param {string} props.label
+ * @param {string} props.value
+ * @returns {import('react').ReactElement}
+ */
 function ContextField({ label, value }) {
   return (
     <div className="flex items-center justify-between">
@@ -48,6 +69,16 @@ function ContextField({ label, value }) {
   );
 }
 
+/**
+ * Expandable accordions summarizing matched CE cases from vector search.
+ *
+ * @param {Object} props
+ * @param {string} props.businessProblem
+ * @param {string} props.businessSolution
+ * @param {Object} props.businessContext
+ * @param {Object} props.evaluationParameters
+ * @returns {import('react').ReactElement}
+ */
 export default function CaseSummaryAccordions({
   businessProblem,
   businessSolution,

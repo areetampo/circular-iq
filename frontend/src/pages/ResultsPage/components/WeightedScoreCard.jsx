@@ -1,3 +1,8 @@
+/**
+ * @module WeightedScoreCard
+ * @description Eight-factor weighted score card with per-factor contributions.
+ */
+
 import { TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 

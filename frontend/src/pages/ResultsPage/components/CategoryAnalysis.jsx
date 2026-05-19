@@ -1,9 +1,22 @@
+/**
+ * @module CategoryAnalysis
+ * @description Per evaluation-category score breakdown on the Results page.
+ */
+
 import PropTypes from 'prop-types';
 
 import { SectionHeading, Tilt3D } from '@/components/common';
 import { categoryMapping, validKeys } from '@/constants/evaluationData';
 import { cn } from '@/utils/cn';
 
+/**
+ * Per evaluation-category score breakdown on the Results page.
+ *
+ * @param {Object} props
+ * @param {Object} props.actualResult
+ * @param {number} props.resolvedBusinessViabilityScore
+ * @returns {import('react').ReactElement}
+ */
 export default function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
   const getScoreColor = (numValue) => {
     return numValue >= 75

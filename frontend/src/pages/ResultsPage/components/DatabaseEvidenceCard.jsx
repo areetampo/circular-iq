@@ -1,3 +1,8 @@
+/**
+ * @module DatabaseEvidenceCard
+ * @description Lists database evidence snippets supporting the scoring audit.
+ */
+
 import { FileText, FolderSearch, MoveRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -5,6 +10,14 @@ import { Chip, SectionHeading, Tilt3D } from '@/components/common';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 
+/**
+ * Lists database evidence snippets supporting the scoring audit.
+ *
+ * @param {Object} props
+ * @param {Object} props.actualResult
+ * @param {Array<Object>} props.casesSummaries
+ * @returns {import('react').ReactElement}
+ */
 export default function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
   const { openResultsDatabaseEvidenceDetailsDrawer, drawer } = useGlobalDrawer();
 
@@ -47,10 +60,10 @@ export default function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
 
               return (
                 <Tilt3D
-                  rotateRange={{ x: 8, y: 12 }}
+                  rotateRange={{ x: 4, y: 6 }}
                   block
                   key={index}
-                  className="group flex cursor-pointer items-start gap-4 rounded-xl border-2 border-(--color-border-strong) p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
+                  className="group flex h-full cursor-pointer items-start gap-4 rounded-xl border-2 border-(--color-border-strong) p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
                   onClick={() => handleViewDetails(caseItem)}
                 >
                   <div className="flex flex-1 flex-col gap-3">

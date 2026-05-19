@@ -1,3 +1,8 @@
+/**
+ * @module ScoreCard
+ * @description Reusable score card with rating, message, and optional factor chips.
+ */
+
 import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 

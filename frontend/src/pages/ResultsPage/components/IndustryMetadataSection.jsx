@@ -1,3 +1,8 @@
+/**
+ * @module IndustryMetadataSection
+ * @description Industry, scale, and strategy metadata extracted from business inputs.
+ */
+
 import { Store } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -5,6 +10,14 @@ import { SectionHeading } from '@/components/common';
 
 import FieldDisplayCard from './FieldDisplayCard';
 
+/**
+ * Industry, scale, and strategy metadata extracted from business inputs.
+ *
+ * @param {Object} props
+ * @param {Object} props.actualResult
+ * @param {Object} props.fieldHelp
+ * @returns {import('react').ReactElement}
+ */
 export default function IndustryMetadataSection({ actualResult, fieldHelp }) {
   if (!actualResult.metadata) return null;
 

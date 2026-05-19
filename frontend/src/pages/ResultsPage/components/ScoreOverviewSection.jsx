@@ -1,3 +1,8 @@
+/**
+ * @module ScoreOverviewSection
+ * @description Hero score overview (overall score, tier, confidence) on Results.
+ */
+
 import PropTypes from 'prop-types';
 
 import { formatProcessingTime, toTitleCase } from '@/lib/formatting';
@@ -30,7 +35,7 @@ export default function ScoreOverviewSection({
   ...props
 }) {
   return (
-    <div className="mt-8" {...props}>
+    <div {...props} className="mt-8">
       {/* Industry and Confidence Row */}
       <div className="mb-6 flex justify-center gap-4">
         {[

@@ -1,7 +1,19 @@
+/**
+ * @module RecommendationsCard
+ * @description Bulleted technical recommendations from the scoring audit (with defaults when empty).
+ */
+
 import PropTypes from 'prop-types';
 
 import { SectionHeading } from '@/components/common';
 
+/**
+ * Renders audit `technical_recommendations` or sensible defaults when none exist.
+ *
+ * @param {Object} props
+ * @param {Object} props.actualResult - Scoring result containing `audit.technical_recommendations`.
+ * @returns {import('react').ReactElement}
+ */
 export default function RecommendationsCard({ actualResult }) {
   return (
     <div className="rounded-3xl border-2 border-(--color-border-ui) bg-transparent">
@@ -13,7 +25,7 @@ export default function RecommendationsCard({ actualResult }) {
           Targeted steps to improve your circularity score
         </p>
 
-        <div className="rounded-xl border-0 border-(--color-accent) bg-(--base-secondary-400)/15 p-4">
+        <div className="rounded-xl bg-blue-400/15 p-4">
           <ul className="space-y-3 text-sm">
             {actualResult.audit?.technical_recommendations?.length > 0
               ? actualResult.audit.technical_recommendations.map((rec, i) => (

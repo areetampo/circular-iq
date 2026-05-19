@@ -1,3 +1,8 @@
+/**
+ * @module ScoreCategoryBreakdown
+ * @description Weighted category breakdown of the overall circularity score.
+ */
+
 import { PieChart } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -5,6 +10,13 @@ import { SectionHeading, Tilt3D } from '@/components/common';
 import { getParameterStyling } from '@/constants/groupStyleConfig';
 import { cn } from '@/utils/cn';
 
+/**
+ * Weighted category breakdown of the overall circularity score.
+ *
+ * @param {Object} props
+ * @param {Object} props.actualResult
+ * @returns {import('react').ReactElement}
+ */
 export default function ScoreCategoryBreakdown({ actualResult }) {
   if (!actualResult?.score_breakdown) return null;
 
