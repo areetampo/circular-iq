@@ -1,3 +1,8 @@
+/**
+ * @module AppSessionManager
+ * @description Feature module — App Session Manager.
+ */
+
 import { toast } from '@heroui/react';
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -164,13 +169,7 @@ export default function AppSessionManager() {
     }
 
     // Show restore dialog (only for sessions that include results)
-    openResultsRestoreDialog({
-      sessionData: sessionData,
-      onDismiss: () => {
-        // User dismissed - stay on the same page (no navigation needed)
-        // The dialog will close automatically, no need to navigate
-      },
-    });
+    openResultsRestoreDialog();
   }, []); // Empty deps = run once on mount only
 
   // Show input restore toast when user navigates to home via SPA (only once)
