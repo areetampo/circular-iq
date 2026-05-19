@@ -1,8 +1,7 @@
 /**
- * PDF Export Functions - Complete Implementation
- * Handles exporting assessment and audit reports to PDF format using programmatic jsPDF
- *
- * Location: src/features/export/exportPDF.js
+ * @module exportPDF
+ * @description Programmatic PDF export for assessment and comparison reports via jsPDF.
+ * Renders multi-page A4 layouts with score cards, charts-as-text, and audit sections.
  */
 
 import jsPDF from 'jspdf';

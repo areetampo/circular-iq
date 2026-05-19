@@ -1,9 +1,25 @@
+/**
+ * @module assessmentHandlers
+ * @description Custom hook for creating assessment action handlers.
+ * Provides handlers for PDF download, CSV download, and re-evaluation navigation.
+ * Uses useExportState and useNavigate internally for complete independence.
+ */
+
 import { toast } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 
 import { useExportState } from '@/hooks';
 
-// Helper function to normalize business context values to match form option values
+/**
+ * Normalizes business context values to match form option values.
+ * Handles conversion between display values and form option values for consistency.
+ *
+ * @param {string} field - The business context field name
+ * @param {string} value - The value to normalize
+ * @returns {string} Normalized value matching form option format
+ *
+ * @private
+ */
 const normalizeBusinessContextValue = (field, value) => {
   if (!value) return value;
 
@@ -193,9 +209,11 @@ export default function useAssessmentHandlers() {
   };
 
   /**
-   * Wrapper for CSV download with toast error handling
-   * @param {Object} assessment - Assessment data
-   * @param {Object} scoringResult - Scoring result data
+   * Wrapper for CSV download with toast error handling.
+   * Catches errors and displays a user-friendly toast message.
+   *
+   * @param {Object} assessment - Assessment data containing metadata and result
+   * @param {Object} scoringResult - Scoring result data from the API
    */
   const handleDownloadCSVWithErrorHandling = async (assessment, scoringResult) => {
     try {

@@ -1,8 +1,8 @@
 /**
- * CSV Export Functions - Complete Implementation
- * Handles exporting assessment and comparison data to CSV format
- *
- * Location: src/features/export/exportCSV.js
+ * @module exportCSV
+ * @description CSV export for single assessments and side-by-side comparisons.
+ * Builds Excel-compatible UTF-8 CSV with escaped fields and structured sections
+ * (scores, parameters, gap analysis, similar cases).
  */
 
 /**
