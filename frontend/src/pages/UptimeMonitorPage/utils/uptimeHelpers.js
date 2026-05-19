@@ -30,7 +30,7 @@ export async function fetchHistory(endpointId, maxHistoryPerEndpoint) {
       data: c.payload,
     }));
   } catch (err) {
-    logger.warn(`Failed to fetch history for ${endpointId}:`, err);
+    logger.warn(`Failed to fetch history for endpoint ${endpointId}:`, err);
     return [];
   }
 }
