@@ -1,4 +1,4 @@
-﻿bleach==6.3.0
+bleach==6.3.0
 camelot-py==1.0.9
 certifi==2026.1.4
 cffi==2.0.0
@@ -9,7 +9,7 @@ colorama==0.4.6
 cryptography==46.0.5
 et_xmlfile==2.0.0
 ghostscript==0.8.1
-idna==3.11
+idna==3.15
 kaggle==2.0.0
 kagglesdk==0.1.15
 numpy==2.4.2
