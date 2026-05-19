@@ -1,3 +1,8 @@
+/**
+ * @module GlobalErrorBoundary
+ * @description Top-level error boundary wrapping the app shell; logs failures and offers reload.
+ */
+
 import PropTypes from 'prop-types';
 import React from 'react';
 

@@ -1,3 +1,8 @@
+/**
+ * @module PageErrorBoundary
+ * @description Route-scoped error boundary with page-level fallback messaging.
+ */
+
 import PropTypes from 'prop-types';
 import React from 'react';
 

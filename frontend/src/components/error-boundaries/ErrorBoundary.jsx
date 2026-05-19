@@ -1,3 +1,8 @@
+/**
+ * @module ErrorBoundary
+ * @description React class error boundary that catches render errors and shows a recoverable fallback UI.
+ */
+
 import PropTypes from 'prop-types';
 import { Component } from 'react';
 
