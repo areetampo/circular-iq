@@ -1,3 +1,8 @@
+/**
+ * @module Tilt3D
+ * @description Subtle 3D tilt-on-hover wrapper for assessment cards and CTAs.
+ */
+
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import PropTypes from 'prop-types';
 
@@ -80,10 +85,10 @@ export default function Tilt3D({
 
   return (
     <div
+      {...props}
       style={{ perspective, display: block ? 'block' : 'inline-block' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      {...props}
     >
       <motion.div
         style={{

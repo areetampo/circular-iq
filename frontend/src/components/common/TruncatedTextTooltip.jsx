@@ -1,3 +1,8 @@
+/**
+ * @module TruncatedTextTooltip
+ * @description Ellipsis truncation with full-text tooltip on hover/focus.
+ */
+
 import { Tooltip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
@@ -61,7 +66,7 @@ export default function TruncatedTextTooltip({
   if (isTruncated) {
     return (
       <Tooltip delay={tooltipDelay}>
-        <Tooltip.Trigger>{textElement}</Tooltip.Trigger>
+        <Tooltip.Trigger tabIndex={0}>{textElement}</Tooltip.Trigger>
         <Tooltip.Content className="max-h-48 max-w-xs overflow-y-auto">
           <p className="max-w-xs">{textContent}</p>
         </Tooltip.Content>

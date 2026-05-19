@@ -1,3 +1,8 @@
+/**
+ * @module DetailsDisplay
+ * @description Label/value rows for structured detail blocks in drawers and results.
+ */
+
 import { ScrollShadow } from '@heroui/react';
 import { AlertTriangle, Ghost, Home, Info, RotateCw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -147,12 +152,12 @@ export default function DetailsDisplay({
 
   return (
     <div
+      {...props}
       className={cn(
         `flex items-center justify-center px-6 py-10`,
         `${fullScreen ? 'min-h-screen' : 'min-h-[40vh]'}`,
         className,
       )}
-      {...props}
     >
       <div
         className={cn('w-full max-w-lg rounded-4xl bg-transparent p-8', 'border-4 border-dashed')}

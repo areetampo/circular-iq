@@ -1,10 +1,19 @@
+/**
+ * @module Brand
+ * @description Site branding primitives: logo avatar, short name link, and full platform title.
+ * Used in the navbar, auth panels, and anywhere the Xerneas identity is shown.
+ */
+
 import { Avatar } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
 import { cn } from '@/utils/cn';
 
+/** @constant {string} Short product name shown in navbar and auth UI. */
 export const SITE_NAME = 'Xerneas';
+
+/** @constant {string} Full platform title for hero sections and metadata. */
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
 /**
@@ -25,11 +34,9 @@ export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
  */
 export const SiteName = ({ className, ...props }) => {
   return (
-    <Link to="/">
-      <span
-        className={cn('inline-block cursor-pointer text-(--color-text-secondary)', className)}
-        {...props}
-      >
+    // Spreading props here ensures onClick, target="_blank", etc., work natively on the anchor tag
+    <Link to="/" {...props}>
+      <span className={cn('inline-block cursor-pointer text-mauve-900', className)}>
         {SITE_NAME}
       </span>
     </Link>
@@ -57,7 +64,7 @@ SiteName.propTypes = {
  * <SiteFullName className="text-xl" />
  */
 export const SiteFullName = ({ className, ...props }) => (
-  <span className={cn('inline-block text-(--color-text-secondary)', className)} {...props}>
+  <span {...props} className={cn('inline-block text-(--color-text-secondary)', className)}>
     {SITE_FULL_NAME}
   </span>
 );
@@ -90,6 +97,7 @@ SiteFullName.propTypes = {
 export const SiteLogo = ({ className, size = 'md', ...props }) => {
   return (
     <Avatar
+      {...props}
       size={size}
       className={cn(
         'inline-flex items-center justify-center rounded-full bg-transparent!',
@@ -97,7 +105,6 @@ export const SiteLogo = ({ className, size = 'md', ...props }) => {
         'cursor-pointer',
       )}
       aria-label={`${SITE_NAME} - Go to home`}
-      {...props}
     >
       <Link to="/">
         <Avatar.Image alt={SITE_NAME} src="/site-logo.png" />

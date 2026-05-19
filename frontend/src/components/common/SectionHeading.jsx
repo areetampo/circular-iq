@@ -1,3 +1,8 @@
+/**
+ * @module SectionHeading
+ * @description Page section title with optional icon; large and small typography variants.
+ */
+
 import PropTypes from 'prop-types';
 
 import { cn } from '@/utils/cn';
@@ -35,7 +40,7 @@ export default function SectionHeading({
       : 'text-sm uppercase tracking-widest text-(--foreground) font-semibold font-sans';
 
   return (
-    <div className={cn('mb-6 flex items-center gap-2', className)} {...props}>
+    <div {...props} className={cn('mb-6 flex items-center gap-2', className)}>
       {icon && <div className="shrink-0">{icon}</div>}
       <h3 className={baseClasses}>{children}</h3>
     </div>

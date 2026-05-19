@@ -1,4 +1,7 @@
-// Button.jsx
+/**
+ * @module Button
+ * @description Accessible button/link primitive with variants, icons, and loading state (React Aria).
+ */
 import PropTypes from 'prop-types';
 import { forwardRef, useRef } from 'react';
 import { mergeProps, useButton } from 'react-aria';
@@ -159,10 +162,10 @@ const Button = forwardRef(function Button(
 
   const { buttonProps: ariaButtonProps } = useButton(
     {
+      ...props,
       onPress,
       isDisabled: isButtonDisabled,
       elementType: Element,
-      ...props,
     },
     buttonRef,
   );
@@ -248,13 +251,13 @@ const Button = forwardRef(function Button(
   if (isLink) {
     return (
       <Element
+        {...props}
         ref={buttonRef}
         className={baseClasses}
         onClick={handleLinkClick}
         to={to}
         href={href || to}
         aria-disabled={isButtonDisabled}
-        {...props}
       >
         {content}
       </Element>

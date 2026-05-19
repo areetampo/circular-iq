@@ -1,3 +1,8 @@
+/**
+ * @module LoaderComponent
+ * @description Full-width or overlay loading state with optional message and stage text.
+ */
+
 import PropTypes from 'prop-types';
 
 import LoaderIcon from './LoaderIcon';
@@ -22,9 +27,13 @@ import LoaderIcon from './LoaderIcon';
 export default function LoaderComponent({
   heading = 'Loading...',
   message = 'Please wait while we retrieve your data...',
+  ...props
 }) {
   return (
-    <div className="flex size-full min-h-[50vh] flex-col items-center justify-center gap-2">
+    <div
+      {...props}
+      className="flex size-full min-h-[50vh] flex-col items-center justify-center gap-2"
+    >
       <LoaderIcon />
       {heading && <p>{heading}</p>}
       {message && <p className="text-sm text-(--color-text-secondary)">{message}</p>}

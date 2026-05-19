@@ -1,4 +1,8 @@
-// src/components/common/ButtonStages.jsx
+/**
+ * @module ButtonStages
+ * @description Primary action button that crossfades label text through multi-stage loading flows.
+ */
+
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 
@@ -49,6 +53,7 @@ export default function ButtonStages({
   buttonText = 'Press Button',
   className,
   buttonTextCn,
+  ...props
 }) {
   // Content for non-loading state
   const [showNonLoading, setShowNonLoading] = useState(true);
@@ -120,6 +125,7 @@ export default function ButtonStages({
 
   return (
     <Button
+      {...props}
       size="lg"
       onPress={onPress}
       isDisabled={isDisabled}

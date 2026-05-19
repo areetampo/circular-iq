@@ -1,3 +1,8 @@
+/**
+ * @module CopyButton
+ * @description Clipboard copy control with animated check feedback (share links, ids).
+ */
+
 import { Check, Copy } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback, useState } from 'react';
@@ -188,12 +193,12 @@ export default function CopyButton({
 
   return (
     <button
+      {...props}
       onClick={handleClick}
       className={baseClasses}
       disabled={isDisabled}
       aria-disabled={isDisabled}
       aria-label={title || 'Copy'}
-      {...props}
     >
       <CopyIcon
         copyIconClassname={iconCn}

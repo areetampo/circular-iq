@@ -1,3 +1,8 @@
+/**
+ * @module LoaderIcon
+ * @description Inline animated loader icon used inside buttons during async actions.
+ */
+
 // styles (required)
 import 'ldrs/react/Bouncy.css';
 import 'ldrs/react/BouncyArc.css';
@@ -208,6 +213,7 @@ export default function LoaderIcon({
 
   return (
     <div
+      {...props}
       id="loader-icon"
       className={cn(
         `flex shrink-0 items-center justify-center transition-all duration-300 ease-in-out`,
@@ -215,7 +221,6 @@ export default function LoaderIcon({
         visible ? 'scale-100 opacity-100' : 'scale-95 opacity-0',
         className,
       )}
-      {...props}
     >
       <div className={cn(isButton && 'scale-[0.45] transform')}>
         <Icon color={color || ''} className="size-full" />

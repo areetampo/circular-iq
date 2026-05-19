@@ -1,3 +1,8 @@
+/**
+ * @module ExpandableText
+ * @description Long text with show more/less toggle for assessment and case summaries.
+ */
+
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 

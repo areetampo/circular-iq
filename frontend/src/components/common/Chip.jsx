@@ -1,3 +1,8 @@
+/**
+ * @module Chip
+ * @description Filter and status chips (industry filters, tiers, tags) with truncation tooltips.
+ */
+
 import PropTypes from 'prop-types';
 import { forwardRef } from 'react';
 
@@ -312,6 +317,7 @@ const Chip = forwardRef(function Chip(
 
   return (
     <span
+      {...props}
       ref={ref}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -332,7 +338,6 @@ const Chip = forwardRef(function Chip(
         variant === 'access-type' ? '' : colorOverrides,
         className,
       )}
-      {...props}
     >
       {iconContent && iconContent}
       <TruncatedTextTooltip limit={limit} tooltipDelay={100}>

@@ -1,7 +1,14 @@
+/**
+ * @module DetailsBadge
+ * @description Compact badge for metadata labels on results and assessment cards.
+ */
+
 import { CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import { cn } from '@/utils/cn';
+
+import Spinner from './Spinner';
 
 const VARIANT_STYLES = {
   neutral: 'text-(--color-accent) bg-(--color-accent-soft-ui)',
@@ -65,6 +72,7 @@ export default function DetailsBadge({
   message,
   className,
   icon: CustomIcon,
+  spinner,
   fullWidth = false,
   ...props
 }) {
@@ -74,7 +82,7 @@ export default function DetailsBadge({
   const Icon = CustomIcon || ICONS[variant] || ICONS.info;
 
   return (
-    <div className={cn('flex h-full w-full items-center justify-center', className)} {...props}>
+    <div {...props} className={cn('flex h-full w-full items-center justify-center', className)}>
       <div
         className={cn(
           'flex w-fit animate-in items-center justify-center gap-2 rounded-xl',
@@ -85,7 +93,11 @@ export default function DetailsBadge({
         )}
       >
         {/* passing components/common/spinner works - it will accept size and color correctly but not strokeWidth */}
-        <Icon size={16} strokeWidth={2.5} color="currentColor" />
+        {spinner ? (
+          <Spinner color="currentColor" />
+        ) : (
+          <Icon size={16} strokeWidth={2.5} color="currentColor" />
+        )}
         <span>{message}</span>
       </div>
     </div>
@@ -97,5 +109,6 @@ DetailsBadge.propTypes = {
   message: PropTypes.string,
   className: PropTypes.string,
   icon: PropTypes.elementType,
+  spinner: PropTypes.bool,
   fullWidth: PropTypes.bool,
 };

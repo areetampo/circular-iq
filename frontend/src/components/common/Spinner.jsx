@@ -1,21 +1,6 @@
 /**
- * Spinner Component
- * Reusable loading spinner component with customizable size and color
- *
- * @param {Object} props - Component props
- * @param {number} [props.size=16] - Size of spinner in pixels
- * @param {string} [props.color='var(--color-checkbox)'] - Color of spinner
- * @param {string} [props.className] - HTML classes
- * @param {Object.<string, any>} props - Additional attributes to spread to element
- * @returns {JSX.Element} Rendered Spinner component
- *
- * @example
- * Basic usage
- * <Spinner />
- *
- * @example
- * Custom size and color
- * <Spinner size={24} color="#ff0000" />
+ * @module Spinner
+ * @description Lightweight Ring2 loading indicator (size and colour configurable).
  */
 
 import { Ring2 } from 'ldrs/react';
@@ -46,6 +31,15 @@ import PropTypes from 'prop-types';
 
 //* check components/common/button for another usage example
 
+/**
+ * Compact Ring2 loading indicator for buttons, checkboxes, and inline states.
+ *
+ * @param {Object} props
+ * @param {number} [props.size=16] - Diameter in pixels.
+ * @param {string} [props.color='var(--color-checkbox)'] - Ring stroke colour.
+ * @param {string} [props.className] - Optional wrapper class (passed to Ring2).
+ * @returns {import('react').ReactElement}
+ */
 export default function Spinner({
   size = 16,
   color = 'var(--color-checkbox)',
@@ -68,7 +62,7 @@ export default function Spinner({
     //* from ldrs
     //? removing div since it makes the icon shift position
     // <div className={cn('bg-red-200 ', className)}>
-    <Ring2 size={size} stroke="2" speed="0.8" color={color} {...props} />
+    <Ring2 {...props} size={size} stroke="2" speed="0.8" color={color} />
     // </div>
   );
 }

@@ -1,3 +1,8 @@
+/**
+ * @module Separator
+ * @description Horizontal rule divider aligned to the design system spacing scale.
+ */
+
 import PropTypes from 'prop-types';
 
 import { cn } from '@/utils/cn';
@@ -45,6 +50,7 @@ export default function Separator({
 
   return (
     <div
+      {...props}
       className={cn(
         'flex items-center justify-center',
         // 'self-stretch' ensures it fills the height of the flex row
@@ -52,7 +58,6 @@ export default function Separator({
         orientation === 'horizontal' ? 'w-full' : 'h-auto shrink-0 self-stretch',
         wrapperCn,
       )}
-      {...props}
     >
       <div
         style={{
