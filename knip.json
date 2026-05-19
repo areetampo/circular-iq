@@ -15,14 +15,19 @@
         "#database/*": ["database/*"],
         "#datasets/*": ["datasets/*"],
         "#middleware/*": ["middleware/*"],
-        "#pipeline/*": ["pipeline/*"],
+        "#pipeline/**/*": ["pipeline/**/*"],
         "#routes/*": ["routes/*"],
         "#server/*": ["server/*"],
         "#services/*": ["services/*"],
         "#tests/*": ["tests/*"],
         "#utils/*": ["utils/*"]
       },
-      "entry": ["pipeline/*.js", "datasets/scripts/*.js", "tests/**/*.test.js!", "tests/**/*.js!"],
+      "entry": [
+        "pipeline/**/*.js",
+        "datasets/scripts/*.js",
+        "tests/**/*.test.js!",
+        "tests/**/*.js!"
+      ],
       "project": ["**/*.js!"]
     }
   }
