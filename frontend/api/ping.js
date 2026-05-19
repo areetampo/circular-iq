@@ -1,3 +1,12 @@
+/**
+ * @module ping
+ * @description Vercel serverless function for health check ping.
+ * Pings the backend health endpoint to verify connectivity.
+ *
+ * @param {Object} req - Vercel request object.
+ * @param {Object} res - Vercel response object.
+ * @returns {Promise<void>} Sends JSON response with status.
+ */
 export default async function handler(req, res) {
   try {
     const baseUrl = process.env.VITE_API_URL;
