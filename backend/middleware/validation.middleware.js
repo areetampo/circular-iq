@@ -1,10 +1,8 @@
 /**
- * Validation Middleware - Zod-based request validation
- *
- * Provides middleware for validating assessment requests.
- * Ensures data integrity before processing.
- *
- * Location: src/middleware/validation.js
+ * @module validation.middleware
+ * @description Request body validation middleware using Zod schema validation.
+ * Provides middleware for validating assessment POST requests with structured
+ * error reporting. Ensures data integrity and proper error handling for invalid input.
  */
 
 import { z } from 'zod';
@@ -40,14 +38,23 @@ const assessmentSchema = z
   .strict();
 
 /**
- * Middleware: Validates assessment-specific request body
+ * Middleware: Validate assessment request body against schema.
+ * Applied to POST /api/assessments route to ensure valid assessment data.
+ * Enforces strict schema (no unknown fields) and provides detailed validation errors.
  *
- * Applied to POST /api/assessments route to ensure valid assessment data
- * Enforces strict schema with no unknown fields allowed
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
+ * @param {Object} req - Express request object.
+ * @param {Object} req.body - Request body to validate.
+ * @param {string} req.body.name - Assessment name (3-50 characters).
+ * @param {string} req.body.industry - Industry classification.
+ * @param {Object} req.body.result_json - Assessment scores and results (must not be empty).
+ * @param {boolean} [req.body.is_public] - Whether assessment is publicly shareable.
+ * @param {boolean} [req.body.contribute_to_global_benchmarks] - Opt-in for benchmark data.
+ * @param {string} [req.body.businessProblem] - Business problem description.
+ * @param {string} [req.body.businessSolution] - Business solution description.
+ * @param {Object} [req.body.parameters] - Additional parameters mapping.
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @throws {Object} res.status(400).json() - If validation fails.
  */
 export function validateAssessment(req, res, next) {
   try {
@@ -95,7 +102,7 @@ export function validateAssessment(req, res, next) {
 
     // Handle non-Zod errors
     logger.warn(
-      { endpoint: req.path, method: req.method, ip: req.ip, errorMessage: error.message },
+      { endpoint: req.path, method: req.method, ip: req.ip, error },
       'Assessment validation error occurred',
     );
 
