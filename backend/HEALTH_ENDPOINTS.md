@@ -223,11 +223,11 @@ The health endpoints are automatically polled by uptime monitoring system with r
 
 - **Polling Interval**: Every 30 seconds (production only)
 - **Endpoints Monitored**: `/health`, `/health?detailed=true`, `/health/database`, `/health/database/aiven`, `/health/openai`, `/health/system`, `/health/config`, `/health/readiness`, `/health/liveness`, `/health/version`
-- **Data Storage**: Results stored in `uptime_checks` table with 7-day retention
+- **Data Storage**: Results stored in `uptime_checks` table with 30-day retention
 - **Real-time Dashboard**: Live visualization available at `/uptime-monitor` in frontend with Server-Sent Events (SSE)
 - **SSE Streaming**: `/api/uptime/stream` endpoint provides real-time updates with automatic fallback to polling
 - **Broadcast System**: `uptime.broadcaster.js` manages client connections and event broadcasting
-- **Cleanup**: Automatic cleanup of records older than 7 days runs daily
+- **Cleanup**: Automatic cleanup of records older than 30 days runs daily
 
 ### Monitored Metrics
 
@@ -248,18 +248,9 @@ The health endpoints are automatically polled by uptime monitoring system with r
 
 ### Documentation
 
-The uptime monitoring dashboard is fully documented in:
+Full architecture, API reference, SQL functions, constants, SSE event documentation, and clock-aligned bucket behaviour are covered in:
 
-- `frontend/src/pages/UptimeMonitorPage/README.md` - Complete architecture, SSE implementation, components, and usage guide
-
-This includes detailed information about:
-
-- Real-time dashboard components and charts with SSE streaming
-- Data aggregation and visualization
-- Export functionality and metrics
-- Frontend refresh intervals and state management
-- Server-Sent Events architecture and fallback mechanisms
-- SSE client connection management via `uptime.broadcaster.js`
+`frontend/src/pages/UptimeMonitorPage/README.md`
 
 ### Configuration
 
@@ -267,7 +258,7 @@ Uptime monitoring is controlled by:
 
 - `BACKEND_CONFIG.uptime.pollingEnabled` (automatically `true` when `NODE_ENV=production`)
 - `BACKEND_CONFIG.uptime.pollIntervalMs` (default: 30000ms - 30s)
-- `BACKEND_CONFIG.uptime.retentionDays` (default: 7 days)
+- `BACKEND_CONFIG.uptime.retentionDays` (default: 30 days)
 - `BACKEND_CONFIG.uptime.cleanupOnStart` (controlled by `UPTIME_CHECKS_CLEANUP_ON_START` env var, default: `true`)
 - `BACKEND_CONFIG.uptime.cleanupIntervalDurationMs` (default: 86400000ms - daily)
 - `BACKEND_CONFIG.uptime.endpoints` array of endpoint paths to monitor
