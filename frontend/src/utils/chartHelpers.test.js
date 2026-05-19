@@ -1,4 +1,9 @@
 /**
+ * @module chartHelpers.test
+ * @description Unit tests for chart data transforms.
+ */
+
+/**
  * Tests for chartHelpers utility functions
  */
 

@@ -1,5 +1,7 @@
 /**
- * Chart utility functions to reduce code duplication
+ * @module chartHelpers
+ * @description Chart data transforms and render guards for the Global Activity dashboard.
+ * Resolves CSS theme variables at runtime and maps analytics API payloads to Recharts-friendly shapes.
  */
 
 /**
@@ -19,6 +21,8 @@ export function resolveCSSVar(varString, fallback = '#000000') {
 
 // ─── Colours ──────────────────────────────────────────────────────────────────
 // Factory functions to resolve CSS variables at render time
+
+/** CE tier palette (forest → slate → amber → terracotta → muted). */
 export const getTierColors = () => [
   resolveCSSVar('var(--chart-2)', '#4a7c59'), // muted forest green
   resolveCSSVar('var(--color-info)', '#455771'), // slate blue (matches actual --color-info value)
@@ -27,6 +31,7 @@ export const getTierColors = () => [
   resolveCSSVar('var(--chart-6)', '#9a8f82'), // text muted
 ];
 
+/** Risk-level palette for pie/bar charts on the activity page. */
 export const getRiskColors = () => [
   resolveCSSVar('var(--chart-2)', '#4a7c59'),
   resolveCSSVar('var(--chart-3)', '#b07d3a'),
@@ -34,6 +39,7 @@ export const getRiskColors = () => [
   resolveCSSVar('var(--chart-6)', '#9a8f82'),
 ];
 
+/** Overall score band colours (low → mid → high). */
 export const getScoreColors = () => [
   resolveCSSVar('var(--chart-4)', '#8b3a3a'),
   resolveCSSVar('var(--chart-3)', '#b07d3a'),
@@ -41,6 +47,7 @@ export const getScoreColors = () => [
   resolveCSSVar('var(--chart-2)', '#4a7c59'),
 ];
 
+/** Business-scale distribution palette (extended set for multi-segment charts). */
 export const getScaleColors = () => [
   resolveCSSVar('var(--chart-4)', '#8b3a3a'), // muted terracotta
   resolveCSSVar('var(--chart-3)', '#b07d3a'), // muted amber
