@@ -1,3 +1,8 @@
+/**
+ * @module useAssessment
+ * @description React Query hooks for loading, creating, and mutating saved assessments.
+ */
+
 import { toast } from '@heroui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -8,11 +13,21 @@ import {
 } from '@/features/assessments/api/assessmentApi';
 
 /**
- * useAssessment
- * Fetches a single saved assessment by id with React Query (private API).
- * @param {string|number} id
+ * Fetches a single saved assessment by id (authenticated API).
+ *
+ * @param {string|number} id - Assessment public id
  * @param {Object} [options]
- * @returns {Object}
+ * @param {boolean} [options.enabled=true] - When false, skips the query
+ * @param {*} [options.placeholderData] - React Query placeholder while refetching
+ * @returns {{
+ *   assessment: Object|null,
+ *   loading: boolean,
+ *   isLoading: boolean,
+ *   error: string|null,
+ *   isError: boolean,
+ *   refetch: Function,
+ *   isPlaceholderData: boolean
+ * }}
  */
 export function useAssessment(id, options = {}) {
   const { enabled = true, placeholderData } = options;
@@ -56,11 +71,26 @@ export function useAssessment(id, options = {}) {
 }
 
 /**
- * usePublicAssessment
- * Fetches a publicly shared assessment by public id (no authentication).
- * @param {string} publicId
- * @param {Object} [options]
- * @returns {Object}
+ * Fetches a publicly shared assessment by public id (no authentication required).
+ * Uses optional authentication for ownership check but works without it.
+ *
+ * @param {string} publicId - Public assessment ID to fetch
+ * @param {Object} [options={}] - Query options
+ * @param {boolean} [options.enabled=true] - Whether to enable the query
+ * @returns {Object} Query result object
+ * @returns {Object|null} returns.assessment - Assessment data or null
+ * @returns {boolean} returns.loading - Loading state (legacy)
+ * @returns {boolean} returns.isLoading - Loading state
+ * @returns {boolean} returns.isError - Error state
+ * @returns {string|null} returns.error - Error message or null
+ * @returns {Function} returns.refetch - Function to refetch the data
+ * @returns {Object} returns.data - Full response data
+ *
+ * @example
+ * const { assessment, isLoading, error } = usePublicAssessment('abc-123');
+ * if (isLoading) return <Loader />;
+ * if (error) return <Error message={error} />;
+ * return <PublicAssessmentView assessment={assessment} />;
  */
 export function usePublicAssessment(publicId, options = {}) {
   const { enabled = true } = options;
@@ -93,9 +123,20 @@ export function usePublicAssessment(publicId, options = {}) {
 }
 
 /**
- * usePrefetchAssessment
  * Returns a function to prefetch an assessment by id into the React Query cache.
- * @returns {Function}
+ * Useful for preloading data before navigation (e.g., on hover or link focus).
+ *
+ * @returns {Function} Prefetch function that takes a publicId parameter
+ * @param {string} publicId - Assessment ID to prefetch
+ *
+ * @example
+ * const prefetchAssessment = usePrefetchAssessment();
+ * <Link
+ *   onMouseEnter={() => prefetchAssessment(assessment.id)}
+ *   to={`/assessments/${assessment.id}`}
+ * >
+ *   {assessment.title}
+ * </Link>
  */
 export function usePrefetchAssessment() {
   const queryClient = useQueryClient();
@@ -112,10 +153,30 @@ export function usePrefetchAssessment() {
 }
 
 /**
- * useCreateAssessment
  * Mutation hook to create an assessment and invalidate the assessments list cache.
- * @param {Object} options
- * @returns {Object}
+ * Automatically refreshes the assessments list after successful creation.
+ *
+ * @returns {Object} Mutation result object
+ * @returns {Function} returns.createAssessment - Function to create assessment (async callback not returned)
+ * @returns {Function} returns.createAssessmentAsync - Function to create assessment (returns Promise)
+ * @returns {boolean} returns.isLoading - Loading state (legacy)
+ * @returns {boolean} returns.isPending - Loading state
+ * @returns {boolean} returns.isError - Error state
+ * @returns {boolean} returns.isSuccess - Success state
+ * @returns {Error|null} returns.error - Error object or null
+ * @returns {Object} returns.data - Created assessment data
+ * @returns {Function} returns.reset - Function to reset mutation state
+ *
+ * @example
+ * const { createAssessmentAsync, isLoading, error } = useCreateAssessment();
+ * const handleSubmit = async (formData) => {
+ *   try {
+ *     await createAssessmentAsync(formData);
+ *     // Navigate to assessments list
+ *   } catch (err) {
+ *     // Handle error
+ *   }
+ * };
  */
 export function useCreateAssessment() {
   const queryClient = useQueryClient();

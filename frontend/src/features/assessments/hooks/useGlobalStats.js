@@ -1,13 +1,47 @@
+/**
+ * @module useGlobalStats
+ * @description React hook for fetching combined global activity statistics.
+ * Aggregates data from scoring logs, market data RPC, and assessment stats RPC.
+ * Provides distributions, trends, and top-line metrics for the global activity page.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 
 import { getGlobalStats } from '@/features/assessments/api/assessmentApi';
 
 /**
- * useGlobalStats
  * Fetches combined global activity stats (log aggregates, market data RPC, assessment stats RPC).
- * @param {Object} options
- * @param {boolean} [options.enabled]
- * @returns {Object}
+ * @param {Object} options - Query options.
+ * @param {boolean} [options.enabled=true] - Whether to enable the query.
+ * @returns {{
+ *   logStats: Object|null,
+ *   marketData: Array,
+ *   assessmentStats: Object|null,
+ *   totalScoringCalls: number|null,
+ *   avgScore: number|null,
+ *   avgConfidence: number|null,
+ *   avgTechFeas: number|null,
+ *   avgEconViab: number|null,
+ *   avgCircPot: number|null,
+ *   scoreDistribution: Object,
+ *   tierDistribution: Object,
+ *   riskDistribution: Object,
+ *   industryDistribution: Array,
+ *   strategyDistribution: Array,
+ *   materialDistribution: Array,
+ *   geoDistribution: Array,
+ *   scaleDistribution: Array,
+ *   junkRate: number|null,
+ *   weeklyTrend: Array,
+ *   marketDataByIndustry: Array,
+ *   totalSavedAssessments: number|null,
+ *   isLoading: boolean,
+ *   isFetching: boolean,
+ *   isError: boolean,
+ *   error: string|null,
+ *   refetch: Function,
+ *   dataUpdatedAt: number
+ * }}
  */
 export default function useGlobalStats({ enabled = true } = {}) {
   const { data, isLoading, isFetching, isError, error, refetch, dataUpdatedAt } = useQuery({

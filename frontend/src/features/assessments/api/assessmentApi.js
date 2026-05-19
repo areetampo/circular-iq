@@ -1,4 +1,7 @@
 /**
+ * @module assessmentApi
+ * @description HTTP client for assessment CRUD, validation, comparison, global stats, and SSE scoring.
+ * All authenticated calls attach the Supabase session Bearer token when available.
  * @typedef {Object} DocumentSearchResult
  * @property {string} id
  * @property {string} title
@@ -108,7 +111,7 @@ async function requestJson(path, options = {}) {
  * @param {string} [params.createdTo] - Filter by creation date (to)
  * @param {number} [params.minScore] - Filter by minimum score
  * @param {number} [params.maxScore] - Filter by maximum score
- * @returns {Promise<Object>} Assessments list with pagination info
+ * @returns {Promise<{assessments: Array, pagination: Object}>} Validated list with pagination info
  */
 export async function getAssessments(params = {}) {
   // Remove sessionId from params - auth is now handled by token
@@ -281,7 +284,12 @@ export async function getAssessmentById(id) {
 }
 
 /**
- * Fetch a publicly shared assessment by its public_id (optional authentication for ownership check)
+ * Fetches a publicly shared assessment by `public_id`.
+ * Sends auth header when a session exists so owners can access private assessments.
+ *
+ * @param {string} publicId - UUID public identifier.
+ * @returns {Promise<{assessment: Object, readonly: boolean}>}
+ * @throws {Error} With `status` 403/404 when access is denied or not found.
  */
 export async function getPublicAssessment(publicId) {
   if (!publicId) {
@@ -380,9 +388,13 @@ export async function deleteAssessment(id) {
 }
 
 /**
- * Compare two assessments by publicId with visibility checking
- * Handles cross-user comparisons with privacy enforcement
- * Optional authentication - includes auth header if available
+ * Fetches two assessments for side-by-side comparison with visibility enforcement.
+ * Includes auth header when available so owners can compare private assessments.
+ *
+ * @param {string} id1 - First assessment public UUID.
+ * @param {string} id2 - Second assessment public UUID.
+ * @returns {Promise<{assessment1: Object, assessment2: Object}>}
+ * @throws {Error} With `status` 403/404 when either assessment is inaccessible.
  */
 export async function getComparisonAssessments(id1, id2) {
   if (!id1 || !id2 || typeof id1 !== 'string' || typeof id2 !== 'string') {
@@ -461,6 +473,7 @@ export async function getGlobalStats() {
  * @param {Function} onStage - Callback for progress updates (stage, message)
  * @param {Function} onComplete - Callback for successful completion (result)
  * @param {Function} onError - Callback for errors (error)
+ * @returns {Promise<void>} Resolves when the SSE stream closes (success or error handled via callbacks)
  */
 export async function scoreAssessmentStream(formData, onStage, onComplete, onError) {
   try {

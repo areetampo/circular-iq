@@ -1,3 +1,8 @@
+/**
+ * @module utils.test
+ * @description Unit tests for assessment result reconstruction.
+ */
+
 /* global describe, it, expect */
 
 import { reconstructScoringResult } from './utils';

@@ -1,3 +1,9 @@
+/**
+ * @module useAssessments
+ * @description React Query hook for paginated assessment lists with optimistic delete.
+ * Supports session-scoped listing, search, industry filter, and sort parameters.
+ */
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -7,16 +13,31 @@ import {
 } from '@/features/assessments/api/assessmentApi';
 
 /**
- * useAssessments - Paginated, filtered list of the current user's assessments (React Query)
- * @param {Object} [options={}] - Query options
- * @param {string} [options.sessionId] - Session ID (deprecated, auth handled by token)
- * @param {number|string} [options.page] - Page number
- * @param {number|string} [options.pageSize] - Items per page
- * @param {string} [options.sortBy] - Sort field (created_at, overall_score, title)
- * @param {string} [options.order] - Sort order (asc, desc)
- * @param {string} [options.search] - Search term
- * @param {string} [options.industry] - Industry filter
- * @returns {Object} Query result with assessments data and delete functionality
+ * Fetches and mutates the user's saved assessments list.
+ *
+ * @param {Object} [options]
+ * @param {string} [options.sessionId] - Anonymous session id for unauthenticated lists.
+ * @param {number} [options.page] - Page number (1-based).
+ * @param {number} [options.pageSize] - Items per page.
+ * @param {string} [options.sortBy] - Sort field name.
+ * @param {'asc'|'desc'} [options.order] - Sort direction.
+ * @param {string} [options.search] - Name search filter.
+ * @param {string} [options.industry] - Industry filter.
+ * @returns {{
+ *   assessments: Array<Object>,
+ *   total: number,
+ *   loading: boolean,
+ *   isLoading: boolean,
+ *   error: string|null,
+ *   isError: boolean,
+ *   refetch: Function,
+ *   removeAssessment: Function,
+ *   removeAssessmentAsync: Function,
+ *   isDeleting: boolean,
+ *   deleteError: Error|null,
+ *   prefetchAssessment: (id: string) => void,
+ *   data: Object|undefined
+ * }}
  */
 export default function useAssessments({
   sessionId,
@@ -43,7 +64,7 @@ export default function useAssessments({
         industry,
       }),
     staleTime: 30 * 1000, // 30 seconds - ensures fresh data when navigating back
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
     retry: false, // Don't retry on error to prevent repeated toasts for pagination errors

@@ -1,13 +1,36 @@
+/**
+ * @module useAssessmentStats
+ * @description React hook for fetching aggregate statistics for the current user's assessments.
+ * Provides totals, averages, distributions by industry/risk/scale, and derived metrics.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 
 import { getAssessmentStats } from '@/features/assessments/api/assessmentApi';
 
 /**
- * useAssessmentStats
- * Fetches aggregate statistics for the current user’s assessments (scores, industries, risk).
- * @param {Object} options
- * @param {boolean} [options.enabled]
- * @returns {Object}
+ * Fetches aggregate statistics for the current user's assessments (scores, industries, risk).
+ * @param {Object} options - Query options.
+ * @param {boolean} [options.enabled=true] - Whether to enable the query.
+ * @returns {{
+ *   totalAssessments: number,
+ *   completedAssessments: number,
+ *   averageScore: number,
+ *   medianScore: number,
+ *   minScore: number|null,
+ *   maxScore: number|null,
+ *   avgConfidence: number|null,
+ *   avgTechnicalFeasibility: number|null,
+ *   avgEconomicViability: number|null,
+ *   avgCircularityPotential: number|null,
+ *   assessmentsByIndustry: Object,
+ *   assessmentsByRisk: Object,
+ *   assessmentsByScale: Object,
+ *   isLoading: boolean,
+ *   isError: boolean,
+ *   error: Error|null,
+ *   refetch: Function
+ * }}
  */
 export default function useAssessmentStats({ enabled = true } = {}) {
   const {

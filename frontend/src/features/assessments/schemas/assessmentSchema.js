@@ -1,3 +1,8 @@
+/**
+ * @module assessmentSchema
+ * @description Feature module — assessment Schema.
+ */
+
 import { z } from 'zod';
 
 /**
@@ -16,7 +21,9 @@ const SubScoresSchema = z.object({
 });
 
 /**
- * Zod schema for metadata validation
+ * Zod schema for metadata validation.
+ * Allows additional properties via passthrough.
+ * @type {z.ZodObject}
  */
 const MetadataSchema = z
   .object({
@@ -30,7 +37,10 @@ const MetadataSchema = z
   .passthrough(); // Allow additional properties
 
 /**
- * Zod schema for audit information
+ * Zod schema for audit information.
+ * Includes confidence scores, recommendations, integrity gaps, and SDG alignment.
+ * Allows additional properties via passthrough.
+ * @type {z.ZodObject}
  */
 const AuditSchema = z
   .object({
@@ -80,7 +90,10 @@ const ResultJsonSchema = z
   .passthrough(); // Allow additional properties from backend
 
 /**
- * Complete Assessment schema for database records
+ * Complete Assessment schema for database records.
+ * Validates both the result_json structure and individual column fields.
+ * Allows additional properties via passthrough for backward compatibility.
+ * @type {z.ZodObject}
  */
 const AssessmentSchema = z
   .object({
@@ -125,7 +138,9 @@ const AssessmentSchema = z
   .passthrough();
 
 /**
- * Schema for assessment list response
+ * Schema for assessment list response.
+ * Validates the paginated assessments list with total count and pagination metadata.
+ * @type {z.ZodObject}
  */
 const AssessmentsListSchema = z.object({
   assessments: z.array(AssessmentSchema),
@@ -135,29 +150,51 @@ const AssessmentsListSchema = z.object({
 });
 
 /**
- * Validates and parses assessment data
+ * Validates and parses assessment data using strict Zod schema.
+ *
  * @param {unknown} data - Raw data to validate
- * @returns {Object} Validated assessment data
- * @throws {z.ZodError} If validation fails
+ * @returns {Object} Validated assessment data conforming to AssessmentSchema
+ * @throws {z.ZodError} If validation fails with detailed error information
+ *
+ * @example
+ * try {
+ *   const validated = validateAssessment(rawData);
+ *   // Use validated data
+ * } catch (error) {
+ *   // Handle validation errors
+ * }
  */
 export function validateAssessment(data) {
   return AssessmentSchema.parse(data);
 }
 
 /**
- * Validates and parses assessment list response
+ * Validates and parses assessment list response using strict Zod schema.
+ *
  * @param {unknown} data - Raw data to validate
- * @returns {Object} Validated assessment list
- * @throws {z.ZodError} If validation fails
+ * @returns {Object} Validated assessment list conforming to AssessmentsListSchema
+ * @throws {z.ZodError} If validation fails with detailed error information
+ *
+ * @private
  */
 function validateAssessmentsList(data) {
   return AssessmentsListSchema.parse(data);
 }
 
 /**
- * Safe validation for assessment list
+ * Safe validation for assessment list that returns null on failure instead of throwing.
+ * Logs validation errors for debugging.
+ *
  * @param {unknown} data - Raw data to validate
- * @returns {Object|null} Validated data or null if validation fails
+ * @returns {Object|null} Validated assessment list or null if validation fails
+ *
+ * @example
+ * const validated = safeValidateAssessmentsList(rawData);
+ * if (validated) {
+ *   // Use validated data
+ * } else {
+ *   // Handle validation failure gracefully
+ * }
  */
 export function safeValidateAssessmentsList(data) {
   try {

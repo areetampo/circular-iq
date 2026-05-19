@@ -1,10 +1,30 @@
+/**
+ * @module useAssessmentValidationSingle
+ * @description React hook for validating a single assessment ID.
+ * Checks if the ID is valid and publicly accessible with proper error handling.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 
 import { validateAssessmentId } from '@/features/assessments/api/assessmentApi';
 
 /**
- * Hook for validating a single assessment ID with proper error handling
- * Returns validation state and error handling functions
+ * Hook for validating a single assessment ID with proper error handling.
+ * Checks if the ID is valid and publicly accessible.
+ *
+ * @param {string} publicId - Assessment public ID to validate
+ * @returns {Object} Validation query state and validate function
+ * @returns {Object} returns.validationQuery - React Query result object
+ * @returns {boolean} returns.isLoading - Validation loading state
+ * @returns {Error|null} returns.error - Validation error or null
+ * @returns {Function} returns.validate - Function to trigger validation
+ *
+ * @example
+ * const { validationQuery, isLoading, error, validate } = useAssessmentValidationSingle(publicId);
+ * await validate();
+ * if (validationQuery.data?.valid) {
+ *   // ID is valid
+ * }
  */
 export default function useAssessmentValidationSingle(publicId) {
   const validationQuery = useQuery({

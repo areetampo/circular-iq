@@ -1,17 +1,22 @@
 /**
- * Reconstruct the full scoring API response shape from a saved assessment row
- * @param {Object} assessment - Assessment row from database
- * @returns {Object} Full scoring API response shape
+ * @module assessments.utils
+ * @description Helpers for normalising saved assessment records into scoring result shape.
+ * Prefer `result_json` when present; otherwise compose from legacy column fields.
+ */
+
+/**
+ * Reconstructs a scoring result object from a saved assessment row.
+ *
+ * @param {Object|null} assessment - Assessment record from the API or database.
+ * @returns {Object|null} Scoring result shape for results/export UI, or null if no assessment.
  */
 export function reconstructScoringResult(assessment) {
   if (!assessment) return null;
 
-  // If result_json exists, use it directly (preferred)
   if (assessment.result_json) {
     return assessment.result_json;
   }
 
-  // Fallback: compose from individual columns
   return {
     businessProblem: assessment.business_problem,
     businessSolution: assessment.business_solution,
@@ -51,8 +56,6 @@ export function reconstructScoringResult(assessment) {
         assessment.geographic_focus ?? assessment.result_json?.metadata?.geographic_focus,
       ...assessment.metadata,
     },
-    processing_info: {
-      // Not stored, so omit or use defaults
-    },
+    processing_info: {},
   };
 }

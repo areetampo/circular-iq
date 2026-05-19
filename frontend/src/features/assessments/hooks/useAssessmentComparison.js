@@ -1,7 +1,25 @@
+/**
+ * @module useAssessmentComparison
+ * @description Loads two assessments side-by-side and derives factor-level score diffs
+ * for the Assessment Comparison page.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 
 import { getComparisonAssessments } from '@/features/assessments/api/assessmentApi';
 
+/**
+ * Computes per-factor and overall score deltas between two assessment results.
+ *
+ * @param {Object|null} a1 - First assessment (needs `result_json.sub_scores`).
+ * @param {Object|null} a2 - Second assessment.
+ * @returns {{
+ *   factorDiffs: Record<string, number>,
+ *   overallDiff: number,
+ *   biggestGain: { factor: string, diff: number }|null,
+ *   biggestDrop: { factor: string, diff: number }|null
+ * }}
+ */
 function deriveComparison(a1, a2) {
   if (!a1?.result_json || !a2?.result_json) {
     return {
@@ -49,11 +67,20 @@ function deriveComparison(a1, a2) {
 }
 
 /**
- * useAssessmentComparison
- * Loads two assessments for side-by-side comparison via the comparison API.
- * @param {string|number} id1
- * @param {string|number} id2
- * @returns {Object}
+ * Fetches two assessments and exposes derived comparison metrics.
+ *
+ * @param {string|number} id1 - First assessment public id.
+ * @param {string|number} id2 - Second assessment public id.
+ * @returns {{
+ *   assessment1: Object|null,
+ *   assessment2: Object|null,
+ *   comparisonData: Object,
+ *   loading: boolean,
+ *   isLoading: boolean,
+ *   error: string|null,
+ *   isError: boolean,
+ *   refetch: Function
+ * }}
  */
 export default function useAssessmentComparison(id1, id2) {
   // Fetch both assessments using the comparison endpoint with visibility checking
