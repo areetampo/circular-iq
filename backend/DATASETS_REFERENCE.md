@@ -107,7 +107,7 @@ const ds = DATASET_LOOKUP['emf'];
 
 ```js
 import { DATASET_KEYS } from '#utils/datasetsUtils.js';
-console.log(DATASET_KEYS.c2c); // 'c2c'
+logger.info({ datasetKey: DATASET_KEYS.c2c }); // 'c2c'
 ```
 
 ### Path Helper Functions
@@ -202,7 +202,7 @@ const backup = createBackupHelper(
 for (const page of pages) {
   const rows = await scrapePage(page);
   await backup.add(rows); // Auto-flushes every 3 pages
-  console.log(`✓ Page ${page}: ${rows.length} rows`);
+  logger.info({ page: page, rows: rows.length }, 'Rows added from page');
 }
 await backup.flush(); // Final flush
 ```
@@ -211,7 +211,7 @@ await backup.flush(); // Final flush
 
 ```js
 if (isBackupRecoveryMode()) {
-  console.log('♻️ BACKUP RECOVERY MODE...');
+  logger.info('♻️ BACKUP RECOVERY MODE...');
   // Rebuild from saved backup instead of scraping
   const rows = await readBackupCsv('c2c');
   // ... process and write final CSV
@@ -386,18 +386,18 @@ All datasets are registered in `backend/utils/datasetsUtils.js` (`DATASETS` arra
 | 7   | `emf`                  | EMF Case Studies                   | Puppeteer Scrape     | [https://www.ellenmacarthurfoundation.org/explore](https://www.ellenmacarthurfoundation.org/explore)                                 |
 | 8   | `env`                  | Environmental Sustainability       | CSV Extract          | UNDP HDR (manual download)                                                                                                           |
 | 9   | `epa`                  | EPA TRI (Toxics Release Inventory) | CSV Extract          | [https://www.epa.gov/toxics-release-inventory-tri-program](https://www.epa.gov/toxics-release-inventory-tri-program)                 |
-| 10  | `eulac`                | EULAC Case Studies                 | PDF Extract          | EU-LAC Partnership                                                                                                                   |
+| 10  | `eulac`                | EULAC Case Studies                 | PDF Extract          | [https://eulacfoundation.org/en](https://eulacfoundation.org/en)                                                                     |
 | 11  | `eurostat`             | Eurostat Indicators                | CSV Extract          | [https://ec.europa.eu/eurostat](https://ec.europa.eu/eurostat)                                                                       |
 | 12  | `fashion_innovation`   | Fashion for Good Innovation        | Puppeteer Scrape     | [https://www.fashionforgood.com/innovation-platform-2/innovators/](https://www.fashionforgood.com/innovation-platform-2/innovators/) |
-| 13  | `fashion_transparency` | Fashion Transparency Index         | Mixed (PDF + CSV)    | WikiRate / Apparel Coalition                                                                                                         |
-| 14  | `ghg`                  | GHG Emissions (EDGAR/IEA)          | CSV Extract          | UN Environment Programme                                                                                                             |
+| 13  | `fashion_transparency` | Fashion Transparency Index         | Mixed (PDF + CSV)    | [https://www.fashionrevolution.org/transparency/](https://www.fashionrevolution.org/transparency/)                                   |
+| 14  | `ghg`                  | GHG Emissions (EDGAR/IEA)          | CSV Extract          | [https://edgar.jrc.ec.europa.eu/](https://edgar.jrc.ec.europa.eu/)                                                                   |
 | 15  | `gewm`                 | Global E-Waste Monitor 2024        | PDF Extract          | [https://ewastemonitor.info/](https://ewastemonitor.info/)                                                                           |
-| 16  | `gtg`                  | Greentech Guardians                | Mixed (CSV + JSONL)  | AI EarthHack                                                                                                                         |
+| 16  | `gtg`                  | Greentech Guardians                | Mixed (CSV + JSONL)  | [https://github.com/techandy42/GreenTechGuardians](https://github.com/techandy42/GreenTechGuardians)                                 |
 | 17  | `ifixit`               | iFixit Repairability Scores        | CSV Extract          | [https://www.ifixit.com/repairability](https://www.ifixit.com/repairability)                                                         |
-| 18  | `kaggle`               | Kaggle LCA                         | CSV Extract          | Kaggle                                                                                                                               |
+| 18  | `kaggle`               | Kaggle LCA                         | CSV Extract          | [https://www.kaggle.com/](https://www.kaggle.com/)                                                                                   |
 | 19  | `kalundborg`           | Kalundborg Symbiosis               | Puppeteer Scrape     | [https://www.symbiosis.dk/en/category/case/](https://www.symbiosis.dk/en/category/case/)                                             |
 | 20  | `metabolic`            | Metabolic Open Reports             | Mixed (Scrape + PDF) | [https://www.metabolic.nl/publications/](https://www.metabolic.nl/publications/)                                                     |
-| 21  | `mnd`                  | Mendeley Data                      | Excel/CSV Extract    | Mendeley Data (institutional)                                                                                                        |
+| 21  | `mnd`                  | Mendeley Data                      | Excel/CSV Extract    | [https://data.mendeley.com/](https://data.mendeley.com/)                                                                             |
 | 22  | `oecd`                 | OECD Statistics                    | CSV Extract          | [https://data-explorer.oecd.org/](https://data-explorer.oecd.org/)                                                                   |
 | 23  | `obf`                  | Open Beauty Facts                  | Puppeteer Scrape     | [https://world.openbeautyfacts.org/](https://world.openbeautyfacts.org/)                                                             |
 | 24  | `off`                  | Open Food Facts                    | Puppeteer Scrape     | [https://world.openfoodfacts.org/](https://world.openfoodfacts.org/)                                                                 |
@@ -773,14 +773,14 @@ node datasets/scripts/extract_xyz.js  # or scrape_xyz.js
 
 > **Tip:** instead of invoking each file manually you can run **all** of the
 > dataset generation scripts in one go. The helper runner lives at
-> `backend/pipeline/run_datasets_scripts.js` and is wired to the convenience
+> `backend/pipeline/rag/run_datasets_scripts.js` and is wired to the convenience
 > npm script below. It executes `extract_*.js` files first, followed by
 > `scrape_*.js`, stopping immediately if any step fails.
 >
 > ```pwsh
 > npm run datasets-scripts      # runs the pipeline runner
 > # or
-> node pipeline/run_datasets_scripts.js
+> node pipeline/rag/run_datasets_scripts.js
 > ```
 
 ### 4. Verify Output
