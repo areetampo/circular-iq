@@ -1,3 +1,8 @@
+/**
+ * @module FilterSidebar
+ * @description Sidebar filters (industry, category, strategy) for CE case search.
+ */
+
 import { Accordion, ScrollShadow } from '@heroui/react';
 import { ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -120,11 +125,11 @@ export default function FilterSidebar({
 
   return (
     <ScrollShadow
+      {...props}
       id="filters-sidebar-scroll"
       ref={filtersRef}
       className={`h-screen overflow-hidden ${isFiltersOverflowing && 'pr-2.5'} pb-2 hover:overflow-y-auto hover:pr-0`}
       size={30}
-      {...props}
     >
       <Accordion
         className="w-full"

@@ -1,3 +1,8 @@
+/**
+ * @module SolutionsSearch
+ * @description Search input and query handling for the Solutions catalog.
+ */
+
 import { Checkbox, Label, Pagination, ScrollShadow, SearchField, Tooltip } from '@heroui/react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, Eraser, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
@@ -58,8 +63,8 @@ function ResultCard({ result, isHybridMode, ...props }) {
 
   return (
     <div
-      className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border)"
       {...props}
+      className="group relative flex flex-col gap-4 rounded-xl border-[1.5px] border-(--color-border-ui) bg-(--color-bg-card) p-5 shadow-sm transition-all duration-200 hover:border-(--color-accent-hover-border)"
     >
       {/* 1) HEADER: title + score badge */}
       <div className="flex items-start justify-between gap-3">
@@ -197,6 +202,13 @@ ResultCard.propTypes = {
   isHybridMode: PropTypes.bool.isRequired,
 };
 
+/**
+ * Scrollable grid of `ResultCard` components with overflow fade indicator.
+ * @param {Object} props
+ * @param {Array<Object>} props.results - CE case search hits.
+ * @param {boolean} props.isHybridMode - Whether hybrid search mode is active.
+ * @returns {import('react').ReactElement}
+ */
 function ResultsGrid({ results, isHybridMode }) {
   const [isResultsOverflowing, setIsResultsOverflowing] = useState(false);
   const resultsRef = useRef(null);
@@ -253,7 +265,7 @@ ResultsGrid.propTypes = {
  * <IdleState />
  */
 function IdleState({ ...props }) {
-  return <DetailsBadge variant="info" message="Type to search" icon={Keyboard} {...props} />;
+  return <DetailsBadge {...props} variant="info" message="Type to search" icon={Keyboard} />;
 }
 
 /**
@@ -268,9 +280,7 @@ function IdleState({ ...props }) {
  * <LoadingState />
  */
 function LoadingState({ ...props }) {
-  return (
-    <DetailsBadge variant="success" message="Fetching solutions ..." icon={Spinner} {...props} />
-  );
+  return <DetailsBadge {...props} variant="success" message="Fetching solutions ..." spinner />;
 }
 
 /**
@@ -288,9 +298,9 @@ function LoadingState({ ...props }) {
 function ErrorState({ error, ...props }) {
   return (
     <DetailsBadge
+      {...props}
       variant="error"
       message={`Error: ${error?.message || 'Failed to fetch solutions'}`}
-      {...props}
     />
   );
 }
@@ -313,7 +323,7 @@ ErrorState.propTypes = {
  * <EmptyState query="test" />
  */
 function EmptyState({ query, ...props }) {
-  return <DetailsBadge variant="warning" message={`No results found for '${query}'`} {...props} />;
+  return <DetailsBadge {...props} variant="warning" message={`No results found for '${query}'`} />;
 }
 
 EmptyState.propTypes = {
@@ -714,7 +724,7 @@ export default function SolutionsSearch({ ...props }) {
   }
 
   return (
-    <div className="-mt-4 space-y-4" {...props}>
+    <div {...props} className="-mt-4 space-y-4">
       {/* Search input and mode toggle */}
       <div className="space-y-1">
         <div className="flex items-center justify-start gap-2 pl-2">
@@ -764,7 +774,7 @@ export default function SolutionsSearch({ ...props }) {
 
               {isStale && !isFetching && (
                 <Tooltip delay={0} className="inline-flex">
-                  <Tooltip.Trigger>
+                  <Tooltip.Trigger tabIndex={0}>
                     <RefreshCw
                       size={16}
                       strokeWidth={2.5}
