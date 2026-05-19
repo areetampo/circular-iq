@@ -7,14 +7,16 @@ A production-grade PostgreSQL database system for circular economy assessment an
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
+- [Directory Structure](#directory-structure)
 - [Dual Backend Support](#dual-backend-support)
 - [Migration Sequence](#migration-sequence)
+- [Migration 00 — App Settings](#migration-00--app-settings)
 - [Migration 01 — Vector Infrastructure (Core)](#migration-01--vector-infrastructure-core)
-- [Migration 02 — User Profiles](#migration-02--user-profiles)
-- [Migration 03 — User Assessments](#migration-03--user-assessments)
+- [Migration 02 — User Assessments](#migration-02--user-assessments)
+- [Migration 03 — User Profiles](#migration-03--user-profiles)
 - [Migration 04 — Anonymous Usage](#migration-04--anonymous-usage)
 - [Migration 05 — Scoring Results Log](#migration-05--scoring-results-log)
-- [Migration 06 — CE Cases (Core)](#migration-06--ce-cases-core)
+- [Migration 06 — CE Cases (Core)](#migration-06--ce-cases)
 - [Migration 07 — Uptime Monitor](#migration-07--uptime-monitor)
 - [RPC Functions Reference](#rpc-functions-reference)
 - [Repository Layer](#repository-layer)
@@ -39,11 +41,12 @@ The backend selects which database to use at runtime via a single environment fl
 | Table                 | Purpose                                          | Scale                |
 | --------------------- | ------------------------------------------------ | -------------------- |
 | `documents`           | Vector-embedded CE knowledge chunks for RAG      | 50,000–500,000+ rows |
-| `ce_cases`            | Curated circular economy reference library       | Thousands of cases   |
 | `user_assessments`    | Full assessment lifecycle per user               | Per-user             |
-| `scoring_results_log` | Immutable audit trail of all scoring API calls   | Append-only          |
 | `profiles`            | User profile data linked to Supabase auth        | Per-user             |
 | `anonymous_usage`     | Free-tier rate limiting via IP+UA fingerprinting | Per-fingerprint      |
+| `scoring_results_log` | Immutable audit trail of all scoring API calls   | Append-only          |
+| `ce_cases`            | Curated circular economy reference library       | Thousands of cases   |
+| `uptime_checks`       | Backend health check monitoring history          | 15-day retention     |
 
 ### Technology Stack
 
@@ -52,6 +55,48 @@ The backend selects which database to use at runtime via a single environment fl
 - **BM25 full-text search** — PostgreSQL `tsvector`/`GIN` for keyword matching
 - **Hybrid scoring** — combined `(vector_score × weight) + (keyword_score × (1 - weight))`
 - **Row Level Security** — per-table policies for `service_role`, `authenticated`, and `anon`
+
+---
+
+## Directory Structure
+
+```txt
+backend/database/
+├── README.md                          ← this file
+├── client.js                          ← singleton pool/client factory (Supabase + Aiven)
+├── index.js                           ← exports repositories and connection helpers
+├── supabase.client.js                 ← Supabase JS client initialisation
+│
+├── migrations/
+│   ├── 00_app_settings.sql            ← app schema, settings table, get_setting() accessor
+│   ├── 01_vector_infrastructure.sql   ← pgvector, documents table, search + backfill functions
+│   ├── 02_user_assessments.sql        ← user_assessments table + scoring RPCs
+│   ├── 03_user_profiles.sql           ← profiles table, auth triggers, FK upgrade
+│   ├── 04_anonymous_usage.sql         ← anonymous_usage table + rate-limit function
+│   ├── 05_results_logs.sql            ← scoring_results_log table (append-only audit)
+│   ├── 06_ce_cases.sql                ← ce_cases table + hybrid search functions
+│   └── 07_uptime_monitor.sql          ← uptime_checks table + analytics RPCs
+│
+├── repositories/
+│   ├── documents.repository.js        ← DocumentsRepository class (Supabase + Aiven routing)
+│   └── ce_cases.repository.js         ← ce_cases stateless query functions
+│
+└── diagnostics/                       ← standalone SQL scripts for ad-hoc inspection
+    ├── README.md
+    ├── bloat_and_vacuum.sql
+    ├── cache_and_io.sql
+    ├── column_breakdown.sql
+    ├── connections_and_locks.sql
+    ├── index_sizes.sql
+    ├── replication_and_wal.sql
+    ├── schema_introspection.sql
+    ├── slow_queries.sql
+    ├── table_overview.sql
+    ├── uptime_checks_distribution.sql
+    └── vector_sizes.sql
+```
+
+> **Note:** The legacy `scripts/backfill_documents_industry.sql` file has been removed. Metadata backfilling is now handled automatically by `backfill_document_metadata()` — a `SECURITY DEFINER` function defined in `01_vector_infrastructure.sql` and called by `store_embeddings.js` after every ingestion run. See [Post-Ingestion Maintenance](#post-ingestion-maintenance) for details.
 
 ---
 
@@ -97,14 +142,61 @@ DB_IDLE_TIMEOUT_MS=30000
 Migrations live in `backend/database/migrations/`. Run them **in order** via Supabase SQL editor or `psql`. Every migration is idempotent: it drops conflicting tables and functions before re-creating them, so it is safe to re-run.
 
 ```txt
-01_vector_infrastructure.sql  ← pgvector + halfvec extension, documents table + HNSW index
-02_user_profiles.sql          ← user_profiles table
-03_user_assessments.sql       ← assessments table (v3) + get_market_data/get_assessment_statistics RPCs
+00_app_settings.sql           ← PREREQUISITE: app schema + settings table + get_setting() — must run first
+01_vector_infrastructure.sql  ← pgvector + halfvec extension, documents table + HNSW index + backfill function
+02_user_assessments.sql       ← assessments table (v3) + get_market_data/get_assessment_statistics RPCs
+03_user_profiles.sql          ← profiles table + auth triggers, assessment counters, FK upgrade on user_assessments
 04_anonymous_usage.sql        ← anonymous_usage table + rate limiting logic
 05_results_logs.sql           ← scoring_results_log table (append-only audit log)
 06_ce_cases.sql               ← ce_cases table with hybrid search functions
-07_uptime_monitor.sql        ← uptime_checks table for monitoring history
+07_uptime_monitor.sql         ← uptime_checks table + analytics RPCs (set-based) + count estimate
 ```
+
+---
+
+## Migration 00 — App Settings
+
+**File:** `00_app_settings.sql`
+
+This migration must run **before all others**. It creates the `app` schema, a `settings` key/value table, and a `SECURITY DEFINER` accessor function used by downstream migrations (currently Migration 07) to read runtime configuration.
+
+### Purpose
+
+Stores global application runtime configuration shared across SQL functions and backend services. It replaces `ALTER ROLE` / `ALTER DATABASE` custom GUC configuration, which Supabase managed Postgres does not allow for persistent custom parameters.
+
+### The `app.settings` Table
+
+| Column        | Type        | Purpose                                    |
+| ------------- | ----------- | ------------------------------------------ |
+| `key`         | TEXT PK     | Setting identifier                         |
+| `value`       | TEXT        | Setting value (cast by consuming function) |
+| `description` | TEXT        | Human-readable description                 |
+| `created_at`  | TIMESTAMPTZ | Row creation timestamp                     |
+| `updated_at`  | TIMESTAMPTZ | Last modification timestamp                |
+
+### Default Settings
+
+| Key                                         | Default | Description                                              |
+| ------------------------------------------- | ------- | -------------------------------------------------------- |
+| `uptime_checks-query_window_days`           | `28`    | Maximum analytics query window in days for uptime RPCs   |
+| `uptime_checks-uptime_warning_threshold_ms` | `1000`  | Response time threshold (ms) for heatmap warning buckets |
+
+To change a setting without redeploying functions, update the row directly:
+
+```sql
+UPDATE app.settings SET value = '14' WHERE key = 'uptime_checks-query_window_days';
+```
+
+The new value takes effect on the next function call — no function redeployment required.
+
+### Function — `app.get_setting(p_key TEXT)`
+
+`STABLE`, `SECURITY DEFINER`, `service_role` only. Returns the `TEXT` value for the given key. Consuming functions cast the return value explicitly (e.g. `app.get_setting('uptime_checks-query_window_days')::INT`).
+
+### Access Control
+
+- `service_role` — `SELECT` on `app.settings`; `EXECUTE` on `app.get_setting()`
+- `anon` / `authenticated` / `public` — no access to the table or function
 
 ---
 
@@ -112,7 +204,7 @@ Migrations live in `backend/database/migrations/`. Run them **in order** via Sup
 
 **File:** `01_vector_infrastructure.sql`
 
-This is the foundation of the entire system. It sets up the extension schema, creates the `documents` table with half-precision vector storage, and defines all document search and analytics functions.
+This is the foundation of the entire system. It sets up the extension schema, creates the `documents` table with half-precision vector storage, and defines all document search, analytics, and post-ingestion backfill functions.
 
 ### Extensions
 
@@ -123,6 +215,8 @@ Three extensions are installed into a dedicated `extensions` schema (security be
 - `pgcrypto` — `gen_random_uuid()` for UUID generation
 
 All roles (`authenticated`, `anon`, `service_role`) receive `USAGE` on the `extensions` schema.
+
+> **Note:** A fourth extension, `pg_trgm`, is installed into `extensions` by migration 06 (`06_ce_cases.sql`) for trigram-based fuzzy matching on `ce_cases` columns. It is not part of migration 01.
 
 ### The `documents` Table
 
@@ -178,7 +272,7 @@ All functions use `SET search_path = public, extensions` and are marked `STABLE`
 
 **`search_documents_hybrid(query_embedding, keyword_filter, industry_filter, category_filter, source_filter, match_count, vector_weight, similarity_threshold)`** — the primary search function. Combines cosine similarity and `ts_rank` BM25 keyword scoring with configurable weights. Applies optional metadata filters. Requires keyword to match (AND filter); use `keyword_filter = ''` to skip keyword constraint.
 
-**`search_documents_hybrid_filtered(query_embedding, keyword_filter, industry_filter, match_count, vector_weight)`** — lighter variant of the above, filters by industry only. Used by the repository's `searchHybrid` method.
+**`search_documents_hybrid_filtered(query_embedding, keyword_filter, industry_filter, match_count, vector_weight)`** — lighter variant of the above, filters by industry only. Accepts five parameters: no `category_filter`, `source_filter`, or `similarity_threshold`.
 
 **`find_recent_documents(limit_count, industry_filter, category_filter, source_filter)`** — returns most recently ingested documents, with optional metadata filters.
 
@@ -190,33 +284,32 @@ All functions use `SET search_path = public, extensions` and are marked `STABLE`
 
 **`update_updated_at_column()`** — `BEFORE UPDATE` trigger function that sets `updated_at = NOW()` on every row modification.
 
+**`safe_jsonb_cast(text)`** — `SECURITY DEFINER` internal helper. Casts text to `jsonb`, returning `NULL` on invalid input instead of raising an exception. Used exclusively by `backfill_document_metadata()`. Not exposed via RPC.
+
+**`backfill_document_metadata()`** — `SECURITY DEFINER` function called automatically by `store_embeddings.js` after every ingestion run. Backfills the `source` and `industry` columns from embedded JSON metadata for rows that were not fully classified at insert time. Idempotent — all `UPDATE` statements are guarded by `WHERE` conditions that only touch rows still needing work, so calling it repeatedly is safe. Only executable by `service_role`.
+
+Backfill order:
+
+1. `source` ← `metadata->>'source'` (where `source IS NULL`)
+2. `industry` ← `metadata->'fields'->'metadata_json'->'raw_extracted'->>'category'`
+3. `industry` ← same path, split on `' > '`, taking the first segment (fallback)
+4. `industry` ← `category` column directly, skipping generic label values (last-resort fallback)
+
+### Post-Ingestion Maintenance
+
+Metadata backfilling is **automatic**. After every ingestion run, `store_embeddings.js` calls `SELECT backfill_document_metadata()` as step 2 of `validateStorage()` (after `VACUUM ANALYZE`, before the count check). No manual SQL step is required.
+
+The function is idempotent — running it against already-backfilled rows is a no-op. It runs against both the Aiven and Supabase `documents` tables; `WHERE` conditions ensure it only touches rows that still need work.
+
 ### RLS on `documents`
 
-Documents are public reference data. A single `documents_access_policy` allows all operations for all roles (`USING (true)`).
+Documents are public reference data. A single `documents_access_policy` allows `SELECT` for all roles (`FOR SELECT USING (true)`). All writes go exclusively through the embedding pipeline using `service_role`.
 
 ---
 
-## Migration 02 — User Profiles
+## Migration 02 — User Assessments
 
-**File:** `02_user_profiles.sql`
-
-User profiles are tightly coupled to Supabase auth. The `profiles.id` is a direct foreign key to `auth.users(id)`.
-
-### The `profiles` Table
-
-**Key fields:**
-
-- `username` — unique, 3–30 characters, must contain at least one letter, no `@` signs, only alphanumeric + `_` and `-`
-- `display_name`, `avatar_url`, `bio`, `preferred_industry` — optional profile enrichment
-- `assessment_count`, `last_assessment_at` — denormalized counters kept in sync via trigger (avoids expensive `COUNT(*)` queries in dashboard)
-
-A `BEFORE INSERT OR UPDATE` trigger validates username format and fires a separate trigger after assessment inserts/deletes to keep `assessment_count` accurate on the profiles row.
-
----
-
-## Migration 03 — User Assessments
-
-**File:** `03_user_assessments.sql`
+**File:** `02_user_assessments.sql`
 
 Stores the complete lifecycle of a circular economy assessment — from user-supplied inputs through multi-layer AI scoring to final audit results.
 
@@ -226,7 +319,7 @@ The table is intentionally wide. Rather than normalizing scoring results into se
 
 **Identity & inputs:**
 
-- `user_id` (FK → `auth.users`, CASCADE DELETE) — the owning user
+- `user_id` (FK → `auth.users`, CASCADE DELETE initially; re-pointed to `profiles(id)` by migration 03) — the owning user
 - `title` — unique per user via `UNIQUE (user_id, title)`
 - `business_problem`, `business_solution` — the text submitted for scoring
 - `evaluation_parameters` (JSONB) — raw 8-factor input scores
@@ -253,6 +346,77 @@ The table is intentionally wide. Rather than normalizing scoring results into se
 - `is_public` (default TRUE), `public_id` (UUID, unique) — control public sharing
 - `contribute_to_global_benchmarks` (default TRUE)
 
+### Indexes on `user_assessments`
+
+| Index                                | Type          | Purpose                                                         |
+| ------------------------------------ | ------------- | --------------------------------------------------------------- |
+| `idx_user_assessments_user_id`       | btree         | Fast lookup of all assessments per user                         |
+| `idx_user_assessments_created_at`    | btree DESC    | Recency sorting and time-series queries                         |
+| `idx_user_assessments_overall_score` | btree         | Score-range filtering and analytics                             |
+| `idx_user_assessments_industry`      | btree         | Industry-based filtering                                        |
+| `idx_user_assessments_public_id`     | btree         | Public sharing lookup by UUID                                   |
+| `idx_user_assessments_is_public`     | partial btree | Fast scan of public assessments only (WHERE `is_public = TRUE`) |
+
+### RLS on `user_assessments`
+
+Migration 02 enables RLS on this table (`ALTER TABLE user_assessments ENABLE ROW LEVEL SECURITY`) but does **not** install any policies itself. All four RLS policies are installed by migration 03 once the `profiles` table and its FK exist:
+
+- `user_assessments_select_policy` — authenticated users SELECT own rows OR `is_public = true`
+- `user_assessments_insert_policy` — authenticated users INSERT own rows only
+- `user_assessments_update_policy` — authenticated users UPDATE own rows only
+- `user_assessments_delete_policy` — authenticated users DELETE own rows only
+
+`anon` receives table-level `SELECT, INSERT, UPDATE, DELETE` grants in migration 02. RLS (installed by migration 03) applies to all roles — the select policy has no `TO` clause, so it covers `anon` too. For `anon`, `auth.uid()` is NULL, so only the `is_public = true` branch of the select policy matches. In practice: `anon` can SELECT public assessments, but cannot INSERT, UPDATE, or DELETE (those policies require `auth.uid() = user_id`, which is never true for an unauthenticated caller).
+
+---
+
+## Migration 03 — User Profiles
+
+**File:** `03_user_profiles.sql`
+
+User profiles are tightly coupled to Supabase auth. The `profiles.id` is a direct foreign key to `auth.users(id)`.
+
+### The `profiles` Table
+
+**Key fields:**
+
+- `username` — unique, 3–30 characters, must contain at least one letter, no `@` signs, only alphanumeric + `_` and `-`
+- `display_name`, `avatar_url`, `bio`, `preferred_industry` — optional profile enrichment
+- `assessment_count`, `last_assessment_at` — denormalized counters kept in sync via trigger (avoids expensive `COUNT(*)` queries in dashboard)
+
+### Index on `profiles`
+
+| Index                   | Type  | Purpose                                    |
+| ----------------------- | ----- | ------------------------------------------ |
+| `idx_profiles_username` | btree | Fast username lookup and uniqueness checks |
+
+### Auth Triggers & Hooks
+
+Two triggers fire on `auth.users` for every signup:
+
+- **`force_internal_email` (BEFORE INSERT on `auth.users`)** — validates username (length 3–30, pattern `/^(?=.*[a-zA-Z])[a-zA-Z0-9_-]+$/`, no `@`), then rewrites the `email` field to `<username>@ce.internal` so Supabase Auth's email-based identity system works without exposing real email addresses. Raises an exception on any validation failure.
+- **`handle_new_user` (AFTER INSERT on `auth.users`)** — creates the corresponding `profiles` row after a successful signup.
+
+Two triggers fire on `user_assessments` to keep the denormalised counter current:
+
+- **`increment_profile_assessment_count` (AFTER INSERT on `user_assessments`)** — increments `profiles.assessment_count` and stamps `last_assessment_at`.
+- **`decrement_profile_assessment_count` (AFTER DELETE on `user_assessments`)** — decrements `profiles.assessment_count` (floored at 0).
+
+A `BEFORE UPDATE` trigger (`update_profiles_updated_at_column`) stamps `updated_at = NOW()` on every profile row change.
+
+### Helper RPCs (service_role only)
+
+- **`get_user_profile(user_uuid UUID)`** — returns the authenticated user's profile fields (email intentionally excluded). The `auth.uid() = id` check inside the function prevents fetching another user's row.
+- **`update_username(user_uuid UUID, new_username TEXT)`** — validates and applies a username change, mirrors the `force_internal_email` validation rules.
+
+### No-op Send Email Auth Hook
+
+`supabase_noop_send_email(event JSONB)` — registered as the Supabase Send Email Auth Hook so Supabase never attempts to send mail to `@ce.internal` addresses. Returns `NULL` (signals success). Callable by `supabase_auth_admin` only.
+
+### FK Upgrade on `user_assessments`
+
+Migration 03 re-points the `user_assessments.user_id` foreign key from `auth.users(id)` to `profiles(id)` (CASCADE DELETE), removes the legacy `session_id` column if present, enforces `NOT NULL` on `user_id`, and installs four tightened RLS policies (SELECT own rows OR `is_public = true`; INSERT/UPDATE/DELETE own rows only).
+
 ---
 
 ## Migration 04 — Anonymous Usage
@@ -270,22 +434,35 @@ Each row represents a unique device fingerprint. The fingerprint is a SHA-256 ha
 - `identifier_hash` — `SHA-256(IP + UA)`, unique, the primary lookup key
 - `last_ip_hash` — `SHA-256(IP)` only, for abuse debugging
 - `user_agent_snippet` — first 200 characters of the User-Agent string
-- `usage_count` — number of scoring attempts
+- `usage_count` — number of successful scoring attempts
+- `first_used_at` — timestamp of first use (NOT NULL, set on insert)
+- `last_used_at` — timestamp of last successful (allowed) use; intentionally NOT updated on blocked requests
 - `last_blocked_at` — timestamp of the most recent blocked attempt (NULL if never blocked)
+- `created_at` — row creation timestamp
+
+### Index on `anonymous_usage`
+
+| Index                           | Type  | Purpose                                                                                   |
+| ------------------------------- | ----- | ----------------------------------------------------------------------------------------- |
+| `idx_anonymous_usage_last_used` | btree | Accelerates cleanup DELETE (`WHERE last_used_at < threshold`) and recent-activity lookups |
+
+### RLS on `anonymous_usage`
+
+`service_role` has full access (`FOR ALL` policy). `anon` has SELECT-only access (`FOR SELECT` policy). `authenticated` has no explicit RLS policy and therefore no access — RLS denies by default when no matching policy exists.
 
 ### Function — `check_and_increment_anonymous_usage(p_identifier_hash, p_max_tries, p_ip_hash, p_user_agent_snippet)`
 
 This is the rate-limiting gate. It uses `SELECT ... FOR UPDATE` to row-lock the fingerprint record, preventing race conditions under concurrent requests. Behavior:
 
-1. If no row exists → insert with `usage_count = 1`, return `(1, true)` if `1 <= p_max_tries`
-2. If `usage_count >= p_max_tries` → update `last_blocked_at`, return `(current_count, false)`
-3. Otherwise → increment counter, return `(new_count, new_count <= p_max_tries)`
+1. If no row exists → insert with `usage_count = 1`, return `(1, 1 <= p_max_tries, NOW(), NULL)`
+2. If `usage_count >= p_max_tries` → update `last_blocked_at` only, return `(current_count, false, last_used_at, last_blocked_at)`
+3. Otherwise → increment counter, update `last_used_at`, return `(new_count, new_count <= p_max_tries, last_used_at, last_blocked_at)`
 
-Only `service_role` can execute this function. Anonymous and public roles are explicitly revoked.
+Returns four columns: `current_count INTEGER`, `is_allowed BOOLEAN`, `last_used_at TIMESTAMPTZ`, `last_blocked_at TIMESTAMPTZ`. Only `service_role` can execute this function; explicitly revoked from `public`, `anon`, and `authenticated`.
 
 ### Function — `cleanup_old_anonymous_usage()`
 
-Deletes rows with `last_used_at` older than 30 days. Intended to be scheduled via `pg_cron` or an external job.
+Deletes rows with `last_used_at` older than 7 days. Because `last_used_at` is intentionally not updated on blocked requests, persistent abusers are evicted after their trial window passes without resetting the clock. Called by a backend scheduled job (not pg_cron).
 
 ---
 
@@ -302,23 +479,36 @@ An append-only audit table recording every scoring API call. It mirrors the `use
 - `request_id` — random hex ID from the scoring controller, links logs to backend console traces
 - `is_anonymous` — boolean flag, not a FK
 - `ip_hash`, `identifier_hash`, `user_agent_snippet` — privacy-preserving fingerprints, same format as `anonymous_usage`
-- `business_problem_len`, `business_solution_len` — length analytics (the raw text is not stored for anonymous users)
+- `business_problem_len`, `business_solution_len` — character length of inputs for analytics (the Express backend controls whether raw text is written to `business_problem`/`business_solution` for anonymous requests — the columns exist in the schema but may be left null)
 - `processing_time_ms`, `timings` (JSONB) — backend performance metrics
 - `result_snapshot` — the complete API response (equivalent to `user_assessments.result_json`)
 
-**No UPDATE or DELETE** for non-service roles. RLS enforces: `service_role` gets full access; authenticated users can only `SELECT` rows where `user_id = auth.uid()`.
+**No UPDATE or DELETE** for any application role. RLS enforces: `service_role` can SELECT and INSERT (all writes from the Express backend via table grant `GRANT SELECT, INSERT`); authenticated users can only `SELECT` rows where `user_id = auth.uid()`. `anon` has no access.
+
+> **Note on `cleanup_old_scoring_results_log()`:** This function executes `DELETE FROM scoring_results_log`. Although the `service_role` table grant is limited to `SELECT + INSERT`, the function is `SECURITY DEFINER` and runs as the function owner (which holds broader privileges). This is how the DELETE succeeds despite the narrower table grant.
 
 ### Auto-cleanup
 
 `cleanup_old_scoring_results_log()` deletes rows older than 90 days. Should be scheduled.
 
-### Indexes
+### Indexes on `scoring_results_log`
 
-Indexes are optimized for the most common analytics queries: `created_at DESC` (time-series), `user_id` (user history), `identifier_hash` (abuse analysis), `overall_score`, `industry`, `risk_level`, `request_id` (log correlation), and partial indexes on `audit_is_junk_input = true` and `parameter_consistency_score`.
+| Index                             | Type          | Purpose                                                                           |
+| --------------------------------- | ------------- | --------------------------------------------------------------------------------- |
+| `idx_srl_created_at`              | btree DESC    | Time-series queries; primary access pattern                                       |
+| `idx_srl_user_id`                 | partial btree | User history lookups (WHERE `user_id IS NOT NULL`)                                |
+| `idx_srl_identifier_hash`         | partial btree | Abuse analysis joins with `anonymous_usage` (WHERE `identifier_hash IS NOT NULL`) |
+| `idx_srl_request_id`              | partial btree | Log correlation with backend console output (WHERE `request_id IS NOT NULL`)      |
+| `idx_srl_overall_score`           | btree         | Score-range analytics                                                             |
+| `idx_srl_industry`                | btree         | Industry-based aggregation                                                        |
+| `idx_srl_risk_level`              | btree         | Risk distribution analytics                                                       |
+| `idx_srl_audit_is_junk`           | partial btree | Junk-input analysis (WHERE `audit_is_junk_input = true`)                          |
+| `idx_srl_param_consistency_score` | btree         | Parameter consistency analytics                                                   |
+| `idx_srl_r_alignment_score`       | btree         | R-strategy alignment analytics                                                    |
 
 ---
 
-## Migration 06 — CE Cases (Core)
+## Migration 06 — CE Cases
 
 **File:** `06_ce_cases.sql`
 
@@ -347,6 +537,8 @@ Unlike `documents` (which stores ingested chunks), `ce_cases` stores structured 
   - **C:** `category`, `metadata_json->>'keywords'`, `metadata_json->>'keyArea'`
   - **D (lowest):** `impact`
 - `embedding` (halfvec(1536)) — optional OpenAI vector; NULL until embedded. Text embedded: `title + company + problem + solution`
+
+This migration also installs the `pg_trgm` extension into the `extensions` schema, required for the trigram indexes below.
 
 ### Indexes on `ce_cases`
 
@@ -398,17 +590,27 @@ CE cases are read-only reference data for authenticated and anonymous users. Onl
 
 **File:** `07_uptime_monitor.sql`
 
-Creates the uptime monitoring infrastructure for tracking backend health check history with real-time streaming capabilities. The backend polls endpoints every 30 seconds, stores results in this table with a 7-day retention policy, and provides live updates via Server-Sent Events (SSE).
+Creates the uptime monitoring infrastructure for tracking backend health check history with real-time streaming capabilities. The backend polls endpoints every 30 seconds in production, stores results in this table with a configurable retention policy (default 15 days, controlled via `BACKEND_CONFIG.uptime.retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS`), and provides five DB-level analytics RPCs for bucketed chart data plus a cleanup function, with live updates delivered via Server-Sent Events (SSE).
+
+> **Database-Level Configuration**
+> This migration reads two runtime constants from `app.settings` (populated by `00_app_settings.sql`) via `app.get_setting()`:
+>
+> `uptime_checks-query_window_days` (default `28`) — maximum query window enforced by all analytics functions via `LEAST()` guards
+> `uptime_checks-uptime_warning_threshold_ms` (default `1000`) — response time threshold above which heatmap buckets are flagged `is_warning = TRUE`
+>
+> Both values can be changed without redeploying functions. Update the row in `app.settings` and the new value takes effect on the next connection:
+>
+> ```sql
+> UPDATE app.settings SET value = '14' WHERE key = 'uptime_checks-query_window_days';
+> ```
 
 ### Environment-Controlled Cleanup
 
-**Important**: The uptime table cleanup is now controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`):
+**Important**: The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`):
 
 - **Default**: `true` - wipes the `uptime_checks` table on server start
 - **Set to `false`**: preserves existing uptime data across server restarts
 - **Location**: Configured in `backend.config.js` under `uptime.cleanupOnStart`
-
-This replaces the previous pre-push hook approach, giving you more control over when the uptime table is reset for production deployments.
 
 ### The `uptime_checks` Table
 
@@ -420,9 +622,10 @@ Stores historical health check results from backend-side polling with efficient 
 | ------------------ | ----------- | ------------------------------------------------------------------------ |
 | `id`               | UUID        | Primary key                                                              |
 | `endpoint_id`      | TEXT        | Identifier of the health endpoint (e.g., 'health', 'database', 'openai') |
+| `endpoint_path`    | TEXT        | API route of the health endpoint (e.g. /health/database)                 |
 | `status`           | TEXT        | Status string from the health endpoint response                          |
 | `up`               | BOOLEAN     | Boolean indicating if the endpoint was reachable and returning OK        |
-| `response_time_ms` | INTEGER     | Response time in milliseconds                                            |
+| `response_time_ms` | INTEGER     | Response time in milliseconds. NULL for failed or timed-out checks       |
 | `payload`          | JSONB       | Full JSON payload returned by the health endpoint                        |
 | `created_at`       | TIMESTAMPTZ | Timestamp of the health check                                            |
 
@@ -435,7 +638,7 @@ Stores historical health check results from backend-side polling with efficient 
 
 ### RLS on `uptime_checks`
 
-Public read/write access (no authentication required) for the uptime monitoring system.
+`service_role` has full access (backend polling service writes). Both `authenticated` and `anon` roles can SELECT uptime data for dashboards via a `FOR SELECT` policy — no writes are permitted through PostgREST for either role.
 
 ### Autovacuum Tuning
 
@@ -459,12 +662,12 @@ The uptime monitoring system is designed to run **only in production** environme
 ```js
 // backend.config.js
 uptime: {
-  pollIntervalMs: 30 * 1000, // 30 seconds
-  retentionDays: 7, // 7 days
-  pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
-  cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
-  cleanupIntervalDurationMs: 24 * 60 * 60 * 1000, // daily
-  endpoints: UPTIME_ENDPOINTS.map((endpoint) => endpoint.path),
+  pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS,  // default 30000ms
+  retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS,      // default 15 days
+  pollingEnabled: env.NODE_ENV === 'production',
+  cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START,
+  cleanupIntervalDurationMs: 24 * 60 * 60 * 1000,
+  endpoints: HEALTH_ENDPOINTS.map((endpoint) => endpoint.path),
 }
 ```
 
@@ -472,12 +675,32 @@ This prevents duplicate data during development and ensures clean monitoring dat
 
 ### Cleanup Function
 
-**`cleanup_old_uptime_checks(days INTEGER DEFAULT 7)`** — Deletes uptime check records older than the specified number of days. Uses `TRUNCATE` when `days=0` for complete table cleanup. Called daily by the backend server (production only).
+**`cleanup_old_uptime_checks(days INTEGER DEFAULT 30)`** — Deletes uptime check records older than the specified number of days. Uses `TRUNCATE` when `days=0` for complete table cleanup. Returns `BIGINT` row count deleted (0 for TRUNCATE). Called daily by the backend server (production only). This is an administrative retention function, not a query-window function — it is intentionally **not** capped at 30 days so it can be used for manual cleanup or disaster recovery of older data.
+
+### SQL Aggregation Functions
+
+Six analytics RPCs provide server-side bucketed data for all chart components — no client-side aggregation over large datasets. (The seventh DB function, `cleanup_old_uptime_checks`, is documented separately in the Cleanup Function section above.)
+
+All analytics functions (`get_daily_uptime_stats`, `get_global_response_trend`, `get_endpoint_avg_latency`, `get_heatmap_buckets`, `get_endpoint_buckets`) are implemented as `LANGUAGE sql` using `generate_series + LEFT JOIN + GROUP BY` — a single index scan per call across the full query window. The previous plpgsql loop implementation issued one index scan per bucket (up to 96 for a 24h/15min window), which was the primary source of slow query time on the `uptime_checks` table.
+
+| Function                          | Signature                                                                                                              | Description                                                                                                                                                                                             |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_daily_uptime_stats`          | `(days INTEGER DEFAULT 28)`                                                                                            | Daily avg uptime % across all endpoints for last N days. Days capped at `uptime_checks-query_window_days`                                                                                               |
+| `get_heatmap_buckets`             | `(bucket_minutes INT, days INT, reference_ts BIGINT, p_clock_aligned BOOLEAN DEFAULT FALSE)`                           | Time-bucketed status for all endpoints. Days capped at `uptime_checks-query_window_days` (`LEAST(days, ...)`). Supports clock-aligned mode. `failure_details` as `[{ endpoint_id, endpoint_path, ts }]` |
+| `get_global_response_trend`       | `(p_hours INT DEFAULT 24, p_clock_aligned BOOLEAN DEFAULT FALSE)`                                                      | Hourly avg response time across all endpoints. Returns `hour_label` as `TIMESTAMPTZ`. Hours capped at `uptime_checks-query_window_days * 24`. Empty hours return 0, not NULL                            |
+| `get_endpoint_avg_latency`        | `(p_hours INT DEFAULT 24)`                                                                                             | Per-endpoint avg response time scalar for last N hours. Hours capped at `uptime_checks-query_window_days * 24`                                                                                          |
+| `get_endpoint_buckets`            | `(p_endpoint_id TEXT, p_bucket_minutes INT DEFAULT 15, p_hours INT DEFAULT 24, p_clock_aligned BOOLEAN DEFAULT FALSE)` | Bucketed avg response time for one endpoint. `failure_details` as `[{ ts }]`. Hours capped at `uptime_checks-query_window_days * 24`                                                                    |
+| `get_uptime_check_count_estimate` | `()`                                                                                                                   | Fast approximate total row count via `pg_class.reltuples`. Avoids a full table scan. Accurate to ~1% given tuned autovacuum. For display stats only                                                     |
+
+`is_warning`: `TRUE` when `average_ms` exceeds the `uptime_checks-uptime_warning_threshold_ms` setting (default 1000ms). Both thresholds are read from `app.settings` at query time via `app.get_setting()` and can be changed without redeploying functions.
+
+Clock-aligned behaviour differs by function: `get_heatmap_buckets` snaps the window end to the nearest bucket boundary at or after `reference_ts` using `ceil()`, then walks the full window backward so all edges land on clean clock marks; `get_endpoint_buckets` snaps the window end to the nearest bucket boundary at or after `NOW()` using `ceil()`, then walks backward; `get_global_response_trend` uses `date_trunc('hour', NOW())` to snap to the current full hour. In all cases the newest bucket straddles the real current time and is flagged `is_partial = true`. All query-window functions cap their input at a maximum of `uptime_checks-query_window_days` days (`uptime_checks-query_window_days * 24` hours for hour-based functions). The route layer (`uptime.routes.js`) also clamps incoming request values against `BACKEND_CONFIG.uptime.queryWindowDaysLimit` before they reach the DB functions, providing a second independent cap at the API layer.
 
 ### Permissions
 
-- Full CRUD access granted to `anon`, `authenticated`, and `service_role` roles
-- Cleanup function executable only by `service_role`
+- `anon` and `authenticated`: `SELECT` only (table grant + RLS `FOR SELECT` policy).
+- `service_role`: full access (`ALL`).
+- All analytics and cleanup functions (`get_daily_uptime_stats`, `get_heatmap_buckets`, `get_global_response_trend`, `get_endpoint_avg_latency`, `get_endpoint_buckets`, `get_uptime_check_count_estimate`, `cleanup_old_uptime_checks`): callable by `service_role` only. Explicitly revoked from `public`, `anon`, and `authenticated`.
 
 ---
 
@@ -485,19 +708,57 @@ This prevents duplicate data during development and ensures clean monitoring dat
 
 All functions are accessible via Supabase RPC (PostgREST) or direct SQL. The `documents` functions require vector arguments formatted as `extensions.halfvec(1536)`.
 
+### app schema functions (Migration 00)
+
+| Function                 | Description                                                                                                                                                     |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app.get_setting(p_key)` | Returns the TEXT value for the given key from `app.settings`. `SECURITY DEFINER`, `service_role` only. Cast the return value explicitly in consuming functions. |
+
 ### documents functions (Migration 01)
 
-| Function                                                                                                                                                      | Description                                                      |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `match_documents(query_embedding, match_count)`                                                                                                               | Basic vector similarity, groups by chunk_id                      |
-| `search_documents_by_industry(query_embedding, industry_filter, match_count, similarity_threshold)`                                                           | Vector search + industry filter + min similarity                 |
-| `search_documents_by_category(query_embedding, category_filter, match_count, similarity_threshold)`                                                           | Vector search + category filter + min similarity                 |
-| `search_documents_hybrid(query_embedding, keyword_filter, industry_filter, category_filter, source_filter, match_count, vector_weight, similarity_threshold)` | Full hybrid search with all optional filters                     |
-| `search_documents_hybrid_filtered(query_embedding, keyword_filter, industry_filter, match_count, vector_weight)`                                              | Lighter hybrid, industry filter only                             |
-| `find_recent_documents(limit_count, industry_filter, category_filter, source_filter)`                                                                         | Most recently ingested, with optional filters                    |
-| `get_document_statistics()`                                                                                                                                   | Total count, per-category/industry breakdown, avg content length |
-| `count_documents_by_category(category_name)`                                                                                                                  | Scalar count for a specific category                             |
-| `truncate_documents()`                                                                                                                                        | Truncate table (service_role only)                               |
+| Function                                                                                                                                                      | Description                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `match_documents(query_embedding, match_count)`                                                                                                               | Basic vector similarity, groups by chunk_id                                     |
+| `search_documents_by_industry(query_embedding, industry_filter, match_count, similarity_threshold)`                                                           | Vector search + industry filter + min similarity                                |
+| `search_documents_by_category(query_embedding, category_filter, match_count, similarity_threshold)`                                                           | Vector search + category filter + min similarity                                |
+| `search_documents_hybrid(query_embedding, keyword_filter, industry_filter, category_filter, source_filter, match_count, vector_weight, similarity_threshold)` | Full hybrid search with all optional filters                                    |
+| `search_documents_hybrid_filtered(query_embedding, keyword_filter, industry_filter, match_count, vector_weight)`                                              | Lighter hybrid, industry filter only (5 params, no category/source/threshold)   |
+| `find_recent_documents(limit_count, industry_filter, category_filter, source_filter)`                                                                         | Most recently ingested, with optional filters                                   |
+| `get_document_statistics()`                                                                                                                                   | Total count, per-category/industry breakdown, avg content length                |
+| `count_documents_by_category(category_name)`                                                                                                                  | Scalar count for a specific category                                            |
+| `truncate_documents()`                                                                                                                                        | Truncate table (service_role only)                                              |
+| `backfill_document_metadata()`                                                                                                                                | Backfill `source` + `industry` from metadata JSON (service_role only, auto-run) |
+
+> `safe_jsonb_cast(text)` is an internal helper used only by `backfill_document_metadata`. It is not intended for direct RPC calls and is locked down to `service_role`.
+
+### user assessments functions (Migration 02)
+
+| Function                               | Description                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| `get_assessment_statistics(user_uuid)` | Aggregated stats for all or one user's assessments; pass NULL for global stats |
+| `get_market_data()`                    | Per-industry/scale/strategy benchmark averages from opted-in assessments       |
+
+### user profiles functions (Migration 03)
+
+All functions are `SECURITY DEFINER` and restricted to `service_role`. They are not accessible via the public REST API.
+
+| Function                                             | Description                                                                                                                                                                                                                                                               |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_user_profile(user_uuid UUID)`                   | Returns the authenticated user's profile (id, username, display_name, avatar_url, bio, preferred_industry, assessment_count, last_assessment_at, timestamps). The internal `auth.uid() = id` guard prevents fetching another user's row. Email is intentionally excluded. |
+| `update_username(user_uuid UUID, new_username TEXT)` | Validates and applies a username change (same rules as `force_internal_email`). Raises exception if the username is taken or violates format rules.                                                                                                                       |
+
+### anonymous usage functions (Migration 04)
+
+| Function                                                                                       | Description                                               |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `check_and_increment_anonymous_usage(identifier_hash, max_tries, ip_hash, user_agent_snippet)` | Atomic rate-limit check and increment (service_role only) |
+| `cleanup_old_anonymous_usage()`                                                                | Delete rows older than 7 days                             |
+
+### scoring results log functions (Migration 05)
+
+| Function                            | Description                                |
+| ----------------------------------- | ------------------------------------------ |
+| `cleanup_old_scoring_results_log()` | Delete scoring log rows older than 90 days |
 
 ### ce_cases functions (Migration 06)
 
@@ -508,30 +769,17 @@ All functions are accessible via Supabase RPC (PostgREST) or direct SQL. The `do
 | `get_ce_cases_statistics()`                                                    | Totals, embedding coverage, strategy/category breakdown |
 | `truncate_ce_cases()`                                                          | Truncate table (service_role only)                      |
 
-### user assessments function (Migration 03)
-
-| Function                               | Description                                  |
-| -------------------------------------- | -------------------------------------------- |
-| `get_assessment_statistics(user_uuid)` | Aggregated stats; pass NULL for global stats |
-
-### anonymous usage functions (Migration 04)
-
-| Function                                                                                       | Description                                               |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `check_and_increment_anonymous_usage(identifier_hash, max_tries, ip_hash, user_agent_snippet)` | Atomic rate-limit check and increment (service_role only) |
-| `cleanup_old_anonymous_usage()`                                                                | Delete rows older than 30 days                            |
-
-### maintenance functions (Migration 05)
-
-| Function                            | Description                                |
-| ----------------------------------- | ------------------------------------------ |
-| `cleanup_old_scoring_results_log()` | Delete scoring log rows older than 90 days |
-
 ### uptime monitor functions (Migration 07)
 
-| Function                                  | Description                                                |
-| ----------------------------------------- | ---------------------------------------------------------- |
-| `cleanup_old_uptime_checks(days INTEGER)` | Delete uptime checks older than specified days (default 7) |
+| Function                                                                                                                                   | Description                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cleanup_old_uptime_checks(days INTEGER DEFAULT 30)`                                                                                       | Delete uptime checks older than N days. `days=0` truncates the table. Called daily by backend (production only)                                                          |
+| `get_daily_uptime_stats(days INTEGER DEFAULT 28)`                                                                                          | Daily avg uptime % across all endpoints for last N days. Days capped at `uptime_checks-query_window_days`                                                                |
+| `get_heatmap_buckets(bucket_minutes INT, days INT, reference_ts BIGINT, p_clock_aligned BOOLEAN DEFAULT FALSE)`                            | All-endpoint bucketed status. Days capped at `uptime_checks-query_window_days`. Supports clock-aligned mode. `failure_details` as `[{ endpoint_id, endpoint_path, ts }]` |
+| `get_global_response_trend(p_hours INT DEFAULT 24, p_clock_aligned BOOLEAN DEFAULT FALSE)`                                                 | Hourly avg response time across all endpoints. Returns `hour_label` as `TIMESTAMPTZ`. Empty hours return 0. Hours capped at `uptime_checks-query_window_days * 24`       |
+| `get_endpoint_avg_latency(p_hours INT DEFAULT 24)`                                                                                         | Per-endpoint avg response time scalar for last N hours. Hours capped at `uptime_checks-query_window_days * 24`                                                           |
+| `get_endpoint_buckets(p_endpoint_id TEXT, p_bucket_minutes INT DEFAULT 15, p_hours INT DEFAULT 24, p_clock_aligned BOOLEAN DEFAULT FALSE)` | Single-endpoint bucketed data. Supports clock-aligned mode. `failure_details` as `[{ ts }]`. Hours capped at `uptime_checks-query_window_days * 24`                      |
+| `get_uptime_check_count_estimate()`                                                                                                        | Fast approximate row count via `pg_class.reltuples`. No table scan. Accurate to ~1%. For display stats only (service_role only)                                          |
 
 ---
 
@@ -551,7 +799,7 @@ The central `callFunction(functionName, params, rpcParams)` method handles the r
 **Public methods:**
 
 - `matchDocuments(queryEmbedding, matchCount)` — wraps `match_documents`
-- `searchHybrid(queryEmbedding, keywordFilter, industryFilter, categoryFilter, sourceFilter, matchCount, vectorWeight, similarityThreshold)` — wraps `search_documents_hybrid_filtered`
+- `searchHybrid(queryEmbedding, keywordFilter, industryFilter, categoryFilter, sourceFilter, matchCount, vectorWeight, similarityThreshold)` — wraps `search_documents_hybrid` (the full 8-parameter function; use `null` for unused filters)
 - `getStatistics()` — wraps `get_document_statistics`
 - `countBy(columnExpr)` — flexible grouping; simple column names use Supabase `.from().select()`, JSONB expressions use the pg pool directly
 - `countByCategory(category)` — wraps `count_documents_by_category`
@@ -645,24 +893,48 @@ setDatabaseClientOverride(null); // restore
 
 ### Extension Isolation
 
-All extensions (`vector`, `btree_gin`, `pgcrypto`, `pg_trgm`) are installed in the `extensions` schema rather than `public`. This prevents extension functions from polluting the public namespace and is consistent with modern PostgreSQL security recommendations.
+Extensions are installed in the `extensions` schema rather than `public`. This prevents extension functions from polluting the public namespace and is consistent with modern PostgreSQL security recommendations. Extensions are installed across two migrations:
+
+- **Migration 01** installs `vector`, `btree_gin`, and `pgcrypto` into `extensions`.
+- **Migration 06** installs `pg_trgm` into `extensions` (required for trigram indexes on `ce_cases`).
 
 All search functions explicitly set `search_path = public, extensions` so that `halfvec` and operator types resolve correctly without relying on the session search path.
 
 ### Row Level Security Summary
 
-| Table                 | service_role | authenticated                 | anon   |
-| --------------------- | ------------ | ----------------------------- | ------ |
-| `documents`           | All          | All                           | SELECT |
-| `ce_cases`            | All          | SELECT                        | SELECT |
-| `user_assessments`    | All          | SELECT/INSERT/UPDATE own rows | —      |
-| `profiles`            | All          | SELECT/UPDATE own row         | —      |
-| `anonymous_usage`     | All          | —                             | SELECT |
-| `scoring_results_log` | All          | SELECT own rows               | —      |
+| Table                 | service_role  | authenticated                        | anon                 |
+| --------------------- | ------------- | ------------------------------------ | -------------------- |
+| `documents`           | All           | SELECT                               | SELECT               |
+| `user_assessments`    | All           | SELECT/INSERT/UPDATE/DELETE own rows | SELECT (public rows) |
+| `profiles`            | All           | SELECT/INSERT/UPDATE/DELETE own row  | —                    |
+| `anonymous_usage`     | All           | — (no policy; denied by RLS)         | SELECT               |
+| `scoring_results_log` | SELECT+INSERT | SELECT own rows                      | —                    |
+| `ce_cases`            | All           | SELECT                               | SELECT               |
+| `uptime_checks`       | All           | SELECT                               | SELECT               |
+
+> **`user_assessments` note:** RLS is enabled by migration 02 but the four policies are installed by migration 03. The final state (shown above) reflects the system after all migrations have run.
+>
+> **`scoring_results_log` note:** `service_role` holds table grants of `SELECT + INSERT` only. The `cleanup_old_scoring_results_log()` function can still DELETE rows because it is `SECURITY DEFINER` and runs as the function owner, which holds broader privileges than the caller's role.
 
 ### SECURITY DEFINER Functions
 
-`truncate_documents()`, `truncate_ce_cases()`, `update_updated_at_column()`, and `update_ce_cases_updated_at()` run as the function owner rather than the caller. This allows `service_role` to truncate tables safely without granting `TRUNCATE` directly. `check_and_increment_anonymous_usage()` is also `SECURITY DEFINER` and has its `EXECUTE` privilege revoked from `public` and `anon`.
+All functions below run as the function owner rather than the caller. This allows `service_role` to perform privileged operations safely, and prevents user-facing roles from calling internal trigger functions or sensitive RPCs via PostgREST.
+
+**Migration 00** — `app.get_setting(TEXT)` (service_role only — read access to `app.settings`).
+
+**Migration 01** — `truncate_documents()` (service_role only), `update_updated_at_column()` (trigger only), `safe_jsonb_cast(text)` (service_role only — internal helper for `backfill_document_metadata`), `backfill_document_metadata()` (service_role only — called automatically by `store_embeddings.js` after ingestion).
+
+**Migration 02** — `update_assessments_updated_at_column()` (trigger only).
+
+**Migration 03** — `force_internal_email()` (trigger on auth.users, no RPC), `handle_new_user()` (trigger on auth.users, no RPC), `update_profiles_updated_at_column()` (trigger only), `increment_profile_assessment_count()` (trigger only), `decrement_profile_assessment_count()` (trigger only), `get_user_profile(UUID)` (service_role only), `update_username(UUID, TEXT)` (service_role only), `supabase_noop_send_email(JSONB)` (supabase_auth_admin only).
+
+**Migration 04** — `check_and_increment_anonymous_usage()` (service_role only), `cleanup_old_anonymous_usage()` (service_role only).
+
+**Migration 05** — `cleanup_old_scoring_results_log()` (service_role only). Executes DELETE via SECURITY DEFINER despite the table grant being SELECT+INSERT only.
+
+**Migration 06** — `truncate_ce_cases()` (service_role only, explicit grant), `update_ce_cases_updated_at()` (trigger only, no explicit service_role grant needed — trigger invocation does not require EXECUTE privilege on the caller's role).
+
+**Migration 07** — `cleanup_old_uptime_checks()`, `get_daily_uptime_stats()`, `get_heatmap_buckets()`, `get_global_response_trend()`, `get_endpoint_avg_latency()`, `get_endpoint_buckets()`, `get_uptime_check_count_estimate()` — all service_role only (all calls proxied through Express backend; no direct PostgREST RPC access by anon or authenticated). The five analytics functions and `get_uptime_check_count_estimate` are `LANGUAGE sql`; `cleanup_old_uptime_checks` remains `LANGUAGE plpgsql` (requires `GET DIAGNOSTICS` and `TRUNCATE`).
 
 ---
 
@@ -717,15 +989,23 @@ SELECT
 FROM documents;
 ```
 
-### Post-Ingestion Maintenance
+### Diagnostics Scripts
 
-After bulk document ingestion, run `queries/post_documents_ingestion.sql` manually to:
+The `diagnostics/` folder contains standalone SQL scripts for ad-hoc database inspection. These are not migrations — run them manually in the Supabase SQL editor or via `psql` as needed.
 
-1. Backfill `documents.source` from `metadata->>'source'` where the column is missing
-2. Backfill `documents.industry` from nested `metadata_json` fields for rows still showing `general`
-3. Validate industry distribution after the backfill
-
-This script is not an automated migration — it is a one-time cleanup for specific ingestion scenarios.
+| Script                           | Purpose                                                          |
+| -------------------------------- | ---------------------------------------------------------------- |
+| `bloat_and_vacuum.sql`           | Table/index bloat estimates and autovacuum activity              |
+| `cache_and_io.sql`               | Buffer cache hit rates and I/O statistics                        |
+| `column_breakdown.sql`           | Per-column storage breakdown for wide tables                     |
+| `connections_and_locks.sql`      | Active connections, blocking queries, lock waits                 |
+| `index_sizes.sql`                | Index sizes and scan counts across all tables                    |
+| `replication_and_wal.sql`        | WAL activity and replication lag (Aiven-relevant)                |
+| `schema_introspection.sql`       | Tables, columns, constraints, and function inventory             |
+| `slow_queries.sql`               | Top queries by mean execution time (requires pg_stat_statements) |
+| `table_overview.sql`             | Row counts, dead tuples, last vacuum/analyze timestamps          |
+| `uptime_checks_distribution.sql` | Distribution of uptime check results by endpoint                 |
+| `vector_sizes.sql`               | Embedding column size vs total table size for `documents`        |
 
 ---
 
@@ -744,3 +1024,7 @@ This script is not an automated migration — it is a one-time cleanup for speci
 **Anonymous usage not rate-limiting correctly** — the function uses row-level locking (`SELECT ... FOR UPDATE`). Under very high concurrency on Supabase connection pools with PgBouncer in transaction mode, the lock may not work as expected. Use session mode or Aiven for this function.
 
 **Test cleanup / open handles** — always call `await closeAllPools()` in `afterAll()` hooks. Failing to do so leaves the Aiven and Supabase pg pools open, hanging the test runner.
+
+**Backfill not running** — `backfill_document_metadata()` only executes in non-dry-run mode (same gate as `validateStorage()`). If you need to run it manually: `SELECT backfill_document_metadata();` via `psql` or the Supabase SQL editor using a `service_role` connection. Check logs for the `'Metadata backfill complete'` entry after each ingestion run to confirm it fired.
+
+**Analytics functions returning unexpected results** — verify `app.settings` is populated correctly: `SELECT key, value FROM app.settings ORDER BY key;`. If `00_app_settings.sql` has not been run, `app.get_setting()` will not exist and all Migration 07 analytics functions will fail.
