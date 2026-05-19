@@ -1,18 +1,15 @@
 /**
- * Backend Test Setup Script
+ * @module tests/setup
+ * @description Preloads `env/.env.test` and guards test runs with a global hang timeout.
+ * Loaded automatically via `NODE_OPTIONS` or the package.json test script.
  *
- * This script ensures test environment is properly configured before running tests.
- * It's automatically loaded by the test runner via NODE_OPTIONS or package.json.
+ * Responsibilities:
+ * 1. Locate monorepo root and load `env/.env.test`
+ * 2. Fail fast when required test env vars are missing
+ * 3. Register process exit handlers and a 5-minute global timeout
  *
- * Key responsibilities:
- * 1. Locate the monorepo root and load env/.env.test
- * 2. Throw critical errors if .env.test is missing or required vars are not set
- * 3. Ensure consistent test environment across all test runs
- * 4. Prevent infinite test hanging with global timeout
- *
- * Usage: Run tests with this setup:
- *   NODE_OPTIONS='--require ./backend/tests/setup.js' npm test
- * OR configure in package.json test script
+ * @example
+ * NODE_OPTIONS='--import ./backend/tests/setup.js' npm test
  */
 
 import fs from 'fs';
@@ -23,11 +20,16 @@ import dotenv from 'dotenv';
 
 import { logger } from '#utils/logger.js';
 
+// Expose for server modules that use the global logger (no import in lifecycle code).
+globalThis.logger = logger; // this second assignment is redundant since logger.js already did this on import but fine to keep for clarity
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Find monorepo root by looking for .git directory
+ * Walks parent directories from `startDir` until a `.git` folder is found.
+ * @param {string} startDir - Directory to start searching from.
+ * @returns {string} Absolute path to the monorepo root (falls back to `process.cwd()`).
  */
 function getMonorepoRoot(startDir) {
   let currentPath = path.resolve(startDir);
@@ -45,7 +47,8 @@ function getMonorepoRoot(startDir) {
 }
 
 /**
- * Load and validate test environment
+ * Loads `env/.env.test` and validates required Supabase, auth, and OpenAI variables.
+ * @throws {Error} When `.env.test` is missing, unreadable, or incomplete.
  */
 function setupTestEnvironment() {
   const monorepoRoot = getMonorepoRoot(__dirname);
@@ -100,6 +103,7 @@ const GLOBAL_TIMEOUT = 300000; // 5 minutes - increased to prevent hanging durin
 
 let timeoutHandle;
 
+/** Starts the global hang watchdog (`GLOBAL_TIMEOUT` ms). */
 function setupGlobalTimeout() {
   timeoutHandle = setTimeout(() => {
     logger.error('🚨 TEST TIMEOUT: Tests are hanging, forcing exit...');
@@ -108,6 +112,7 @@ function setupGlobalTimeout() {
   }, GLOBAL_TIMEOUT);
 }
 
+/** Clears the global hang watchdog (also exposed on `global` for the test runner). */
 function clearGlobalTimeout() {
   if (timeoutHandle) {
     clearTimeout(timeoutHandle);
