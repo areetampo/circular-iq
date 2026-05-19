@@ -1,3 +1,8 @@
+/**
+ * @module tests/api/assessments-routes.test
+ * @description Integration tests for `/api/assessments` CRUD, stats, public share, and compare routes.
+ */
+
 import '#config/loadEnv.js';
 import assert from 'node:assert';
 import { after, before, test } from 'node:test';
@@ -14,13 +19,15 @@ const TEST_API_KEY = process.env.API_KEY || 'test-api-key';
 const AUTH_ENABLED = BACKEND_CONFIG.app.apiAuthEnabled;
 
 before(async () => {
-  const mod = await import('#server/index.js');
-  app = mod.default || mod.app || mod;
+  const mod = await import('#server/app.js');
+  app = mod.default;
 });
 
 after(async () => {
-  // Close all database pools and connections to prevent hanging
   await closeAllPools();
+  // Give supertest's internal server a tick to finish, then force exit
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  process.exit(0);
 });
 
 // POST /assessments validation tests

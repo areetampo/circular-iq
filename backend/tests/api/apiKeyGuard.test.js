@@ -1,3 +1,8 @@
+/**
+ * @module tests/api/apiKeyGuard.test
+ * @description Unit tests for Express API-key guard middleware (timing-safe compare).
+ */
+
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 
@@ -7,7 +12,6 @@ import request from 'supertest';
 // Load environment first
 import '#config/loadEnv.js';
 import { closeAllPools } from '#database/index.js';
-import { logger } from '#utils/logger.js';
 
 // Setup global logger for the test
 globalThis.logger = logger;
@@ -15,6 +19,10 @@ globalThis.logger = logger;
 // Import AFTER configuring env to pick up values
 const { apiKeyGuard } = await import('#server/app.js');
 
+/**
+ * Minimal Express app mounting `apiKeyGuard` and a protected `/protected` route.
+ * @returns {import('express').Express}
+ */
 function makeApp() {
   const app = express();
   app.use(express.json());
@@ -52,6 +60,7 @@ test('requests with any Bearer token are allowed when auth is disabled', async (
 });
 
 after(async () => {
-  // Close all database pools and connections to prevent hanging
   await closeAllPools();
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  process.exit(0);
 });

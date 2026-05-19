@@ -1,6 +1,6 @@
 /**
- * Health Endpoint Tests
- * Tests for comprehensive health check functionality
+ * @module tests/api/health.test
+ * @description Integration tests for `/health` and nested health probe routes.
  */
 
 import { closeAllPools } from '#database/index.js';

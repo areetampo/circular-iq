@@ -1,3 +1,8 @@
+/**
+ * @module tests/api/analytics.enhanced.test
+ * @description Integration tests for `/api/analytics/global-stats` with multi-industry mock data.
+ */
+
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 
@@ -7,7 +12,6 @@ import request from 'supertest';
 import { closeAllPools } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
-// Mock supabase for global-stats endpoint with multiple industries
 function makeMockSupabaseForGlobalStats() {
   return {
     from: () => ({
@@ -139,6 +143,14 @@ function makeMockSupabaseForGlobalStats() {
   };
 }
 
+after(async () => {
+  await closeAllPools();
+  // #database/index.js opens Supabase clients at import time with no public
+  // close() API. process.exit(0) releases those handles once tests are done.
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  process.exit(0);
+});
+
 test('GET /api/analytics/global-stats returns comprehensive analytics with multiple industries', async () => {
   const serviceSupabase = makeMockSupabaseForGlobalStats();
   const app = express();
@@ -146,13 +158,9 @@ test('GET /api/analytics/global-stats returns comprehensive analytics with multi
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
-
-  // Verify main response structure
   assert.ok(res.body.log_stats);
   assert.ok(res.body.market_data);
   assert.ok('assessment_stats' in res.body);
-
-  // Verify log_stats structure
   assert.equal(res.body.log_stats.total_scoring_calls, 3);
   assert.equal(typeof res.body.log_stats.avg_score, 'number');
   assert.ok(res.body.log_stats.avg_metrics);
@@ -165,12 +173,8 @@ test('GET /api/analytics/global-stats returns comprehensive analytics with multi
   assert.ok(res.body.log_stats.geo_distribution);
   assert.ok(res.body.log_stats.scale_distribution);
   assert.ok(res.body.log_stats.weekly_trend);
-
-  // Verify market_data
   assert.ok(Array.isArray(res.body.market_data));
   assert.equal(res.body.market_data.length, 3);
-
-  // Verify assessment_stats
   assert.ok(res.body.assessment_stats);
   assert.equal(res.body.assessment_stats.total_assessments, 28);
   assert.equal(res.body.assessment_stats.avg_score, 67);
@@ -183,12 +187,11 @@ test('GET /api/analytics/global-stats includes proper score distribution', async
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
-
   const scoreDist = res.body.log_stats.score_distribution;
   assert.equal(scoreDist['0-25'], 0);
-  assert.equal(scoreDist['26-50'], 1); // score 45
-  assert.equal(scoreDist['51-75'], 1); // score 65
-  assert.equal(scoreDist['76-100'], 1); // score 80
+  assert.equal(scoreDist['26-50'], 1);
+  assert.equal(scoreDist['51-75'], 1);
+  assert.equal(scoreDist['76-100'], 1);
 });
 
 test('GET /api/analytics/global-stats includes industry and risk distributions', async () => {
@@ -198,25 +201,15 @@ test('GET /api/analytics/global-stats includes industry and risk distributions',
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
-
-  // Verify industry distribution (top 12, should have our 3 industries)
   const industryDist = res.body.log_stats.industry_distribution;
   assert.ok(Array.isArray(industryDist));
   assert.ok(industryDist.length >= 3);
-
   const energyIndustry = industryDist.find((i) => i.industry === 'energy');
   assert.ok(energyIndustry);
   assert.equal(energyIndustry.count, 1);
   assert.equal(energyIndustry.avg_score, 80);
-
-  // Verify risk distribution
   const riskDist = res.body.log_stats.risk_distribution;
   assert.equal(riskDist.low, 1);
   assert.equal(riskDist.medium, 1);
   assert.equal(riskDist.high, 1);
-});
-
-after(async () => {
-  // Close all database pools and connections to prevent hanging
-  await closeAllPools();
 });

@@ -1,3 +1,8 @@
+/**
+ * @module tests/api/api-auth.test
+ * @description Integration tests for API-key authentication on protected routes.
+ */
+
 import '#config/loadEnv.js';
 import assert from 'node:assert';
 import { after, before, test } from 'node:test';
@@ -11,13 +16,20 @@ let app;
 const AUTH_ENABLED = BACKEND_CONFIG.app.apiAuthEnabled;
 
 before(async () => {
-  const mod = await import('#server/index.js');
-  app = mod.default || mod.app || mod;
+  // Use app.js (not index.js) — index.js calls app.listen() which binds a port
+  // that keeps the process alive. app.js exports the Express app directly;
+  // supertest spins up its own ephemeral server per-request and closes it.
+  const mod = await import('#server/app.js');
+  app = mod.default;
 });
 
 after(async () => {
-  // Close all database pools and connections to prevent hanging
   await closeAllPools();
+  // Supabase/OpenAI clients opened at app.js module-load time have no public
+  // close() API. process.exit(0) is the only way to release those handles.
+  // All assertions are already complete by the time after() runs.
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  process.exit(0);
 });
 
 test('health endpoint remains open when auth is disabled', async () => {
@@ -27,8 +39,6 @@ test('health endpoint remains open when auth is disabled', async () => {
 });
 
 test('routes allow access when auth is disabled', async () => {
-  // When auth is disabled, routes should be accessible without API keys
-  // The requireAuth middleware will use test user ID, but profile won't exist in DB
   const requestBuilder = request(app).get('/api/profile');
 
   if (AUTH_ENABLED) {
@@ -36,7 +46,6 @@ test('routes allow access when auth is disabled', async () => {
   }
 
   const res = await requestBuilder;
-  // Should return 401 (no auth) or 404 (profile not found) or 500 (if DB error), but not be blocked
   assert(
     res.status === 401 || res.status === 404 || res.status === 500,
     `Expected 401/404/500, got ${res.status}`,
@@ -44,8 +53,6 @@ test('routes allow access when auth is disabled', async () => {
 });
 
 test('routes ignore API keys when auth is disabled', async () => {
-  // When auth is disabled, API keys should be ignored
-  // For requireAuth middleware, we need to not send any Authorization header to trigger test mode
   const requestBuilder = request(app).get('/api/profile');
 
   if (AUTH_ENABLED) {
@@ -53,7 +60,6 @@ test('routes ignore API keys when auth is disabled', async () => {
   }
 
   const res = await requestBuilder;
-  // Should return 401 (no auth) or 404 (profile not found) or 500 (if DB error), but not be blocked
   assert(
     res.status === 401 || res.status === 404 || res.status === 500,
     `Expected 401/404/500, got ${res.status}`,
@@ -61,7 +67,6 @@ test('routes ignore API keys when auth is disabled', async () => {
 });
 
 test('scoring endpoint enforces validation even when auth is disabled', async () => {
-  // When auth is disabled, scoring should still validate input and return 400 for bad input
   const requestBuilder = request(app).post('/api/score');
 
   if (AUTH_ENABLED) {
@@ -73,7 +78,6 @@ test('scoring endpoint enforces validation even when auth is disabled', async ()
 });
 
 test('scoring endpoint ignores API keys when auth is disabled', async () => {
-  // When auth is disabled, API keys should be ignored but validation still applies
   const requestBuilder = request(app).post('/api/score');
 
   if (AUTH_ENABLED) {

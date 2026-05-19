@@ -1,3 +1,8 @@
+/**
+ * @module tests/api/analytics.featured.test
+ * @description Integration tests for `/api/analytics/global-stats` featured-solution aggregation.
+ */
+
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 
@@ -7,7 +12,10 @@ import request from 'supertest';
 import { closeAllPools, setDatabaseClientOverride } from '#database/index.js';
 import createAnalyticsRouter from '#routes/analytics.routes.js';
 
-// Mock Supabase for global-stats endpoint testing
+/**
+ * Supabase stub with a single featured scoring log row and market/assessment RPC payloads.
+ * @returns {Object} Mock Supabase client for `createAnalyticsRouter`.
+ */
 function makeMockSupabaseForGlobalStats() {
   return {
     from: () => ({
@@ -104,21 +112,14 @@ test('GET /api/analytics/global-stats returns aggregate analytics data', async (
 test('POST /api/analytics/embeddings/reindex starts reindex process', async () => {
   setDatabaseClientOverride(null); // Reset override
 
-  // Create a mock analytics controller that returns success without spawning
-  const mockAnalyticsController = {
-    postEmbeddingsReindex: () => async (req, res) => {
-      res.json({ started: true, pid: 12345 });
-    },
-    getGlobalStats: (_serviceSupabase) => async (req, res) => {
-      res.json({ log_stats: {}, market_data: [], assessment_stats: null });
-    },
-  };
+  // Use the already-imported express (static import at top of file).
+  // Do NOT re-import express dynamically here — it causes a module resolution
+  // race that can hang or crash the child process.
+  const app = express();
 
-  // Create a custom router with the mocked controller
-  const express = await import('express');
-  const app = express.default();
-
-  app.post('/api/analytics/embeddings/reindex', mockAnalyticsController.postEmbeddingsReindex());
+  app.post('/api/analytics/embeddings/reindex', (_req, res) => {
+    res.json({ started: true, pid: 12345 });
+  });
 
   const res = await request(app).post('/api/analytics/embeddings/reindex');
   assert.equal(res.status, 200);

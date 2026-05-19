@@ -1,3 +1,8 @@
+/**
+ * @module tests/api/analytics-missing-endpoints.test
+ * @description Regression tests for `/api/analytics/global-stats` error handling and empty data paths.
+ */
+
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 
@@ -12,11 +17,7 @@ function makeServiceSupabaseMock({ logRows, marketData, assessmentStats }) {
     from: () => ({
       select: () => ({
         or: () => ({
-          not: () =>
-            Promise.resolve({
-              data: logRows,
-              error: null,
-            }),
+          not: () => Promise.resolve({ data: logRows, error: null }),
         }),
       }),
     }),
@@ -34,7 +35,6 @@ function makeMockPgClient() {
       if (String(sql).includes('get_document_statistics')) {
         return { rows: [{ total_documents: 42, by: 'test-mock' }] };
       }
-
       return {
         rows: [
           { value: 'energy', count: 2 },
@@ -46,14 +46,16 @@ function makeMockPgClient() {
 }
 
 before(() => {
-  // Make documentsRepository use a mock Postgres client.
   setDatabaseClientOverride(makeMockPgClient(), 'postgres');
 });
 
 after(async () => {
   setDatabaseClientOverride(null);
-  // Close all database pools and connections to prevent hanging
   await closeAllPools();
+  // #database/index.js opens Supabase clients at import time with no public
+  // close() API. process.exit(0) releases those handles once tests are done.
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  process.exit(0);
 });
 
 test('GET /api/analytics/global-stats returns log_stats + market_data + assessment_stats', async () => {
@@ -78,7 +80,6 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
       created_at: nowIso,
     },
   ];
-
   const marketData = [
     {
       industry: 'energy',
@@ -89,7 +90,6 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
       scale: 'commercial',
     },
   ];
-
   const assessmentStats = [
     {
       total_assessments: 5,
@@ -109,12 +109,7 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
     },
   ];
 
-  const serviceSupabaseMock = makeServiceSupabaseMock({
-    logRows,
-    marketData,
-    assessmentStats,
-  });
-
+  const serviceSupabaseMock = makeServiceSupabaseMock({ logRows, marketData, assessmentStats });
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
 
@@ -132,7 +127,6 @@ test('GET /api/analytics/global-stats handles empty data gracefully', async () =
     marketData: [],
     assessmentStats: [{}],
   });
-
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
 
@@ -148,24 +142,18 @@ test('GET /api/analytics/global-stats handles empty data gracefully', async () =
 test('GET /api/analytics/global-stats includes weekly trend data', async () => {
   const nowIso = new Date().toISOString();
   const logRows = [
-    {
-      overall_score: 80,
-      created_at: nowIso,
-      audit_is_junk_input: false,
-    },
+    { overall_score: 80, created_at: nowIso, audit_is_junk_input: false },
     {
       overall_score: 75,
-      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
+      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       audit_is_junk_input: false,
     },
   ];
-
   const serviceSupabaseMock = makeServiceSupabaseMock({
     logRows,
     marketData: [],
     assessmentStats: [{}],
   });
-
   const app = express();
   app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
 
@@ -173,6 +161,5 @@ test('GET /api/analytics/global-stats includes weekly trend data', async () => {
   assert.equal(res.status, 200);
   assert.ok(res.body.log_stats.weekly_trend);
   assert.ok(Array.isArray(res.body.log_stats.weekly_trend));
-  // Should have 12 weeks of data (including current and empty weeks)
   assert.equal(res.body.log_stats.weekly_trend.length, 12);
 });
