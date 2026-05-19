@@ -38,13 +38,11 @@ function bestBucketForWindow(windowMinutes, currentBucketMinutes) {
   const valid = HEATMAP_BUCKET_PRESETS_MINUTES.filter(
     (b) => b < windowMinutes && windowMinutes / b <= HEATMAP_MAX_BARS,
   );
-  if (valid.length === 0) return HEATMAP_BUCKET_PRESETS_MINUTES[0];
-
   // Prefer keeping the current bucket if it's still valid.
   if (valid.includes(currentBucketMinutes)) return currentBucketMinutes;
 
-  // Otherwise pick the largest valid bucket (closest to current without exceeding limits).
-  return valid[valid.length - 1];
+  // Otherwise pick the smallest valid bucket.
+  return valid[0];
 }
 
 function getStatusColor(hasData, anyFailure, isWarning, isPartial) {
