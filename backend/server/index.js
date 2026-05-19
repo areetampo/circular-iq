@@ -252,7 +252,7 @@ export function startServer() {
     } else {
       logger.info(
         { nodeEnv: BACKEND_CONFIG.nodeEnv, pollingEnabled: pollingEnabled },
-        'Uptime monitoring is disabled',
+        'Uptime polling is disabled',
       );
     }
 
