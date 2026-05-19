@@ -1,3 +1,8 @@
+/**
+ * @module navigation
+ * @description React Router helpers — `useSafeBack` avoids leaving the app when history is external.
+ */
+
 import { useNavigate } from 'react-router-dom';
 
 /**
