@@ -34,7 +34,7 @@ Complete guide for executing the document processing pipeline that transforms CS
 >
 > This skips web fetching and directly processes backup rows to produce the final `datasets/processed/<dataset>_processed.csv`. See [DATASETS_REFERENCE.md](DATASETS_REFERENCE.md) for details on backup behavior and which scrapers support this feature.
 >
-> **Running everything at once:** rather than calling each dataset script by hand you can use the orchestrator in `backend/pipeline/run_datasets_scripts.js`.
+> **Running everything at once:** rather than calling each dataset script by hand you can use the orchestrator in `backend/pipeline/rag/run_datasets_scripts.js`.
 > The npm alias `npm run datasets-scripts` invokes it for you; it will execute all `extract_*.js` files first followed by any `scrape_*.js` files, aborting on the first error. This is handy when updating multiple sources or after pulling upstream changes.
 >
 > - **Stage 1: Merge** - Combine processed/ and manual_entries/ into combined_input.csv
@@ -189,7 +189,7 @@ MIN_PROBLEM_LENGTH=20
 MIN_SOLUTION_LENGTH=20
 ```
 
-The chunking logic is implemented in `pipeline/generate_chunks.js`.
+The chunking logic is implemented in `pipeline/rag/generate_chunks.js`.
 
 ## Stage 3: Embedding Generation
 
@@ -217,12 +217,12 @@ npm run embed        # write to out/ by default (add -- --archives for archives)
 2. Generates embeddings using OpenAI text-embedding-3-small (1536 dimensions)
 3. Batches requests (20 chunks per request, 500ms delay)
 4. Auto-retries on rate limits with exponential backoff
-5. Saves to `datasets/out/embedded_chunks.json`
+5. Saves to `datasets/out/embedded_chunks.jsonl`
 6. Reports statistics (count, estimated cost, timing)
 
 ### Configuration (optional)
 
-Centralized in `config/embedding.js`:
+Centralized in `utils/embedding.js`:
 
 ```js
 EMBEDDING_MODEL = 'text-embedding-3-small';
@@ -247,7 +247,7 @@ Write-Host $env:OPENAI_API_KEY.Substring(0, 3)
 
 **Rate limit (429 error):**
 
-Script auto-retries. To reduce frequency, edit `config/embedding.js`:
+Script auto-retries. To reduce frequency, edit `utils/embedding.js`:
 
 ```js
 EMBEDDING_BATCH_SIZE = 10; // Reduce from 20
@@ -310,30 +310,35 @@ npm run store -- --dry-run --resume    # Resume dry-run mode (append to JSONL)
    - `false` (default) → Aiven PostgreSQL via pg pool
 
 2. **Prepare storage** – when not in resume mode:
-   - Supabase: call `truncate_documents` RPC to clear the documents table
    - Aiven: execute `TRUNCATE TABLE documents` on the pool
+   - Supabase: execute `TRUNCATE TABLE documents` on the Supabase pg pool
    - When `--resume` is set, tables are NOT truncated; instead, existing document identifiers are read from the database or JSONL file
 
-3. **Resume mode** – when `--resume` flag is present:
+3. **Verify embedding dimension** (skipped in dry-run) – queries `pg_attribute` to confirm the `embedding` column's declared dimension matches `EMBEDDING_DIMENSION` from `utils/embedding.js`. Fails fast with a clear mismatch message before any data is written, preventing silent corruption.
+
+4. **Resume mode** – when `--resume` flag is present:
    - Builds a set of already-stored document identifiers (format: `chunk_id:field_name`)
    - Queries the target database (or reads the JSONL file) for existing metadata
    - Only inserts documents whose identifiers are NOT in the existing set
    - Useful when a previous storage run was interrupted or needs to be re-run without duplicates
 
-4. **Batch insertion** – the script reads from either
-   `datasets/out/embedded_chunks.json` or
-   `datasets/archives/embedded_chunks.json` (based on flags) and uploads
-   documents in batches of 10, logging progress and any errors.
+5. **Batch insertion** – the script streams from either
+   `datasets/out/embedded_chunks.jsonl` or
+   `datasets/archives/embedded_chunks.jsonl` (based on flags) and uploads
+   documents in batches of 200 using `COPY … FROM STDIN` for fast bulk ingestion.
+   - Before each `COPY`, existing `(chunk_id, field_name)` pairs are checked via the `idx_unique_chunk_field` index (schema function 5k) so no conflicting rows reach the `COPY` stream
    - In resume mode, documents already present in storage are skipped
 
-5. **Dry-run mode** – no database is touched; documents are appended to a
+6. **Dry-run mode** – no database is touched; documents are appended to a
    local JSONL file (`out/` or `archives/` as above) and the file is kept
    read-only. Useful for verifying pipeline output without side‑effects.
    - When combined with `--resume`, appends to existing JSONL file instead of clearing it
 
-6. **Validation** – after insertion (unless dry-run), a test query and
-   document count may be executed to ensure data integrity and log
-   statistics.
+7. **Validation** (skipped in dry-run) – runs four post-insertion checks to ensure data integrity:
+   - `VACUUM ANALYZE documents` – reclaims storage and updates planner statistics
+   - `backfill_document_metadata()` (schema function 5l) – backfills `source` and `industry` columns from the embedded JSON metadata for any rows where those columns are null
+   - Document count – logs the total number of rows now in the `documents` table
+   - Test vector search – executes a cosine-distance query with a dummy embedding to confirm the `halfvec` index and `search_path` are working correctly
 
 ### Storing troubleshooting
 
@@ -417,7 +422,7 @@ npm scripts (or by setting `USE_DOCUMENTS_ARCHIVES_TABLE=true`). It behaves the
 same as normal operation except that:
 
 - All generated files go into `datasets/archives/` instead of `datasets/out/`.
-- The storage step targets `documents_archives` instead of `documents`.
+- The storage step targets the `documents` table on Supabase instead of Aiven.
 
 ```pwsh
 # run full pipeline in archive mode
@@ -497,7 +502,7 @@ SELECT id, industry, category FROM documents LIMIT 5;
 
 ### Data Volume
 
-Currently: ~14,000-19,000 chunks processed per run
+Currently: ~40,000 chunks processed per run
 
 ## Resetting the Pipeline
 
