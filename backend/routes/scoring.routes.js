@@ -1,6 +1,12 @@
 /**
- * Scoring Routes
- * Delegates core logic to scoring.controller.js
+ * @module scoring.routes
+ * @description Express router for scoring/assessment endpoints.
+ * Provides endpoints for AI-powered circular economy business assessment and scoring.
+ * Implements rate limiting (10 req/min per IP) and anonymous usage enforcement.
+ *
+ * Routes:
+ *   POST /                          — Perform scoring audit (standard, non-streaming)
+ *   POST /stream                    — Perform scoring audit with real-time SSE progress updates
  */
 
 import express from 'express';
@@ -15,11 +21,25 @@ import { extractIPAddress } from '#utils/anonymousTracking.js';
 // Module-scoped OpenAI client to support tests that call `setOpenAIClient()`
 let sharedOpenAI = null;
 
+/**
+ * Set the OpenAI client for this router module.
+ * Used by tests to inject mock/test OpenAI instances.
+ *
+ * @param {import('openai').OpenAI} client - OpenAI client instance.
+ */
 export function setOpenAIClient(client) {
   sharedOpenAI = client;
   setServiceOpenAIClient(client);
 }
 
+/**
+ * Creates the scoring router.
+ * Supports dual initialization patterns for backward compatibility with tests.
+ *
+ * @param {import('openai').OpenAI|Object} openai - OpenAI client or Supabase client.
+ * @param {Object} [supabase] - Supabase client instance (optional if OpenAI was injected via setOpenAIClient).
+ * @returns {express.Router} Configured Express router with scoring endpoints.
+ */
 export default function createScoringRouter(openai, supabase) {
   // Support two call styles used across the codebase and tests:
   // - createScoringRouter(openai, supabase)
@@ -46,6 +66,13 @@ export default function createScoringRouter(openai, supabase) {
     keyGenerator: (req) => extractIPAddress(req),
   });
 
+  /**
+   * POST /
+   * Runs the full scoring pipeline (embeddings, similar cases, deterministic scores, LLM audit).
+   * Enforces anonymous usage limits and rate limiting (10 req/min per IP).
+   * Body: `{ businessProblem, businessSolution, evaluationParameters, businessContext? }`.
+   * Returns complete scoring result JSON on success; 403 when anonymous limit exceeded.
+   */
   router.post('/', scoringRateLimiter, async (req, res) => {
     const start = Date.now();
     try {
@@ -86,7 +113,12 @@ export default function createScoringRouter(openai, supabase) {
     }
   });
 
-  // SSE streaming route for real-time progress updates
+  /**
+   * POST /stream
+   * Same scoring pipeline as POST `/` but streams SSE progress events (`data: { stage, message, … }`).
+   * Sends heartbeat comments every 5s; closes on client disconnect.
+   * Final result is emitted as the last `complete` stage event before the stream ends.
+   */
   router.post('/stream', scoringRateLimiter, async (req, res) => {
     const start = Date.now();
     let isClosed = false;
