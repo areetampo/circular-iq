@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { includeIgnoreFile } from '@eslint/compat';
+import { includeIgnoreFile } from '@eslint/config-helpers';
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
@@ -21,7 +21,7 @@ export default [
   /** SECTION 1: Ignores
    * Respect .gitignore and exclude specific files
    */
-  includeIgnoreFile(gitignorePath),
+  includeIgnoreFile(gitignorePath, import.meta.url),
   {
     ignores: ['eslint.config.js'],
   },
@@ -156,6 +156,18 @@ export default [
     },
     rules: {
       'unused-imports/no-unused-vars': 'off',
+    },
+  },
+
+  /** SECTION 4b: Bootstrap load-order exception
+   * Side-effect imports must run in strict order: loadEnv → config → logger.
+   * Turning off import/order and unused-imports here prevents auto-fix from breaking boot sequence.
+   */
+  {
+    files: ['backend/server/bootstrap.js', 'backend/server/index.js'],
+    rules: {
+      'import/order': 'off',
+      'unused-imports/no-unused-imports': 'off',
     },
   },
 
