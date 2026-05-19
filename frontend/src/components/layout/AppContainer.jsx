@@ -1,3 +1,8 @@
+/**
+ * @module AppContainer
+ * @description Layout — App Container.
+ */
+
 import PropTypes from 'prop-types';
 
 import DialogManager from '@/components/dialogs/DialogManager';
@@ -30,8 +35,8 @@ export default function AppContainer({ children, className, ...props }) {
   return (
     <>
       <div
-        className={cn(`mx-auto w-full max-w-330 px-4 pt-4 pb-12 sm:px-6 lg:px-8`, className)}
         {...props}
+        className={cn(`mx-auto w-full max-w-330 px-4 pt-4 pb-12 sm:px-6 lg:px-8`, className)}
       >
         {children}
       </div>

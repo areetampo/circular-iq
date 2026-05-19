@@ -1,5 +1,11 @@
+/**
+ * @module Navbar
+ * @description Layout — Navbar.
+ */
+
 import { Avatar, Popover, Tooltip } from '@heroui/react';
 import { Menu } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -44,6 +50,11 @@ const navItemsSecondary = [
   },
 ];
 
+/**
+ * Tooltip copy for the "Recover Calculation" nav item based on session state.
+ * @param {Object|null} sessionData - Persisted evaluation session payload.
+ * @returns {string}
+ */
 const getTooltipTextForUnsavedResults = (sessionData) => {
   const hasResults = Boolean(sessionData?.results);
 
@@ -61,6 +72,15 @@ const getTooltipTextForUnsavedResults = (sessionData) => {
 
 // --- Shared sub-components ---
 
+/**
+ * Single primary or secondary nav link (or disabled placeholder).
+ * @param {Object} props
+ * @param {{ id: string, name: string, path: string }} props.item
+ * @param {boolean} props.isActive
+ * @param {boolean} props.isDisabled
+ * @param {() => void} [props.onClose] - Called after navigation (closes mobile menu).
+ * @returns {import('react').ReactElement}
+ */
 function NavLinkItem({ item, isActive, isDisabled, onClose }) {
   const linkClass = cn(
     'flex w-full rounded-md px-2 py-1.5 text-sm',
@@ -84,6 +104,27 @@ function NavLinkItem({ item, isActive, isDisabled, onClose }) {
   );
 }
 
+const navItemShape = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  path: PropTypes.string.isRequired,
+});
+
+NavLinkItem.propTypes = {
+  item: navItemShape.isRequired,
+  isActive: PropTypes.bool.isRequired,
+  isDisabled: PropTypes.bool.isRequired,
+  onClose: PropTypes.func,
+};
+
+/**
+ * Renders secondary nav links with session-aware disable/tooltip for unsaved results.
+ * @param {Object} props
+ * @param {boolean} props.isAuthenticated
+ * @param {(path: string) => boolean} props.isActivePath
+ * @param {() => void} [props.onClose]
+ * @returns {import('react').ReactElement}
+ */
 function SecondaryNavItems({ isAuthenticated, isActivePath, onClose }) {
   return navItemsSecondary.map((item) => {
     const sessionData = getSession();
@@ -99,7 +140,7 @@ function SecondaryNavItems({ isAuthenticated, isActivePath, onClose }) {
       >
         {showTooltip ? (
           <Tooltip delay={0} className="w-full">
-            <Tooltip.Trigger className="w-full">
+            <Tooltip.Trigger className="w-full" tabIndex={0}>
               <NavLinkItem
                 item={item}
                 isActive={isActive}
@@ -126,6 +167,21 @@ function SecondaryNavItems({ isAuthenticated, isActivePath, onClose }) {
   });
 }
 
+SecondaryNavItems.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
+  isActivePath: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
+};
+
+/**
+ * Avatar and username block at the top of the profile popover.
+ * @param {Object} props
+ * @param {Object|null} props.profile
+ * @param {Object|null} props.user
+ * @param {(name: string) => string} props.getUserInitials
+ * @param {() => string} props.getUsername
+ * @returns {import('react').ReactElement}
+ */
 function ProfileHeader({ profile, user, getUserInitials, getUsername }) {
   return (
     <>
@@ -147,6 +203,22 @@ function ProfileHeader({ profile, user, getUserInitials, getUsername }) {
   );
 }
 
+ProfileHeader.propTypes = {
+  profile: PropTypes.object,
+  user: PropTypes.object,
+  getUserInitials: PropTypes.func.isRequired,
+  getUsername: PropTypes.func.isRequired,
+};
+
+/**
+ * Sign-in link or sign-out button at the bottom of the nav popover.
+ * @param {Object} props
+ * @param {boolean} props.isAuthenticated
+ * @param {() => void} props.onSignOut
+ * @param {() => void} props.onClose
+ * @param {import('react-router-dom').Location} props.location
+ * @returns {import('react').ReactElement}
+ */
 function AuthAction({ isAuthenticated, onSignOut, onClose, location }) {
   return (
     <div className="px-2 pt-1 pb-2">
@@ -175,8 +247,25 @@ function AuthAction({ isAuthenticated, onSignOut, onClose, location }) {
   );
 }
 
+AuthAction.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
+  onSignOut: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  location: PropTypes.shape({
+    pathname: PropTypes.string,
+    search: PropTypes.string,
+    hash: PropTypes.string,
+    state: PropTypes.any,
+    key: PropTypes.string,
+  }).isRequired,
+};
+
 // --- Main component ---
 
+/**
+ * Layout — Navbar.
+ * @returns {import('react').ReactElement}
+ */
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -221,17 +310,17 @@ export default function Navbar() {
         </div>
 
         {/* Middle -> desktop primary navigation items */}
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-4 md:flex">
           {navItemsPrimary.map((item) => {
             const isActive = isActivePath(item.path);
             return (
               <Link
                 key={item.id}
                 to={item.path}
-                className={`relative cursor-pointer text-sm transition-colors duration-300 ${
+                className={`relative cursor-pointer rounded-lg px-2 py-1 text-sm transition-colors duration-300 ${
                   isActive
                     ? 'text-(--color-checkbox-hover)'
-                    : `text-(--color-text-secondary)/75 hover:text-(--color-text-primary)`
+                    : `text-(--color-text-primary)/60 hover:bg-(--color-warning-soft-ui) hover:text-(--color-text-primary)`
                 }`}
               >
                 {item.name}

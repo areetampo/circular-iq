@@ -1,3 +1,8 @@
+/**
+ * @module Footer
+ * @description Layout — Footer.
+ */
+
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { motion } from 'framer-motion';
@@ -25,6 +30,10 @@ const socialLinks = [
   },
 ];
 
+/**
+ * Layout — Footer.
+ * @returns {import('react').ReactElement}
+ */
 export default function Footer() {
   return (
     <footer className="relative mt-auto border-t-2 border-black/10">
