@@ -1,5 +1,6 @@
 /**
- * datasetsUtils.js — Centralized Dataset Processing Utilities
+ * @module datasetsUtils
+ * @description Centralized dataset processing utilities for the ingestion pipeline.
  *
  * This module provides all shared utilities, configurations, and helpers needed
  * by dataset extraction and scraping scripts to maintain consistency across the pipeline.
@@ -46,8 +47,14 @@ const BACKEND_ROOT = path.resolve(__dirname, '..');
 //* dataset directory moved out of utils; reference via backend root
 const DATASETS_DIR = path.join(BACKEND_ROOT, 'datasets');
 const DATASETS_RAW_DIR = path.join(DATASETS_DIR, 'raw');
+
+/** @constant {string} Absolute path to `backend/datasets/processed`. */
 export const DATASETS_PROCESSED_DIR = path.join(DATASETS_DIR, 'processed');
+
+/** @constant {string} Absolute path to `backend/datasets/manual_entries`. */
 export const DATASETS_MANUAL_ENTRIES_DIR = path.join(DATASETS_DIR, 'manual_entries');
+
+/** @constant {string} Absolute path to `backend/datasets/scripts`. */
 export const DATASETS_SCRIPTS_DIR = path.join(DATASETS_DIR, 'scripts');
 
 //* archived output files stored at root of archives/
@@ -57,17 +64,25 @@ const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_back
 //* subfolders are created within scrape_backup/ for specific datasets' backup,
 //* each containing a CSV file and a logs.txt file.
 
+/** @constant {string} Pipeline archive: merged raw dataset CSV before final normalisation. */
 export const ARCHIVES_COMBINED_INPUT_CSV = path.join(DATASETS_ARCHIVES_DIR, 'combined_input.csv');
+
+/** @constant {string} Pipeline archive: final merged input CSV ready for chunking. */
 export const ARCHIVES_COMBINED_INPUT_FINAL_CSV = path.join(
   DATASETS_ARCHIVES_DIR,
   'combined_input_final.csv',
 );
+
+/** @constant {string} Pipeline archive: generated text chunks JSON. */
 export const ARCHIVES_CHUNKS_JSON = path.join(DATASETS_ARCHIVES_DIR, 'chunks.json');
+
+/** @constant {string} Pipeline archive: chunks with embedding vectors (JSONL). */
 export const ARCHIVES_EMBEDDED_CHUNKS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'embedded_chunks.jsonl',
 );
-//* archived stored documents (for dry-run in archive mode)
+
+/** @constant {string} Pipeline archive: documents written during store step (dry-run). */
 export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'stored_documents.jsonl',
@@ -135,7 +150,7 @@ export const DATASETS_FOR_SEARCH_COMBINED_INPUT_EMBEDDINGS_CACHE_JSON = path.joi
   'ce_cases_embeddings_cache.json',
 );
 
-//* datasets/test_inputs for storing sample inputs (pipeline/generate_test_inputs) + running them through scoring and saving their results (pipeline/run_test_assessments)
+//* datasets/test_inputs for storing sample inputs (pipeline/rag/generate_test_inputs) + running them through scoring and saving their results (pipeline/rag/run_and_save_test_assessments)
 const DATASETS_TEST_INPUTS_DIR = path.join(DATASETS_DIR, 'test_inputs');
 export const DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON = path.join(
   DATASETS_TEST_INPUTS_DIR,
@@ -181,7 +196,7 @@ const DATASETS = [
     processed_csv: 'c2c_registry.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_c2c.js'),
     extract_script: null,
-    source_url: null,
+    source_url: 'https://c2ccertified.org/certified-products',
     urls: {
       homepage: 'https://c2ccertified.org/certified-products',
       // note: doesnt use url parameters for pagination, going to https://c2ccertified.org/certified-products?certified_products_by_date_asc%5Bpage%5D=2,3,.. simply chnages the url to page 1
@@ -336,7 +351,7 @@ const DATASETS = [
     processed_csv: 'emf_case_studies.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_emf.js'),
     extract_script: null,
-    source_url: null,
+    source_url: 'https://www.ellenmacarthurfoundation.org/explore',
     urls: {
       target:
         'https://www.ellenmacarthurfoundation.org/explore?sortBy=dateDesc&contentType=CaseStudy',
@@ -380,8 +395,8 @@ const DATASETS = [
     processed_csv: 'eulac_case_studies_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_eulac_case_studies.js'),
-    source_url: null,
-    urls: null,
+    source_url: 'https://eulacfoundation.org/en',
+    urls: 'https://eulacfoundation.org/en/system/files/case_studies_circular_economy_eu_lac.pdf',
     raw_folder_contents: {
       cases: 'eulac_case_studies.pdf',
     },
@@ -394,7 +409,7 @@ const DATASETS = [
     processed_csv: 'eurostat_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_eurostat.js'),
-    source_url: null,
+    source_url: 'https://ec.europa.eu/eurostat',
     urls: null,
     raw_folder_contents: {
       linear_1: 'cei_pc031_linear_2_0.csv',
@@ -427,8 +442,8 @@ const DATASETS = [
     processed_csv: 'fashion_transparency.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_fashion_transparency.js'),
-    source_url: null,
-    urls: null,
+    source_url: 'https://www.fashionrevolution.org/transparency/',
+    urls: 'https://issuu.com/fashionrevolution/docs/what_fuels_fashion_2025?fr=sMTlkZjgzOTk5OTc',
     raw_folder_contents: {
       what_fuels_fashion_report: 'what_fuels_fashion_report.pdf',
       inputFile: 'Wikirate-2026_02_24_185804-Fashion_Transparency_Index_2025+Input Answer.csv',
@@ -444,8 +459,8 @@ const DATASETS = [
     processed_csv: 'ghg_emissions_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_ghg.js'),
-    source_url: null,
-    urls: null,
+    source_url: 'https://edgar.jrc.ec.europa.eu/',
+    urls: 'https://edgar.jrc.ec.europa.eu/dataset_ghg2025',
     raw_folder_contents: {
       ar5_ghg: 'EDGAR_AR5_GHG_1970_2024.csv',
       ch4: 'EDGAR_CH4_1970_2024.csv',
@@ -465,8 +480,8 @@ const DATASETS = [
     processed_csv: 'global_ewaste_monitor_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_gewm.js'),
-    source_url: null,
-    urls: null,
+    source_url: 'https://ewastemonitor.info/',
+    urls: 'https://ewastemonitor.info/the-global-e-waste-monitor-2024/',
     raw_folder_contents: {
       data: 'global_ewaste_monitor_raw.csv',
       report: 'global_ewaste_monitor_2024.pdf',
@@ -521,7 +536,7 @@ const DATASETS = [
     processed_csv: 'kaggle_lca_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_kaggle_lca.js'),
-    source_url: null,
+    source_url: 'https://www.kaggle.com/',
     urls: null,
     raw_folder_contents: {
       product_lca:
@@ -538,7 +553,7 @@ const DATASETS = [
     processed_csv: 'kalundborg_processed.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_kalundborg.js'),
     extract_script: null,
-    source_url: 'https://www.symbiosis.dk/en/category/case/',
+    source_url: 'https://www.symbiosis.dk/en',
     urls: {
       listing: 'https://www.symbiosis.dk/en/category/case/',
     },
@@ -672,7 +687,7 @@ const DATASETS = [
     processed_csv: 'mendeley_processed.csv',
     scrape_script: null,
     extract_script: path.join(DATASETS_SCRIPTS_DIR, 'extract_mendeley.js'),
-    source_url: null,
+    source_url: 'https://data.mendeley.com/',
     urls: null,
     raw_folder_contents: {
       mask_lca: 'lci surgical masks.xlsx',
@@ -707,7 +722,7 @@ const DATASETS = [
     processed_csv: 'open_beauty_facts_processed.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_open_beauty_facts.js'),
     extract_script: null,
-    source_url: null,
+    source_url: 'https://world.openbeautyfacts.org',
     urls: {
       search: 'https://world.openbeautyfacts.org/cgi/search.pl',
       product: 'https://world.openbeautyfacts.org/product',
@@ -722,7 +737,7 @@ const DATASETS = [
     processed_csv: 'open_food_facts_processed.csv',
     scrape_script: path.join(DATASETS_SCRIPTS_DIR, 'scrape_open_food_facts.js'),
     extract_script: null,
-    source_url: null,
+    source_url: 'https://world.openfoodfacts.org',
     urls: {
       search: 'https://world.openfoodfacts.org/cgi/search.pl',
       product: 'https://world.openfoodfacts.org/product',
