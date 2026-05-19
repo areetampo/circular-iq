@@ -1,3 +1,8 @@
+/**
+ * @module EvaluationParametersContainer
+ * @description Eight-factor parameter sliders and guidance for the landing evaluation form.
+ */
+
 import { Accordion, cn, Label, NumberField } from '@heroui/react';
 import { ChevronDown, Info, Minus } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -195,6 +200,20 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
 
 ParameterBox.displayName = 'ParameterBox';
 
+ParameterBox.propTypes = {
+  paramGroupIdx: PropTypes.number.isRequired,
+  paramKey: PropTypes.string.isRequired,
+  loading: PropTypes.bool,
+};
+
+/**
+ * Grouped evaluation-parameter sliders inside expandable accordions.
+ * @param {Object} props
+ * @param {boolean} props.loading
+ * @param {import('@react-types/shared').Key[]} props.evalParamsExpandedKeys
+ * @param {import('@react-types/shared').Dispatch<import('@react-types/shared').Key[]>>} props.setEvalParamsExpandedKeys
+ * @returns {import('react').ReactElement}
+ */
 function EvaluationParametersContainer({
   loading,
   evalParamsExpandedKeys,
@@ -271,9 +290,11 @@ EvaluationParametersContainer.displayName = 'EvaluationParametersContainer';
 
 EvaluationParametersContainer.propTypes = {
   loading: PropTypes.bool,
-  innerExpandedKeys: PropTypes.object,
-  onInnerExpandedChange: PropTypes.func,
-  evalParamsExpandedKeys: PropTypes.object,
+  evalParamsExpandedKeys: PropTypes.oneOfType([
+    PropTypes.array,
+    PropTypes.instanceOf(Set),
+    PropTypes.string,
+  ]),
   setEvalParamsExpandedKeys: PropTypes.func,
 };
 

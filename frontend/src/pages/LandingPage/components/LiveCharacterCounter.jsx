@@ -1,3 +1,8 @@
+/**
+ * @module LiveCharacterCounter
+ * @description Live character count and limit indicator for business text fields.
+ */
+
 import PropTypes from 'prop-types';
 import { useFormContext, useWatch } from 'react-hook-form';
 

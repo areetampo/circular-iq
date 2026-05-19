@@ -1,6 +1,10 @@
+/**
+ * @module BusinessContextContainer
+ * @description Business problem/solution inputs and validation on the landing evaluation form.
+ */
+
 import { Checkbox, Label, ListBox, Select } from '@heroui/react';
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 const LEAVE_EMPTY_OPTION = { value: null, label: '[LEAVE EMPTY]' };
@@ -51,16 +55,23 @@ const MATERIAL_OPTIONS = [
   { value: 'biological', label: 'Biological / Organic' },
 ];
 
+/**
+ * Business context select fields bound to the landing-page react-hook-form.
+ * @param {Object} props
+ * @param {boolean} [props.loading=false] - Disables inputs while scoring is in progress.
+ * @returns {import('react').ReactElement}
+ */
 function BusinessContextContainer({ loading = false }) {
-  const { control, watch } = useFormContext();
+  const { control } = useFormContext();
 
   // Watch business context values to ensure they're available before rendering
-  const businessContextValues = watch('businessContext');
+  // const { watch } = useFormContext();
+  // const businessContextValues = watch('businessContext');
 
   // Debug: Log current form values
-  useEffect(() => {
-    logger.info('BusinessContextContainer: Current form values:', businessContextValues);
-  }, [businessContextValues]);
+  // useEffect(() => {
+  //   logger.info('BusinessContextContainer: Current form values:', businessContextValues);
+  // }, [businessContextValues]);
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
@@ -79,9 +90,9 @@ function BusinessContextContainer({ loading = false }) {
         control={control}
         render={({ field }) => {
           // Debug: Log field value for each business context field
-          useEffect(() => {
-            logger.info(`BusinessContext field ${name}:`, field.value);
-          }, [field.value, name]);
+          // useEffect(() => {
+          // logger.info(`BusinessContext field ${name}:`, field.value);
+          // }, [field.value, name]);
 
           return (
             <Select
@@ -91,8 +102,8 @@ function BusinessContextContainer({ loading = false }) {
               onChange={(val) => field.onChange(val === '__LEAVE_EMPTY__' ? null : val)}
               isDisabled={loading}
               placeholder="Select (optional)"
-              className="w-full"
               variant="secondary"
+              fullWidth
             >
               {/* NO classNames prop — rely on global CSS */}
               <Label className="sr-only">{label}</Label>

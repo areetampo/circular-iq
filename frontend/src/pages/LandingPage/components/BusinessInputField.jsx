@@ -1,9 +1,31 @@
+/**
+ * @module BusinessInputField
+ * @description Single labeled textarea with character counter for business context fields.
+ */
+
 import { Label } from '@heroui/react';
 import { BadgeInfo } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 import LiveCharacterCounter from './LiveCharacterCounter';
 
+/**
+ * Single labeled textarea with character counter for business context fields.
+ *
+ * @param {Object} props
+ * @param {string|number} props.id
+ * @param {string} props.label
+ * @param {string} props.description
+ * @param {string} props.placeholder
+ * @param {string} props.fieldName
+ * @param {Function} props.register
+ * @param {Function} props.onInfoClick
+ * @param {boolean} props.loading
+ * @param {Function} props.flushAutosave
+ * @param {number} props.rows
+ * @param {number} props.minLength
+ * @returns {import('react').ReactElement}
+ */
 export default function BusinessInputField({
   id,
   label,

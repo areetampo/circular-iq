@@ -1,3 +1,9 @@
+/**
+ * @module LandingPage
+ * @description Main evaluation entry page — business context, parameters, and scoring stream.
+ * Manages react-hook-form state, session persistence, sample test cases, and navigation to results.
+ */
+
 import { Accordion, toast, Tooltip } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -24,6 +30,11 @@ import {
   SampleTestCasesContainer,
 } from './components';
 
+/**
+ * Main evaluation form: business context, eight parameters, streaming score, and session restore.
+ *
+ * @returns {import('react').ReactElement}
+ */
 export default function LandingPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -574,7 +585,10 @@ export default function LandingPage() {
 
         // Handle anonymous limit reached
         if (err?.code === 'ANON_SCORING_LIMIT_REACHED') {
-          openLimitReachedDialog({ anonScoringLimit: err?.anonScoringLimit });
+          openLimitReachedDialog({
+            anonScoringLimit: err?.anonScoringLimit,
+            lastUsedAt: err?.lastUsedAt,
+          });
           return;
         }
 
@@ -753,7 +767,7 @@ export default function LandingPage() {
                 {/* Submit button */}
                 <div className="flex w-full flex-col items-center justify-center gap-2 rounded-full">
                   <Tooltip delay={0} isDisabled={isValid} className="w-full">
-                    <Tooltip.Trigger className="w-full">
+                    <Tooltip.Trigger className="w-full" tabIndex={0}>
                       <ButtonStages
                         isLoading={loading}
                         isValid={isValid}

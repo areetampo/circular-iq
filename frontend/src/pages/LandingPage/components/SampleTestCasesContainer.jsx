@@ -1,3 +1,8 @@
+/**
+ * @module SampleTestCasesContainer
+ * @description Selectable sample business scenarios that prefill the evaluation form.
+ */
+
 import { ScrollShadow, toast } from '@heroui/react';
 import { BookOpen, CheckCircle2 } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -105,6 +110,13 @@ const mapTestCaseContextToFormFields = (testCaseContext) => {
   };
 };
 
+/**
+ * Selectable sample business scenarios that prefill the evaluation form.
+ *
+ * @param {Object} props
+ * @param {Function} props.setShowEvaluationParameters
+ * @returns {import('react').ReactElement}
+ */
 export default function SampleTestCasesContainer({
   setShowEvaluationParameters = () => {},
   openEvalParams = () => {},
@@ -227,7 +239,7 @@ export default function SampleTestCasesContainer({
             className={cn(
               'group relative flex cursor-pointer flex-col gap-3 rounded-xl border-2 p-3 transition-all duration-200',
               isSelected
-                ? 'border-(--color-accent-alpha-70) bg-(--color-accent-100-10) shadow-sm'
+                ? 'border-(--color-accent-alpha-70) bg-amber-100/20 shadow-sm'
                 : 'border-(--color-border-strong-alpha-80) bg-(--color-bg-card)' +
                     ' hover:border-(--color-accent-alpha-60) hover:shadow-sm',
             )}
@@ -255,7 +267,7 @@ export default function SampleTestCasesContainer({
 
             {/* Problem excerpt */}
             <p className="line-clamp-2 grow text-xs/relaxed text-(--color-text-muted)">
-              {testCase.problem.substring(0, 110)}…
+              {testCase.problem.substring(0, 120)}…
             </p>
 
             {/* Score pills */}
