@@ -1,3 +1,8 @@
+/**
+ * @module AuditSummaryCard.test
+ * @description Tests for AuditSummaryCard rendering.
+ */
+
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 

@@ -1,3 +1,8 @@
+/**
+ * @module BenchmarkTable
+ * @description Tabular comparison of user scores against similar circular-economy benchmark cases.
+ */
+
 import { Table } from '@heroui/react';
 import PropTypes from 'prop-types';
 
@@ -10,6 +15,13 @@ const statusConfig = {
   above_average: { label: 'Strong', color: 'success' },
 };
 
+/**
+ * Tabular comparison of user scores against similar circular-economy benchmark cases.
+ *
+ * @param {Object} props
+ * @param {Array<Object>} props.comparisons
+ * @returns {import('react').ReactElement}
+ */
 export default function BenchmarkTable({ comparisons = {} }) {
   const rows = Object.entries(comparisons || {}).map(([factor, data]) => {
     const status = data.status || 'average';

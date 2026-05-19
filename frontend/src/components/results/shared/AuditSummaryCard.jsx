@@ -1,7 +1,20 @@
+/**
+ * @module AuditSummaryCard
+ * @description Compact audit summary (tier, confidence, key metrics) for results and comparison views.
+ */
+
 import PropTypes from 'prop-types';
 
 import { Chip, SectionHeading } from '@/components/common';
 
+/**
+ * Compact audit summary (tier, confidence, key metrics) for results and comparison views.
+ *
+ * @param {Object} props
+ * @param {Object} props.result
+ * @param {string} props.variant
+ * @returns {import('react').ReactElement}
+ */
 export default function AuditSummaryCard({ result, variant = 'default' }) {
   const audit = result?.audit;
   if (!audit) return null;
