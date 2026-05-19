@@ -1,9 +1,31 @@
+/**
+ * @module env.schema
+ * @description Zod schemas for validating environment variables.
+ * Defines strict validation rules for all environment variables used by the backend,
+ * with separate schemas for production (with defaults) and test environments (no defaults).
+ *
+ * The schemas handle:
+ * - Type coercion (strings to numbers, booleans)
+ * - URL validation
+ * - Enum validation for specific values
+ * - Default values for non-critical settings
+ * - Cross-field validation (e.g., API_KEY required when API_AUTH_ENABLED is true)
+ */
+
 import { z } from 'zod';
 
-// Helper to handle the "string true" vs "boolean true" mess in .env files
+/**
+ * Helper schema to handle the "string true" vs "boolean true" mess in .env files.
+ * Converts string "true" to boolean true, everything else to false.
+ * @type {z.ZodSchema<boolean>}
+ */
 const booleanSchema = z.preprocess((val) => val === 'true' || val === true, z.boolean());
 
-// Transforms "a,b,c" into ["a", "b", "c"] automatically
+/**
+ * Transforms comma-separated string "a,b,c" into array ["a", "b", "c"].
+ * Trims whitespace and filters out empty strings.
+ * @type {z.ZodSchema<Array<string>>}
+ */
 const commaSeparatedStringArraySchema = z
   .string()
   .default('')
@@ -16,6 +38,11 @@ const commaSeparatedStringArraySchema = z
       : [],
   );
 
+/**
+ * Base schema with all required environment variables (no defaults).
+ * Used as the foundation for both production and test schemas.
+ * @type {z.ZodObject<any, any, any, any>}
+ */
 const baseEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'staged', 'production'], {
     errorMap: () => ({ message: 'NODE_ENV must be development, test, staged, or production' }),
@@ -75,7 +102,31 @@ const baseEnvSchema = z.object({
     .int()
     .positive('ANON_SCORING_LIMIT must be a positive integer'),
 
+  UPTIME_CHECKS_POLL_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(5000, 'UPTIME_CHECKS_POLL_INTERVAL_MS must be at least 5000ms'),
+  UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT: z.coerce
+    .number()
+    .int()
+    .min(1, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at least 1')
+    .max(86400, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 86400'),
+  UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT: z.coerce
+    .number()
+    .int()
+    .min(1, 'UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at least 1')
+    .max(28, 'UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at most 28'),
+  UPTIME_CHECKS_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .min(1, 'UPTIME_CHECKS_RETENTION_DAYS must be at least 1')
+    .max(30, 'UPTIME_CHECKS_RETENTION_DAYS must be at most 30'),
   UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema,
+  UPTIME_CHECKS_CLEANUP_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(3600000, 'UPTIME_CHECKS_CLEANUP_INTERVAL_MS must be at least 3600000ms (1 hour)')
+    .max(86400000, 'UPTIME_CHECKS_CLEANUP_INTERVAL_MS must be at most 86400000ms (24 hours)'),
 
   LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error'], {
     errorMap: () => ({ message: 'LOG_LEVEL must be info, debug, warn, or error' }),
@@ -86,6 +137,11 @@ const baseEnvSchema = z.object({
   STRICT_ENV: booleanSchema,
 });
 
+/**
+ * Production/staging/development schema with defaults for non-critical settings.
+ * Extends baseEnvSchema with sensible defaults for development convenience.
+ * @type {z.ZodObject<any, any, any, any>}
+ */
 export const envSchema = baseEnvSchema
   .extend({
     NODE_ENV: z
@@ -134,7 +190,36 @@ export const envSchema = baseEnvSchema
       .positive('ANON_SCORING_LIMIT must be a positive integer')
       .default(20),
 
+    UPTIME_CHECKS_POLL_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .min(5000, 'UPTIME_CHECKS_POLL_INTERVAL_MS must be at least 5000ms')
+      .default(30000),
+    UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT: z.coerce
+      .number()
+      .int()
+      .min(1, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at least 1')
+      .max(86400, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 86400')
+      .default(86400),
+    UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT: z.coerce
+      .number()
+      .int()
+      .min(1, 'UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at least 1')
+      .max(28, 'UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at most 28')
+      .default(28),
+    UPTIME_CHECKS_RETENTION_DAYS: z.coerce
+      .number()
+      .int()
+      .min(1, 'UPTIME_CHECKS_RETENTION_DAYS must be at least 1')
+      .max(30, 'UPTIME_CHECKS_RETENTION_DAYS must be at most 30')
+      .default(30),
     UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema.default(true),
+    UPTIME_CHECKS_CLEANUP_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .min(3600000, 'UPTIME_CHECKS_CLEANUP_INTERVAL_MS must be at least 3600000ms (1 hour)')
+      .max(86400000, 'UPTIME_CHECKS_CLEANUP_INTERVAL_MS must be at most 86400000ms (24 hours)')
+      .default(86400000),
 
     LOG_LEVEL: z
       .enum(['info', 'debug', 'warn', 'error'], {
@@ -160,6 +245,12 @@ export const envSchema = baseEnvSchema
     },
   );
 
+/**
+ * Test environment schema with no defaults.
+ * Requires all environment variables to be explicitly set in .env.test.
+ * Ensures tests run with known, controlled configuration.
+ * @type {z.ZodObject<any, any, any, any>}
+ */
 export const testEnvSchema = baseEnvSchema
   .extend({}) // no defaults – all fields required
   .refine(
