@@ -1,7 +1,16 @@
+/**
+ * @module ComparisonSkeleton
+ * @description Full-page skeleton while two assessments load for comparison.
+ */
+
 import { Skeleton } from '@heroui/react';
 
 import AssessmentColumnSkeleton from './AssessmentColumnSkeleton';
 
+/**
+ * Full-page skeleton while two assessments load for comparison.
+ * @returns {import('react').ReactElement}
+ */
 export default function ComparisonSkeleton() {
   return (
     <div className="mt-6 w-full space-y-0">

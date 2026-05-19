@@ -1,6 +1,18 @@
+/**
+ * @module ChangeIndicator
+ * @description Signed delta badge highlighting metric changes between two assessments.
+ */
+
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import PropTypes from 'prop-types';
 
+/**
+ * Signed delta badge highlighting metric changes between two assessments.
+ *
+ * @param {Object} props
+ * @param {number} props.diff - Numeric difference value (can be positive, negative, or zero)
+ * @returns {import('react').ReactElement}
+ */
 export default function ChangeIndicator({ diff }) {
   if (diff > 0) {
     return (

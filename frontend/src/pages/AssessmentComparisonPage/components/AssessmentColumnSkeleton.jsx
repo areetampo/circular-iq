@@ -1,5 +1,14 @@
+/**
+ * @module AssessmentColumnSkeleton
+ * @description Loading skeleton for a single comparison column while data fetches.
+ */
+
 import { Skeleton } from '@heroui/react';
 
+/**
+ * Loading skeleton for a single comparison column while data fetches.
+ * @returns {import('react').ReactElement}
+ */
 export default function AssessmentColumnSkeleton() {
   return (
     <div className="space-y-6">

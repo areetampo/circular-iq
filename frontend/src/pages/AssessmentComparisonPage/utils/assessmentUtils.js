@@ -1,3 +1,8 @@
+/**
+ * @module assessmentUtils
+ * @description Shared derivations for assessment detail columns (scores, gaps, viability, top/focus factors).
+ */
+
 import { categorizeIntegrityGaps } from '@/utils/content';
 
 /**

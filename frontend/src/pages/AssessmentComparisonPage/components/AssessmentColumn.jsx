@@ -1,3 +1,8 @@
+/**
+ * @module AssessmentColumn
+ * @description Side-by-side assessment column showing scores and metadata for comparison.
+ */
+
 import { NotebookPen } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -27,8 +32,19 @@ import {
 } from '@/pages/ResultsPage/components';
 
 /**
- * Renders a single assessment column with all results and analysis
- * Used in AssessmentComparisonPage and AssessmentViewPage
+ * Full results column (scores, audit cards, cases) for comparison or read-only view.
+ *
+ * @param {Object} props
+ * @param {Object} props.assessment - Saved assessment record (metadata + ids).
+ * @param {Object} props.scoringResult - Normalised scoring/audit payload for child cards.
+ * @param {number} props.overallScore - Overall circularity score (0–100).
+ * @param {Array<string>} props.strengths - Integrity strengths from audit.
+ * @param {Array<string>} props.gaps - Integrity gaps from audit.
+ * @param {Array<Object>} props.casesSummaries - Matched CE case summaries for accordions.
+ * @param {string} [props.topFactor] - Highest-weight factor key.
+ * @param {string} [props.focusFactor] - Factor flagged for improvement.
+ * @param {number} [props.resolvedBusinessViabilityScore] - Derived viability score for category analysis.
+ * @returns {import('react').ReactElement}
  */
 export default function AssessmentColumn({
   assessment,

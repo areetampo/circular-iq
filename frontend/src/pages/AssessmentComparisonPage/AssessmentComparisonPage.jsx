@@ -1,3 +1,8 @@
+/**
+ * @module AssessmentComparisonPage
+ * @description Side-by-side comparison of two saved assessments by public ID.
+ */
+
 import { Tooltip, toast } from '@heroui/react';
 import {
   Download,
@@ -7,6 +12,7 @@ import {
   MoveLeft,
   RotateCw,
 } from 'lucide-react';
+import PropTypes from 'prop-types';
 import { useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -18,6 +24,63 @@ import { exportComparisonCSV, exportComparisonPDF } from '@/features/export';
 import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './components';
 import { computeAssessmentData } from './utils/assessmentUtils';
 
+/**
+ * Comparison header title with external share link.
+ * @param {Object} props
+ * @param {{ title: string }} props.assessment
+ * @param {string} props.publicId
+ * @param {boolean} [props.isRightAligned]
+ * @returns {import('react').ReactElement}
+ */
+function AssessmentTitleWithLink({ assessment, publicId, isRightAligned = false }) {
+  return (
+    <div className={`flex items-center gap-2 ${isRightAligned ? 'justify-end' : ''}`}>
+      {!isRightAligned && (
+        <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
+          {assessment.title}
+        </h2>
+      )}
+      <Tooltip delay={0}>
+        <Tooltip.Trigger className="item-center flex" tabIndex={0}>
+          <Link to={`/assessments/share/${publicId}`} target="_blank" rel="noopener noreferrer">
+            <ExternalLink
+              size={18}
+              strokeWidth={2}
+              className="inline-flex text-(--color-text-muted) transition-transform duration-150 hover:scale-110 hover:text-(--color-text-secondary) active:scale-95"
+            />
+          </Link>
+        </Tooltip.Trigger>
+        <Tooltip.Content showArrow>
+          <p className="wrap-break-word">
+            View
+            <span className="mx-1 font-medium whitespace-nowrap underline decoration-1 underline-offset-3">
+              {assessment.title}
+            </span>
+            separately
+          </p>
+        </Tooltip.Content>
+      </Tooltip>
+      {isRightAligned && (
+        <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
+          {assessment.title}
+        </h2>
+      )}
+    </div>
+  );
+}
+
+AssessmentTitleWithLink.propTypes = {
+  assessment: PropTypes.shape({
+    title: PropTypes.string,
+  }).isRequired,
+  publicId: PropTypes.string.isRequired,
+  isRightAligned: PropTypes.bool,
+};
+
+/**
+ * Fetches two assessments and renders dual `AssessmentColumn` layouts.
+ * @returns {import('react').ReactElement}
+ */
 export default function AssessmentComparisonPage() {
   const navigate = useNavigate();
   const handleRefresh = useCallback(() => {
@@ -130,42 +193,6 @@ export default function AssessmentComparisonPage() {
     if (score >= 50) return '--color-warning';
     return '--color-error';
   };
-
-  // Reusable heading component with external link
-  const AssessmentTitleWithLink = ({ assessment, publicId, isRightAligned = false }) => (
-    <div className={`flex items-center gap-2 ${isRightAligned ? 'justify-end' : ''}`}>
-      {!isRightAligned && (
-        <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
-          {assessment.title}
-        </h2>
-      )}
-      <Tooltip delay={0}>
-        <Tooltip.Trigger className="item-center flex">
-          <Link to={`/assessments/share/${publicId}`} target="_blank" rel="noopener noreferrer">
-            <ExternalLink
-              size={18}
-              strokeWidth={2}
-              className="inline-flex text-(--color-text-muted) transition-transform duration-150 hover:scale-110 hover:text-(--color-text-secondary) active:scale-95"
-            />
-          </Link>
-        </Tooltip.Trigger>
-        <Tooltip.Content showArrow>
-          <p className="wrap-break-word">
-            View
-            <span className="mx-1 font-medium whitespace-nowrap underline decoration-1 underline-offset-3">
-              {assessment.title}
-            </span>
-            separately
-          </p>
-        </Tooltip.Content>
-      </Tooltip>
-      {isRightAligned && (
-        <h2 className="truncate font-jua text-2xl font-medium text-(--color-text-primary)">
-          {assessment.title}
-        </h2>
-      )}
-    </div>
-  );
 
   return (
     <div className="mt-6 w-full space-y-0">
