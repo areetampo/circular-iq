@@ -1,8 +1,9 @@
 /**
- * Scoring System - Deterministic 8-Factor Circular Economy Evaluation
- *
- * All scores are computed deterministically by code.
- * No LLM involvement in numeric calculations - only qualitative explanations.
+ * @module scoring.logic
+ * @description Deterministic scoring logic for circular economy evaluation.
+ * Computes scores using an 8-factor framework without LLM involvement in numeric calculations.
+ * Provides functions for score calculation, tier classification, parameter consistency,
+ * R-strategy alignment, integrity gap identification, and vector search result deduplication.
  */
 
 /**
@@ -683,8 +684,15 @@ function aggregateMultiVectorResults(rows = [], opts = {}) {
 }
 
 /**
- * Deduplicate rows by source_id and produce a compact list of unique cases.
- * Uses either maximum similarity or weighted-average (above) to represent case relevance.
+ * Deduplicates vector search rows by `source_id` and returns a compact case list for the frontend.
+ * Delegates to `aggregateMultiVectorResults` for weighted problem/solution/doc similarity.
+ *
+ * @param {Array<Object>} [rows=[]] - Raw search rows (may include duplicate `source_id`).
+ * @param {Object} [opts={}] - Weight options passed to `aggregateMultiVectorResults`.
+ * @param {number} [opts.wProblem=0.5] - Weight for problem-vector similarity.
+ * @param {number} [opts.wSolution=0.4] - Weight for solution-vector similarity.
+ * @param {number} [opts.wDoc=0.1] - Weight for document-vector similarity.
+ * @returns {Array<{id: string, title: string|null, metadata: Object, similarity: number, problem: number|null, solution: number|null}>}
  */
 export function dedupeResultsWeighted(rows = [], opts = {}) {
   const aggregated = aggregateMultiVectorResults(rows, opts);
