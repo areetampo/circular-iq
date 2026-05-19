@@ -13,10 +13,10 @@ Source (Web/File)
 - Extract/Transform (dataset scripts)
 - Standardize Format (CSV with standard columns)
 - Register in DATASETS array (utils/datasetsUtils.js)
-- Merge into combined CSV (pipeline/merge_datasets.js)
-- Chunk into semantic units (pipeline/generate_chunks.js)
-- Generate embeddings (pipeline/generate_embeddings.js)
-- Store in Supabase (pipeline/store_embeddings.js)
+- Merge into combined CSV (pipeline/rag/merge_datasets.js)
+- Chunk into semantic units (pipeline/rag/generate_chunks.js)
+- Generate embeddings (pipeline/rag/generate_embeddings.js)
+- Store in Supabase (pipeline/rag/store_embeddings.js)
 
 ### File I/O Best Practices
 
@@ -102,7 +102,7 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
    ```js
    async function main() {
      if (isBackupRecoveryMode()) {
-       console.log('♻️ BACKUP RECOVERY MODE...');
+       logger.info('♻️ BACKUP RECOVERY MODE...');
        // Rebuild from saved backup instead of scraping
        const backupRows = await readBackupCsv(DATASET_KEY);
        // ... apply filtering/deduplication
@@ -119,7 +119,7 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
        for (const page of pages) {
          const rows = await scrapePage(page);
          await backup.add(rows); // Auto-flushes every 3 calls
-         console.log(`✓ Page ${page}: ${rows.length} rows`);
+         logger.info({ page: page, rows: rows.length }, 'Rows added from page');
        }
        await backup.flush(); // Final flush
 
@@ -130,7 +130,10 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
      }
    }
 
-   main().catch(console.error);
+   main().catch((err) => {
+     logger.error({ err }, '\n✕ Fatal error');
+     process.exit(1);
+   });
    ```
 
 4. **Puppeteer helper functions:**
@@ -240,10 +243,13 @@ node datasets/scripts/scrape_my_source.js --append
      const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
      await writeCsv(csvPath, rows, { clear: true });
 
-     console.log(`✓ Extracted ${rows.length} rows to ${csvPath}`);
+     logger.info({ rows: rows.length, csvPath }, 'Extracted rows to csv');
    }
 
-   main().catch(console.error);
+   main().catch((err) => {
+     logger.error({ err }, '\n✕ Fatal error');
+     process.exit(1);
+   });
    ```
 
 3. **Add JSDoc header describing parsing logic**
@@ -305,10 +311,13 @@ async function main() {
   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
   await writeCsv(csvPath, rows, { clear: true });
 
-  console.log(`✓ Processed ${rows.length} records`);
+  logger.info({rows: rows.length} 'Processed records');
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  logger.error({ err }, '\n✕ Fatal error');
+  process.exit(1);
+});
 ```
 
 ### Option D: API Data Fetching
@@ -350,10 +359,13 @@ async function main() {
   const csvPath = getDatasetProcessedCsvPath(DATASET_KEY);
   await writeCsv(csvPath, rows, { clear: true });
 
-  console.log(`✓ Fetched and processed ${rows.length} records`);
+  logger.info({ rows: rows.length }, `Fetched and processed records`);
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  logger.error({ err }, '\n✕ Fatal error');
+  process.exit(1);
+});
 ```
 
 ## Step 3: Standardize CSV Format
@@ -435,11 +447,11 @@ await writeCsv(csvPath, rows, { clear: true });
 
 ## Step 4: Register Dataset Scripts with Orchestrator
 
-The `pipeline/run_datasets_scripts.js` orchestrator can run all scripts automatically:
+The `pipeline/rag/run_datasets_scripts.js` orchestrator can run all scripts automatically:
 
 ```pwsh
 # Run ALL extraction scripts first, then scraper scripts
-node pipeline/run_datasets_scripts.js
+node pipeline/rag/run_datasets_scripts.js
 
 # Or via npm
 npm run datasets-scripts
@@ -526,7 +538,7 @@ Every script needs a clear header block:
  *   - datasets/processed/my_source_processed.csv
  *
  * Dependencies:
- *   - xlsx (for Excel parsing)
+ *   - exceljs (for Excel parsing)
  *   - utils/datasetsUtils.js (for path helpers and CSV writing)
  */
 ```
