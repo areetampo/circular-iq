@@ -118,7 +118,10 @@ export default function createUptimeRouter() {
 
     const { endpointId } = req.params;
     const path = `/api/uptime/history/${endpointId}`;
-    let limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 3500, 1), maxHistoryPerEndpoint);
+    let limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || maxHistoryPerEndpoint, 1),
+      maxHistoryPerEndpoint,
+    );
 
     try {
       const supabase = getSupabaseClient();
@@ -272,8 +275,8 @@ export default function createUptimeRouter() {
       queryWindowDaysLimit,
     );
     const bucketMinutes = Math.min(
-      Math.min(Math.max(parseInt(req.query.bucketMinutes, 10) || 60, 1), 60 * 24 * days),
-      days * 24 * 60,
+      Math.max(parseInt(req.query.bucketMinutes, 10) || 180, 1),
+      60 * 24 * days,
     );
     const reference = parseInt(req.query.reference, 10) || Date.now();
     const clockAligned = req.query.clockAligned === 'true';
@@ -329,11 +332,8 @@ export default function createUptimeRouter() {
       24 * queryWindowDaysLimit,
     );
     const bucketMinutes = Math.min(
-      Math.min(
-        Math.max(parseInt(req.query.bucketMinutes, 10) || 15, 1),
-        60 * 24 * queryWindowDaysLimit,
-      ),
-      hours * 60,
+      Math.max(parseInt(req.query.bucketMinutes, 10) || 15, 1),
+      60 * hours,
     );
     const clockAligned = req.query.clockAligned === 'true';
 
