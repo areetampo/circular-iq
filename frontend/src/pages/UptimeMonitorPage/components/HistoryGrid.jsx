@@ -74,12 +74,18 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
         if (!bucket.hasData) return `${timeDisplay}\nPARTIAL BUCKET — collecting…`;
         const avgStr = bucket.averageMs != null ? `Avg: ${bucket.averageMs} ms` : 'no avg yet';
         if (bucket.anyFailure) {
-          const tsLines = (bucket.failureTimestamps || [])
-            .map((ts) => formatTimestamp(ts, { ...timeOpts, showSeconds: true }))
-            .join(', ');
-          return `${timeDisplay}\nPARTIAL BUCKET — ${avgStr}\nFAILURE(S)${tsLines ? `\n${tsLines}` : ''}`;
+          const failureTs = (bucket.failureTimestamps || [])
+            .map((ts) => {
+              return ts ? formatTimestamp(ts, { ...timeOpts, showSeconds: true }) : null;
+            })
+            .filter(Boolean);
+
+          const count = failureTs.length;
+          const failuresJoined = failureTs.join('\n');
+
+          return `[${timeDisplay}]\nPARTIAL BUCKET — ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
         }
-        return `${timeDisplay}\nPARTIAL BUCKET — ${avgStr}`;
+        return `${timeDisplay}\nPARTIAL BUCKET — ${avgStr} ms`;
       }
 
       if (!bucket.hasData) return `${timeDisplay}\nNO DATA`;
@@ -88,14 +94,20 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
 
       if (bucket.anyFailure) {
         // failureTimestamps may be absent when coming from DB aggregation (not per-check)
-        const tsLines = (bucket.failureTimestamps || [])
-          .map((ts) => formatTimestamp(ts, timeOpts))
-          .join(', ');
-        return `${timeDisplay}\nAvg: ${avgStr}\nFAILURE(S)${tsLines ? `\n${tsLines}` : ''}`;
+        const failureTs = (bucket.failureTimestamps || [])
+          .map((ts) => {
+            return ts ? formatTimestamp(ts, { ...timeOpts, showSeconds: true }) : null;
+          })
+          .filter(Boolean);
+
+        const count = failureTs.length;
+        const failuresJoined = failureTs.join('\n');
+
+        return `${timeDisplay}\nAvg: ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
       }
 
-      if (bucket.isWarning) return `${timeDisplay}\nHIGH LATENCY\nAvg: ${avgStr}`;
-      return `${timeDisplay}\nALL GOOD\nAvg: ${avgStr}`;
+      if (bucket.isWarning) return `${timeDisplay}\nHIGH LATENCY\nAvg: ${avgStr} ms`;
+      return `${timeDisplay}\nALL GOOD\nAvg: ${avgStr} ms`;
     };
   } else {
     // ── Raw checks mode ──────────────────────────────────────────────────────

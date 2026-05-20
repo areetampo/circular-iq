@@ -71,28 +71,38 @@ function getTooltipText(
     if (!hasData) return `[${timeRange}]\nPARTIAL BUCKET — no data yet, collecting...`;
     const avgStr = averageMs != null ? `Avg: ${averageMs.toFixed(0)} ms` : 'no avg yet';
     if (anyFailure) {
-      const failures = failureDetails
-        .map(
-          (f) =>
-            `${f?.endpoint_id?.toUpperCase()} - ${formatTimestamp(f?.ts, { showSeconds: true, use24Hour: true })}`,
-        )
-        .join('\n');
-      return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr}\nFAILURE(S)${failures ? `\n${failures}` : ''}`;
+      const failures = (failureDetails || [])
+        .map((f) => {
+          if (f?.endpoint_id && f?.ts)
+            return `${f.endpoint_id.toUpperCase()} - ${formatTimestamp(f.ts, { showSeconds: true, use24Hour: true })}`;
+          return null;
+        })
+        .filter(Boolean);
+
+      const count = failures.length;
+      const failuresJoined = failures.join('\n');
+
+      return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
     }
-    return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr}`;
+    return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr} ms`;
   }
 
   if (!hasData) return `[${timeRange}]\nNO DATA`;
 
   const avgStr = averageMs?.toFixed(0);
   if (anyFailure) {
-    const failures = failureDetails
-      .map(
-        (f) =>
-          `${f?.endpoint_id?.toUpperCase()} - ${formatTimestamp(f?.ts, { showSeconds: true, use24Hour: true })}`,
-      )
-      .join('\n');
-    return `[${timeRange}]\nAvg: ${avgStr} ms\nFAILURE(S)\n${failures}`;
+    const failures = (failureDetails || [])
+      .map((f) => {
+        if (f?.endpoint_id && f?.ts)
+          return `${f.endpoint_id.toUpperCase()} - ${formatTimestamp(f.ts, { showSeconds: true, use24Hour: true })}`;
+        return null;
+      })
+      .filter(Boolean);
+
+    const count = failures.length;
+    const failuresJoined = failures.join('\n');
+
+    return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
   }
   if (isWarning) return `[${timeRange}]\nHIGH LATENCY\nAvg: ${avgStr} ms`;
   return `[${timeRange}]\nALL GOOD\nAvg: ${avgStr} ms`;
@@ -312,7 +322,7 @@ export default function StatusHeatmap({ clockAligned = false, ...props }) {
                     b.anyFailure,
                     b.isWarning,
                     b.averageMs,
-                    b.failureDetails || [],
+                    b.failureDetails,
                     b.isPartial,
                   )}
                 </p>
