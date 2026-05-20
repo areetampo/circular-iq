@@ -120,7 +120,7 @@ export default [
   {
     method: 'GET',
     endpoint: '/api/uptime/history/:endpointId',
-    description: 'Retrieve recent checks for specific endpoint (max 86400)',
+    description: 'Retrieve recent checks for specific endpoint (max configured in BACKEND_CONFIG)',
   },
   {
     method: 'GET',
