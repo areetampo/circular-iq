@@ -70,7 +70,7 @@ The platform guides users through a structured assessment and returns a complete
 │  ├─ anonymous_usage — rate limiting + session tracking                      │
 │  ├─ scoring_results_log — immutable log of every scoring call               │
 │  ├─ ce_cases — circular economy cases knowledge base                        │
-│  └── uptime_checks — health monitoring history                               │
+│  └── uptime_checks — health monitoring history                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
