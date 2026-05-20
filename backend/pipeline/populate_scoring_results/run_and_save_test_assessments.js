@@ -271,7 +271,7 @@ async function main() {
     }
 
     const savePayload = {
-      name: `${pokemonNames[Math.floor(Math.random() * pokemonNames.length)]} - ${formatTimestamp(new Date(), { showSeconds: true, showMilliseconds: true })}`,
+      name: `${pokemonNames[Math.floor(Math.random() * pokemonNames.length)]} - ${formatTimestamp(new Date(), { showSeconds: true, showMs: true })}`,
       result_json: scoringResult,
       industry: scoringResult.metadata?.industry || 'Unknown',
       is_public: false,
