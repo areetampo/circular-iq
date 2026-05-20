@@ -39,7 +39,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 /**
  * ProtectedRoute — requires Supabase session (see useAuth).
  */
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, redirectTo = '/auth' }) {
   const { isAuthenticated, authLoading } = useAuth();
   const location = useLocation();
 
@@ -54,8 +54,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    // Pass the current location as state so auth forms can redirect back after login
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   return children;
@@ -63,6 +62,7 @@ function ProtectedRoute({ children }) {
 
 ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
+  redirectTo: PropTypes.string,
 };
 
 /**
@@ -196,7 +196,7 @@ export default function AppRoutes() {
           <Route
             path="/assessments/:publicId"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute redirectTo="/assessments">
                 <PageErrorBoundary pageName="Results page (from assessments/:publicId)">
                   <ResultsPage isViewFromMyAssessments={true} />
                 </PageErrorBoundary>
