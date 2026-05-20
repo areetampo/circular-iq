@@ -71,7 +71,7 @@ export function getAivenPgPool() {
     const cfg = BACKEND_CONFIG.aiven;
     const poolOptions = {
       max: cfg.connectionLimit,
-      idleTimeoutMillis: 30000,
+      idleTimeoutMillis: cfg.idleTimeoutMs,
     };
 
     if (cfg.sslCA) {
@@ -124,7 +124,7 @@ export function getSupabasePgPool() {
       connectionString: cfg.connectionString,
       ssl: { rejectUnauthorized: false },
       max: cfg.connectionLimit,
-      idleTimeoutMillis: 30000,
+      idleTimeoutMillis: cfg.idleTimeoutMs,
     });
 
     logger.logOperation('getSupabasePgPool', 'db/pool-init', 'success', Date.now() - startTime, {
