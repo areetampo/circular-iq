@@ -289,7 +289,7 @@ export default function EndpointCard({
                 </p>
               </Tooltip.Trigger>
               <Tooltip.Content>
-                {cleanUrl(`${FRONTEND_CONFIG.apiUrl}${endpoint.path}`, {
+                {cleanUrl(`${FRONTEND_CONFIG.app.apiUrl}${endpoint.path}`, {
                   stripProtocol: true,
                   stripWww: true,
                 })}
