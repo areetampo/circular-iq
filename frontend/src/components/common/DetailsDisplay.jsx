@@ -154,8 +154,8 @@ export default function DetailsDisplay({
     <div
       {...props}
       className={cn(
-        `flex items-center justify-center px-6 py-10`,
-        `${fullScreen ? 'min-h-screen' : 'min-h-[40vh]'}`,
+        'flex items-center justify-center px-6 pt-10',
+        fullScreen ? 'min-h-screen' : 'min-h-[40vh]',
         className,
       )}
     >
