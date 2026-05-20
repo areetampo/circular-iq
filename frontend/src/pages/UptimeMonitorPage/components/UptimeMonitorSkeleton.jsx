@@ -19,7 +19,7 @@ export default function UptimeMonitorSkeleton() {
     <div className="mx-auto max-w-6xl space-y-8 px-4 sm:px-6">
       {/* ── PAGE HEADER ──────────────────────────────────────────────────────
           Left:  Activity icon (size-7) + h1 text-[2rem] font-medium
-                 subheading: "Server-polling N endpoints every 30s — N total checks stored" two spans separated by a Minus icon → single line of text-sm/relaxed pl-1
+                 subheading: two spans separated by a Minus icon → single line of text-sm/relaxed pl-1
                  Clock-aligned toggle
           Right: Export CSV button (h-9)
                  "LIVE • Next update in __s" row (font-mono text-[0.65rem])
