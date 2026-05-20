@@ -36,7 +36,7 @@ const socialLinks = [
  */
 export default function Footer() {
   return (
-    <footer className="relative mt-auto border-t-2 border-black/10">
+    <footer className="relative mt-auto border-t-2 border-(--color-border-ui)">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-(--color-bg) to-(--color-bg) opacity-90" />
 
