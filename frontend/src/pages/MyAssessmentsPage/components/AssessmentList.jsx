@@ -176,7 +176,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
               {assessment.title ||
                 formatTimestamp(assessment.created_at, {
                   showSeconds: true,
-                  showMilliseconds: true,
+                  showMs: true,
                 }) ||
                 'Untitled Assessment'}
             </Link>
