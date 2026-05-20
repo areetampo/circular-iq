@@ -13,7 +13,7 @@
 import PropTypes from 'prop-types';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
-import { FRONTEND_CONFIG } from '@/config';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { clearEvaluationState } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { getSessionId } from '@/utils/session';
@@ -34,7 +34,7 @@ async function fetchUserProfile(token, timeoutMs = 5000) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${FRONTEND_CONFIG.apiUrl}/api/profile`, {
+    const response = await fetch(`${FRONTEND_CONFIG.app.apiUrl}/api/profile`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

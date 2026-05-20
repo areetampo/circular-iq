@@ -5,7 +5,7 @@
  * In development, goes directly to the backend API URL.
  */
 
-import { FRONTEND_CONFIG } from '@/config';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
 
 /**
  * Build the full API endpoint URL
@@ -17,7 +17,7 @@ import { FRONTEND_CONFIG } from '@/config';
  * @returns {string} Full URL for the API endpoint
  */
 export function buildApiUrl(path) {
-  const API_URL = FRONTEND_CONFIG.apiUrl;
+  const API_URL = FRONTEND_CONFIG.app.apiUrl;
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
   if (FRONTEND_CONFIG.isProd) {

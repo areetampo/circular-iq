@@ -6,7 +6,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-import { FRONTEND_CONFIG } from '@/config';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
 
 const supabaseUrl = FRONTEND_CONFIG.supabase.url;
 const supabaseAnonKey = FRONTEND_CONFIG.supabase.anonKey;
