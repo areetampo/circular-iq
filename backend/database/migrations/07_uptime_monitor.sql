@@ -386,14 +386,14 @@ COMMENT ON FUNCTION get_endpoint_avg_latency(INT) IS
     'Converted to LANGUAGE sql for planner inlining.';
 
 
--- ── 5f. get_heatmap_buckets (set-based rewrite) ──────────────────────────────────
+-- ── 5f. get_heatmap_buckets ───────────────────────────────────────────────────
 -- Returns time buckets across all endpoints for heatmap rendering.
 -- Anchored to a caller-supplied p_reference_ts (ms epoch) so bucket edges remain
 -- stable across page refreshes regardless of when the request arrives.
 --
--- Replaces the original plpgsql row-by-row loop with a single set-based query
--- using generate_series + LEFT JOIN + GROUP BY. One index scan across the full
--- window instead of one scan per bucket — significantly faster at scale.
+-- Uses generate_series to materialise all bucket edges, then joins uptime_checks
+-- once across the full window (a single index range scan) and fans results out to
+-- buckets via GROUP BY — rather than issuing a separate subquery or scan per bucket.
 --
 -- p_clock_aligned = TRUE:  snaps the window END to the nearest UTC bucket_minutes
 --                          mark at or after p_reference_ts, then walks the full
@@ -401,10 +401,11 @@ COMMENT ON FUNCTION get_endpoint_avg_latency(INT) IS
 -- p_clock_aligned = FALSE: rolling window backward from p_reference_ts (default).
 --
 -- Query window capped at app.uptime_checks-query_window_days days.
--- average_ms: NULL for buckets with no successful checks.
--- is_warning: TRUE when average_ms exceeds the 'uptime_checks-uptime_warning_threshold_ms' setting, FALSE otherwise (never NULL).
--- failure_details: JSON array of { endpoint_id, endpoint_path, ts } (ms epoch).
--- is_partial: TRUE for the last bucket whose end_time is beyond p_reference_ts.
+-- average_ms:      NULL for buckets with no successful checks.
+-- is_warning:      TRUE when average_ms exceeds uptime_checks-uptime_warning_threshold_ms,
+--                  FALSE otherwise (never NULL).
+-- failure_details: JSON array of { endpoint_id, endpoint_path, ts } where ts is ms epoch.
+-- is_partial:      TRUE for any bucket whose end_time extends beyond p_reference_ts.
 CREATE OR REPLACE FUNCTION get_heatmap_buckets(
     bucket_minutes  INT,
     days            INT,
@@ -431,46 +432,53 @@ params AS (
     SELECT to_timestamp(p_reference_ts / 1000.0) AS ref_ts
 ),
 aligned_end AS (
-    SELECT CASE
-        WHEN p_clock_aligned THEN
-            to_timestamp(
-                ceil(EXTRACT(EPOCH FROM (SELECT ref_ts FROM params)) / (bucket_minutes * 60))
-                * (bucket_minutes * 60)
-            )
-        ELSE
-            (SELECT ref_ts FROM params)
+    SELECT
+        p.ref_ts,
+        CASE
+            WHEN p_clock_aligned THEN
+                to_timestamp(
+                    ceil(EXTRACT(EPOCH FROM p.ref_ts) / (bucket_minutes * 60))
+                    * (bucket_minutes * 60)
+                )
+            ELSE
+                p.ref_ts
         END AS end_ts
+    FROM params p
 ),
 aligned_start AS (
     SELECT
-        end_ts - (LEAST(days, app.get_setting('uptime_checks-query_window_days')::INT) * 1440 / bucket_minutes) * bucket_minutes * INTERVAL '1 minute'
-            AS start_ts,
-        end_ts
-    FROM aligned_end
+        ae.ref_ts,
+        ae.end_ts,
+        ae.end_ts - (60 * 24 * LEAST(days, app.get_setting('uptime_checks-query_window_days')::INT) / bucket_minutes) * bucket_minutes * INTERVAL '1 minute' AS start_ts
+    FROM aligned_end ae
 ),
 buckets AS (
     SELECT
-        aligned_start.start_ts + (n * bucket_minutes * INTERVAL '1 minute') AS b_start,
-        aligned_start.start_ts + ((n + 1) * bucket_minutes * INTERVAL '1 minute') AS b_end
-    FROM aligned_start,
-         generate_series(0, (LEAST(days, app.get_setting('uptime_checks-query_window_days')::INT) * 1440 / bucket_minutes) - 1) AS n
+        as_t.start_ts + (g.n * bucket_minutes * INTERVAL '1 minute') AS b_start,
+        as_t.start_ts + ((g.n + 1) * bucket_minutes * INTERVAL '1 minute') AS b_end,
+        as_t.ref_ts
+    FROM aligned_start as_t
+    CROSS JOIN LATERAL generate_series(
+        0,
+        (EXTRACT(EPOCH FROM (as_t.end_ts - as_t.start_ts)) / 60 / bucket_minutes)::INT - 1
+    ) AS g(n)
 ),
 checks AS (
-    SELECT endpoint_id, endpoint_path, created_at, up, response_time_ms
-    FROM uptime_checks
-    WHERE created_at >= (SELECT start_ts FROM aligned_start)
-      AND created_at <  (SELECT end_ts   FROM aligned_start)
+    SELECT c.endpoint_id, c.endpoint_path, c.created_at, c.up, c.response_time_ms
+    FROM aligned_start as_t
+    JOIN uptime_checks c ON c.created_at >= as_t.start_ts AND c.created_at < as_t.end_ts
 ),
 agg AS (
     SELECT
         b.b_start,
         b.b_end,
+        b.ref_ts,
         count(c.created_at) > 0                                           AS has_data,
         coalesce(bool_or(c.up = FALSE), FALSE)                            AS any_failure,
         CASE WHEN count(c.up) FILTER (WHERE c.up AND c.response_time_ms IS NOT NULL) > 0
              THEN ROUND(
                 avg(c.response_time_ms) FILTER (WHERE c.up AND c.response_time_ms IS NOT NULL),
-             0) END                                                        AS average_ms,
+             0) END                                                       AS average_ms,
         coalesce(
             jsonb_agg(
                 jsonb_build_object(
@@ -480,53 +488,59 @@ agg AS (
                 )
             ) FILTER (WHERE c.up = FALSE),
             '[]'::jsonb
-        )                                                                  AS failure_details
+        )                                                                 AS failure_details
     FROM buckets b
     LEFT JOIN checks c ON c.created_at >= b.b_start AND c.created_at < b.b_end
-    GROUP BY b.b_start, b.b_end
+    GROUP BY b.b_start, b.b_end, b.ref_ts
 )
 SELECT
-    b_start                                      AS start_time,
-    b_end                                        AS end_time,
+    b_start                                                                                         AS start_time,
+    b_end                                                                                           AS end_time,
     any_failure,
     has_data,
     average_ms,
-    coalesce(average_ms > app.get_setting('uptime_checks-uptime_warning_threshold_ms')::INT, FALSE)           AS is_warning,
+    coalesce(average_ms > app.get_setting('uptime_checks-uptime_warning_threshold_ms')::INT, FALSE) AS is_warning,
     failure_details,
-    b_end > (SELECT ref_ts FROM params)          AS is_partial
+    b_end > ref_ts                                                                                  AS is_partial
 FROM agg
 ORDER BY b_start;
 $$;
 
 COMMENT ON FUNCTION get_heatmap_buckets(INT, INT, BIGINT, BOOLEAN) IS
     'Returns bucketed heatmap data across all endpoints for the given window. '
-    'Set-based rewrite: uses generate_series + LEFT JOIN instead of a plpgsql loop — '
-    'one index scan per call instead of one per bucket. '
+    'Set-based: generate_series materialises bucket edges; uptime_checks is scanned '
+    'once across the full window and fanned out to buckets via GROUP BY — one index '
+    'range scan per call regardless of bucket count. '
     'Anchored to p_reference_ts (ms epoch) for stable bucket edges across page refreshes. '
     'p_clock_aligned=TRUE snaps the window end to the nearest bucket_minutes UTC mark '
     'then walks backward — all edges land on clean clock marks with no drift. '
     'Query window capped at app.uptime_checks-query_window_days days. '
     'average_ms: NULL for buckets with no successful checks. '
-    'is_warning: TRUE when average_ms exceeds the uptime_checks-uptime_warning_threshold_ms setting, FALSE otherwise (never NULL). '
-    'failure_details: [{endpoint_id, endpoint_path, ts}] array.';
+    'is_warning: TRUE when average_ms exceeds uptime_checks-uptime_warning_threshold_ms, FALSE otherwise (never NULL). '
+    'failure_details: [{endpoint_id, endpoint_path, ts}] where ts is ms epoch. '
+    'is_partial: TRUE for any bucket whose end_time extends beyond p_reference_ts.';
 
 
--- ── 5g. get_endpoint_buckets (set-based rewrite) ─────────────────────────────────
+-- ── 5g. get_endpoint_buckets ──────────────────────────────────────────────────
 -- Returns bucketed avg response time and failure info for a single endpoint
 -- over the last N hours. Used to render per-endpoint sparklines and detail panels.
 --
--- Replaces the original plpgsql row-by-row loop with a single set-based query
--- using generate_series + LEFT JOIN + GROUP BY. One index scan across the full
--- window instead of one scan per bucket — significantly faster at scale.
+-- Uses generate_series to materialise all bucket edges, then joins uptime_checks
+-- once across the full window (a single index scan) and fans results out to
+-- buckets via GROUP BY — rather than issuing a separate subquery or scan per bucket.
 --
--- p_clock_aligned = TRUE:  newest bucket boundary snaps to nearest UTC clock mark
---                          (e.g. :00, :15, :30). Stable across page refreshes.
--- p_clock_aligned = FALSE: rolling window backward from NOW() (default).
+-- NOTE: unlike get_heatmap_buckets, this function is anchored to NOW(), not a
+-- caller-supplied timestamp. Bucket edges will drift slightly between page refreshes
+-- when p_clock_aligned=FALSE.
 --
--- Query window capped at app.uptime_checks-query_window_days * 24 hours (app.uptime_checks-query_window_days days).
+-- p_clock_aligned = TRUE:  snaps the newest bucket boundary to the nearest UTC
+--                          clock mark (e.g. :00, :15, :30). Stable across refreshes.
+-- p_clock_aligned = FALSE: rolling window of p_hours ending at NOW() (default).
+--
+-- Query window capped at uptime_checks-query_window_days days.
+-- avg_ms:          NULL for buckets with no successful checks (up=TRUE).
 -- failure_details: JSON array of { ts } (ms epoch) for each failed check.
--- is_partial: TRUE for the last bucket whose end_time is still in the future.
--- avg_ms: NULL for buckets with no successful checks (up=TRUE).
+-- is_partial:      TRUE for any bucket whose end_time extends beyond NOW().
 CREATE OR REPLACE FUNCTION get_endpoint_buckets(
     p_endpoint_id    TEXT,
     p_bucket_minutes INT     DEFAULT 15,
@@ -548,10 +562,10 @@ SECURITY DEFINER
 STABLE
 AS $$
 WITH
--- Derive the window start timestamp based on clock-alignment mode.
+-- Derive the window start based on clock-alignment mode.
 -- clock-aligned: snap the newest bucket edge to the nearest UTC bucket mark,
 --   then walk backward so all edges land on clean clock marks.
--- rolling: simply subtract capped_hours from NOW().
+-- rolling: subtract the capped hour count from NOW().
 aligned_start AS (
     SELECT CASE
         WHEN p_clock_aligned THEN
@@ -563,8 +577,8 @@ aligned_start AS (
             NOW() - (LEAST(p_hours, app.get_setting('uptime_checks-query_window_days')::INT * 24) || ' hours')::INTERVAL
         END AS start_ts
 ),
--- Generate one row per bucket covering the full window.
--- n=0 is the oldest bucket; the last n is the newest (possibly partial).
+-- One row per bucket across the full window.
+-- n=0 is the oldest bucket; the highest n is the newest (possibly partial).
 buckets AS (
     SELECT
         aligned_start.start_ts + (n * p_bucket_minutes * INTERVAL '1 minute') AS b_start,
@@ -572,7 +586,7 @@ buckets AS (
     FROM aligned_start,
          generate_series(0, (LEAST(p_hours, app.get_setting('uptime_checks-query_window_days')::INT * 24) * 60 / p_bucket_minutes) - 1) AS n
 ),
--- Single index scan across the full window for this endpoint.
+-- Single index range scan across the full window for this endpoint.
 -- idx_uptime_endpoint_created covers (endpoint_id, created_at DESC).
 checks AS (
     SELECT created_at, up, response_time_ms
@@ -581,8 +595,10 @@ checks AS (
       AND created_at >= (SELECT start_ts FROM aligned_start)
       AND created_at <  NOW()
 ),
--- Aggregate all checks into their bucket in one pass via LEFT JOIN.
--- LEFT JOIN ensures empty buckets are included (has_data=FALSE, avg_ms=NULL).
+-- Fan checks into buckets in one pass via LEFT JOIN.
+-- LEFT JOIN ensures empty buckets appear with has_data=FALSE and avg_ms=NULL.
+-- any_failure is NULL (not FALSE) here for empty buckets; COALESCE applied in
+-- the outer SELECT to avoid masking the LEFT JOIN nulls prematurely.
 agg AS (
     SELECT
         b.b_start,
@@ -612,20 +628,23 @@ SELECT
     coalesce(has_data, FALSE)     AS has_data,
     coalesce(any_failure, FALSE)  AS any_failure,
     failure_details,
-    -- is_partial: TRUE when the bucket's end is still in the future.
     b_end > NOW()                 AS is_partial
 FROM agg
 ORDER BY b_start;
 $$;
 
 COMMENT ON FUNCTION get_endpoint_buckets(TEXT, INT, INT, BOOLEAN) IS
-    'Returns bucketed avg response time for a single endpoint over the last N hours. '
-    'Set-based rewrite: uses generate_series + LEFT JOIN instead of a plpgsql loop — '
-    'one index scan per call instead of one per bucket. '
-    'p_clock_aligned=TRUE snaps newest bucket boundary to nearest bucket_minutes UTC mark. '
-    'Query window capped at app.uptime_checks-query_window_days * 24 hours (app.uptime_checks-query_window_days days). '
-    'failure_details: [{ts}]. avg_ms: NULL for buckets with no successful checks. '
-    'is_partial: TRUE for the last open bucket.';
+    'Returns bucketed avg response time and failure info for a single endpoint over the last N hours. '
+    'Set-based: generate_series materialises bucket edges; uptime_checks is scanned once across '
+    'the full window and fanned out to buckets via GROUP BY — one index range scan per call '
+    'regardless of bucket count. '
+    'Anchored to NOW() (not a caller-supplied timestamp); bucket edges drift between refreshes '
+    'when p_clock_aligned=FALSE. '
+    'p_clock_aligned=TRUE snaps the newest bucket boundary to the nearest bucket_minutes UTC mark. '
+    'Query window capped at uptime_checks-query_window_days days. '
+    'avg_ms: NULL for buckets with no successful checks. '
+    'failure_details: [{ts}] where ts is ms epoch. '
+    'is_partial: TRUE for any bucket whose end_time extends beyond NOW().';
 
 
 -- ══════════════════════════════════════════════════════════════════════════════
