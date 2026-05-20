@@ -24,7 +24,7 @@ import { fetchHistory } from '../utils/uptimeHelpers';
  * @returns {Promise<void>}
  */
 async function exportToCsv() {
-  const limit = FRONTEND_CONFIG.uptimeMonitor.maxHistoryPerEndpoint;
+  const limit = FRONTEND_CONFIG.uptime.maxHistoryPerEndpoint;
 
   const results = await Promise.all(
     ENDPOINTS.map((ep) => fetchHistory(ep.id, limit).then((checks) => ({ ep, checks }))),
@@ -97,7 +97,7 @@ export default function ExportMetricsButton({ hasNoData = true, ...props }) {
           ? 'No data to export'
           : loading
             ? 'Fetching all endpoint history…'
-            : `Download full metrics history as CSV (max ${FRONTEND_CONFIG.uptimeMonitor.queryWindowDaysLimit} days)`}
+            : `Download full metrics history as CSV (max ${FRONTEND_CONFIG.uptime.queryWindowDaysLimit} days)`}
       </Tooltip.Content>
     </Tooltip>
   );
