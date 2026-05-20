@@ -12,6 +12,7 @@
  * - initArt: Displays ASCII art banner in production
  */
 
+import { SITE_NAME, SITE_FULL_NAME } from '@/components/common';
 import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { generateAsciiArt } from '@/utils/generateAsciiArt';
 
@@ -35,12 +36,12 @@ export const logger = {
     // if (!isDev) { reportToExternalService(args); }
   },
   initArt: async () => {
-    if (isDev) return;
+    if (!isDev) return;
 
     try {
       const art = await generateAsciiArt({
         src: '/site-logo.png',
-        resolution: 100,
+        resolution: 65,
       });
 
       console.log(
@@ -51,6 +52,7 @@ export const logger = {
         line-height: 1;
         color: #C8A46A;
         `,
+        `\n\n${SITE_NAME} - ${SITE_FULL_NAME}`,
       );
     } catch {
       // ignore
