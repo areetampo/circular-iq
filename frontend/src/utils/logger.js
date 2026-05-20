@@ -36,7 +36,7 @@ export const logger = {
     // if (!isDev) { reportToExternalService(args); }
   },
   initArt: async () => {
-    if (!isDev) return;
+    if (isDev) return;
 
     try {
       const art = await generateAsciiArt({
