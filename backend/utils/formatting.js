@@ -32,7 +32,7 @@ export function safeNumber(value) {
  * @param {boolean} [options.showMonth=true] - Include month in output
  * @param {boolean} [options.showDay=true] - Include day in output
  * @param {boolean} [options.showSeconds=false] - Include seconds in time
- * @param {boolean} [options.showMilliseconds=false] - Include milliseconds in time
+ * @param {boolean} [options.showMs=false] - Include milliseconds in time
  * @param {boolean} [options.use24Hour=false] - Use 24-hour format instead of 12-hour
  * @param {boolean} [options.showTimezone=true] - Include timezone in output
  * @param {'short'|'long'} [options.timezoneStyle='short'] - Timezone display style
@@ -50,7 +50,7 @@ export function formatTimestamp(
     showMonth = true,
     showDay = true,
     showSeconds = false,
-    showMilliseconds = false,
+    showMs = false,
     use24Hour = false,
     showTimezone = true,
     timezoneStyle = 'short', // 'short' | 'long'
@@ -72,9 +72,9 @@ export function formatTimestamp(
     hour: '2-digit',
     minute: '2-digit',
 
-    second: showSeconds || showMilliseconds ? '2-digit' : undefined,
+    second: showSeconds || showMs ? '2-digit' : undefined,
 
-    fractionalSecondDigits: showMilliseconds ? 3 : undefined,
+    fractionalSecondDigits: showMs ? 3 : undefined,
 
     hour12: !use24Hour,
 
