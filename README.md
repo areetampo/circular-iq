@@ -737,7 +737,7 @@ npm run lint      # ESLint
 
 ### Code Quality
 
-**Linting & Formatting**
+#### Linting & Formatting
 
 - **Backend**: ESLint with project config and canonical import aliases
 - **Frontend**: ESLint with React recommended rules and Tailwind plugin
@@ -745,7 +745,7 @@ npm run lint      # ESLint
 - **Git Hooks**: Husky with lint-staged for pre-commit quality checks
 - **Commits**: Conventional commit format (`feat:`, `fix:`, `docs:`, `test:`)
 
-**Import Aliases**
+#### Import Aliases
 
 - **Backend**: Uses `#`-prefixed canonical imports (e.g., `#config/backend.config.js`)
 - **Frontend**: Uses `@/`-prefixed path aliases (e.g., `@/components/common/Button`)
