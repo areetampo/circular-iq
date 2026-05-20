@@ -8,6 +8,7 @@ import { Activity, Minus, RotateCw, ServerCog, ServerOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button, DetailsBadge } from '@/components/common';
+import { formatDuration } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 
 import {
@@ -87,8 +88,8 @@ export default function UptimeMonitorPage() {
 
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 pl-1 text-sm/relaxed text-(--color-text-secondary)">
             <span>
-              Server-polling <span className="font-mono">{ENDPOINTS.length}</span> endpoints every{' '}
-              <span className="font-mono">30s</span>
+              Server-polling {ENDPOINTS.length} endpoints every{' '}
+              {formatDuration({ ms: REFETCH_INTERVAL_MS })}
             </span>
             {dbTotalChecks && (
               <>
@@ -209,7 +210,7 @@ export default function UptimeMonitorPage() {
                 {hasNoData
                   ? 'No data – server unreachable.'
                   : isUsingFallback
-                    ? 'Real‑time connection lost – using polling (every 30s).'
+                    ? `Real‑time connection lost – using polling (every ${formatDuration({ ms: REFETCH_INTERVAL_MS })}).`
                     : 'Real‑time SSE active – updates arrive immediately.'}
               </Tooltip.Content>
             </Tooltip>
@@ -217,7 +218,7 @@ export default function UptimeMonitorPage() {
             {/* Countdown */}
             {!hasNoData && (
               <p className="font-mono text-[0.65rem] font-medium text-(--color-text-muted)">
-                Next update in {nextUpdateSeconds.toString().padStart(2, '0')}s
+                Next update in {formatDuration({ seconds: nextUpdateSeconds })}
               </p>
             )}
           </div>
@@ -265,7 +266,7 @@ export default function UptimeMonitorPage() {
         />
         <StatSummaryCard
           title="Update interval"
-          value={`${REFETCH_INTERVAL_MS / 1000}s`}
+          value={formatDuration({ ms: REFETCH_INTERVAL_MS })}
           subtext="server polling"
         />
       </div>
