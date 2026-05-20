@@ -69,12 +69,6 @@ const baseFrontendSchema = z.object({
     .min(1, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at least 1')
     .max(28, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at most 28'),
 
-  VITE_LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error'], {
-    errorMap: () => ({
-      message: 'VITE_LOG_LEVEL must be info, debug, warn, or error',
-    }),
-  }),
-
   VITE_STRICT_ENV: booleanSchema,
 });
 
@@ -136,8 +130,6 @@ export const frontendSchema = baseFrontendSchema
       .min(1, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at least 1')
       .max(28, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at most 28')
       .default(28),
-
-    VITE_LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']).default('info'),
 
     VITE_STRICT_ENV: booleanSchema.default(false),
   })

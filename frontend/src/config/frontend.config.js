@@ -1,5 +1,3 @@
-// frontend.config.js
-
 /**
  * @module frontend.config
  * @description Central configuration loader and validator for the frontend application.
@@ -20,8 +18,6 @@
  * - routes: Frontend routes and route patterns
  */
 
-import pino from 'pino';
-
 import { FRONTEND_ROUTES } from '@/constants';
 
 import { frontendSchema, testFrontendSchema } from './env.schema';
@@ -34,11 +30,6 @@ import { frontendSchema, testFrontendSchema } from './env.schema';
 // references are guarded by this helper so the module is safe to import in
 // both browser (Vite) and Node (tests / SSR) contexts.
 const proc = typeof process !== 'undefined' ? process : { env: {} };
-
-const logger = pino({
-  name: 'frontend.config',
-  level: import.meta.env.VITE_LOG_LEVEL || proc.env.VITE_LOG_LEVEL || 'info',
-});
 
 /* ------------------------------ */
 /* Snapshot + Validation */
@@ -78,8 +69,6 @@ const rawEnv = {
   VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT:
     import.meta.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ||
     proc.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT,
-
-  VITE_LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || proc.env.VITE_LOG_LEVEL,
 
   VITE_STRICT_ENV: import.meta.env.VITE_STRICT_ENV || proc.env.VITE_STRICT_ENV,
 };
@@ -162,8 +151,6 @@ export const FRONTEND_CONFIG = deepFreeze({
   app: {
     appUrl: env.VITE_APP_URL,
     apiUrl: env.VITE_API_URL,
-
-    logLevel: env.VITE_LOG_LEVEL,
 
     strictEnv: env.VITE_STRICT_ENV,
   },
