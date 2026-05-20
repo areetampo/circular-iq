@@ -11,18 +11,18 @@ import { FRONTEND_CONFIG } from '@/config/frontend.config';
  * Refetch interval in milliseconds from frontend config.
  * @type {number}
  */
-export const REFETCH_INTERVAL_MS = FRONTEND_CONFIG.uptimeMonitor.refetchIntervalMs;
+export const REFETCH_INTERVAL_MS = FRONTEND_CONFIG.uptime.refetchIntervalMs;
 
 /**
  * Maximum history per endpoint from frontend config.
- * 30s interval -> 2/min * 60min * 24h * 28d = 80640, 30d = 86400
- * FRONTEND_CONFIG.uptimeMonitor.maxHistoryPerEndpoint=86400 max checks per endpoint as allowed by backend.
+ * 2 min interval -> 30/hr * 24h * 28d = 20160, 30d = 21600
+ * FRONTEND_CONFIG.uptime.maxHistoryPerEndpoint=21600 max checks per endpoint as allowed by backend.
  * For EndpointCard purpose:
- * 30s interval -> 2/min * 60min * 24h = 2880 checks per endpoint
- * 2880 < 3500 sufficient for past 24 hours of data without overloading.
+ * 2 min interval -> 30/hr * 24h = 720 checks per endpoint
+ * 720 < 1000 sufficient for past 24 hours of data without overloading.
  * @type {number}
  */
-export const MAX_HISTORY_PER_ENDPOINT = 3500;
+export const MAX_HISTORY_PER_ENDPOINT = 1000;
 
 /**
  * Hours of data shown in the GlobalResponseTrendChart.
@@ -63,17 +63,17 @@ const HEATMAP_DEFAULT_WINDOW_DAYS = 28;
  * Used internally for preset comparisons and initial state.
  * @type {number}
  */
-export const HEATMAP_DEFAULT_WINDOW_MINUTES = HEATMAP_DEFAULT_WINDOW_DAYS * 24 * 60;
+export const HEATMAP_DEFAULT_WINDOW_MINUTES = 60 * 24 * HEATMAP_DEFAULT_WINDOW_DAYS;
 
 /**
  * Ordered list of all selectable bucket sizes in minutes.
- * Covers 1 minute through 24 hours. All values divide 1440 (minutes/day) evenly,
+ * Covers 2 minute through 24 hours. All values divide 1440 (minutes/day) evenly,
  * which is required for the backend's generate_series bucket logic to produce
  * clean clock-aligned edges.
  * @type {number[]}
  */
 export const HEATMAP_BUCKET_PRESETS_MINUTES = [
-  1, 5, 10, 15, 20, 30, 45, 60, 120, 180, 240, 360, 480, 720, 1440,
+  2, 3, 5, 10, 15, 20, 30, 45, 60, 120, 180, 240, 360, 480, 720, 1080, 1440,
 ];
 
 /**
@@ -103,7 +103,7 @@ export const HEATMAP_WINDOW_PRESETS_MINUTES = [
  * The backend remains unconstrained — this guard is frontend-only.
  * @type {number}
  */
-export const HEATMAP_MAX_BARS = 28 * (24 / 3); // 224
+export const HEATMAP_MAX_BARS = 28 * (24 / 3); // 224 -> 3h buckets for 28 days
 
 // ── ENDPOINT CARD CONSTANTS ──────────────────────────────────────────────────
 
