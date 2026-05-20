@@ -13,7 +13,7 @@
  * @param {boolean} [options.showMonth=true] - Include month in output.
  * @param {boolean} [options.showDay=true] - Include day in output.
  * @param {boolean} [options.showSeconds=false] - Whether to include seconds.
- * @param {boolean} [options.showMilliseconds=false] - Whether to include milliseconds.
+ * @param {boolean} [options.showMs=false] - Whether to include milliseconds.
  * @param {boolean} [options.use24Hour=false] - Use 24-hour format instead of AM/PM.
  * @param {boolean} [options.showTimezone=true] - Append short timezone name (e.g. GMT).
  * @returns {string} The formatted date string or an error message.
@@ -25,7 +25,7 @@ export function formatTimestamp(
     showMonth = true,
     showDay = true,
     showSeconds = false,
-    showMilliseconds = false,
+    showMs = false,
     use24Hour = false,
     showTimezone = true,
   } = {},
@@ -44,8 +44,8 @@ export function formatTimestamp(
   if (showYear) localeOptions.year = 'numeric';
   if (showMonth) localeOptions.month = 'short';
   if (showDay) localeOptions.day = 'numeric';
-  if (showSeconds || showMilliseconds) localeOptions.second = '2-digit';
-  if (showMilliseconds) localeOptions.fractionalSecondDigits = 3;
+  if (showSeconds || showMs) localeOptions.second = '2-digit';
+  if (showMs) localeOptions.fractionalSecondDigits = 3;
   if (showTimezone) localeOptions.timeZoneName = 'short';
 
   return d.toLocaleString('en-GB', localeOptions);
@@ -276,27 +276,50 @@ export function cleanUrl(urlStr, options = {}) {
  * @param {number} [duration.days=0]
  * @param {number} [duration.hours=0]
  * @param {number} [duration.minutes=0]
- * @returns {string} e.g. "15 mins", "1 day", "1 hr 20 mins"
+ * @param {number} [duration.seconds=0]
+ * @param {number} [duration.ms=0]
+ * @returns {string} e.g. "15 mins", "1 day", "1 hr 20 mins", "5 secs 200 ms"
  *
  * @example
  * formatDuration({ minutes: 15 }); // "15 mins"
  * formatDuration({ hours: 24 }); // "1 day"
+ * formatDuration({ seconds: 5, ms: 200 }); // "5 secs 200 ms"
  */
-export function formatDuration({ days = 0, hours = 0, minutes = 0 } = {}) {
-  const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
-  if (totalMinutes <= 0) return '0 mins';
-  if (totalMinutes === 24 * 60) return '1 day';
+export function formatDuration({ days = 0, hours = 0, minutes = 0, seconds = 0, ms = 0 } = {}) {
+  // Convert everything down to the smallest unit (ms) to sum it up accurately
+  const msInSecond = 1000;
+  const msInMinute = 60 * msInSecond;
+  const msInHour = 60 * msInMinute;
+  const msInDay = 24 * msInHour;
 
-  const wholeDays = Math.floor(totalMinutes / (24 * 60));
-  const remainder = totalMinutes % (24 * 60);
-  const wholeHours = Math.floor(remainder / 60);
-  const wholeMinutes = remainder % 60;
+  const totalMs =
+    days * msInDay + hours * msInHour + minutes * msInMinute + seconds * msInSecond + ms;
+
+  if (totalMs <= 0) return '0 seconds'; // fallback
+
+  // Break down the total ms into chronological chunks
+  const wholeDays = Math.floor(totalMs / msInDay);
+  let remainder = totalMs % msInDay;
+
+  const wholeHours = Math.floor(remainder / msInHour);
+  remainder %= msInHour;
+
+  const wholeMinutes = Math.floor(remainder / msInMinute);
+  remainder %= msInMinute;
+
+  const wholeSeconds = Math.floor(remainder / msInSecond);
+  const wholeMs = remainder % msInSecond;
 
   const parts = [];
   if (wholeDays > 0) parts.push(`${wholeDays} day${wholeDays === 1 ? '' : 's'}`);
   if (wholeHours > 0) parts.push(`${wholeHours} hr${wholeHours === 1 ? '' : 's'}`);
-  if (wholeMinutes > 0 || parts.length === 0) {
-    parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
+  if (wholeMinutes > 0) parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
+  if (wholeSeconds > 0) parts.push(`${wholeSeconds} sec${wholeSeconds === 1 ? '' : 's'}`);
+  if (wholeMs > 0) parts.push(`${wholeMs} ms`);
+
+  // Fallback case: if nothing was pushed because values were all 0 but totalMs > 0
+  if (parts.length === 0) {
+    return '0 seconds';
   }
 
   return parts.join(' ');
