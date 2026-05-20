@@ -1,87 +1,185 @@
+// env.schema.js
+
 /**
  * @module env.schema
- * @description Zod schema for Vite environment variables (URLs, Supabase, test credentials).
+ * @description Zod schemas for validating frontend environment variables.
+ * Defines strict validation rules for all Vite environment variables used by the frontend,
+ * with separate schemas for production/development and test environments.
  */
 
 import { z } from 'zod';
 
-// Helper to handle the "string true" vs "boolean true" mess in .env files
+/* ------------------------------ */
+/* Helpers */
+/* ------------------------------ */
+
 const booleanSchema = z.preprocess((val) => val === 'true' || val === true, z.boolean());
 
-/**
- * Zod schema for frontend environment variables.
- * Validates URLs, credentials, and configuration settings.
- *
- * @type {z.ZodObject<{
- *   VITE_APP_URL: z.ZodString,
- *   VITE_API_URL: z.ZodString,
- *   VITE_TEST_USER_NAME: z.ZodOptional<z.ZodString>,
- *   VITE_TEST_USER_NAME_EXT: z.ZodOptional<z.ZodString>,
- *   VITE_TEST_USER_PASSWORD: z.ZodOptional<z.ZodString>,
- *   VITE_SUPABASE_URL: z.ZodString,
- *   VITE_SUPABASE_ANON_KEY: z.ZodString,
- *   MODE: z.ZodEnum<['development', 'staged', 'test', 'production']>,
- *   PROD: z.ZodBoolean
- * }>}
- */
-export const frontendSchema = z
-  .object({
+/* ------------------------------ */
+/* Base Schema */
+/* ------------------------------ */
+
+const baseFrontendSchema = z.object({
+  MODE: z.enum(['development', 'test', 'staged', 'production', 'frontend'], {
+    errorMap: () => ({
+      message: 'MODE must be development, test, staged, production, or frontend',
+    }),
+  }),
+
+  PROD: booleanSchema,
+
+  DEV: booleanSchema.optional(),
+
+  VITE_APP_URL: z.string().trim().url('VITE_APP_URL must be a valid URL'),
+
+  VITE_API_URL: z.string().trim().url('VITE_API_URL must be a valid URL'),
+
+  VITE_TEST_USER_NAME: z.string().trim().min(1, 'VITE_TEST_USER_NAME is required').optional(),
+
+  VITE_TEST_USER_NAME_EXT: z
+    .string()
+    .trim()
+    .min(1, 'VITE_TEST_USER_NAME_EXT is required')
+    .optional(),
+
+  VITE_TEST_USER_PASSWORD: z
+    .string()
+    .trim()
+    .min(1, 'VITE_TEST_USER_PASSWORD is required')
+    .optional(),
+
+  VITE_SUPABASE_URL: z.string().trim().url('VITE_SUPABASE_URL must be a valid URL'),
+
+  VITE_SUPABASE_ANON_KEY: z.string().trim().min(1, 'VITE_SUPABASE_ANON_KEY is required'),
+
+  VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(5000, 'VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS must be at least 5000ms'),
+
+  VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT: z.coerce
+    .number()
+    .int()
+    .min(1, 'VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at least 1')
+    .max(21600, 'VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 21600'),
+
+  VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT: z.coerce
+    .number()
+    .int()
+    .min(1, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at least 1')
+    .max(28, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at most 28'),
+
+  VITE_LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error'], {
+    errorMap: () => ({
+      message: 'VITE_LOG_LEVEL must be info, debug, warn, or error',
+    }),
+  }),
+
+  VITE_STRICT_ENV: booleanSchema,
+});
+
+/* ------------------------------ */
+/* Main Schema */
+/* ------------------------------ */
+
+export const frontendSchema = baseFrontendSchema
+  .extend({
     MODE: z
-      .enum(['development', 'staged', 'test', 'production', 'frontend'], {
-        errorMap: () => ({
-          message: 'MODE must be development, staged, test, production, or frontend',
-        }),
-      })
+      .enum(['development', 'test', 'staged', 'production', 'frontend'])
       .default('development')
       .transform((val) => (val === 'frontend' ? 'development' : val)),
+
     PROD: booleanSchema.default(false),
 
-    VITE_APP_URL: z.string().trim().url('VITE_APP_URL must be a valid URL'),
-    VITE_API_URL: z.string().trim().url('VITE_API_URL must be a valid URL'),
+    DEV: booleanSchema.default(true),
 
-    VITE_TEST_USER_NAME: z.string().trim().min(1, 'VITE_TEST_USER_NAME is required').optional(),
-    VITE_TEST_USER_NAME_EXT: z
+    VITE_APP_URL: z
       .string()
       .trim()
-      .min(1, 'VITE_TEST_USER_NAME_EXT is required')
-      .optional(),
-    VITE_TEST_USER_PASSWORD: z
+      .url('VITE_APP_URL must be a valid URL')
+      .default('http://localhost:5173'),
+
+    VITE_API_URL: z
       .string()
       .trim()
-      .min(1, 'VITE_TEST_USER_PASSWORD is required')
-      .optional(),
+      .url('VITE_API_URL must be a valid URL')
+      .default('http://localhost:3001'),
 
-    VITE_SUPABASE_URL: z.string().trim().url('VITE_SUPABASE_URL must be a valid URL'),
-    VITE_SUPABASE_ANON_KEY: z.string().trim().min(1, 'Supabase Anon Key is required'),
+    VITE_SUPABASE_URL: z
+      .string()
+      .trim()
+      .url('VITE_SUPABASE_URL must be a valid URL')
+      .default('http://localhost:54321'),
+
+    VITE_SUPABASE_ANON_KEY: z
+      .string()
+      .trim()
+      .min(1, 'VITE_SUPABASE_ANON_KEY is required')
+      .default('test-anon-key'),
 
     VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS: z.coerce
       .number()
       .int()
       .min(5000, 'VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS must be at least 5000ms')
-      .default(30000),
+      .default(120000),
+
     VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT: z.coerce
       .number()
       .int()
       .min(1, 'VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at least 1')
-      .max(86400, 'VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 86400')
-      .default(86400),
+      .max(21600, 'VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 21600')
+      .default(21600),
+
     VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT: z.coerce
       .number()
       .int()
       .min(1, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at least 1')
       .max(28, 'VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT must be at most 28')
       .default(28),
+
+    VITE_LOG_LEVEL: z.enum(['info', 'debug', 'warn', 'error']).default('info'),
+
+    VITE_STRICT_ENV: booleanSchema.default(false),
   })
   .refine(
     (data) => {
-      // If in production, VITE_API_URL should not be localhost
       if (data.PROD && data.VITE_API_URL.includes('localhost')) {
         return false;
       }
+
       return true;
     },
     {
       message: 'Production build cannot use localhost API URL',
       path: ['VITE_API_URL'],
     },
+  )
+  .refine(
+    (data) => {
+      if (data.PROD && data.VITE_APP_URL.includes('localhost')) {
+        return false;
+      }
+
+      return true;
+    },
+    {
+      message: 'Production build cannot use localhost APP URL',
+      path: ['VITE_APP_URL'],
+    },
   );
+
+/* ------------------------------ */
+/* Test Schema */
+/* ------------------------------ */
+
+export const testFrontendSchema = baseFrontendSchema.refine(
+  (data) => {
+    if (!data.PROD) return true;
+
+    return !data.VITE_API_URL.includes('localhost');
+  },
+  {
+    message: 'Production build cannot use localhost API URL',
+    path: ['VITE_API_URL'],
+  },
+);
