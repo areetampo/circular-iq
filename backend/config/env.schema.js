@@ -77,6 +77,10 @@ const baseEnvSchema = z.object({
     .int()
     .positive('SUPABASE_CONNECTION_LIMIT must be a positive integer'),
   SUPABASE_CONNECTION_STRING: z.string().trim().min(1, 'SUPABASE_CONNECTION_STRING is required'),
+  SUPABASE_IDLE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive('SUPABASE_IDLE_TIMEOUT_MS must be a positive integer'),
 
   AIVEN_HOST: z.string().trim().min(1, 'AIVEN_HOST is required'),
   AIVEN_PORT: z.coerce.number().int().positive('AIVEN_PORT must be a positive integer'),
@@ -93,6 +97,10 @@ const baseEnvSchema = z.object({
     .int()
     .positive('AIVEN_CONNECTION_LIMIT must be a positive integer'),
   AIVEN_CONNECTION_STRING: z.string().trim().min(1, 'AIVEN_CONNECTION_STRING is required'),
+  AIVEN_IDLE_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive('AIVEN_IDLE_TIMEOUT_MS must be a positive integer'),
   AIVEN_CA_CERT: z.string().trim().min(1, 'AIVEN_CA_CERT is required for SSL verification'),
 
   USE_SUPABASE_DOCUMENTS_TABLE: booleanSchema,
@@ -110,7 +118,7 @@ const baseEnvSchema = z.object({
     .number()
     .int()
     .min(1, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at least 1')
-    .max(86400, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 86400'),
+    .max(21600, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 21600'),
   UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT: z.coerce
     .number()
     .int()
@@ -119,8 +127,7 @@ const baseEnvSchema = z.object({
   UPTIME_CHECKS_RETENTION_DAYS: z.coerce
     .number()
     .int()
-    .min(1, 'UPTIME_CHECKS_RETENTION_DAYS must be at least 1')
-    .max(30, 'UPTIME_CHECKS_RETENTION_DAYS must be at most 30'),
+    .min(1, 'UPTIME_CHECKS_RETENTION_DAYS must be at least 1'),
   UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema,
   UPTIME_CHECKS_CLEANUP_INTERVAL_MS: z.coerce
     .number()
@@ -162,6 +169,11 @@ export const envSchema = baseEnvSchema
       .int()
       .positive('SUPABASE_CONNECTION_LIMIT must be a positive integer')
       .default(20),
+    SUPABASE_IDLE_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .positive('SUPABASE_IDLE_TIMEOUT_MS must be a positive integer')
+      .default(30000),
 
     // Aiven defaults
     AIVEN_PORT: z.coerce
@@ -174,6 +186,11 @@ export const envSchema = baseEnvSchema
       .int()
       .positive('AIVEN_CONNECTION_LIMIT must be a positive integer')
       .default(20),
+    AIVEN_IDLE_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .positive('AIVEN_IDLE_TIMEOUT_MS must be a positive integer')
+      .default(30000),
     AIVEN_SSL_MODE: z
       .enum(['disable', 'require', 'verify-ca', 'verify-full'], {
         errorMap: () => ({
@@ -194,13 +211,13 @@ export const envSchema = baseEnvSchema
       .number()
       .int()
       .min(5000, 'UPTIME_CHECKS_POLL_INTERVAL_MS must be at least 5000ms')
-      .default(30000),
+      .default(120000),
     UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT: z.coerce
       .number()
       .int()
       .min(1, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at least 1')
-      .max(86400, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 86400')
-      .default(86400),
+      .max(21600, 'UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT must be at most 21600')
+      .default(21600),
     UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT: z.coerce
       .number()
       .int()
@@ -211,7 +228,6 @@ export const envSchema = baseEnvSchema
       .number()
       .int()
       .min(1, 'UPTIME_CHECKS_RETENTION_DAYS must be at least 1')
-      .max(30, 'UPTIME_CHECKS_RETENTION_DAYS must be at most 30')
       .default(30),
     UPTIME_CHECKS_CLEANUP_ON_START: booleanSchema.default(true),
     UPTIME_CHECKS_CLEANUP_INTERVAL_MS: z.coerce
@@ -251,18 +267,16 @@ export const envSchema = baseEnvSchema
  * Ensures tests run with known, controlled configuration.
  * @type {z.ZodObject<any, any, any, any>}
  */
-export const testEnvSchema = baseEnvSchema
-  .extend({}) // no defaults – all fields required
-  .refine(
-    (data) => {
-      // If auth is OFF, we don't care what API_KEY is
-      if (!data.API_AUTH_ENABLED) return true;
+export const testEnvSchema = baseEnvSchema.refine(
+  (data) => {
+    // If auth is OFF, we don't care what API_KEY is
+    if (!data.API_AUTH_ENABLED) return true;
 
-      // If auth is ON, API_KEY MUST exist and be non-empty
-      return !!data.API_KEY && data.API_KEY.trim().length > 0;
-    },
-    {
-      message: 'API_KEY is required when API_AUTH_ENABLED is true',
-      path: ['API_KEY'],
-    },
-  );
+    // If auth is ON, API_KEY MUST exist and be non-empty
+    return !!data.API_KEY && data.API_KEY.trim().length > 0;
+  },
+  {
+    message: 'API_KEY is required when API_AUTH_ENABLED is true',
+    path: ['API_KEY'],
+  },
+);
