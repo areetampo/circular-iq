@@ -131,7 +131,7 @@ AIVEN_SSL_CA=-----BEGIN CERTIFICATE-----...  # PEM cert (required for Aiven TLS)
 AIVEN_CONNECTION_STRING=postgresql://avnadmin:[password]@host:25060/defaultdb?sslmode=require
 
 # Pool settings (both backends)
-DB_CONNECTION_LIMIT=10
+DB_CONNECTION_LIMIT=20
 DB_IDLE_TIMEOUT_MS=30000
 ```
 
@@ -590,7 +590,7 @@ CE cases are read-only reference data for authenticated and anonymous users. Onl
 
 **File:** `07_uptime_monitor.sql`
 
-Creates the uptime monitoring infrastructure for tracking backend health check history with real-time streaming capabilities. The backend polls endpoints every 30 seconds in production, stores results in this table with a configurable retention policy (default 15 days, controlled via `BACKEND_CONFIG.uptime.retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS`), and provides five DB-level analytics RPCs for bucketed chart data plus a cleanup function, with live updates delivered via Server-Sent Events (SSE).
+Creates the uptime monitoring infrastructure for tracking backend health check history with real-time streaming capabilities. The backend polls endpoints every `env.UPTIME_CHECKS_POLL_INTERVAL_MS` in production, stores results in this table with a configurable retention policy (default 15 days, controlled via `env.UPTIME_CHECKS_RETENTION_DAYS`), and provides five DB-level analytics RPCs for bucketed chart data plus a cleanup function, with live updates delivered via Server-Sent Events (SSE).
 
 > **Database-Level Configuration**
 > This migration reads two runtime constants from `app.settings` (populated by `00_app_settings.sql`) via `app.get_setting()`:
@@ -606,7 +606,7 @@ Creates the uptime monitoring infrastructure for tracking backend health check h
 
 ### Environment-Controlled Cleanup
 
-**Important**: The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`):
+**Important**: The uptime table cleanup is controlled by the `env.UPTIME_CHECKS_CLEANUP_ON_START` environment variable (default: `true`):
 
 - **Default**: `true` - wipes the `uptime_checks` table on server start
 - **Set to `false`**: preserves existing uptime data across server restarts
@@ -653,7 +653,7 @@ The uptime monitoring system includes real-time streaming capabilities:
 
 - **SSE Endpoint**: `/api/uptime/stream` provides live updates to connected clients
 - **Broadcast System**: `uptime.broadcaster.js` manages client connections and event broadcasting
-- **Events**: `connected` (on join), `poll-complete` (after each polling cycle), heartbeat (every 30s)
+- **Events**: `connected` (on join), `poll-complete` (after each polling cycle), heartbeat (every )
 - **Fallback**: Automatic fallback to polling when SSE connection is lost
 - **Client Management**: Frontend handles connection lifecycle with reconnection logic
 
@@ -662,8 +662,8 @@ The uptime monitoring system is designed to run **only in production** environme
 ```js
 // backend.config.js
 uptime: {
-  pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS,  // default 30000ms
-  retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS,      // default 15 days
+  pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS,
+  retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS,
   pollingEnabled: env.NODE_ENV === 'production',
   cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START,
   cleanupIntervalDurationMs: 24 * 60 * 60 * 1000,
@@ -675,7 +675,7 @@ This prevents duplicate data during development and ensures clean monitoring dat
 
 ### Cleanup Function
 
-**`cleanup_old_uptime_checks(days INTEGER DEFAULT 30)`** — Deletes uptime check records older than the specified number of days. Uses `TRUNCATE` when `days=0` for complete table cleanup. Returns `BIGINT` row count deleted (0 for TRUNCATE). Called daily by the backend server (production only). This is an administrative retention function, not a query-window function — it is intentionally **not** capped at 30 days so it can be used for manual cleanup or disaster recovery of older data.
+**`cleanup_old_uptime_checks(days INTEGER DEFAULT 30)`** — Deletes uptime check records older than the specified number of days. Uses `TRUNCATE` when `days=0` for complete table cleanup. Returns `BIGINT` row count deleted (0 for TRUNCATE). Called daily by the backend server (production only). This is an administrative retention function, not a query-window function — it is intentionally **not** capped at 30 days so it can be used for manual cleanup or disaster recovery of older data. Retention days configurable via `env.UPTIME_CHECKS_RETENTION_DAYS`.
 
 ### SQL Aggregation Functions
 

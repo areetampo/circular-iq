@@ -13,7 +13,7 @@ The backend is the core of the RAG (Retrieval-Augmented Generation) system:
 2. **Hybrid Search** — combines semantic vector similarity (pgvector HNSW) with BM25 keyword matching
 3. **Assessment Scoring** — 8-dimensional scoring system with 3-layer enrichment (deterministic + LLM)
 4. **API Layer** — REST endpoints for scoring, assessment management, analytics, and search
-5. **Uptime Monitoring** — automated health checks every 30 seconds with 30-day retention and real-time dashboard
+5. **Uptime Monitoring** — automated health checks every 2 mins with 30-day retention and real-time dashboard
 6. **Analytics** — global dashboard stats from `scoring_results_log` covering all users and sessions
 
 ## Layered Architecture
@@ -349,7 +349,7 @@ Stores health check monitoring data with automatic cleanup and production-only p
 
 **Features:**
 
-- Configurable automatic data retention (default 30 days)
+- Configurable automatic data retention
 - Production-only polling to avoid dev data duplication
 - Optimized indexes for time-series queries
 - Autovacuum tuning for high-frequency inserts
@@ -572,7 +572,7 @@ Validate assessment ID exists and is shareable. Supports user access to their ow
 | Method | Endpoint                          | Auth | Description                                                      |
 | ------ | --------------------------------- | ---- | ---------------------------------------------------------------- |
 | `GET`  | `/api/uptime/count`               | None | Get total number of uptime checks (optionally per endpoint)      |
-| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint (max 86400)         |
+| `GET`  | `/api/uptime/history/:endpointId` | None | Retrieve recent checks for specific endpoint                     |
 | `GET`  | `/api/uptime/stream`              | None | SSE stream for real-time uptime updates with fallback to polling |
 | `GET`  | `/api/uptime/daily-stats`         | None | Get daily uptime statistics for the last N days                  |
 | `GET`  | `/api/uptime/heatmap-aggregated`  | None | Get aggregated heatmap buckets for uptime visualization          |
@@ -603,7 +603,7 @@ Retrieve recent uptime checks for a specific endpoint.
 
 **Query Parameters:**
 
-- `limit` — number of results to return (frontend default 3500, backend max 86400)
+- `limit` — number of results to return
 
 **Response:**
 
@@ -663,13 +663,13 @@ X-Accel-Buffering: no
   }
   ```
 
-- Heartbeat - Comment every 30 seconds to maintain connection
+- Heartbeat - Comment every `env.UPTIME_CHECKS_POLL_INTERVAL_MS` to maintain connection
 
 **Features:**
 
 - Automatic fallback to polling if SSE connection is lost
 - Client connection management via `uptime.broadcaster.js`
-- 30-second heartbeat to prevent connection timeouts
+- `env.UPTIME_CHECKS_POLL_INTERVAL_MS` heartbeat to prevent connection timeouts
 - Error handling with automatic client cleanup on disconnect
 
 #### GET `/api/uptime/daily-stats`
@@ -769,16 +769,16 @@ The backend includes a comprehensive uptime monitoring system that tracks health
 
 ### Architecture
 
-- **Polling Service**: Runs every 30 seconds in production (`NODE_ENV=production` only)
-- **Health Checks**: Monitors `/health`, `/health/database`, `/health/openai`, and other endpoints
-- **Data Storage**: Stores results in `uptime_checks` table with 30-day retention (configurable via `UPTIME_CHECKS_RETENTION_DAYS`)
-- **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`
-- **Environment-Controlled Cleanup**: `UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`)
-- **SSE Streaming**: Real-time updates via `/api/uptime/stream` endpoint with client connection management
-- **Clock-Aligned Buckets**: Toggleable UI feature — bucket boundaries snap to clean UTC clock marks instead of rolling windows
-- **Broadcast System**: `uptime.broadcaster.js` manages SSE client connections and event broadcasting
-- **Fallback Mechanism**: Automatic fallback to polling when SSE connection is lost
-- **Runtime Config**: Warning threshold and query window cap are read from `app.settings` via `app.get_setting()` — no hardcoded constants in SQL functions
+- **Polling Service**: Runs every `env.UPTIME_CHECKS_POLL_INTERVAL_MS` in production.
+- **Health Checks**: Monitors `/health`, `/health/database`, `/health/openai`, and other endpoints.
+- **Data Storage**: Stores results in `uptime_checks` table with 30-day retention (configurable via `env.UPTIME_CHECKS_RETENTION_DAYS`).
+- **Automatic Cleanup**: Daily job removes old data via `cleanup_old_uptime_checks()`.
+- **Environment-Controlled Cleanup**: `env.UPTIME_CHECKS_CLEANUP_ON_START` variable controls table reset on server start (default: `true`).
+- **SSE Streaming**: Real-time updates via `/api/uptime/stream` endpoint with client connection management.
+- **Clock-Aligned Buckets**: Toggleable UI feature — bucket boundaries snap to clean UTC clock marks instead of rolling windows.
+- **Broadcast System**: `uptime.broadcaster.js` manages SSE client connections and event broadcasting.
+- **Fallback Mechanism**: Automatic fallback to polling when SSE connection is lost.
+- **Runtime Config**: Warning threshold and query window cap are read from `app.settings` via `app.get_setting()` — no hardcoded constants in SQL functions.
 
 ### Configuration
 
@@ -801,7 +801,7 @@ uptime: {
 
 ### Environment-Controlled Cleanup
 
-The uptime table cleanup is controlled by the `UPTIME_CHECKS_CLEANUP_ON_START` environment variable:
+The uptime table cleanup is controlled by the `env.UPTIME_CHECKS_CLEANUP_ON_START` environment variable:
 
 - **Default**: `true` - wipes the `uptime_checks` table on server start
 - **Set to `false`**: preserves existing uptime data across server restarts
@@ -814,7 +814,7 @@ This replaces the previous pre-push hook approach, giving you more control over 
 | Method | Endpoint                                                                                | Description                                              |
 | ------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | GET    | `/api/uptime/count`                                                                     | Total checks stored in DB                                |
-| GET    | `/api/uptime/history/:endpointId`                                                       | Raw checks for one endpoint (max 86400)                  |
+| GET    | `/api/uptime/history/:endpointId`                                                       | Raw checks for one endpoint                              |
 | GET    | `/api/uptime/stream`                                                                    | SSE stream — pushes `poll-complete` events               |
 | GET    | `/api/uptime/daily-stats?days=28`                                                       | Daily uptime % per day (max `queryWindowDaysLimit` days) |
 | GET    | `/api/uptime/heatmap-aggregated?bucketMinutes=180&days=28&clockAligned=false`           | Bucketed heatmap data, supports clock-aligned            |
@@ -1121,7 +1121,7 @@ All dataset extraction scripts follow comprehensive documentation conventions:
 
 ### File-Level Headers (Required)
 
-Every script includes a JSDoc block (lines 1–30):
+Every script includes a JSDoc block:
 
 ```js
 /**

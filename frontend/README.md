@@ -13,7 +13,7 @@ The frontend provides:
 2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
 3. **Solutions Search** — semantic search across 6,000+ real circular economy case studies
 4. **Global Activity** — live analytics from all scoring calls worldwide
-5. **Uptime Monitoring** — real-time system health dashboard with SSE streaming, 30-second polling and toggleable clock-aligned bucket display
+5. **Uptime Monitoring** — real-time system health dashboard with SSE streaming, configurable polling duration and toggleable clock-aligned bucket display
 6. **Export Functionality** — PDF reports and CSV data exports
 7. **Assessment History** — save, rename, delete, compare, and share assessments
 8. **Session Management** — automatic save/restore across browser sessions
@@ -148,12 +148,12 @@ VITE_ENABLE_ANALYTICS=true
 Access configuration via `FRONTEND_CONFIG` anywhere in the app:
 
 ```js
-import { FRONTEND_CONFIG } from '@/config';
+import { FRONTEND_CONFIG } from '@/config/frontend.config';
 
-FRONTEND_CONFIG.apiUrl; // Backend URL
+FRONTEND_CONFIG.app.appUrl; // Frontend URL
+FRONTEND_CONFIG.app.apiUrl; // Backend URL
 FRONTEND_CONFIG.supabaseUrl; // Supabase URL
 FRONTEND_CONFIG.supabaseAnonKey; // Anon key
-FRONTEND_CONFIG.appUrl; // Frontend URL
 ```
 
 ## Development

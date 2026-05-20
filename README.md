@@ -97,8 +97,8 @@ The platform guides users through a structured assessment and returns a complete
 
 The application includes a real-time uptime monitoring dashboard that tracks all backend health endpoints:
 
-- **Backend polling** — production-only; pings all health endpoints every 30s, batch-inserts results into `uptime_checks`, then broadcasts a `poll-complete` SSE event to all connected clients
-- **30-day retention** — configurable via `UPTIME_CHECKS_RETENTION_DAYS`; cleanup runs daily in production
+- **Backend polling** — production-only; pings all health endpoints every 2 min (configurable via `env.UPTIME_CHECKS_POLL_INTERVAL_MS`), batch-inserts results into `uptime_checks`, then broadcasts a `poll-complete` SSE event to all connected clients
+- **30-day retention** — configurable via `env.UPTIME_CHECKS_RETENTION_DAYS`; cleanup runs daily in production
 - **SSE streaming** — `/api/uptime/stream` delivers live updates instantly; frontend falls back to HTTP polling automatically if the connection drops
 - **Clock-aligned buckets** — toggleable UI feature that snaps all chart bucket boundaries to clean clock marks (whole hours, whole 15-min slots) instead of rolling from the current moment
 - **DB aggregation** — all chart data (heatmaps, trend lines, latency bars) is computed server-side via SQL RPCs; no client-side number crunching on large datasets
@@ -462,7 +462,7 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 | Method | Endpoint                                   | Auth     | Description                                                   |
 | ------ | ------------------------------------------ | -------- | ------------------------------------------------------------- |
 | `GET`  | `/api/uptime/count`                        | Optional | Get total number of uptime checks (optionally per endpoint)   |
-| `GET`  | `/api/uptime/history/:endpointId`          | Optional | Retrieve recent checks for specific endpoint (max 86400)      |
+| `GET`  | `/api/uptime/history/:endpointId`          | Optional | Retrieve recent checks for specific endpoint                  |
 | `GET`  | `/api/uptime/stream`                       | Optional | SSE stream for real-time uptime updates (fallback to polling) |
 | `GET`  | `/api/uptime/daily-stats`                  | Optional | Get daily uptime statistics for the last N days               |
 | `GET`  | `/api/uptime/heatmap-aggregated`           | Optional | Get aggregated heatmap buckets for uptime visualization       |
