@@ -967,5 +967,5 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 ## License
 
 **LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
 **Last Updated:** 20 May 2026
