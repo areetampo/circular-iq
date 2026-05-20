@@ -43,6 +43,7 @@ const logger = pino({
 /* ------------------------------ */
 
 const schema = (process.env.NODE_ENV || '').toLowerCase() === 'test' ? testEnvSchema : envSchema;
+const rawEnv = { ...process.env };
 const parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
@@ -72,7 +73,7 @@ const env = Object.freeze({ ...parsed.data });
 
 if (env.STRICT_ENV) {
   const missingExplicit = Object.entries(parsed.data)
-    .filter(([key]) => !(key in process.env))
+    .filter(([key]) => !(key in rawEnv) || rawEnv[key] === undefined)
     .map(([key]) => key);
 
   if (missingExplicit.length > 0) {
@@ -102,6 +103,8 @@ const deepFreeze = (obj) => {
 /* ------------------------------ */
 /* Config Object */
 /* ------------------------------ */
+
+const isProduction = env.NODE_ENV === 'production';
 
 /**
  * List of database function names used in the application. This centralizes the function names, making it easier to manage and refactor database interactions. The actual function names in the database are expected to match these, but if we need to change them, we can do so here without affecting the rest of the codebase.
@@ -157,7 +160,7 @@ const parseAllowedOrigins = () => {
 export const BACKEND_CONFIG = deepFreeze({
   port: env.PORT,
   nodeEnv: env.NODE_ENV,
-  isProduction: env.NODE_ENV === 'production',
+  isProduction,
 
   testCredentials: {
     username: env.TEST_USER_NAME,
@@ -182,6 +185,7 @@ export const BACKEND_CONFIG = deepFreeze({
     password: env.SUPABASE_PASSWORD,
     connectionLimit: env.SUPABASE_CONNECTION_LIMIT,
     connectionString: env.SUPABASE_CONNECTION_STRING,
+    idleTimeoutMs: env.SUPABASE_IDLE_TIMEOUT_MS,
   },
 
   aiven: {
@@ -194,6 +198,7 @@ export const BACKEND_CONFIG = deepFreeze({
     sslMode: env.AIVEN_SSL_MODE,
     connectionLimit: env.AIVEN_CONNECTION_LIMIT,
     connectionString: env.AIVEN_CONNECTION_STRING,
+    idleTimeoutMs: env.AIVEN_IDLE_TIMEOUT_MS,
     sslCA: env.AIVEN_CA_CERT,
   },
 
@@ -217,9 +222,9 @@ export const BACKEND_CONFIG = deepFreeze({
   },
 
   uptime: {
-    pollingEnabled: env.NODE_ENV === 'production', // Only run polling and cleanup in production to avoid duplicate data during development
-    pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS, // 30 seconds
-    maxHistoryPerEndpoint: env.UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 30s interval -> 2/min * 60min * 24h * 28d = 80640 max checks per endpoint -> 30d = 86400 chosen as sufficient
+    pollingEnabled: isProduction, // Only run polling and cleanup in production to avoid duplicate data during development
+    pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS, // 2 min
+    maxHistoryPerEndpoint: env.UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 2min interval -> 30/hr * 24h * 28d = 20160 max checks per endpoint -> 30d = 21600 chosen as sufficient
     queryWindowDaysLimit: env.UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
     retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS, // 30 days
     cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
