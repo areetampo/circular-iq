@@ -1,168 +1,207 @@
+// frontend.config.js
+
 /**
  * @module frontend.config
- * @description Validated, frozen frontend configuration from Vite env vars.
- * Exports FRONTEND_CONFIG (app URL, API URL, Supabase keys, anon scoring limit, routes).
- * In test mode, validation is bypassed with safe defaults.
+ * @description Central configuration loader and validator for the frontend application.
+ * Loads and validates Vite environment variables via Zod schemas, freezes configuration
+ * immutably to prevent runtime changes, and supports strict mode for test environments.
+ *
+ * Environment sources (in order of precedence):
+ * 1. Vite import.meta.env
+ * 2. Process environment variables (tests/SSR)
+ *
+ * Exports FRONTEND_CONFIG object with sections:
+ * - nodeEnv: MODE string
+ * - isProduction: Boolean flag
+ * - app: Frontend application settings
+ * - supabase: Supabase client configuration
+ * - uptime: Uptime monitor configuration
+ * - testCredentials: E2E / integration test credentials
+ * - routes: Frontend routes and route patterns
  */
+
+import pino from 'pino';
 
 import { FRONTEND_ROUTES } from '@/constants';
 
-import { frontendSchema } from './env.schema';
+import { frontendSchema, testFrontendSchema } from './env.schema';
+
+/* ------------------------------ */
+/* Browser-safe process.env access */
+/* ------------------------------ */
+
+// process is a Node.js global unavailable in the browser. All process.env
+// references are guarded by this helper so the module is safe to import in
+// both browser (Vite) and Node (tests / SSR) contexts.
+const proc = typeof process !== 'undefined' ? process : { env: {} };
+
+const logger = pino({
+  name: 'frontend.config',
+  level: import.meta.env.VITE_LOG_LEVEL || proc.env.VITE_LOG_LEVEL || 'info',
+});
+
+/* ------------------------------ */
+/* Snapshot + Validation */
+/* ------------------------------ */
 
 const rawEnv = {
-  MODE: import.meta.env.MODE || process.env.MODE || process.env.NODE_ENV || 'development',
-  PROD: import.meta.env.PROD ?? process.env.NODE_ENV === 'production',
+  MODE: import.meta.env.MODE || proc.env.MODE || proc.env.NODE_ENV || 'development',
 
-  VITE_APP_URL: import.meta.env.VITE_APP_URL || process.env.VITE_APP_URL || 'http://localhost:5173',
-  VITE_API_URL: import.meta.env.VITE_API_URL || process.env.VITE_API_URL || 'http://localhost:3000',
+  PROD: import.meta.env.PROD ?? proc.env.PROD ?? proc.env.NODE_ENV === 'production',
 
-  VITE_TEST_USER_NAME: import.meta.env.VITE_TEST_USER_NAME || process.env.VITE_TEST_USER_NAME,
+  DEV: import.meta.env.DEV ?? proc.env.DEV ?? proc.env.NODE_ENV !== 'production',
+
+  VITE_APP_URL: import.meta.env.VITE_APP_URL || proc.env.VITE_APP_URL,
+
+  VITE_API_URL: import.meta.env.VITE_API_URL || proc.env.VITE_API_URL,
+
+  VITE_TEST_USER_NAME: import.meta.env.VITE_TEST_USER_NAME || proc.env.VITE_TEST_USER_NAME,
+
   VITE_TEST_USER_NAME_EXT:
-    import.meta.env.VITE_TEST_USER_NAME_EXT || process.env.VITE_TEST_USER_NAME_EXT,
-  VITE_TEST_USER_PASSWORD:
-    import.meta.env.VITE_TEST_USER_PASSWORD || process.env.VITE_TEST_USER_PASSWORD,
+    import.meta.env.VITE_TEST_USER_NAME_EXT || proc.env.VITE_TEST_USER_NAME_EXT,
 
-  VITE_SUPABASE_URL:
-    import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'http://localhost:54321',
-  VITE_SUPABASE_ANON_KEY:
-    import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'test-key',
+  VITE_TEST_USER_PASSWORD:
+    import.meta.env.VITE_TEST_USER_PASSWORD || proc.env.VITE_TEST_USER_PASSWORD,
+
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || proc.env.VITE_SUPABASE_URL,
+
+  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || proc.env.VITE_SUPABASE_ANON_KEY,
 
   VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS:
     import.meta.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS ||
-    process.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS ||
-    30000,
+    proc.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS,
+
   VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT:
     import.meta.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT ||
-    process.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT ||
-    86400,
+    proc.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT,
+
   VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT:
     import.meta.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ||
-    process.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ||
-    28,
+    proc.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT,
+
+  VITE_LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || proc.env.VITE_LOG_LEVEL,
+
+  VITE_STRICT_ENV: import.meta.env.VITE_STRICT_ENV || proc.env.VITE_STRICT_ENV,
 };
 
-const result = frontendSchema.safeParse(rawEnv);
+const schema = (rawEnv.MODE || '').toLowerCase() === 'test' ? testFrontendSchema : frontendSchema;
 
-// Helper for deep freezing
+const parsed = schema.safeParse(rawEnv);
+
+if (!parsed.success) {
+  logger.error({ error: parsed.error.format() }, '✕ Frontend environment validation failed');
+
+  const isTestEnv = (rawEnv.MODE || '').toLowerCase() === 'test';
+
+  if (isTestEnv) {
+    logger.error(
+      '✕ Test frontend environment validation failed, ensure all required variables are set',
+    );
+  } else {
+    logger.error(
+      '✕ Frontend environment validation failed, check your environment variables configuration',
+    );
+  }
+
+  throw new Error('Invalid frontend environment configuration');
+}
+
+const env = Object.freeze({ ...parsed.data });
+
+/* ------------------------------ */
+/* Strict CI Enforcement */
+/* ------------------------------ */
+
+if (env.VITE_STRICT_ENV) {
+  const missingExplicit = Object.entries(parsed.data)
+    .filter(([key]) => !(key in rawEnv) || rawEnv[key] === undefined)
+    .map(([key]) => key);
+
+  if (missingExplicit.length > 0) {
+    logger.error({ missingExplicit }, '✕ VITE_STRICT_ENV enabled and missing explicit values');
+
+    throw new Error(`Missing required explicit frontend env values: ${missingExplicit.join(', ')}`);
+  }
+}
+
+/* ------------------------------ */
+/* Deep Freeze */
+/* ------------------------------ */
+
 const deepFreeze = (obj) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
     if (obj[prop] !== null && typeof obj[prop] === 'object' && !Object.isFrozen(obj[prop])) {
       deepFreeze(obj[prop]);
     }
   });
+
   return Object.freeze(obj);
 };
 
-// Handle Test Mode / Failure Logic
-let validatedConfig;
+/* ------------------------------ */
+/* Production Safety Checks */
+/* ------------------------------ */
 
-// Test mode bypass: skip all validation if running in test mode
-const isTest = rawEnv.MODE === 'test' || process.env.NODE_ENV === 'test';
-if (isTest) {
-  validatedConfig = {
-    isProd: false,
-    mode: 'test',
-
-    appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
-    apiUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
-
-    testCredentials: {
-      username: import.meta.env.VITE_TEST_USER_NAME,
-      usernameExt: import.meta.env.VITE_TEST_USER_NAME_EXT,
-      password: import.meta.env.VITE_TEST_USER_PASSWORD,
-    },
-
-    supabase: {
-      url: import.meta.env.VITE_SUPABASE_URL ?? 'https://test.supabase.co',
-      anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'test-anon-key',
-    },
-
-    uptimeMonitor: {
-      refetchIntervalMs: import.meta.env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS ?? 30000, // Frontend polling interval for uptime monitor data (matches backend)
-      maxHistoryPerEndpoint: import.meta.env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT ?? 86400, // 30s interval -> 2/min * 60min * 24h * 28d = 80640 max checks per endpoint -> 30d = 86400 chosen as sufficient
-      queryWindowDaysLimit: import.meta.env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT ?? 28, // 28 days
-    },
-  };
-  // Skip all validation in test mode
-} else {
-  if (!result.success) {
-    logger.error('Frontend Environment Validation Failed:', result.error.flatten().fieldErrors);
-    if (import.meta.env.DEV) {
-      alert('Environment Variable Error: Check browser console');
-    }
-    throw new Error('Invalid environment configuration');
-  } else {
-    // 2. Handle Success Logic
-    const env = result.data;
-    // Only reject localhost FRONTEND URL and API URL in production builds
-    if (env.PROD && env.VITE_APP_URL && env.VITE_APP_URL.includes('localhost')) {
-      throw new Error('Production build cannot use localhost APP URL');
-    }
-    if (env.PROD && env.VITE_API_URL && env.VITE_API_URL.includes('localhost')) {
-      throw new Error('Production build cannot use localhost API URL');
-    }
-    validatedConfig = {
-      isProd: env.PROD,
-      mode: env.MODE,
-
-      appUrl: env.VITE_APP_URL,
-      apiUrl: env.VITE_API_URL,
-
-      testCredentials: {
-        username: env.VITE_TEST_USER_NAME,
-        usernameExt: env.VITE_TEST_USER_NAME_EXT,
-        password: env.VITE_TEST_USER_PASSWORD,
-      },
-
-      supabase: {
-        url: env.VITE_SUPABASE_URL,
-        anonKey: env.VITE_SUPABASE_ANON_KEY,
-      },
-
-      uptimeMonitor: {
-        refetchIntervalMs: env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS, // Frontend polling interval for uptime monitor data (matches backend)
-        maxHistoryPerEndpoint: env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 30s interval -> 2/min * 60min * 24h * 28d = 80640 max checks per endpoint -> 30d = 86400 chosen as sufficient
-        queryWindowDaysLimit: env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
-      },
-    };
-  }
+if (env.PROD && env.VITE_APP_URL.includes('localhost')) {
+  throw new Error('Production build cannot use localhost APP URL');
 }
 
-/**
- * Frozen frontend configuration object.
- * Contains validated environment variables, routes, and behavior patterns.
- *
- * @type {Object}
- * @property {string} appUrl - Frontend application URL.
- * @property {string} apiUrl - Backend API URL.
- * @property {Object} testCredentials - Test user credentials.
- * @property {Object} supabase - Supabase configuration.
- * @property {Object} uptimeMonitor - Uptime monitor settings.
- * @property {Object} scoring - Scoring configuration.
- * @property {boolean} isProd - Production mode flag.
- * @property {string} mode - Current environment mode.
- * @property {Object} routes - Frontend route definitions.
- * @property {Object} routePatterns - Route behavior patterns.
- */
-export const FRONTEND_CONFIG = deepFreeze({
-  ...validatedConfig,
+if (env.PROD && env.VITE_API_URL.includes('localhost')) {
+  throw new Error('Production build cannot use localhost API URL');
+}
 
-  // Frontend Routes Configuration
-  // Imported from constants for better organization and reusability
+/* ------------------------------ */
+/* Config Object */
+/* ------------------------------ */
+
+export const FRONTEND_CONFIG = deepFreeze({
+  nodeEnv: env.MODE,
+
+  isProduction: env.PROD,
+
+  app: {
+    appUrl: env.VITE_APP_URL,
+    apiUrl: env.VITE_API_URL,
+
+    logLevel: env.VITE_LOG_LEVEL,
+
+    strictEnv: env.VITE_STRICT_ENV,
+  },
+
+  testCredentials: {
+    username: env.VITE_TEST_USER_NAME,
+    usernameExt: env.VITE_TEST_USER_NAME_EXT,
+    password: env.VITE_TEST_USER_PASSWORD,
+  },
+
+  supabase: {
+    url: env.VITE_SUPABASE_URL,
+    anonKey: env.VITE_SUPABASE_ANON_KEY,
+  },
+
+  uptime: {
+    refetchIntervalMs: env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS, // Frontend polling interval for uptime monitor data (matches backend's BACKEND_CONFIG.uptime.pollIntervalMs) -> 2 min
+    maxHistoryPerEndpoint: env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 2min interval -> 30/hr * 24h * 28d = 20160 max checks per endpoint -> 30d = 21600 chosen as sufficient
+    queryWindowDaysLimit: env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
+  },
+
   routes: FRONTEND_ROUTES,
 
-  // Route Behavior Patterns
   routePatterns: {
     protectedRoute: {
       redirect: '/auth',
       behavior: 'Unauthenticated users are redirected to auth page',
       loading: 'Shows loading spinner during authentication check',
     },
+
     urlStateManagement: {
       solutions: 'URL is single source of truth for all search state',
+
       assessments: 'Filter parameters persist in URL for shareability',
+
       validation: 'Invalid parameters are validated and cleaned up',
     },
+
     navigation: {
       state: 'React Router state can pass result, formData, isRestored',
     },
