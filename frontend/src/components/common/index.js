@@ -15,7 +15,6 @@ export { default as DetailsBadge } from './DetailsBadge';
 export { default as DetailsDisplay } from './DetailsDisplay';
 export { default as ExpandableText } from './ExpandableText';
 export { default as LoaderComponent } from './LoaderComponent';
-export { default as LoaderIcon } from './LoaderIcon';
 export { default as SectionHeading } from './SectionHeading';
 export { default as Separator } from './Separator';
 export { default as Spinner } from './Spinner';
