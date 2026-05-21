@@ -214,7 +214,7 @@ export function startServer() {
         try {
           const supabase = getSupabaseClient();
           const { data, error } = await supabase.rpc('cleanup_old_uptime_checks', {
-            retentionDays,
+            days: retentionDays,
           });
           if (error) throw error;
           logger.info({ retentionDays, deletedRows: data }, 'Uptime history cleanup completed');
