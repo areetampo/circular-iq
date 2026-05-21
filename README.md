@@ -9,7 +9,7 @@
 
 AI-powered platform for evaluating circular economy business initiatives against a knowledge base of case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
-- **Author:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com)
+- **Authors:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com) & [Mahit Singh](mailto:mahitsingh02@gmailcom)
 - **Repository:** [areetampo/circular-economy](https://github.com/areetampo/circular-economy)
 - **License:** MIT
 - **Monitoring:** GitHub keep-alive workflow and optional Vercel ping helper
@@ -967,5 +967,5 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 ## License
 
 **LICENSE:** MIT
-**Author:** Areeb Ahmed Zahoori
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
 **Last Updated:** 21 May 2026
