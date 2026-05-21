@@ -1,4 +1,4 @@
-# Frontend � Circular Economy Assessor
+# Frontend — Circular Economy Assessor
 
 React 19 + Vite 7 SPA for assessing, visualising, comparing, and managing circular economy evaluations.
 
@@ -10,15 +10,15 @@ React 19 + Vite 7 SPA for assessing, visualising, comparing, and managing circul
 
 The frontend provides:
 
-1. **Assessment Flow** � guided questionnaires with optional business context + 8 evaluation parameters
-2. **Results Display** � interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
-3. **Solutions Search** � semantic search across 6,000+ real circular economy case studies
-4. **Global Activity** � live analytics from all scoring calls worldwide
-5. **Uptime Monitoring** � real-time system health dashboard with SSE streaming, configurable polling duration and toggleable clock-aligned bucket display
-6. **Export Functionality** � PDF reports and CSV data exports
-7. **Assessment History** � save, rename, delete, compare, and share assessments
-8. **Session Management** � automatic save/restore across browser sessions
-9. **Anonymous Usage** � 5 free assessments with IP-based tracking; unlimited for logged-in users
+1. **Assessment Flow** — guided questionnaires with optional business context + 8 evaluation parameters
+2. **Results Display** — interactive charts, enrichment sections (tier, consistency, alignment, audit, similar cases, gap analysis)
+3. **Solutions Search** — semantic search across 6,000+ real circular economy case studies
+4. **Global Activity** — live analytics from all scoring calls worldwide
+5. **Uptime Monitoring** — real-time system health dashboard with SSE streaming, configurable polling duration and toggleable clock-aligned bucket display
+6. **Export Functionality** — PDF reports and CSV data exports
+7. **Assessment History** — save, rename, delete, compare, and share assessments
+8. **Session Management** — automatic save/restore across browser sessions
+9. **Anonymous Usage** — 5 free assessments with IP-based tracking; unlimited for logged-in users
 
 ## Tech Stack
 
@@ -26,7 +26,7 @@ The frontend provides:
 | ------------------------- | ------------------------------------------ |
 | **React 19**              | UI framework                               |
 | **Vite 7**                | Build tool and dev server                  |
-| **TypeScript**            | Type safety (selective � hooks and utils)  |
+| **TypeScript**            | Type safety (selective — hooks and utils)  |
 | **Tailwind CSS v4**       | Utility-first styling                      |
 | **HeroUI v3**             | Pre-built component library                |
 | **Recharts**              | Data visualisation (Bar, Line, Pie, Radar) |
@@ -40,39 +40,39 @@ The frontend provides:
 
 ```txt
 frontend/
-+-- api/
-�   +-- proxy.js                      # Legacy helper; production routing uses vercel.json rewrite to backend
-�
-+-- package.json                      # Frontend dependencies and scripts
-�
-+-- public/                           # Static assets (app-bg.svg, site-logo images)
-�
-+-- src/
-�   +-- app/                          # Root component, routes, global providers
-�   �   +-- App.jsx                   # Root component with providers and routing
-�   �   +-- AppProvider.jsx           # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
-�   �   +-- AppRoutes.jsx             # All route definitions
-�   �
-�   +-- components/                   # Shared UI: charts, common, dialogs, drawers, export, layout, error-boundaries etc
-�   +-- config/                       # Frontend configuration with route definitions and query parameters
-�   +-- constants/                    # Evaluation data, industries, drawer + dialog constants etc
-�   +-- contexts/                     # React Context providers (Auth, Dialog, Drawer) etc
-�   +-- features/                     # Feature modules: assessments, export, search, session etc
-�   +-- hooks/                        # Custom React hooks (useAuth, useDebounce, etc.)
-�   +-- index.css                     # Global styles + Tailwind directives
-�   +-- lib/                          # API client, formatting, metadata, scoring, storage, supabase, validation etc
-�   +-- main.jsx                      # React entry point
-�   +-- pages/                        # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (90+ items)
-�   +-- setupTests.js                 # Vitest global setup
-�   +-- test/                         # Test files
-�   +-- types/                        # TypeScript type definitions
-�   +-- utils/                        # Utility functions
-�
-+-- tsconfig.json                     # TypeScript configuration
-+-- tsconfig.node.json                # Node.js TypeScript configuration
-+-- vercel.json                       # Vercel deployment configuration
-+-- vite.config.js                    # Vite configuration with aliases and chunking
-+-- vitest.config.js                  # Vitest test configuration
+├── api/
+│   └── proxy.js                      # Legacy helper; production routing uses vercel.json rewrite to backend
+│
+├── package.json                      # Frontend dependencies and scripts
+│
+├── public/                           # Static assets (app-bg.svg, site-logo images)
+│
+├── src/
+│   ├── app/                          # Root component, routes, global providers
+│   │   ├── App.jsx                   # Root component with providers and routing
+│   │   ├── AppProvider.jsx           # Global context providers (Auth, Dialog, Drawer, Modal, QueryClient)
+│   │   └── AppRoutes.jsx             # All route definitions
+│   │
+│   ├── components/                   # Shared UI: charts, common, dialogs, drawers, export, layout, error-boundaries etc
+│   ├── config/                       # Frontend configuration with route definitions and query parameters
+│   ├── constants/                    # Evaluation data, industries, drawer + dialog constants etc
+│   ├── contexts/                     # React Context providers (Auth, Dialog, Drawer) etc
+│   ├── features/                     # Feature modules: assessments, export, search, session etc
+│   ├── hooks/                        # Custom React hooks (useAuth, useDebounce, etc.)
+│   ├── index.css                     # Global styles + Tailwind directives
+│   ├── lib/                          # API client, formatting, metadata, scoring, storage, supabase, validation etc
+│   ├── main.jsx                      # React entry point
+│   ├── pages/                        # Page components (LandingPage, ResultsPage, UptimeMonitorPage, etc.) (90+ items)
+│   ├── setupTests.js                 # Vitest global setup
+│   ├── test/                         # Test files
+│   ├── types/                        # TypeScript type definitions
+│   └── utils/                        # Utility functions
+│
+├── tsconfig.json                     # TypeScript configuration
+├── tsconfig.node.json                # Node.js TypeScript configuration
+├── vercel.json                       # Vercel deployment configuration
+├── vite.config.js                    # Vite configuration with aliases and chunking
+└── vitest.config.js                  # Vitest test configuration
 ```
 
 ## Routes
@@ -90,7 +90,7 @@ frontend/
 | `/assessments/share/:publicId` | AssessmentViewPage | No   | Direct shared assessment view           |
 | `/assessments/compare`         | ComparePageWrapper | No   | Compare two assessments                 |
 | `/uptime-monitor`              | UptimeMonitorPage  | No   | Real-time system health dashboard (SSE) |
-| `*`                            | `NotFoundPage`     | �    | 404                                     |
+| `*`                            | `NotFoundPage`     | —    | 404                                     |
 
 ## Setup & Installation
 
@@ -123,7 +123,7 @@ npm run frontend   # Starts frontend only
 ## Environment Configuration
 
 ```env
-# Backend API URL � points to your Express backend
+# Backend API URL — points to your Express backend
 VITE_API_URL=http://localhost:8000
 
 # Supabase (must match backend project)
@@ -140,9 +140,9 @@ VITE_ENABLE_ANALYTICS=true
 
 **Important notes:**
 
-1. **No Secret Keys in Frontend** � `INTERNAL_BACKEND_API_KEY` is **never** included in frontend env variables.
-2. **Proxy Pattern** � production uses `frontend/vercel.json` rewrite to route `/api/*` to the backend; development uses `VITE_API_URL` directly.
-3. **Anonymous Access** � frontend works without authentication; the backend enforces rate limits.
+1. **No Secret Keys in Frontend** — `INTERNAL_BACKEND_API_KEY` is **never** included in frontend env variables.
+2. **Proxy Pattern** — production uses `frontend/vercel.json` rewrite to route `/api/*` to the backend; development uses `VITE_API_URL` directly.
+3. **Anonymous Access** — frontend works without authentication; the backend enforces rate limits.
 
 ### Configuration Object
 
@@ -163,7 +163,7 @@ FRONTEND_CONFIG.supabaseAnonKey; // Anon key
 
 ```bash
 npm run dev         # Development server at http://localhost:5173 (HMR enabled)
-npm run build       # Production build ? dist/
+npm run build       # Production build → dist/
 npm run preview     # Serve dist/ locally for production preview
 npm run test        # Run Vitest test suite
 npm run test:watch  # Watch mode
@@ -178,7 +178,7 @@ npm run clean       # Clean node_modules
 
 In production, Vercel rewrites `/api/*` requests to the backend host configured in `frontend/vercel.json`.
 
-Browser ? `/api/<path>` ? Vercel rewrite ? backend service
+Browser → `/api/<path>` → Vercel rewrite → backend service
 
 **How it works:**
 
@@ -275,7 +275,7 @@ const { isDrawerOpen, onClose } = useGlobalDrawer();
 
 ### Charts
 
-All chart components use consistent prop patterns � never use `xKey`, `yKey`, or `fill` directly:
+All chart components use consistent prop patterns — never use `xKey`, `yKey`, or `fill` directly:
 
 ```jsx
 // BarChart
@@ -308,7 +308,7 @@ All chart components use consistent prop patterns � never use `xKey`, `yKey`, 
 />
 ```
 
-**Single data point fallback** � when a pie chart has only 1 data point, use `SingleValueChart` from the respective page components:
+**Single data point fallback** — when a pie chart has only 1 data point, use `SingleValueChart` from the respective page components:
 
 ```jsx
 // Check before rendering PieChart:
@@ -344,44 +344,44 @@ result.gap_analysis;
 
 ```txt
 / (LandingPage)
-�
-+-- User fills in businessProblem + businessSolution
-+-- Optional: businessContext fields (Layer 1)
-+-- Optional: guided mode or manual parameter entry
-�
-+-- POST /api/score
-�
-+-- /results (ResultsPage)
-    �
-    +-- ScoreOverviewSection (overall score + derived metrics)
-    +-- ScoreCategoryBreakdown (value category cards)
-    +-- WeightedScoreCard (Layer 2 � factor contributions)
-    +-- CircularEconomyTierCard (Layer 2 � tier classification)
-    +-- ParameterConsistencyCard (Layer 2 � coherence check)
-    +-- RStrategyAlignmentCard (Layer 2 � strategy validation)
-    +-- AuditSummaryCard (Layer 3 � verdict, roadmap, SDGs, market opp.)
-    +-- DatabaseEvidenceCard (similar cases ? drawer for full detail)
-    +-- GapAnalysisCard (benchmark comparison)
-    �
-    +-- Save Assessment ? POST /api/assessments
-    +-- Export ? exportCSV.js or exportPDF.js
-    +-- Share ? generates public_id link ? /assessments/share/:id
+│
+├── User fills in businessProblem + businessSolution
+├── Optional: businessContext fields (Layer 1)
+├── Optional: guided mode or manual parameter entry
+│
+├── POST /api/score
+│
+└── /results (ResultsPage)
+    │
+    ├── ScoreOverviewSection (overall score + derived metrics)
+    ├── ScoreCategoryBreakdown (value category cards)
+    ├── WeightedScoreCard (Layer 2 — factor contributions)
+    ├── CircularEconomyTierCard (Layer 2 — tier classification)
+    ├── ParameterConsistencyCard (Layer 2 — coherence check)
+    ├── RStrategyAlignmentCard (Layer 2 — strategy validation)
+    ├── AuditSummaryCard (Layer 3 — verdict, roadmap, SDGs, market opp.)
+    ├── DatabaseEvidenceCard (similar cases → drawer for full detail)
+    ├── GapAnalysisCard (benchmark comparison)
+    │
+    ├── Save Assessment → POST /api/assessments
+    ├── Export → exportCSV.js or exportPDF.js
+    └── Share → generates public_id link → /assessments/share/:id
 ```
 
 ### Key Routes (from AppRoutes.jsx)
 
 ```js
-/                           // LandingPage � assessment input
-/auth                       // AuthPage � login/signup
-/guide                      // GuidePage � help & methodology
-/results                    // ResultsPage � freshly scored result (session-based)
-/assessments                // MyAssessmentsPage � saved history (auth required)
-/assessments/:id            // AssessmentViewPage � view saved assessment
-/assessments/share          // SharePage � share form (no auth)
-/assessments/share/:id       // AssessmentViewPage � public shared view (no auth)
-/compare?id1=X&id2=Y        // ComparePageWrapper ? AssessmentComparisonPage
-/solutions                   // SolutionsPage � search solutions
-/global-activity             // GlobalActivityPage � global analytics
+/                           // LandingPage — assessment input
+/auth                       // AuthPage — login/signup
+/guide                      // GuidePage — help & methodology
+/results                    // ResultsPage — freshly scored result (session-based)
+/assessments                // MyAssessmentsPage — saved history (auth required)
+/assessments/:id            // AssessmentViewPage — view saved assessment
+/assessments/share          // SharePage — share form (no auth)
+/assessments/share/:id       // AssessmentViewPage — public shared view (no auth)
+/compare?id1=X&id2=Y        // ComparePageWrapper → AssessmentComparisonPage
+/solutions                   // SolutionsPage — search solutions
+/global-activity             // GlobalActivityPage — global analytics
 ```
 
 ### Session Management
@@ -425,19 +425,19 @@ npm test src/pages/MyAssessmentsPage/sortUtils.test.js       # Sort utilities
 | Test File                                                        | Tests | Key Coverage                                                                                                                                   |
 | ---------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `features/assessments/utils.test.js`                             | 13    | `reconstructScoringResult` (10 tests: null input, result_json passthrough, column fallback, enrichment fields mapping), sort helpers (3 tests) |
-| `features/assessments/hooks/useFeaturedSolutions.test.jsx`       | �     | Featured solutions hook                                                                                                                        |
-| `features/session/AppSessionManager.test.jsx`                    | �     | Session persistence                                                                                                                            |
-| `components/common/Button.test.jsx`                              | �     | Button rendering and interactions                                                                                                              |
-| `components/common/Switch.test.jsx`                              | �     | Switch toggle                                                                                                                                  |
-| `components/charts/LineChart.test.jsx`                           | �     | LineChart rendering                                                                                                                            |
-| `components/charts/PieChart.test.jsx`                            | �     | PieChart rendering + snapshots                                                                                                                 |
-| `components/dialogs/ResultsRestoreDialog.test.jsx`               | �     | Dialog component                                                                                                                               |
-| `contexts/AuthContext.test.jsx`                                  | �     | Auth context                                                                                                                                   |
-| `hooks/useDrawer.test.jsx`                                       | �     | Drawer hook                                                                                                                                    |
-| `lib/formatting.test.js`                                         | �     | Formatting helpers                                                                                                                             |
-| `lib/storage.test.js`                                            | �     | LocalStorage wrapper                                                                                                                           |
-| `pages/LandingPage/components/SampleTestCasesContainer.test.jsx` | �     | Sample cases                                                                                                                                   |
-| `pages/MyAssessmentsPage/sortUtils.test.js`                      | �     | Sort utilities                                                                                                                                 |
+| `features/assessments/hooks/useFeaturedSolutions.test.jsx`       | —     | Featured solutions hook                                                                                                                        |
+| `features/session/AppSessionManager.test.jsx`                    | —     | Session persistence                                                                                                                            |
+| `components/common/Button.test.jsx`                              | —     | Button rendering and interactions                                                                                                              |
+| `components/common/Switch.test.jsx`                              | —     | Switch toggle                                                                                                                                  |
+| `components/charts/LineChart.test.jsx`                           | —     | LineChart rendering                                                                                                                            |
+| `components/charts/PieChart.test.jsx`                            | —     | PieChart rendering + snapshots                                                                                                                 |
+| `components/dialogs/ResultsRestoreDialog.test.jsx`               | —     | Dialog component                                                                                                                               |
+| `contexts/AuthContext.test.jsx`                                  | —     | Auth context                                                                                                                                   |
+| `hooks/useDrawer.test.jsx`                                       | —     | Drawer hook                                                                                                                                    |
+| `lib/formatting.test.js`                                         | —     | Formatting helpers                                                                                                                             |
+| `lib/storage.test.js`                                            | —     | LocalStorage wrapper                                                                                                                           |
+| `pages/LandingPage/components/SampleTestCasesContainer.test.jsx` | —     | Sample cases                                                                                                                                   |
+| `pages/MyAssessmentsPage/sortUtils.test.js`                      | —     | Sort utilities                                                                                                                                 |
 
 ### Writing Tests
 
@@ -482,7 +482,7 @@ test('debounces value', async () => {
 
 ### Deploy to Vercel (Recommended)
 
-Vercel is the recommended platform � static SPA + serverless proxy in one deployment.
+Vercel is the recommended platform — static SPA + serverless proxy in one deployment.
 
 **Prerequisites:**
 
@@ -502,7 +502,7 @@ git push origin main
 #    VITE_SUPABASE_URL=https://your-project.supabase.co
 #    VITE_SUPABASE_ANON_KEY=your-anon-key
 #    VITE_APP_URL=https://your-app.vercel.app
-#    INTERNAL_BACKEND_API_KEY=your-secret-backend-key  ? server-only, never VITE_ prefixed
+#    INTERNAL_BACKEND_API_KEY=your-secret-backend-key  # server-only, never VITE_ prefixed
 
 # 4. Deploy (automatic on every git push to main)
 ```
@@ -523,14 +523,14 @@ git push origin main
 
 Key points:
 
-- `/api/*` routes ? serverless functions (NOT the SPA rewrite)
-- All other routes ? `index.html` (SPA client-side routing)
+- `/api/*` routes → serverless functions (NOT the SPA rewrite)
+- All other routes → `index.html` (SPA client-side routing)
 - Runtime updated to Node.js 18.x to match frontend requirements
 
 ### Deployment Checklist
 
 - [ ] All `VITE_*` variables configured in Vercel
-- [ ] `INTERNAL_BACKEND_API_KEY` set in Vercel (server-only � not in `.env` file, not in git)
+- [ ] `INTERNAL_BACKEND_API_KEY` set in Vercel (server-only — not in `.env` file, not in git)
 - [ ] Backend CORS `ALLOWED_ORIGINS` includes `*.vercel.app` and your custom domain
 - [ ] `vercel.json` correctly configured
 - [ ] `npm run build` completes without errors
@@ -556,7 +556,7 @@ Configure stale times for different data freshness requirements:
 useQuery({
   queryKey: ['global-stats'],
   queryFn: getGlobalStats,
-  staleTime: 5 * 60 * 1000, // 5 minutes � dashboard data doesn't need to be real-time
+  staleTime: 5 * 60 * 1000, // 5 minutes — dashboard data doesn't need to be real-time
   gcTime: 30 * 60 * 1000, // 30 minutes in cache
 });
 ```
@@ -576,11 +576,11 @@ export function useExportState() {
 ### Constants Over Magic Values
 
 ```js
-// ? Good
+// ✓ Good
 import { validKeys, parameterGuidance } from '@/constants/evaluationData';
 if (validKeys.includes(parameterKey)) { ... }
 
-// ? Avoid
+// ✗ Avoid
 if (score >= 75) { ... }
 ```
 
@@ -644,7 +644,7 @@ import { cn } from '@/utils/cn';
 
 - Anonymous requests are rate-limited per IP
 - User data requests require Supabase Auth Bearer tokens
-- Shared assessments use opaque `publicId` � not the internal UUID
+- Shared assessments use opaque `publicId` — not the internal UUID
 - `scoring_results_log` access from frontend requires going through the backend endpoint
 
 ### CORS & CSRF
@@ -674,13 +674,13 @@ import { cn } from '@/utils/cn';
 
 ### "Charts show 'No data available' or render incorrectly"
 
-Wrong prop names � the most common chart bug. Use these exact props:
+Wrong prop names — the most common chart bug. Use these exact props:
 
 - `BarChart`: `barConfigs={[{dataKey, fill, name}]}` + `xAxisKey`
 - `LineChart`: `lines={[{dataKey, stroke, name}]}` + `xAxisKey`
 - `PieChart`: `dataKey` + `nameKey` + `colors` array
 
-### "Pie chart renders as a solid circle with '� 1'"
+### "Pie chart renders as a solid circle with '— 1'"
 
 You have only 1 data point. The `PieChart` component doesn't handle single values gracefully. Use `SingleValueChart` from `DashboardPage/components/` as a fallback when `data.length < 2`.
 
@@ -688,7 +688,7 @@ You have only 1 data point. The `PieChart` component doesn't handle single value
 
 - Only `VITE_*` prefixed variables are exposed to client code
 - Restart the dev server after changing `.env.frontend`
-- In Vercel, add variables in the dashboard � they won't be in `.env` in production
+- In Vercel, add variables in the dashboard — they won't be in `.env` in production
 
 ### "Clear caches and reinstall"
 
@@ -708,9 +708,9 @@ npm run build
 
 ### Code Style
 
-- **Formatting**: ESLint + Prettier (configured � runs on save in VS Code)
+- **Formatting**: ESLint + Prettier (configured — runs on save in VS Code)
 - **Naming**: camelCase for variables/functions, PascalCase for components
-- **Components**: functional components with hooks � no class components
+- **Components**: functional components with hooks — no class components
 
 ### Commit Messages
 
@@ -742,62 +742,62 @@ refactor: extract SolutionsSearch into DashboardPage/components
 
 #### Assessment Enrichment Layers
 
-**Layer 1 � Business Context** (optional, `BusinessContextContainer.jsx`)
+**Layer 1 — Business Context** (optional, `BusinessContextContainer.jsx`)
 
 - Business Model Type: PaaS, take-back, remanufacturing, recycling, etc.
-- Operational Stage: idea ? prototype ? pilot ? scaling ? mature operation
-- Target Geography: local ? regional ? global
+- Operational Stage: idea → prototype → pilot → scaling → mature operation
+- Target Geography: local → regional → global
 - Annual Volume: material processing volume
-- Material Complexity: single ? multi-material ? hazardous ? electronics ? biological
+- Material Complexity: single → multi-material → hazardous → electronics → biological
 - Supply Chain Partnerships: existing collection/distribution relationships
 
 These optional context fields improve AI reasoning and enable stage-appropriate scoring.
 
-**Layer 2 � Deterministic Outputs** (computed without LLM)
+**Layer 2 — Deterministic Outputs** (computed without LLM)
 
 - Weighted Score Card: per-factor contribution breakdown with Strong/Moderate/Weak/Critical classifications
 - Circular Economy Tier: Leader/Established/Developing/Emerging with percentile estimates
 - Parameter Consistency: score coherence analysis detecting internally contradictory inputs
 - R-Strategy Alignment: validates scores match the detected circular strategy profile
 
-**Layer 3 � Extended LLM Output** (GPT-4o-mini)
+**Layer 3 — Extended LLM Output** (GPT-4o-mini)
 
 - Improvement Roadmap: 3 prioritised actions with effort/impact/timeframe
-- SDG Alignment: 2�4 UN Sustainable Development Goals with rationale
+- SDG Alignment: 2–4 UN Sustainable Development Goals with rationale
 - Market Opportunity Summary: grounded in database evidence
 
 **Key files:**
 
-- `src/constants/evaluationData.js` � 8 parameter definitions with weights
-- `src/lib/scoring.js` � score formatting, colour mapping, tier labels
-- `src/features/assessments/api/assessmentApi.js` � API calls
-- `src/pages/ResultsPage/components/` � all result section components
+- `src/constants/evaluationData.js` — 8 parameter definitions with weights
+- `src/lib/scoring.js` — score formatting, colour mapping, tier labels
+- `src/features/assessments/api/assessmentApi.js` — API calls
+- `src/pages/ResultsPage/components/` — all result section components
 
 ### 2. Smart Navigation & Routing
 
 **Current routes** (from `src/app/AppRoutes.jsx`):
 
 ```txt
-/                           ? LandingPage          (assessment input)
-/auth                       ? AuthPage             (login/signup)
-/guide                      ? GuidePage            (help & methodology)
-/results                    ? ResultsPage          (session-based scoring results)
-/solutions                  ? SolutionsPage        (case study search � keyword + hybrid)
-/global-activity            ? GlobalActivityPage   (global analytics)
-/assessments                ? MyAssessmentsPage    (saved assessment history)
-/assessments/share          ? SharePage            (share form, no auth)
-/assessments/share/:id      ? AssessmentViewPage   (public shared view, no auth)
-/assessments/compare        ? ComparePageWrapper   (comparison form & results)
-/assessments/:publicId      ? ResultsPage          (view saved assessment, auth required)
-/uptime-monitor             ? UptimeMonitorPage    (system uptime monitoring)
-*                           ? NotFoundPage
+/                           → LandingPage          (assessment input)
+/auth                       → AuthPage             (login/signup)
+/guide                      → GuidePage            (help & methodology)
+/results                    → ResultsPage          (session-based scoring results)
+/solutions                  → SolutionsPage        (case study search — keyword + hybrid)
+/global-activity            → GlobalActivityPage   (global analytics)
+/assessments                → MyAssessmentsPage    (saved assessment history)
+/assessments/share          → SharePage            (share form, no auth)
+/assessments/share/:id      → AssessmentViewPage   (public shared view, no auth)
+/assessments/compare        → ComparePageWrapper   (comparison form & results)
+/assessments/:publicId      → ResultsPage          (view saved assessment, auth required)
+/uptime-monitor             → UptimeMonitorPage    (system uptime monitoring)
+*                           → NotFoundPage
 ```
 
 **Related files:**
 
-- `src/app/AppRoutes.jsx` � route definitions
-- `src/pages/` � page components, each with their own `components/` subfolder
-- `src/contexts/` � dialog, drawer, and auth state
+- `src/app/AppRoutes.jsx` — route definitions
+- `src/pages/` — page components, each with their own `components/` subfolder
+- `src/contexts/` — dialog, drawer, and auth state
 
 ### 3. Session Management
 
@@ -810,10 +810,10 @@ These optional context fields improve AI reasoning and enable stage-appropriate 
 
 **Related files:**
 
-- `src/features/session/AppSessionManager.jsx` � orchestrates save/restore lifecycle
-- `src/features/session/hooks/useSession.js` � session read/write hook
-- `src/utils/session.js` � localStorage key helpers
-- `src/lib/storage.js` � JSON-safe localStorage wrapper
+- `src/features/session/AppSessionManager.jsx` — orchestrates save/restore lifecycle
+- `src/features/session/hooks/useSession.js` — session read/write hook
+- `src/utils/session.js` — localStorage key helpers
+- `src/lib/storage.js` — JSON-safe localStorage wrapper
 
 ```js
 const { restoreEvaluation, saveSession, clearSession } = useSession();
@@ -823,30 +823,30 @@ const { restoreEvaluation, saveSession, clearSession } = useSession();
 
 **Chart types:**
 
-- **RadarChart** � multi-dimensional score comparison vs market average
-- **BarChart** � factor comparisons, industry volume, R-strategy distribution
-- **LineChart** � weekly trend, score over time
-- **PieChart** � CE tier, risk level, scale distribution (with single-value fallback)
+- **RadarChart** — multi-dimensional score comparison vs market average
+- **BarChart** — factor comparisons, industry volume, R-strategy distribution
+- **LineChart** — weekly trend, score over time
+- **PieChart** — CE tier, risk level, scale distribution (with single-value fallback)
 
 **Related files:**
 
-- `src/components/charts/` � BarChart, LineChart, PieChart, RadarChart
+- `src/components/charts/` — BarChart, LineChart, PieChart, RadarChart
 - Powered by **Recharts** library
 
-All charts use consistent prop APIs � see the [Charts](#charts) section for correct usage.
+All charts use consistent prop APIs — see the [Charts](#charts) section for correct usage.
 
 ### 5. Export Capabilities
 
 **Formats:**
 
-- **CSV**: raw data with all metrics � easily importable into spreadsheets
+- **CSV**: raw data with all metrics — easily importable into spreadsheets
 - **PDF**: formatted full report including SDG alignment, roadmap, similar cases
 
 **Related files:**
 
-- `src/features/export/exportCSV.js` � CSV generation, single + comparison
-- `src/features/export/exportPDF.js` � PDF generation with all enrichment sections
-- `src/components/export/ExportActions.jsx` � export button UI
+- `src/features/export/exportCSV.js` — CSV generation, single + comparison
+- `src/features/export/exportPDF.js` — PDF generation with all enrichment sections
+- `src/components/export/ExportActions.jsx` — export button UI
 - Uses Blob API for client-side generation (no server round-trip)
 
 ```js
@@ -871,7 +871,7 @@ The `documents` table has `industry` as a first-class indexed column. Use the he
 import { getIndustry } from '@/lib/metadata';
 
 const industry = getIndustry(assessment.result_json);
-// Priority: result_json.metadata.industry ? result_json.industry ? column value
+// Priority: result_json.metadata.industry → result_json.industry → column value
 ```
 
 Used in: `ResultsPage`, `AssessmentViewPage`, `AssessmentComparisonPage`.
@@ -911,7 +911,7 @@ Serves `dist/` locally. Use to test production behaviour before deploying.
 #### Components
 
 ```jsx
-// ? Good � self-contained, focused component
+// ✓ Good — self-contained, focused component
 export default function ResultsPage() {
   const { id } = useParams();
   const { assessment, isLoading } = useAssessment(id);
@@ -930,7 +930,7 @@ export default function ResultsPage() {
 #### Hooks
 
 ```js
-// ? Good � custom hook extracts reusable logic
+// ✓ Good — custom hook extracts reusable logic
 export function useAssessmentStats({ enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['assessment-stats'],
@@ -946,7 +946,7 @@ export function useAssessmentStats({ enabled = true } = {}) {
 #### API Calls
 
 ```js
-// ? Good � use buildApiUrl for automatic proxy routing
+// ✓ Good — use buildApiUrl for automatic proxy routing
 import { buildApiUrl } from '@/lib/apiClient';
 
 const url = buildApiUrl('/api/score');
@@ -961,7 +961,7 @@ const response = await fetch(url, {
 #### Constants
 
 ```js
-// ? Good � centralised, named constants; no magic values
+// ✓ Good — centralised, named constants; no magic values
 import { parameterGuidance, validKeys } from '@/constants/evaluationData';
 
 const guidance = parameterGuidance[parameterKey];
@@ -1001,7 +1001,7 @@ The application uses React Router v7 with lazy-loaded components. All routes are
 | `/global-activity`       | Live insights from all assessments worldwide     | None                                                                 |
 | `/assessments`           | User's saved assessment list                     | `industry`, `page`, `pageSize`, `search`, `sortBy`                   |
 | `/assessments/share`     | Public assessment share gateway form             | None                                                                 |
-| `/assessments/share/:id` | Direct shared assessment view                    | `id` path param � assessment public ID (UUID)                        |
+| `/assessments/share/:id` | Direct shared assessment view                    | `id` path param — assessment public ID (UUID)                        |
 | `/assessments/compare`   | Assessment comparison tool or selection form     | `id1`, `id2`                                                         |
 | `/uptime-monitor`        | System uptime and health dashboard               | None                                                                 |
 
@@ -1009,13 +1009,13 @@ The application uses React Router v7 with lazy-loaded components. All routes are
 
 Only one route is protected at the router level:
 
-#### `/assessments/:publicId` � View Saved Assessment
+#### `/assessments/:publicId` — View Saved Assessment
 
 Renders `ResultsPage` with `isViewFromMyAssessments={true}`. Used by authenticated users to view their own saved assessment records.
 
 **Path Parameters:**
 
-- `publicId` � assessment public ID (UUID format)
+- `publicId` — assessment public ID (UUID format)
 
 **Behavior:**
 
@@ -1026,32 +1026,32 @@ Renders `ResultsPage` with `isViewFromMyAssessments={true}`. Used by authenticat
 
 #### `/auth`
 
-- `mode` (string, default: `login`) � `login` or `signup`
-- `from` (string) � Redirect path after successful authentication
+- `mode` (string, default: `login`) — `login` or `signup`
+- `from` (string) — Redirect path after successful authentication
 
 #### `/solutions`
 
-- `searchQuery` (string) � Search query; minimum 2 chars to trigger fetch
-- `mode` (string, default: `hybrid`) � `keyword` or `hybrid`; invalid values fall back to `hybrid`
-- `page` (number, default: `1`) � Page number; omitted from URL when 1
-- `strategies` (string) � Comma-separated strategy filters; validated against result values
-- `categories` (string) � Comma-separated category filters; validated against result values
-- `sources` (string) � Comma-separated source filters; validated against result values
+- `searchQuery` (string) — Search query; minimum 2 chars to trigger fetch
+- `mode` (string, default: `hybrid`) — `keyword` or `hybrid`; invalid values fall back to `hybrid`
+- `page` (number, default: `1`) — Page number; omitted from URL when 1
+- `strategies` (string) — Comma-separated strategy filters; validated against result values
+- `categories` (string) — Comma-separated category filters; validated against result values
+- `sources` (string) — Comma-separated source filters; validated against result values
 
 #### `/assessments`
 
-- `industry` (string, default: `all`) � Comma-separated industry filters or `all`
-- `page` (number, default: `1`) � Pagination page number
-- `pageSize` (number, default: `10`) � Items per page: `5|10|20|50|100`; invalid value defaults to `10`
-- `search` (string) � Text filter for assessment names
-- `sortBy` (string, default: `created_at_desc`) � Sort field and direction (e.g., `title_asc`)
+- `industry` (string, default: `all`) — Comma-separated industry filters or `all`
+- `page` (number, default: `1`) — Pagination page number
+- `pageSize` (number, default: `10`) — Items per page: `5|10|20|50|100`; invalid value defaults to `10`
+- `search` (string) — Text filter for assessment names
+- `sortBy` (string, default: `created_at_desc`) — Sort field and direction (e.g., `title_asc`)
 
 All filter parameters persist in URL for shareable filtered lists.
 
 #### `/assessments/compare`
 
-- `id1` (string) � First assessment public ID (UUID format)
-- `id2` (string) � Second assessment public ID (UUID format)
+- `id1` (string) — First assessment public ID (UUID format)
+- `id2` (string) — Second assessment public ID (UUID format)
 - If both present: renders comparison view; otherwise renders selection form
 
 ### Route Behavior Patterns
@@ -1063,7 +1063,7 @@ All filter parameters persist in URL for shareable filtered lists.
 
 #### URL State Management
 
-- **Solutions**: URL is the single source of truth for all search and filter state � see [URL State Management](#url-state-management-solutionssearch) below
+- **Solutions**: URL is the single source of truth for all search and filter state — see [URL State Management](#url-state-management-solutionssearch) below
 - **Assessments**: All filter parameters persist in URL for shareable filtered lists
 - Invalid parameters are validated and cleaned up on mount or after results load
 
@@ -1084,7 +1084,7 @@ const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
 
 ## URL State Management (SolutionsSearch)
 
-`SolutionsSearch` uses URL as the single source of truth � no `useState` for any search-derived value. All state is derived from `searchParams` via `useMemo` on every render:
+`SolutionsSearch` uses URL as the single source of truth — no `useState` for any search-derived value. All state is derived from `searchParams` via `useMemo` on every render:
 
 ```js
 const searchState = useMemo(() => {
@@ -1118,11 +1118,11 @@ URL params and their defaults:
 
 **Three cleanup/validation effects:**
 
-1. **Mount (runs once, atomic)** � corrects an invalid `mode` value to `hybrid` AND strips stale `page`/`strategies`/`categories`/`sources` params when no `searchQuery` is present. Both corrections are applied in a single `setSearchParams` call to prevent race conditions.
+1. **Mount (runs once, atomic)** — corrects an invalid `mode` value to `hybrid` AND strips stale `page`/`strategies`/`categories`/`sources` params when no `searchQuery` is present. Both corrections are applied in a single `setSearchParams` call to prevent race conditions.
 
-2. **Page clamp** � after results load, if the current `page` exceeds `totalPages`, resets `page` to 1 (by omitting the param).
+2. **Page clamp** — after results load, if the current `page` exceeds `totalPages`, resets `page` to 1 (by omitting the param).
 
-3. **Filter validation** � after results load, drops any `strategies`, `categories`, or `sources` values that are not present in the current result set. Uses functional `setSearchParams` to always read the latest params, avoiding stale-closure drops.
+3. **Filter validation** — after results load, drops any `strategies`, `categories`, or `sources` values that are not present in the current result set. Uses functional `setSearchParams` to always read the latest params, avoiding stale-closure drops.
 
 **Query change behaviour:**
 
@@ -1171,17 +1171,17 @@ npm run build -- --analyze
 Configure React Query stale times appropriately:
 
 ```js
-// Global dashboard stats � stale after 2 minutes, refetch on mount if stale
+// Global dashboard stats — stale after 2 minutes, refetch on mount if stale
 useQuery({
   queryKey: ['global-stats'],
   queryFn: getGlobalStats,
   staleTime: 2 * 60 * 1000, // 2 min
-  gcTime: 30 * 60 * 1000, // 30 min � keep in memory after unmount
+  gcTime: 30 * 60 * 1000, // 30 min — keep in memory after unmount
   refetchOnMount: 'stale', // refetch on mount only when stale (not always)
   refetchOnWindowFocus: false,
 });
 
-// CE cases search � keyword 10 min stale, hybrid 5 min stale; keepPreviousData while typing
+// CE cases search — keyword 10 min stale, hybrid 5 min stale; keepPreviousData while typing
 useQuery({
   queryKey: ['ce-cases-search', debouncedQuery, mode],
   queryFn: () => searchCeCases({ q: debouncedQuery, mode }),
@@ -1190,7 +1190,7 @@ useQuery({
   placeholderData: keepPreviousData, // avoids flicker between queries
 });
 
-// User assessments � always fetch fresh (refetchOnMount: 'always')
+// User assessments — always fetch fresh (refetchOnMount: 'always')
 useQuery({
   queryKey: ['assessments', { ...params }],
   queryFn: getAssessments,
@@ -1211,9 +1211,9 @@ For issues or questions:
 
 ## See Also
 
-- [Root README](../../README.md) � Full-stack architecture and quick start
-- [Backend README](../../backend/README.md) � API reference and scoring pipeline
-- [Dialogs README](./src/components/dialogs/README.md) � Dialog system documentation
+- [Root README](../../README.md) — Full-stack architecture and quick start
+- [Backend README](../../backend/README.md) — API reference and scoring pipeline
+- [Dialogs README](./src/components/dialogs/README.md) — Dialog system documentation
 - [Vite Docs](https://vitejs.dev)
 - [React Docs](https://react.dev)
 - [HeroUI v3 Docs](https://www.heroui.com)

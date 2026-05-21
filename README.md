@@ -82,19 +82,21 @@ The platform guides users through a structured assessment and returns a complete
 
 ## Tech Stack
 
-| **Runtime** | Node.js 18+ (backend), Node.js 24+ (frontend) | Server runtime |
-| **Backend** | Express.js (ESM) | REST API server |
-| **Frontend** | React 19 + Vite 7 | UI framework and build tool |
-| **UI Library** | HeroUI v3 | Component library |
-| **Styling** | Tailwind CSS v4 | Utility-first CSS |
-| **Charts** | Recharts | Data visualisation |
-| **Database** | Supabase PostgreSQL + pgvector | Primary vector store + relational data |
-| **Alt DB** | Aiven PostgreSQL | Alternative vector store (switchable via env flag) |
-| **AI — Embeddings** | OpenAI text-embedding-3-small | Semantic similarity search (1536 dims) |
-| **AI — Reasoning** | GPT-4o-mini | LLM audit, enrichment, metadata extraction |
-| **State** | TanStack React Query | Server state, caching, background refetch |
-| **Auth** | Supabase Auth | User authentication + Row Level Security |
-| **Monitoring & Deployment** | Built-in uptime monitoring service, UptimeRobot, GitHub keep-alive workflow, Vercel ping helper | Monitoring and deployment |
+| **Layer**                   | **Technology**                                                                                  | **Purpose**                                        |
+| --------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **Runtime**                 | Node.js 18+ (backend), Node.js 24+ (frontend)                                                   | Server runtime                                     |
+| **Backend**                 | Express.js (ESM)                                                                                | REST API server                                    |
+| **Frontend**                | React 19 + Vite 7                                                                               | UI framework and build tool                        |
+| **UI Library**              | HeroUI v3                                                                                       | Component library                                  |
+| **Styling**                 | Tailwind CSS v4                                                                                 | Utility-first CSS                                  |
+| **Charts**                  | Recharts                                                                                        | Data visualisation                                 |
+| **Database**                | Supabase PostgreSQL + pgvector                                                                  | Primary vector store + relational data             |
+| **Alt DB**                  | Aiven PostgreSQL                                                                                | Alternative vector store (switchable via env flag) |
+| **AI — Embeddings**         | OpenAI text-embedding-3-small                                                                   | Semantic similarity search (1536 dims)             |
+| **AI — Reasoning**          | GPT-4o-mini                                                                                     | LLM audit, enrichment, metadata extraction         |
+| **State**                   | TanStack React Query                                                                            | Server state, caching, background refetch          |
+| **Auth**                    | Supabase Auth                                                                                   | User authentication + Row Level Security           |
+| **Monitoring & Deployment** | Built-in uptime monitoring service, UptimeRobot, GitHub keep-alive workflow, Vercel ping helper | Monitoring and deployment                          |
 
 ---
 
@@ -965,6 +967,6 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 
 ## License
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
 **Last Updated:** 21 May 2026
