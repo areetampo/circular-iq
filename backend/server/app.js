@@ -200,12 +200,12 @@ validateConfig();
 app.use('/health', createHealthRouter());
 
 // Public API routes (no authentication required)
-app.use('/api/uptime', createUptimeRouter());
-app.use('/api/analytics', createAnalyticsRouter(supabase, serviceSupabase));
-app.use('/api/search', createSearchRouter(supabase));
+app.use('/api/profile', createProfileRouter(serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
-app.use('/api/profile', createProfileRouter(serviceSupabase));
+app.use('/api/search', createSearchRouter());
+app.use('/api/analytics', createAnalyticsRouter(serviceSupabase));
+app.use('/api/uptime', createUptimeRouter());
 
 // ============================================
 // API KEY GUARD (kept for future admin endpoints)
@@ -223,7 +223,7 @@ app.use((req, res) => {
 });
 
 // global error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   const requestId = Math.random().toString(36).slice(2, 9);
   const statusCode = err.statusCode || err.status || 500;
   const isServerError = statusCode >= 500;
