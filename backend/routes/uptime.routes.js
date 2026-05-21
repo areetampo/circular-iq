@@ -32,6 +32,7 @@ import { addClient, removeClient } from '#services/uptime.broadcaster.js';
  */
 export default function createUptimeRouter() {
   const router = express.Router();
+  const supabase = getSupabaseClient();
   const { pollIntervalMs, maxHistoryPerEndpoint, queryWindowDaysLimit } = BACKEND_CONFIG.uptime;
 
   /**
@@ -44,7 +45,6 @@ export default function createUptimeRouter() {
     const startTime = Date.now();
 
     try {
-      const supabase = getSupabaseClient();
       let total;
 
       if (req.query.endpointId) {
@@ -124,7 +124,6 @@ export default function createUptimeRouter() {
     );
 
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('uptime_checks')
         .select('id, status, up, response_time_ms, payload, created_at')
@@ -173,7 +172,6 @@ export default function createUptimeRouter() {
     const clockAligned = req.query.clockAligned === 'true';
 
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase.rpc('get_global_response_trend', {
         p_hours: hours,
         p_clock_aligned: clockAligned,
@@ -207,7 +205,6 @@ export default function createUptimeRouter() {
       queryWindowDaysLimit,
     );
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase.rpc('get_daily_uptime_stats', { days });
 
       if (error) throw error;
@@ -241,7 +238,6 @@ export default function createUptimeRouter() {
     );
 
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase.rpc('get_endpoint_avg_latency', { p_hours: hours });
 
       if (error) throw error;
@@ -282,7 +278,6 @@ export default function createUptimeRouter() {
     const clockAligned = req.query.clockAligned === 'true';
 
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase.rpc('get_heatmap_buckets', {
         bucket_minutes: bucketMinutes,
         days,
@@ -338,7 +333,6 @@ export default function createUptimeRouter() {
     const clockAligned = req.query.clockAligned === 'true';
 
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase.rpc('get_endpoint_buckets', {
         p_endpoint_id: endpointId,
         p_bucket_minutes: bucketMinutes,
@@ -367,6 +361,18 @@ export default function createUptimeRouter() {
 
       res.status(500).json({ error: 'Failed to fetch endpoint buckets' });
     }
+  });
+
+  // Fallback error handler
+  router.use((err, req, res, _next) => {
+    logger.logOperation('ERROR', `/api/uptime${req.path}`, 500, 0, { err });
+    logger.error({ err }, 'Uptime route error');
+
+    res.status(500).json({
+      error: err?.message || 'Internal server error',
+      code: err?.code || 'INTERNAL_ERROR',
+      timestamp: new Date().toISOString(),
+    });
   });
 
   return router;
