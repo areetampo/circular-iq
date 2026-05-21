@@ -328,7 +328,7 @@ npm run store -- --archives   # also forces Supabase backend
 
 See [PIPELINE_ADDING_DATASETS.md](./backend/PIPELINE_ADDING_DATASETS.md) for the full guide including JSDoc requirements and backup/recovery implementation.
 
-For running the pipeline: [backend/PIPELINE_RUNNING.md](./backend/PIPELINE_RUNNING.md)  
+For running the pipeline: [backend/PIPELINE_RUNNING.md](./backend/PIPELINE_RUNNING.md)
 For dataset inventory: [backend/DATASETS_REFERENCE.md](./backend/DATASETS_REFERENCE.md)
 
 ---
@@ -915,9 +915,9 @@ See [`frontend/src/pages/UptimeMonitorPage/README.md`](./frontend/src/pages/Upti
 
 - [UptimeRobot Monitor](https://dashboard.uptimerobot.com/monitors/802964160)
 - [Vercel Ping Function](frontend/api/ping.js) & [vercel.json](frontend/vercel.json)
-- [Github Workflows](.github/workflows/keep-alive.yml)  
-  — Repo → Settings → Secrets and variables → Actions → Variables → New repository variable  
-  — Name: `API_BASE_URL`  
+- [Github Workflows](.github/workflows/keep-alive.yml)
+  — Repo → Settings → Secrets and variables → Actions → Variables → New repository variable
+  — Name: `API_BASE_URL`
   — Value: `[backend-api-url]`
 
 ---
@@ -966,6 +966,6 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 
 ## License
 
-**LICENSE:** MIT  
-**Author:** Areeb Ahmed Zahoori  
-**Last Updated:** 20 May 2026
+**LICENSE:** MIT
+**Author:** Areeb Ahmed Zahoori
+**Last Updated:** 21 May 2026
