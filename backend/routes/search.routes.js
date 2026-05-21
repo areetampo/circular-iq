@@ -14,12 +14,11 @@ import { searchCeCases } from '#controllers/search.controller.js';
 
 /**
  * Creates the search router for knowledge base queries.
+ * The router resolves its own database client internally via the repository layer.
  *
- * @param {Object} supabase - Supabase client instance (anon key with RLS policies enforced).
- *                           Read-only access to ce_cases table.
  * @returns {express.Router} Configured Express router with search endpoints.
  */
-export default function createSearchRouter(supabase) {
+export default function createSearchRouter() {
   const router = express.Router();
 
   /**
@@ -34,10 +33,10 @@ export default function createSearchRouter(supabase) {
    *
    * No auth required — ce_cases is public read-only reference data.
    */
-  router.get('/ce-cases', searchCeCases(supabase));
+  router.get('/ce-cases', searchCeCases());
 
   // Fallback error handler
-  router.use((err, req, res, next) => {
+  router.use((err, req, res, _next) => {
     logger.logOperation('ERROR', `/api/search${req.path}`, 500, 0, { err });
     logger.error({ err }, 'Search route error');
 
