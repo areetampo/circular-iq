@@ -794,28 +794,28 @@
   /*  TOAST                                       */
   /* ============================================= */
   .toast {
-    @apply z-9999! flex! min-h-12! w-full! items-center! justify-center! gap-3! rounded-full! border-0! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! backdrop-blur-lg! transition-all! duration-300! ease-in-out!;
+    @apply z-9999! flex! w-fit! items-center! justify-center! gap-2! rounded-2xl! border-0! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! backdrop-blur-lg! transition-all! duration-300! ease-in-out!;
   }
   .toast__content {
-    @apply flex! flex-1! flex-col! gap-0! p-0!;
+    @apply flex! flex-col! gap-0! p-0!;
   }
   .toast__title {
-    @apply text-[0.875rem]! font-medium! tracking-tight! text-zinc-800! dark:text-zinc-100!;
+    @apply text-[0.875rem]! font-medium! tracking-tight! text-zinc-800!;
   }
   .toast__description {
-    @apply text-[0.8125rem]! leading-normal! font-normal! text-zinc-700! dark:text-zinc-300!;
+    @apply text-[0.8125rem]! leading-normal! font-normal! text-zinc-700!;
   }
   .toast__indicator {
     @apply flex! shrink-0! items-start! justify-center! p-0!;
   }
   .toast__indicator svg {
-    @apply size-5!;
+    @apply size-4.5!;
   }
   .toast__close {
-    @apply absolute! top-2! right-2! rounded-md! p-1! text-zinc-400! transition-colors! hover:bg-black/5! hover:text-zinc-700! dark:text-zinc-500! dark:hover:bg-white/10! dark:hover:text-zinc-300!;
+    @apply absolute! top-2! right-2! rounded-md! p-1! text-zinc-400! transition-colors! hover:bg-black/5! hover:text-zinc-700!;
   }
   .toast__action {
-    @apply ml-auto! flex! h-7! items-center! rounded-md! border! border-zinc-200/50! bg-transparent! px-2.5! text-xs! font-medium! text-zinc-700! transition-colors! hover:bg-zinc-100/80! dark:border-zinc-700/50! dark:text-zinc-300! dark:hover:bg-zinc-800/80!;
+    @apply ml-auto! flex! h-7! items-center! rounded-md! border! border-zinc-200/50! bg-transparent! px-2.5! text-xs! font-medium! text-zinc-700! transition-colors! hover:bg-zinc-100/80!;
   }
   .toast__region {
     @apply z-9999! w-4/5 sm:w-auto;
