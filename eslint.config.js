@@ -91,7 +91,7 @@ export default [
       'import/no-useless-path-segments': ['error', { noUselessIndex: true }], // Prevents importing './index'
 
       // Code style
-      'no-unused-vars': 'off',
+      'no-unused-vars': ['off', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
       'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
 
