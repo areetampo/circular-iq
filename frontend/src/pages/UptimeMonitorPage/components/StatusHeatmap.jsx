@@ -69,7 +69,9 @@ function getTooltipText(
 
   if (isPartial) {
     if (!hasData) return `[${timeRange}]\nPARTIAL BUCKET — no data yet, collecting...`;
-    const avgStr = averageMs != null ? `Avg: ${averageMs.toFixed(0)} ms` : 'no avg yet';
+
+    const avgStr = `Avg — ${averageMs != null ? `${averageMs.toFixed(0)} ms` : '[no avg yet]'}`;
+
     if (anyFailure) {
       const failures = (failureDetails || [])
         .map((f) => {
@@ -82,14 +84,15 @@ function getTooltipText(
       const count = failures.length;
       const failuresJoined = failures.join('\n');
 
-      return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
+      return `[${timeRange}]\nPARTIAL BUCKET\n${avgStr}\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
     }
-    return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr} ms`;
+    return `[${timeRange}]\nPARTIAL BUCKET\n${avgStr}`;
   }
 
   if (!hasData) return `[${timeRange}]\nNO DATA`;
 
-  const avgStr = averageMs?.toFixed(0);
+  const avgStr = `Avg — ${averageMs != null ? `${averageMs.toFixed(0)} ms` : '[no data available]'}`;
+
   if (anyFailure) {
     const failures = (failureDetails || [])
       .map((f) => {
@@ -102,10 +105,10 @@ function getTooltipText(
     const count = failures.length;
     const failuresJoined = failures.join('\n');
 
-    return `[${timeRange}]\nPARTIAL BUCKET — ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
+    return `[${timeRange}]\n${avgStr}\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
   }
-  if (isWarning) return `[${timeRange}]\nHIGH LATENCY\nAvg: ${avgStr} ms`;
-  return `[${timeRange}]\nALL GOOD\nAvg: ${avgStr} ms`;
+  if (isWarning) return `[${timeRange}]\nHIGH LATENCY\n${avgStr}`;
+  return `[${timeRange}]\nALL GOOD\n${avgStr}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -296,9 +299,9 @@ export default function StatusHeatmap({ clockAligned = false, ...props }) {
 
       {/* ── Heatmap body ───────────────────────────────────────────────────── */}
       {loading ? (
-        <DetailsBadge variant="info" message="Fetching..." spinner className="h-30" />
+        <DetailsBadge variant="info" message="Fetching latest data..." spinner className="h-16" />
       ) : !hasHeatmapData ? (
-        <DetailsBadge variant="error" message="No data available" className="h-30" />
+        <DetailsBadge variant="error" message="No data available" className="h-16" />
       ) : (
         <div className="flex flex-wrap justify-center gap-0.5">
           {buckets.map((b, idx) => (
