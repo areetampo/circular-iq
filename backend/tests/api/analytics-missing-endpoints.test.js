@@ -111,7 +111,7 @@ test('GET /api/analytics/global-stats returns log_stats + market_data + assessme
 
   const serviceSupabaseMock = makeServiceSupabaseMock({ logRows, marketData, assessmentStats });
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabaseMock));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
@@ -128,7 +128,7 @@ test('GET /api/analytics/global-stats handles empty data gracefully', async () =
     assessmentStats: [{}],
   });
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabaseMock));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
@@ -155,7 +155,7 @@ test('GET /api/analytics/global-stats includes weekly trend data', async () => {
     assessmentStats: [{}],
   });
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabaseMock));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabaseMock));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);

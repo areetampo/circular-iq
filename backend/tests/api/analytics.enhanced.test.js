@@ -154,7 +154,7 @@ after(async () => {
 test('GET /api/analytics/global-stats returns comprehensive analytics with multiple industries', async () => {
   const serviceSupabase = makeMockSupabaseForGlobalStats();
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabase));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabase));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
@@ -183,7 +183,7 @@ test('GET /api/analytics/global-stats returns comprehensive analytics with multi
 test('GET /api/analytics/global-stats includes proper score distribution', async () => {
   const serviceSupabase = makeMockSupabaseForGlobalStats();
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabase));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabase));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
@@ -197,7 +197,7 @@ test('GET /api/analytics/global-stats includes proper score distribution', async
 test('GET /api/analytics/global-stats includes industry and risk distributions', async () => {
   const serviceSupabase = makeMockSupabaseForGlobalStats();
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabase));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabase));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);

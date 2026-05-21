@@ -97,7 +97,7 @@ test('GET /api/analytics/global-stats returns aggregate analytics data', async (
   setDatabaseClientOverride(null); // Reset override
   const serviceSupabase = makeMockSupabaseForGlobalStats();
   const app = express();
-  app.use('/api/analytics', createAnalyticsRouter(null, serviceSupabase));
+  app.use('/api/analytics', createAnalyticsRouter(serviceSupabase));
 
   const res = await request(app).get('/api/analytics/global-stats');
   assert.equal(res.status, 200);
