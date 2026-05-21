@@ -283,7 +283,7 @@ export function stopServer() {
 }
 
 // Prevent background logging errors from crashing the Render instance
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
   logger.error({ reason }, 'UNHANDLED REJECTION');
   if (BACKEND_CONFIG.nodeEnv !== 'test') {
     logger.error({ reason }, theme.danger('UNHANDLED REJECTION'));
