@@ -39,7 +39,7 @@ const ValidationRule = ({ isValid, hasInput, children }) => (
   <div
     className={cn(
       'flex items-center gap-1.5 [&>*:first-child]:mt-0.5',
-      !hasInput ? 'text-(--color-checkbox)' : isValid ? 'text-green-900' : 'text-red-900',
+      !hasInput ? 'text-(--color-dark-brown)' : isValid ? 'text-green-900' : 'text-red-900',
     )}
   >
     {!hasInput ? (
