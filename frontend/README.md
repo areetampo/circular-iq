@@ -1225,6 +1225,6 @@ For issues or questions:
 
 ## License & Support
 
-**LICENSE:** MIT
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh
+**LICENSE:** MIT  
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
 **Last Updated:** 21 May 2026
