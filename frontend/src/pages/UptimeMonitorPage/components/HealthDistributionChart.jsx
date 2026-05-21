@@ -90,7 +90,7 @@ export default function HealthDistributionChart({ ...props }) {
       </h3>
 
       {isLoading ? (
-        <DetailsBadge variant="info" message="Fetching..." spinner className="h-55" />
+        <DetailsBadge variant="info" message="Fetching latest data..." spinner className="h-55" />
       ) : !hasAnyData ? (
         <DetailsBadge variant="error" message="No data available" className="h-55" />
       ) : (

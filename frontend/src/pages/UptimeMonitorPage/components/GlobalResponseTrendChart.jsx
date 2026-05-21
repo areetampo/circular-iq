@@ -93,7 +93,7 @@ export default function GlobalResponseTrendChart({ clockAligned = false, ...prop
       </h3>
 
       {loading ? (
-        <DetailsBadge variant="info" message="Fetching..." spinner className="h-55" />
+        <DetailsBadge variant="info" message="Fetching latest data..." spinner className="h-55" />
       ) : !hasData ? (
         <DetailsBadge variant="error" message="No data available" className="h-55" />
       ) : !hasValidData ? (

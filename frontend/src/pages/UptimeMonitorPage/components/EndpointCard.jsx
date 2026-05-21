@@ -386,7 +386,7 @@ export default function EndpointCard({
 
       {/* Loading state for buckets when checks exist but buckets haven't arrived yet */}
       {hasData && loadingBuckets && !buckets && (
-        <DetailsBadge variant="info" message="Fetching..." spinner className="mb-4" />
+        <DetailsBadge variant="info" message="Fetching latest data..." spinner className="mb-4" />
       )}
 
       {(displayRecent || displayBuckets) && <Separator wrapperCn="-mt-4" />}

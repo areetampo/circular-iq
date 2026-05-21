@@ -62,7 +62,7 @@ export default function UptimeOverTimeChart({ ...props }) {
         Uptime % Over Time (daily) {daysLabel}
       </h3>
       {loading ? (
-        <DetailsBadge variant="info" message="Fetching..." spinner className="h-65" />
+        <DetailsBadge variant="info" message="Fetching latest data..." spinner className="h-65" />
       ) : !hasChartData ? (
         <DetailsBadge variant="error" message="No data available" className="h-65" />
       ) : (
