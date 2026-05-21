@@ -3,7 +3,7 @@
  * @description Search input and query handling for the Solutions catalog.
  */
 
-import { Checkbox, Label, Pagination, ScrollShadow, SearchField, Tooltip } from '@heroui/react';
+import { Label, Pagination, ScrollShadow, SearchField, Switch, Tooltip } from '@heroui/react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, Eraser, ExternalLink, Keyboard, Minus, RefreshCw } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -22,7 +22,7 @@ import {
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { searchCeCases } from '@/features/search/searchApi';
 import { useDebounce } from '@/hooks';
-import { formatProcessingTime } from '@/lib/formatting';
+import { formatDuration } from '@/lib/formatting';
 import { getMatchStrength } from '@/utils/content';
 
 import FilterSidebar from './FilterSidebar';
@@ -323,7 +323,7 @@ ErrorState.propTypes = {
  * <EmptyState query="test" />
  */
 function EmptyState({ query, ...props }) {
-  return <DetailsBadge {...props} variant="warning" message={`No results found for '${query}'`} />;
+  return <DetailsBadge {...props} variant="error" message={`No results found for '${query}'`} />;
 }
 
 EmptyState.propTypes = {
@@ -729,21 +729,20 @@ export default function SolutionsSearch({ ...props }) {
       <div className="space-y-1">
         <div className="flex items-center justify-start gap-2 pl-2">
           {/* Mode toggle */}
-          <Checkbox
+          <Switch
             id="keyword-hybrid-search-toggle"
+            size="sm"
             isSelected={isHybridMode}
             onChange={handleModeChange}
             onMouseEnter={handlePrefetchHybrid}
-            className="flex items-center justify-between gap-3 pl-2"
+            className="flex items-center justify-between gap-3"
           >
-            <Checkbox.Control>
-              <Checkbox.Indicator>
-                {({ isSelected }) =>
-                  isSelected ? <div className="checkbox__default-indicator--plus" /> : null
-                }
-              </Checkbox.Indicator>
-            </Checkbox.Control>
-            <Checkbox.Content>
+            <Switch.Control>
+              <Switch.Thumb>
+                <Switch.Icon />
+              </Switch.Thumb>
+            </Switch.Control>
+            <Switch.Content>
               <Label
                 htmlFor="keyword-hybrid-search-toggle"
                 className="-ml-0.5 flex items-center justify-center text-sm/relaxed text-(--color-text-secondary)"
@@ -753,8 +752,8 @@ export default function SolutionsSearch({ ...props }) {
                   [ {isHybridMode ? 'AI-powered hybrid search' : 'fast keyword match'} ]
                 </span>
               </Label>
-            </Checkbox.Content>
-          </Checkbox>
+            </Switch.Content>
+          </Switch>
 
           {/* Result count + refresh button */}
           {hasResults && (
@@ -765,12 +764,11 @@ export default function SolutionsSearch({ ...props }) {
                 {filteredResults && results && filteredResults.length < results.length
                   ? `${filteredResults.length} of ${results.length} results (filtered)`
                   : `${results.length} results`}
-                {searchResults?.processing_info?.processing_time_ms
-                  ? ` in ${formatProcessingTime(searchResults.processing_info.processing_time_ms)}`
-                  : ''}
+                {searchResults?.processing_info?.processing_time_ms &&
+                  ` in ${formatDuration({ ms: searchResults.processing_info.processing_time_ms, combineSecAndMs: true })}`}
               </div>
 
-              {isBackgroundFetching && <Spinner color="var(--color-checkbox)" />}
+              {isBackgroundFetching && <Spinner color="var(--color-dark-brown)" />}
 
               {isStale && !isFetching && (
                 <Tooltip delay={0} className="inline-flex">
@@ -781,7 +779,7 @@ export default function SolutionsSearch({ ...props }) {
                       aria-label="Refresh results"
                       onClick={() => refetch()}
                       className="cursor-pointer"
-                      color="var(--color-checkbox)"
+                      color="var(--color-dark-brown)"
                     />
                   </Tooltip.Trigger>
                   <Tooltip.Content>Results may be outdated — click to refresh</Tooltip.Content>
