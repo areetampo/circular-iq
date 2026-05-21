@@ -36,13 +36,13 @@ import PropTypes from 'prop-types';
  *
  * @param {Object} props
  * @param {number} [props.size=16] - Diameter in pixels.
- * @param {string} [props.color='var(--color-checkbox)'] - Ring stroke colour.
+ * @param {string} [props.color='var(--color-dark-brown)'] - Ring stroke colour.
  * @param {string} [props.className] - Optional wrapper class (passed to Ring2).
  * @returns {import('react').ReactElement}
  */
 export default function Spinner({
   size = 16,
-  color = 'var(--color-checkbox)',
+  color = 'var(--color-dark-brown)',
   className,
   ...props
 }) {
@@ -51,7 +51,7 @@ export default function Spinner({
     // <div className="flex items-center justify-center">
     //   <div
     //     className={cn(
-    //       'animate-spin rounded-full border-2 border-(--color-checkbox-hover)/50 border-t-(--color-checkbox-hover)',
+    //       'animate-spin rounded-full border-2 border-(--color-dark-brown-hover)/50 border-t-(--color-dark-brown-hover)',
     //       className,
     //       sizeClasses[size],
     //     )}
