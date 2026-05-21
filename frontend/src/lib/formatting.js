@@ -81,23 +81,23 @@ export function formatRelativeTime(timestamp) {
   const diffHrs = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHrs / 24);
 
-  // pluralise: p(2, 'hr', 'hrs') ΓåÆ "2 hrs"
+  // pluralise: p(2, 'hr', 'hrs') -> "2 hrs"
   const p = (n, singular, plural = singular + 's') => `${n} ${n === 1 ? singular : plural}`;
 
   // 1. Under 1 minute
   if (diffMins < 1) return `${p(diffSecs, 'second', 'seconds')} ago`;
 
-  // 2. Under 1 hour ΓÇö mins only
+  // 2. Under 1 hour -> mins only
   if (diffHrs < 1) return `${p(diffMins, 'min', 'mins')} ago`;
 
-  // 3 & 4. Under 24 hours ΓÇö hr[s] + min[s] (omit mins if 0)
+  // 3 & 4. Under 24 hours -> hr[s] + min[s] (omit mins if 0)
   if (diffDays < 1) {
     const m = diffMins % 60;
     const minPart = m > 0 ? ` ${p(m, 'min', 'mins')}` : '';
     return `${p(diffHrs, 'hr', 'hrs')}${minPart} ago`;
   }
 
-  // 5 & 6. Under 7 days ΓÇö day[s] + hr[s] (omit hrs if 0)
+  // 5 & 6. Under 7 days -> day[s] + hr[s] (omit hrs if 0)
   if (diffDays < 7) {
     const h = diffHrs % 24;
     const hrPart = h > 0 ? ` ${p(h, 'hr', 'hrs')}` : '';
@@ -118,14 +118,14 @@ export function formatRelativeTime(timestamp) {
     calMonths += 12;
   }
 
-  // Convert remaining calendar days ΓåÆ week string or day string (never both)
+  // Convert remaining calendar days -> week string or day string (never both)
   const subUnit = (d) => {
     if (d <= 0) return '';
     if (d >= 7) return ` ${p(Math.floor(d / 7), 'w', 'w')}`;
     return ` ${p(d, 'day', 'days')}`;
   };
 
-  // 7. Under 1 calendar month ΓÇö weeks + days (omit days if 0)
+  // 7. Under 1 calendar month -> weeks + days (omit days if 0)
   //    (we reach here only when calYears === 0 && calMonths === 0)
   if (calYears === 0 && calMonths === 0) {
     const weeks = Math.floor(diffDays / 7);
@@ -134,12 +134,12 @@ export function formatRelativeTime(timestamp) {
     return `${p(weeks, 'w', 'w')}${dayPart} ago`;
   }
 
-  // 8. Under 1 year ΓÇö mo + (weeks or days, omit if 0)
+  // 8. Under 1 year -> mo + (weeks or days, omit if 0)
   if (calYears === 0) {
     return `${p(calMonths, 'mo', 'mo')}${subUnit(calDays)} ago`;
   }
 
-  // 9. 1+ years ΓÇö yr[s] + month[s]  OR  yr[s] + w  OR  yr[s] only
+  // 9. 1+ years -> yr[s] + month[s]  OR  yr[s] + w  OR  yr[s] only
   //    (days < 7 are discarded at the year scale)
   let suffix = '';
   if (calMonths > 0) {
@@ -161,31 +161,118 @@ export function toTitleCase(str) {
 }
 
 /**
- * Format processing time from milliseconds to readable format
- * @param {number} timeMs - Time in milliseconds
- * @returns {string} Formatted time string
+ * Converts a duration object to a compact human-readable label.
+ * All fields are optional and can be mixed and matched.
+ *
+ * @param {Object} [options={}]
+ * @param {number} [options.days=0]
+ * @param {number} [options.hours=0]
+ * @param {number} [options.minutes=0]
+ * @param {number} [options.seconds=0]
+ * @param {number} [options.ms=0]
+ * @param {boolean} [options.combineSecAndMs=false] If true, combines seconds and ms into a decimal string for values >= 1000ms (e.g., "22.555s")
+ * @returns {string} e.g. "15 mins", "1 day", "22.555s", "200 ms"
+ *
+ * @example
+ * // --- Standard Formatting (combineSecAndMs = false) ---
+ * formatDuration({ minutes: 15 });                         // "15 mins"
+ * formatDuration({ hours: 24 });                           // "1 day"
+ * formatDuration({ seconds: 5, ms: 200 });                 // "5 secs 200 ms"
+ * formatDuration({ ms: 72455 });                           // "1 min 12 secs 455 ms"
+ *
+ * // --- Combined Formatting (combineSecAndMs = true) ---
+ * formatDuration({ ms: 22555, combineSecAndMs: true }); // "22.555s" (>= 1000ms gets combined)
+ * formatDuration({ ms: 200, combineSecAndMs: true });   // "200 ms" (< 1000ms strips the 0. decimal)
+ * formatDuration({ seconds: 4, combineSecAndMs: true });// "4s" (clean integer if ms is 0)
+ *
+ * // --- Mixed Units with Combination ---
+ * formatDuration({ minutes: 1, ms: 12455, combineSecAndMs: true }); // "1 min 12.455s"
+ * formatDuration({ hours: 2, seconds: 30, combineSecAndMs: true });  // "2 hrs 30s"
+ * formatDuration({ minutes: 5, ms: 350, combineSecAndMs: true });    // "5 mins 350 ms" (< 1000ms fallback)
+ *
+ * // --- Edge Cases & Fallbacks ---
+ * formatDuration();                                         // "0 seconds"
+ * formatDuration({});                                       // "0 seconds"
+ * formatDuration({ ms: -500 });                             // "0 seconds" (handles negative totals)
+ * formatDuration({ combineSecAndMs: true });            // "0 seconds"
  */
-export function formatProcessingTime(timeMs) {
-  if (!timeMs) return '';
+export function formatDuration({
+  days = 0,
+  hours = 0,
+  minutes = 0,
+  seconds = 0,
+  ms = 0,
+  combineSecAndMs = false,
+} = {}) {
+  // Convert everything down to the smallest unit (ms) to sum it up accurately
+  const msInSecond = 1000;
+  const msInMinute = 60 * msInSecond;
+  const msInHour = 60 * msInMinute;
+  const msInDay = 24 * msInHour;
 
-  const minutes = Math.floor(timeMs / 60000);
-  const seconds = Math.floor((timeMs % 60000) / 1000);
+  const totalMs =
+    days * msInDay + hours * msInHour + minutes * msInMinute + seconds * msInSecond + ms;
 
-  // Divide by 10 and floor to get exactly the first two digits (0-99)
-  const msDigits = Math.floor((timeMs % 1000) / 10);
+  if (totalMs <= 0) return '0 seconds'; // fallback
 
-  // Optional: Pad with a leading zero so "5ms" becomes "05ms" for consistent width
-  const msFormatted = String(msDigits).padStart(2, '0');
+  // Break down the total ms into chronological chunks
+  const wholeDays = Math.floor(totalMs / msInDay);
+  let remainder = totalMs % msInDay;
 
-  if (minutes > 0) {
-    return `${minutes}m ${seconds}.${msFormatted}s`;
-  } else if (seconds > 0) {
-    return `${seconds}.${msFormatted}s`;
+  const wholeHours = Math.floor(remainder / msInHour);
+  remainder %= msInHour;
+
+  const wholeMinutes = Math.floor(remainder / msInMinute);
+  remainder %= msInMinute;
+
+  const parts = [];
+  if (wholeDays > 0) parts.push(`${wholeDays} day${wholeDays === 1 ? '' : 's'}`);
+  if (wholeHours > 0) parts.push(`${wholeHours} hr${wholeHours === 1 ? '' : 's'}`);
+  if (wholeMinutes > 0) parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
+
+  // Handle seconds and ms based on the configuration option
+  if (combineSecAndMs) {
+    if (remainder > 0) {
+      // If remaining time is a full second or more, make it a decimal (e.g., 12.455s)
+      if (remainder >= msInSecond) {
+        const combinedSeconds = remainder / msInSecond;
+        parts.push(`${combinedSeconds} s`);
+      } else {
+        // If remaining time is less than 1s, keep it as just the number + ms (e.g., 200 ms)
+        parts.push(`${remainder} ms`);
+      }
+    }
   } else {
-    // If it's pure milliseconds, you might want the raw digits
-    // or the padded version depending on your preference
-    return `${msDigits}ms`;
+    const wholeSeconds = Math.floor(remainder / msInSecond);
+    const wholeMs = remainder % msInSecond;
+
+    if (wholeSeconds > 0) parts.push(`${wholeSeconds} sec${wholeSeconds === 1 ? '' : 's'}`);
+    if (wholeMs > 0) parts.push(`${wholeMs} ms`);
   }
+
+  // Fallback case: if nothing was pushed because values were all 0 but totalMs > 0
+  if (parts.length === 0) {
+    return '0 seconds';
+  }
+
+  return parts.join(' ');
+}
+
+/**
+ * Returns the user's local timezone label for chart axis subtitles.
+ *
+ * @param {Object} [options={}]
+ * @param {'minimal'|'full'} [options.style='minimal'] - `minimal` uses short name (e.g. GMT+1).
+ * @returns {string}
+ */
+export function getTimezoneLabel({ style = 'minimal' } = {}) {
+  const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (style === 'full') return resolved;
+
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZoneName: 'short' }).formatToParts(
+    new Date(),
+  );
+  return parts.find((p) => p.type === 'timeZoneName')?.value ?? resolved;
 }
 
 /**
@@ -266,80 +353,6 @@ export function cleanUrl(urlStr, options = {}) {
     // Fallback if the string is completely mangled
     return urlStr;
   }
-}
-
-/**
- * Converts a duration object to a compact human-readable label.
- * All fields are optional and summed before formatting.
- *
- * @param {Object} [duration={}]
- * @param {number} [duration.days=0]
- * @param {number} [duration.hours=0]
- * @param {number} [duration.minutes=0]
- * @param {number} [duration.seconds=0]
- * @param {number} [duration.ms=0]
- * @returns {string} e.g. "15 mins", "1 day", "1 hr 20 mins", "5 secs 200 ms"
- *
- * @example
- * formatDuration({ minutes: 15 }); // "15 mins"
- * formatDuration({ hours: 24 }); // "1 day"
- * formatDuration({ seconds: 5, ms: 200 }); // "5 secs 200 ms"
- */
-export function formatDuration({ days = 0, hours = 0, minutes = 0, seconds = 0, ms = 0 } = {}) {
-  // Convert everything down to the smallest unit (ms) to sum it up accurately
-  const msInSecond = 1000;
-  const msInMinute = 60 * msInSecond;
-  const msInHour = 60 * msInMinute;
-  const msInDay = 24 * msInHour;
-
-  const totalMs =
-    days * msInDay + hours * msInHour + minutes * msInMinute + seconds * msInSecond + ms;
-
-  if (totalMs <= 0) return '0 seconds'; // fallback
-
-  // Break down the total ms into chronological chunks
-  const wholeDays = Math.floor(totalMs / msInDay);
-  let remainder = totalMs % msInDay;
-
-  const wholeHours = Math.floor(remainder / msInHour);
-  remainder %= msInHour;
-
-  const wholeMinutes = Math.floor(remainder / msInMinute);
-  remainder %= msInMinute;
-
-  const wholeSeconds = Math.floor(remainder / msInSecond);
-  const wholeMs = remainder % msInSecond;
-
-  const parts = [];
-  if (wholeDays > 0) parts.push(`${wholeDays} day${wholeDays === 1 ? '' : 's'}`);
-  if (wholeHours > 0) parts.push(`${wholeHours} hr${wholeHours === 1 ? '' : 's'}`);
-  if (wholeMinutes > 0) parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
-  if (wholeSeconds > 0) parts.push(`${wholeSeconds} sec${wholeSeconds === 1 ? '' : 's'}`);
-  if (wholeMs > 0) parts.push(`${wholeMs} ms`);
-
-  // Fallback case: if nothing was pushed because values were all 0 but totalMs > 0
-  if (parts.length === 0) {
-    return '0 seconds';
-  }
-
-  return parts.join(' ');
-}
-
-/**
- * Returns the user's local timezone label for chart axis subtitles.
- *
- * @param {Object} [options={}]
- * @param {'minimal'|'full'} [options.style='minimal'] - `minimal` uses short name (e.g. GMT+1).
- * @returns {string}
- */
-export function getTimezoneLabel({ style = 'minimal' } = {}) {
-  const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  if (style === 'full') return resolved;
-
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZoneName: 'short' }).formatToParts(
-    new Date(),
-  );
-  return parts.find((p) => p.type === 'timeZoneName')?.value ?? resolved;
 }
 
 /**
