@@ -120,7 +120,12 @@ export const StarsBackground = ({
     };
   }, [stars]);
 
-  return <canvas ref={canvasRef} className={cn('absolute inset-0 h-full w-full', className)} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className={cn('pointer-events-none absolute inset-0 h-full w-full', className)}
+    />
+  );
 };
 
 StarsBackground.propTypes = {

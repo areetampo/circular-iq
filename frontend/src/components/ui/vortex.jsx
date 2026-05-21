@@ -246,9 +246,9 @@ export const Vortex = (props) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         ref={containerRef}
-        className="absolute inset-0 z-0 flex h-full w-full items-center justify-center bg-transparent"
+        className="pointer-events-none absolute inset-0 z-0 flex h-full w-full items-center justify-center bg-transparent"
       >
-        <canvas ref={canvasRef}></canvas>
+        <canvas ref={canvasRef} className="pointer-events-none"></canvas>
       </motion.div>
       <div className={cn('relative z-10', props.className)}>{props.children}</div>
     </div>
