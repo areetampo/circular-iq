@@ -85,7 +85,7 @@ function NavLinkItem({ item, isActive, isDisabled, onClose }) {
   const linkClass = cn(
     'flex w-full rounded-md px-2 py-1.5 text-sm',
     isActive
-      ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
+      ? 'bg-(--color-accent-light) text-(--color-dark-brown-primary)'
       : 'text-(--color-text-secondary) hover:bg-(--color-hover-subtle)',
   );
 
@@ -319,13 +319,13 @@ export default function Navbar() {
                 to={item.path}
                 className={`relative cursor-pointer rounded-lg px-2 py-1 text-sm transition-colors duration-300 ${
                   isActive
-                    ? 'text-(--color-checkbox-hover)'
+                    ? 'text-(--color-dark-brown-hover)'
                     : `text-(--color-text-primary)/60 hover:bg-(--color-warning-soft-ui) hover:text-(--color-text-primary)`
                 }`}
               >
                 {item.name}
                 {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 h-0.5 w-1/5 -translate-x-1/2 rounded-full bg-(--color-checkbox-hover)/80" />
+                  <span className="absolute -bottom-1 left-1/2 h-0.5 w-1/5 -translate-x-1/2 rounded-full bg-(--color-dark-brown-hover)/80" />
                 )}
               </Link>
             );
@@ -428,7 +428,7 @@ export default function Navbar() {
                           className={cn(
                             'flex w-full rounded-md px-2 py-1.5 text-sm',
                             isActive
-                              ? 'bg-(--color-accent-light) text-(--color-checkbox-primary)'
+                              ? 'bg-(--color-accent-light) text-(--color-dark-brown-primary)'
                               : 'text-(--color-text-secondary) hover:bg-(--color-hover-subtle)',
                           )}
                           onClick={() => setIsMobilePopoverOpen(false)}

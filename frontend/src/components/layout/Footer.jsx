@@ -103,7 +103,7 @@ export default function Footer() {
                       // 'break-inside-avoid' is critical to prevent a link from being split between two columns
                       'block break-inside-avoid text-sm text-(--color-text-muted)',
                       'transition-all duration-200 ease-in-out',
-                      'hover:translate-x-1 hover:font-medium hover:text-(--color-checkbox)',
+                      'hover:translate-x-1 hover:font-medium hover:text-(--color-dark-brown)',
                     )}
                   >
                     {link.name}
