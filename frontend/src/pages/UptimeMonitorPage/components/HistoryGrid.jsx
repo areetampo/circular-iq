@@ -72,7 +72,9 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
 
       if (bucket.isPartial) {
         if (!bucket.hasData) return `${timeDisplay}\nPARTIAL BUCKET — collecting…`;
-        const avgStr = bucket.averageMs != null ? `Avg: ${bucket.averageMs} ms` : 'no avg yet';
+
+        const avgStr = `Avg — ${bucket.averageMs != null ? `${bucket.averageMs} ms` : '[no avg yet]'}`;
+
         if (bucket.anyFailure) {
           const failureTs = (bucket.failureTimestamps || [])
             .map((ts) => {
@@ -83,14 +85,14 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
           const count = failureTs.length;
           const failuresJoined = failureTs.join('\n');
 
-          return `[${timeDisplay}]\nPARTIAL BUCKET — ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
+          return `${timeDisplay}\nPARTIAL BUCKET\n${avgStr}\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
         }
-        return `${timeDisplay}\nPARTIAL BUCKET — ${avgStr} ms`;
+        return `${timeDisplay}\nPARTIAL BUCKET\n${avgStr}`;
       }
 
       if (!bucket.hasData) return `${timeDisplay}\nNO DATA`;
 
-      const avgStr = bucket.averageMs != null ? `${bucket.averageMs} ms` : '—';
+      const avgStr = `Avg — ${bucket.averageMs != null ? `${bucket.averageMs} ms` : '[no data available]'}`;
 
       if (bucket.anyFailure) {
         // failureTimestamps may be absent when coming from DB aggregation (not per-check)
@@ -103,11 +105,11 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
         const count = failureTs.length;
         const failuresJoined = failureTs.join('\n');
 
-        return `${timeDisplay}\nAvg: ${avgStr} ms\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
+        return `${timeDisplay}\n${avgStr}\nFAILURE(S) - ${count}${failuresJoined ? `\n${failuresJoined}` : ''}`;
       }
 
-      if (bucket.isWarning) return `${timeDisplay}\nHIGH LATENCY\nAvg: ${avgStr} ms`;
-      return `${timeDisplay}\nALL GOOD\nAvg: ${avgStr} ms`;
+      if (bucket.isWarning) return `${timeDisplay}\nHIGH LATENCY\n${avgStr}`;
+      return `${timeDisplay}\nALL GOOD\n${avgStr}`;
     };
   } else {
     // ── Raw checks mode ──────────────────────────────────────────────────────
@@ -126,16 +128,15 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
     tooltipFormatter = (check, idx) => {
       const ts = (() => {
         if (check?.ts) return check.ts;
-        const firstCheck = displayChecks[0];
-        if (!firstCheck) return null;
+        const firstCheckTs = displayChecks[0]?.ts ?? new Date(Date.now() + REFETCH_INTERVAL_MS);
         const stepsBack = emptyCount - idx;
-        return firstCheck.ts - stepsBack * REFETCH_INTERVAL_MS;
+        return firstCheckTs - stepsBack * REFETCH_INTERVAL_MS;
       })();
 
-      const timeStr = `[${formatTimestamp(ts, timeOpts)}]\n`;
+      const timeStr = `[${formatTimestamp(ts, timeOpts)}]`;
       const status = check?.status?.toUpperCase() ?? 'NO DATA';
-      const duration = check?.ms ? `\n${check.ms}ms` : '';
-      return `${timeStr}${status}${duration}`;
+      const duration = check?.ms ? `\n${check.ms} ms` : '';
+      return `${timeStr}\n${status}${duration}`;
     };
   }
 
