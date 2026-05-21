@@ -90,7 +90,7 @@ export default function EvaluationParametersHeadingInfoDrawer() {
                       <div className="flex items-center gap-2">
                         <Icon
                           size={16}
-                          className="shrink-0 text-(--color-checkbox)/75"
+                          className="shrink-0 text-(--color-dark-brown)/75"
                           strokeWidth={2.5}
                         />
                         <span className="text-sm/snug font-medium text-(--color-text-primary)">
