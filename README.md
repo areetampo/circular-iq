@@ -12,7 +12,6 @@ AI-powered platform for evaluating circular economy business initiatives against
 - **Authors:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com) & [Mahit Singh](mailto:mahitsingh02@gmailcom)
 - **Repository:** [areetampo/circular-economy](https://github.com/areetampo/circular-economy)
 - **License:** MIT
-- **Monitoring:** GitHub keep-alive workflow and optional Vercel ping helper
 
 ---
 
