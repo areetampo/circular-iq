@@ -1,6 +1,8 @@
 /**
  * @module search.controller
  * @description Handlers for `GET /api/search/ce-cases` (keyword and hybrid CE case search).
+ * Database access is handled internally by ceCasesRepository, which resolves
+ * its own Supabase client via getSupabaseClient().
  *
  * Modes:
  *   - `keyword` (default) — full-text search, no OpenAI call
@@ -69,12 +71,9 @@ function formatResult(row) {
 
 /**
  * Search CE cases knowledge base.
- * Exported as a factory so the route can inject the supabase client.
- *
- * @param {Object} supabase - Supabase client (anon or service role)
  * @returns {Function} Express async handler
  */
-export function searchCeCases(supabase) {
+export function searchCeCases() {
   return async function handler(req, res) {
     const startTime = Date.now();
 
@@ -125,7 +124,7 @@ export function searchCeCases(supabase) {
       let rawResults;
 
       if (mode === 'keyword') {
-        rawResults = await ceCasesRepository.searchKeyword(supabase, query, limit);
+        rawResults = await ceCasesRepository.searchKeyword(query, limit);
       } else {
         // Hybrid: embed the query first, then pass vector + keyword to RPC
         let queryEmbedding;
@@ -141,7 +140,6 @@ export function searchCeCases(supabase) {
         }
 
         rawResults = await ceCasesRepository.searchHybrid(
-          supabase,
           queryEmbedding,
           query,
           limit,
