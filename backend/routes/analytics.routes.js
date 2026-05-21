@@ -16,11 +16,10 @@ import * as analyticsController from '#controllers/analytics.controller.js';
 /**
  * Creates the analytics router.
  *
- * @param {Object} supabase - Supabase client instance (unused, kept for compatibility).
  * @param {Object} serviceSupabase - Service-role Supabase client for unrestricted queries.
  * @returns {express.Router} Configured Express router with analytics endpoints.
  */
-export default function createAnalyticsRouter(supabase, serviceSupabase) {
+export default function createAnalyticsRouter(serviceSupabase) {
   const router = express.Router();
 
   /**
@@ -38,7 +37,7 @@ export default function createAnalyticsRouter(supabase, serviceSupabase) {
   router.get('/global-stats', analyticsController.getGlobalStats(serviceSupabase));
 
   // fallback error handler for unexpected errors
-  router.use((err, req, res, next) => {
+  router.use((err, req, res, _next) => {
     logger.logOperation('ERROR', `/api/analytics${req.path}`, 500, 0, { err });
     logger.error({ err }, 'Analytics route error');
 
