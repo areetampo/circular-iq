@@ -349,7 +349,7 @@ export default function createHealthRouter() {
   });
 
   // Error handler for health routes
-  router.use((err, req, res, next) => {
+  router.use((err, req, res, _next) => {
     logger.logOperation('health_error', req.path, 'error', 0, { err });
 
     res.status(503).json({
