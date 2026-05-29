@@ -2,25 +2,8 @@
 import '#server/bootstrap.js';
 
 /**
- * scrape_emf.js - Ellen MacArthur Foundation Case Studies
- *
- * Scrapes EMF case studies from their online repository. Extracts detailed information
- * about circular economy implementations including companies, case study descriptions,
- * and measurable impact metrics.
- *
- * Features:
- *   • Dynamic pagination via "Load More" button clicking
- *   • Per-item detail extraction from individual case study pages
- *   • Quality scoring based on descriptions and impact metrics
- *   • Backup system: incremental batch-level backup with recovery mode
- *   • Detailed logging to dataset-specific log file
- *
- * Usage:
- *   node scrape_emf.js                 # normal run
- *   node scrape_emf.js --use-backup    # rebuild from backup
- *   node scrape_emf.js --clear-logs    # clear the log file
- *   node scrape_emf.js --append-processed  # append to CSV instead of overwriting
- *   node scrape_emf.js --append-backup     # append to backup instead of clearing
+ * Scrapes Ellen MacArthur Foundation case studies via Puppeteer with optional OpenAI enrichment.
+ * CLI: --use-backup, --clear-logs, --append-processed, --append-backup.
  */
 
 import { fileURLToPath } from 'url';
@@ -193,8 +176,8 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, 
 
 /**
  * Remove boilerplate lines from a text.
- * @param {string} text - The text to clean.
- * @returns {string} Cleaned text.
+ * @param {string} text - Raw scraped text that may include excessive whitespace or HTML artifacts.
+ * @returns {string} Text with known navigation, cookie, and marketing boilerplate lines removed.
  */
 function removeBoilerplate(text) {
   if (!text) return '';
@@ -238,9 +221,9 @@ function extractStrategy(text) {
 }
 
 /**
- * Extract quantitative impact from text – look for sentences with numbers and outcome verbs,
+ * Extract quantitative impact from text - look for sentences with numbers and outcome verbs,
  * preferably in the solution or benefits sections.
- * @param {string} text - Text to scan.
+ * @param {string} text - Case-study text searched for quantified outcome sentences.
  * @returns {string} Best impact sentence, or empty if none.
  */
 function extractImpact(text) {
@@ -269,6 +252,11 @@ function extractImpact(text) {
 
 /**
  * Compute a quality score for the extracted data (0-100).
+ *
+ * @param {string} problem - Candidate challenge statement.
+ * @param {string} solution - Candidate solution narrative.
+ * @param {string} impact - Candidate quantified outcome sentence.
+ * @returns {number} Quality score from 0 to 100 based on narrative length and quantified impact.
  */
 function computeQualityScore(problem, solution, impact) {
   let score = 0;
@@ -305,11 +293,16 @@ function computeQualityScore(problem, solution, impact) {
 
 /**
  * Call OpenAI API with a given prompt and return parsed JSON.
+ *
+ * @param {string} prompt - System/user prompt sent with the content.
+ * @param {string} content - Source text to refine into structured JSON.
+ * @returns {Promise<Object|Array|null>} Parsed OpenAI JSON result, or `null` when no API key is configured.
+ * @throws {Error} If the OpenAI API returns a non-2xx response.
  */
 async function callOpenAI(prompt, content) {
   const apiKey = BACKEND_CONFIG.openai.apiKey;
   if (!apiKey) {
-    logger.warn('‼ OpenAI API key not found – skipping AI refinement.');
+    logger.warn('⚠️ OpenAI API key not found – skipping AI refinement.');
     return null;
   }
 
@@ -349,7 +342,7 @@ async function callOpenAI(prompt, content) {
 /**
  * Extract multiple case studies from an overview page using OpenAI.
  * @param {string} text - Full page text.
- * @returns {Promise<Array>} Array of objects with keys: problem, solution, impact, circular_strategy, category.
+ * @returns {Promise<Array<{ problem: string, solution: string, impact: string, circular_strategy: string, category: string }>>} Extracted case rows from the overview page; empty array when no cases are detected.
  */
 async function extractMultipleFromOverview(text) {
   const prompt = `The following text contains one or more case studies about the circular economy. Extract each distinct case study and return a JSON array of objects. Each object must have keys: "problem" (the challenge, 1-2 sentences), "solution" (the action taken, 2-3 sentences), "impact" (quantified impact if available, else empty string), "circular_strategy" (one or more of: Recycling, Reuse, Reduce, Repair, Refurbishment, Remanufacturing, Energy Recovery, Eco-design, Biobased/Regenerative, Product-as-a-Service, Modular Design, Durability, Sharing Economy), "category" (primary industry sector: Food, Fashion, Plastics, Construction, Electronics, Business Case, Urban Resilience, etc.). If no case studies are present, return an empty array.`;
@@ -368,6 +361,8 @@ async function extractMultipleFromOverview(text) {
 /**
  * Rebuild final CSV from backup content.
  * Used when --use-backup flag is passed to script.
+ *
+ * @throws {Error} If backup reading or CSV writing fails.
  */
 async function rebuildFromBackup() {
   logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
@@ -377,7 +372,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `‼ No backup content found. Cannot rebuild output.`;
+      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -393,7 +388,7 @@ async function rebuildFromBackup() {
           const metadata = JSON.parse(row.metadata_json || '{}');
           // restore or recompute quality score
           let qualityScore = 0;
-          if (row._qualityScore != null) {
+          if (row._qualityScore !== null) {
             qualityScore = parseFloat(row._qualityScore);
           } else {
             qualityScore = computeQualityScore(row.problem, row.solution, row.impact);
@@ -409,8 +404,8 @@ async function rebuildFromBackup() {
             metadata,
             qualityScore,
           };
-        } catch (e) {
-          logger.warn({ e }, 'Skipping invalid backup row');
+        } catch (error) {
+          logger.warn({ error }, 'Skipping invalid backup row');
           return null;
         }
       })
@@ -418,7 +413,7 @@ async function rebuildFromBackup() {
 
     if (items.length === 0) {
       logger.warn('No valid items could be reconstructed from backup.');
-      await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
+      await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -521,8 +516,8 @@ async function scrape_emf() {
         try {
           await backup.add(pageRows);
           await appendLogs(DATASET_KEY, `Initial load: collected ${pageRows.length} items.`);
-        } catch (e) {
-          const backupErr = `‼ Backup add failed for initial load: ${e.message}`;
+        } catch (error) {
+          const backupErr = `⚠️ Backup add failed for initial load: ${error.message}`;
           logger.warn(backupErr);
           await appendLogs(DATASET_KEY, backupErr);
         }
@@ -572,8 +567,8 @@ async function scrape_emf() {
                 DATASET_KEY,
                 `Click ${loadCount}: found ${newUrls.length} new, collected ${pageRows.length} items.`,
               );
-            } catch (e) {
-              const backupErr = `‼ Backup add failed for click ${loadCount}: ${e.message}`;
+            } catch (error) {
+              const backupErr = `⚠️ Backup add failed for click ${loadCount}: ${error.message}`;
               logger.warn(backupErr);
               await appendLogs(DATASET_KEY, backupErr);
             }
@@ -588,8 +583,8 @@ async function scrape_emf() {
 
         // Update previous URLs for next iteration
         previousUrls = new Set(currentUrls);
-      } catch (e) {
-        const clickErr = `  ‼ Load More click failed at count ${loadCount}: ${e.message}`;
+      } catch (error) {
+        const clickErr = `  ⚠️ Load More click failed at count ${loadCount}: ${error.message}`;
         logger.warn(clickErr);
         await appendLogs(DATASET_KEY, clickErr);
         break;
@@ -599,7 +594,7 @@ async function scrape_emf() {
     if (loadCount === FINAL_FETCH_LOADS) {
       await appendLogs(DATASET_KEY, `✓ Reached target end click count (${FINAL_FETCH_LOADS}).`);
     } else if (loadCount === MAX_LOADS_TO_FETCH) {
-      const limitMsg = `‼ Reached fallback max clicks (${MAX_LOADS_TO_FETCH}) – stopping.`;
+      const limitMsg = `⚠️ Reached fallback max clicks (${MAX_LOADS_TO_FETCH}) – stopping.`;
       logger.warn(limitMsg);
       await appendLogs(DATASET_KEY, limitMsg);
     }
@@ -611,7 +606,7 @@ async function scrape_emf() {
 
     if (collected.length === 0) {
       logger.info('✕ No items collected. Exiting.');
-      await appendLogs(DATASET_KEY, `‼ No items collected.`);
+      await appendLogs(DATASET_KEY, `⚠️ No items collected.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
     }
@@ -665,7 +660,10 @@ async function scrape_emf() {
 
 /**
  * Fetch detail page for a single case study link.
- * Returns an array of { item, backupRow } objects (could be empty, one, or multiple).
+ *
+ * @param {import('puppeteer').Browser} browser - Browser instance used to create the detail page.
+ * @param {string} link - Case-study URL to inspect.
+ * @returns {Promise<Array<{ item: Record<string, unknown>, backupRow: Record<string, unknown> }>>} Extracted item/backup pairs; may be empty for overview, cookie, or unusable pages.
  */
 async function fetchDetail(browser, link) {
   let detailPage;
@@ -980,7 +978,7 @@ async function fetchDetail(browser, link) {
           // Optionally use AI category if it seems reliable – but we'll keep rule‑based for now
         }
       } catch (aiErr) {
-        await appendLogs(DATASET_KEY, `‼ OpenAI refinement failed: ${aiErr.message}`);
+        await appendLogs(DATASET_KEY, `⚠️ OpenAI refinement failed: ${aiErr.message}`);
       }
     }
 
@@ -1059,8 +1057,8 @@ async function fetchDetail(browser, link) {
       );
       return [];
     }
-  } catch (err) {
-    const errMsg = `‼ Error on ${link}: ${err.message}`;
+  } catch (error) {
+    const errMsg = `⚠️ Error on ${link}: ${error.message}`;
     logger.warn(errMsg);
     await appendLogs(DATASET_KEY, errMsg);
     return [];
@@ -1079,8 +1077,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -1,26 +1,6 @@
 
 /**
- * scrape_refed.js - Food waste solution data fetching from the ReFED Insights Engine API v2
- *
- * Transforms each solution into standardized problem/solution format.
- *
- * Features:
- *   • Fetches all solutions from the `/solutions` endpoint
- *   • Enriches with group and category names from supporting endpoints
- *   • Parses quantified impact metrics (tons, GHG, water, meals, jobs)
- *   • Pagination through all available solutions
- *   • Backup every 10 solutions with recovery mode
- *   • Detailed logging to file
- *   • **Content‑based deduplication** – skips duplicate problem/solution pairs
- *
- * Usage:
- *   node scrape_refed.js                 # normal run
- *   node scrape_refed.js --use-backup    # rebuild final CSV from backup
- *   node scrape_refed.js --clear-logs    # clear log file before starting
- *   node scrape_refed.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_refed.js --append-backup     # append to backup instead of clearing on start
- *
- * Output: datasets/processed/refed_processed.csv
+ * Fetches ReFED food-waste solutions from API v2 into standardized CSV rows.
  */
 
 import { fileURLToPath } from 'url';
@@ -123,7 +103,11 @@ async function fetchAllSolutions() {
 }
 
 /**
- * Transform a raw API solution into your standardized row object.
+ * Transform a raw API solution into the shared dataset CSV row shape.
+ *
+ * @param {Record<string, unknown>} solution - Raw ReFED solution payload with attributes and relationships.
+ * @param {{ groups: Record<string, string>, categories: Record<string, string>, sectors: Record<string, string>, foodTypes: Record<string, string> }} lookups - Lookup maps used to expand relationship ids.
+ * @returns {{ problem: string, solution: string, materials: string, circular_strategy: string, category: string, impact: string, source_url: string, metadata_json: string }} Normalized food-waste solution row.
  */
 function transformSolution(solution, lookups) {
   const attrs = solution.attributes || {};
@@ -337,8 +321,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

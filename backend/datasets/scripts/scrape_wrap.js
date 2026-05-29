@@ -1,37 +1,7 @@
 
 /**
- * scrape_wrap.js - WRAP Resources and Case Studies (IMPROVED EXTRACTION)
- *
- * Scrapes WRAP resources (case studies, guides, reports) from paginated listing pages.
- * Extracts problem/solution/impact directly from HTML content.
- *
- * Improvements:
- *   • Robust fallback extraction that finds sections by heading text.
- *   • Filters out garbage rows using heuristics.
- *   • Logs skipped rows with reason.
- *
- * Features:
- *   • Three independent scrapes in one file: case studies, guides, reports
- *   • Run all categories by default or use flags for specific ones
- *   • Per-resource extraction using category-specific selectors
- *   • Backup every 3 pages with recovery mode
- *   • Detailed logging to dataset-specific log file
- *
- * Usage:
- *   node scrape_wrap.js                    # all categories
- *   node scrape_wrap.js --case-studies     # only case studies
- *   node scrape_wrap.js --guides           # only guides
- *   node scrape_wrap.js --reports          # only reports
- *   node scrape_wrap.js --use-backup       # rebuild from backup
- *   node scrape_wrap.js --show             # show browser
- *   node scrape_wrap.js --clear-logs       # clear log file
- *   node scrape_wrap.js --append-processed # append to CSV
- *   node scrape_wrap.js --append-backup    # append to backup
- *
- * Output:
- *   • Processed CSV in datasets/processed/
- *   • Downloaded PDFs in datasets/raw/wrap_resources/
- *   • Backup in datasets/archives/scrape_backup/wrap_scrape_backup/
+ * Scrapes WRAP case studies and resources from paginated listings into processed CSV.
+ * CLI: --use-backup, --clear-logs, --append-processed, --append-backup.
  */
 
 import fs from 'fs';
@@ -211,12 +181,12 @@ async function downloadFile(url, destPath, retries = 5) {
       await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(destPath));
       logger.info({ destPath }, 'Successfully downloaded');
       return;
-    } catch (err) {
+    } catch (error) {
       clearTimeout(timeout);
       if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-      logger.warn({ attempt: i + 1, url, err }, 'Download attempt failed');
+      logger.warn({ attempt: i + 1, url, error }, 'Download attempt failed');
       if (i === retries - 1)
-        throw new Error(`Failed to download after ${retries} attempts: ${err.message}`);
+        throw new Error(`Failed to download after ${retries} attempts: ${error.message}`);
       const delay = 2000 * Math.pow(2, i) + Math.random() * 1000;
       await sleep(delay);
     }
@@ -343,7 +313,7 @@ async function extractCaseStudy(page) {
 
   // If primary selectors failed (problem or solution empty), use fallback
   if (!problem || !solution) {
-    logger.info('      ‼ Primary selectors failed, attempting fallback extraction...');
+    logger.info('      ⚠️ Primary selectors failed, attempting fallback extraction...');
     const fallback = await extractCaseStudyFallback(page);
     if (fallback.problem) problem = fallback.problem;
     if (fallback.solution) solution = fallback.solution;
@@ -414,8 +384,8 @@ async function downloadReportOrGuide(page, url, outputDir) {
       `Downloaded PDF: ${filename} from ${pdfUrl} (category: ${outputDir.includes('reports') ? 'report' : 'guide'}, source page: ${url})`,
     );
     return { pdfUrl, localPath: destPath };
-  } catch (err) {
-    logger.error({ filename, err }, 'Failed to download PDF');
+  } catch (error) {
+    logger.error({ filename, error }, 'Failed to download PDF');
     return null;
   }
 }
@@ -479,8 +449,8 @@ async function rebuildFromBackup() {
 
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (backupRows.length === 0) {
-    logger.warn('‼ No backup content found. Cannot rebuild output.');
-    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
+    logger.warn('⚠️ No backup content found. Cannot rebuild output.');
+    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
     await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
     return;
   }
@@ -569,10 +539,10 @@ async function scrapeCategory(browser, category) {
         }
         logger.info({ count: links.length }, 'Found resources');
         success = true;
-      } catch (err) {
+      } catch (error) {
         retries--;
-        logger.warn({ pageNum, retries, err }, 'Page error');
-        await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${err.message}`);
+        logger.warn({ pageNum, retries, error }, 'Page error');
+        await appendLogs(DATASET_KEY, `Page ${pageNum} error: ${error.message}`);
         if (retries === 0) {
           logger.warn({ pageNum }, 'Skipping page after 3 failed attempts');
           await appendLogs(DATASET_KEY, `Skipping page ${pageNum} after 3 failed attempts.`);
@@ -620,13 +590,13 @@ async function scrapeCategory(browser, category) {
             if (result.data) pdfCount++;
           }
           resourceSuccess = true;
-        } catch (err) {
+        } catch (error) {
           resourceRetries--;
           logger.warn(
-            { resourceRetries, err },
+            { resourceRetries, error },
             'Resource error'
           );
-          await appendLogs(DATASET_KEY, `Resource error ${link}: ${err.message}`);
+          await appendLogs(DATASET_KEY, `Resource error ${link}: ${error.message}`);
           if (resourceRetries === 0) {
             logger.warn('Skipping resource after 2 failed attempts');
             await appendLogs(DATASET_KEY, `Skipping resource ${link} after 2 failed attempts.`);
@@ -645,9 +615,9 @@ async function scrapeCategory(browser, category) {
           DATASET_KEY,
           `Page ${pageNum}: backed up ${pageRows.length} case study rows.`,
         );
-      } catch (e) {
-        logger.warn({ e }, 'Backup add failed');
-        await appendLogs(DATASET_KEY, `  ‼ Backup add failed: ${e.message}`);
+      } catch (error) {
+        logger.warn({ error }, 'Backup add failed');
+        await appendLogs(DATASET_KEY, `  ⚠️ Backup add failed: ${error.message}`);
       }
     } else if (name !== 'case-studies') {
       await appendLogs(DATASET_KEY, `Page ${pageNum}: downloaded ${pdfCount} PDFs to ${outputDir}`);
@@ -755,10 +725,10 @@ async function scrape_wrap() {
         `✓ Downloaded ${totalPdfs} PDFs into: Reports: ${REPORTS_DIR}, Guides: ${GUIDES_DIR}`,
       );
     }
-  } catch (err) {
-    logger.error({ err }, 'Fatal error');
-    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
-    throw err;
+  } catch (error) {
+    logger.error({ error }, 'Fatal error');
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
+    throw error;
   } finally {
     if (browser) await browser.close();
     logger.info('✓ Browser closed.');
@@ -778,9 +748,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     .then(async () => {
       await appendLogs(DATASET_KEY, '✓ Run completed successfully.');
     })
-    .catch(async (err) => {
-      logger.error({ err }, 'Fatal error');
-      await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
+    .catch(async (error) => {
+      logger.error({ error }, 'Fatal error');
+      await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
       process.exit(1);
     });
 }

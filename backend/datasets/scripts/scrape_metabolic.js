@@ -1,25 +1,6 @@
 
 /**
- * scrape_metabolic.js - Metabolic publications downloading and management
- *
- * Visits detail pages, finds PDF download links, and downloads PDFs. Uses dataset configuration
- * to know what to download. Provides backup tracking and recovery mode.
- *
- * Features:
- *   • Uses dataset.raw_folder_contents (filename -> detail page URL) to know what to download.
- *   • Visits each detail page, finds PDF download link.
- *   • Downloads PDF to datasets/raw/metabolic/ with the predefined filename.
- *   • Skips already downloaded files.
- *   • Writes a metadata.json file in the raw folder for later extraction.
- *   • Backup every 3 publications to track progress (logs only).
- *   • Recovery mode with `--use-backup` (though less needed).
- *   • Clear logs with `--clear-logs`
- *   • Show browser with `--show`
- *
- * Usage:
- *   node scrape_metabolic.js                 # normal run
- *   node scrape_metabolic.js --show          # visible browser
- *   node scrape_metabolic.js --clear-logs    # clear log file
+ * Downloads Metabolic publication PDFs with backup/recovery tracking.
  */
 
 import fs from 'fs';
@@ -138,9 +119,9 @@ async function scrape() {
             await page.waitForSelector('iframe.pdfjs-iframe', { timeout: 8000 });
             iframeFound = true;
             break;
-          } catch (e) {
+          } catch (error) {
             logger.info(
-              { attempt: attempt + 1, err: e },
+              { attempt: attempt + 1, error },
               'Iframe not found, retrying'
             );
             await randomDelay(3000, 5000);
@@ -227,9 +208,9 @@ async function scrape() {
         logger.info({ size: fs.statSync(localPath).size }, 'Saved PDF');
         downloaded = true;
         await appendLogs(DATASET_KEY, `  Downloaded: ${filename}`);
-      } catch (err) {
-        logger.error({ err }, 'Error');
-        await appendLogs(DATASET_KEY, `  ERROR: ${detailUrl} - ${err.message}`);
+      } catch (error) {
+        logger.error({ error }, 'Error');
+        await appendLogs(DATASET_KEY, `  ERROR: ${detailUrl} - ${error.message}`);
       }
 
       // Record metadata regardless of success/failure (pdfUrl may be empty if failed)
@@ -263,8 +244,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

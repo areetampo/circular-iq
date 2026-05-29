@@ -1,26 +1,6 @@
 
 /**
- * scrape_ecesp.js - European Commission Circular Economy and Sustainability Practices extraction
- *
- * Extracts good practice examples from official registry. Extracts detailed case studies including
- * organizations, problem statements, solutions, and sustainability impact metrics.
- *
- * Features:
- *   • Pagination handling with dynamic load-more button clicking
- *   • Per-item detail extraction (organization, description, impact metrics)
- *   • Improved extraction: problem, solution, and impact using keyword-based heuristics
- *   • Quality scoring based on content completeness and measurable impact indicators
- *   • Backup system: incremental batch-level backup and recovery mode
- *   • Detailed logging to dataset-specific log file
- *
- * Usage:
- *   node scrape_ecesp.js                 # normal run
- *   node scrape_ecesp.js --use-backup    # rebuild final CSV from backup
- *   node scrape_ecesp.js --clear-logs    # clear the log file before starting
- *   node scrape_ecesp.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_ecesp.js --append-backup     # append to backup instead of clearing on start
- *
- * For detailed logs, see the path printed at the start of the run.
+ * European Commission Circular Economy and Sustainability Practices extraction Extracts good practice examples from official registry. Extracts detailed case studies including organizations, problem statements, solutions, and sustainability impact metrics.
  */
 
 import { fileURLToPath } from 'url';
@@ -129,7 +109,7 @@ function extractProblem(description) {
  * Extract a solution statement from the description text.
  * After the problem, the solution is often described.
  * @param {string} description - Full description text.
- * @param {string} problem - The extracted problem (to avoid duplication).
+ * @param {string} problem - Extracted challenge text used to avoid duplicating it in solution output.
  * @returns {string} Extracted solution.
  */
 function extractSolution(description, problem) {
@@ -348,7 +328,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `‼ No backup content found. Cannot rebuild output.`;
+      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -378,8 +358,8 @@ async function rebuildFromBackup() {
             score,
             metadata,
           };
-        } catch (e) {
-          logger.warn({ e }, 'Skipping invalid backup row');
+        } catch (error) {
+          logger.warn({ error }, 'Skipping invalid backup row');
           return null;
         }
       })
@@ -408,7 +388,7 @@ async function rebuildFromBackup() {
 
     if (bestItems.length === 0) {
       logger.warn({DATASET_KEY}, 'No valid items could be reconstructed from backup');
-      await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
+      await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -508,13 +488,13 @@ async function scrape_ecesp() {
 
           await appendLogs(DATASET_KEY, `  ✓ Found ${pageLinks.length} practices.`);
           success = true;
-        } catch (err) {
+        } catch (error) {
           retries--;
-          const msg = `  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
+          const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${error.message}`;
           logger.warn(msg);
           await appendLogs(DATASET_KEY, msg);
           if (retries === 0) {
-            const skipMsg = `  ‼ Skipping page ${pageNum} after 3 failed attempts.`;
+            const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
             logger.warn(skipMsg);
             await appendLogs(DATASET_KEY, skipMsg);
             break;
@@ -554,9 +534,9 @@ async function scrape_ecesp() {
                   await sleep(2000);
                 }
               }
-            } catch (e) {
+            } catch (error) {
               // cookie error is non‑critical, just log to backup
-              await appendLogs(DATASET_KEY, `  - Cookie handling error: ${e.message}`);
+              await appendLogs(DATASET_KEY, `  - Cookie handling error: ${error.message}`);
             }
 
             await detailPage.waitForSelector('.field-node--field-cecon-description .field-item', {
@@ -729,12 +709,12 @@ async function scrape_ecesp() {
             pageRows.push(backupRow);
 
             detailSuccess = true;
-          } catch (err) {
+          } catch (error) {
             detailRetries--;
-            const errMsg = `‼ Error processing detail (retries left: ${detailRetries}): ${err.message}`;
+            const errMsg = `⚠️ Error processing detail (retries left: ${detailRetries}): ${error.message}`;
             await appendLogs(DATASET_KEY, errMsg);
             if (detailRetries === 0) {
-              await appendLogs(DATASET_KEY, `‼ Skipping this practice after 2 failed attempts.`);
+              await appendLogs(DATASET_KEY, `⚠️ Skipping this practice after 2 failed attempts.`);
             } else {
               await sleep(5000);
             }
@@ -755,8 +735,8 @@ async function scrape_ecesp() {
             DATASET_KEY,
             `Page ${pageNum}: found ${pageLinks.length} links, processed ${pageRows.length} practices.`,
           );
-        } catch (e) {
-          await appendLogs(DATASET_KEY, `‼ Backup add failed for page ${pageNum}: ${e.message}`);
+        } catch (error) {
+          await appendLogs(DATASET_KEY, `⚠️ Backup add failed for page ${pageNum}: ${error.message}`);
         }
       }
 
@@ -765,7 +745,7 @@ async function scrape_ecesp() {
       if (pageNum === FINAL_FETCH_PAGE) {
         await appendLogs(
           DATASET_KEY,
-          `‼ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`,
+          `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`,
         );
         break;
       }
@@ -780,7 +760,7 @@ async function scrape_ecesp() {
 
     if (allItems.length === 0) {
       logger.info('✕ No items scraped. Exiting.');
-      await appendLogs(DATASET_KEY, `‼ No items scraped.`);
+      await appendLogs(DATASET_KEY, `⚠️ No items scraped.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
       return;
     }
@@ -869,8 +849,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

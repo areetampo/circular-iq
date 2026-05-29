@@ -1,25 +1,6 @@
 
 /**
- * scrape_kalundborg.js - Case studies scraping from Kalundborg Symbiosis
- *
- * URL: https://www.symbiosis.dk/en/category/case/
- *
- * Features:
- *   • Scrapes all cases from the listing page (no pagination needed)
- *   • Visits each detail page to extract full content
- *   • Quality scoring based on impact quantification and material richness
- *   • Backup every 3 cases (BACKUP_INTERVAL)
- *   • Recovery mode with `--use-backup`
- *   • Clear logs with `--clear-logs`
- *   • Show browser with `--show`
- *
- * Usage:
- *   node scrape_kalundborg.js                 # normal run
- *   node scrape_kalundborg.js --use-backup    # rebuild from backup
- *   node scrape_kalundborg.js --clear-logs    # clear log file
- *   node scrape_kalundborg.js --show          # open browser window
- *   node scrape_kalundborg.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_kalundborg.js --append-backup     # append to backup instead of clearing on start
+ * Scrapes Kalundborg Symbiosis case studies into processed CSV.
  */
 
 import { fileURLToPath } from 'url';
@@ -66,7 +47,7 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP);
 
 /**
  * Calculate a quality score for a case based on its content.
- * @param {Object} data - The extracted case data (includes impact, materials, etc.)
+ * @param {{ impact?: string, materials?: string, problem?: string, solution?: string, category?: string }} data - Extracted industrial symbiosis case data scored for impact, material diversity, and narrative completeness.
  * @returns {number} Score from 0 to 100.
  */
 function scoreCaseQuality(data) {
@@ -86,7 +67,12 @@ function scoreCaseQuality(data) {
 }
 
 /**
- * Extract data from a single case detail page
+ * Extract data from a single case detail page.
+ *
+ * @param {import('puppeteer').Page} page - Browser page used to load the case detail URL.
+ * @param {string} url - Detail page URL used for navigation and source attribution.
+ * @param {string} title - Listing title used as the fallback problem text.
+ * @returns {Promise<Record<string, unknown>|null>} Normalized case row with quality metadata, or `null` when extraction fails.
  */
 async function extractCaseData(page, url, title) {
   try {
@@ -120,8 +106,8 @@ async function extractCaseData(page, url, title) {
           logger.info({ selector }, 'Found content using selector');
           break;
         }
-      } catch (err) {
-        logger.error({ selector, err }, 'Error while waiting for selector');
+      } catch (error) {
+        logger.error({ selector, error }, 'Error while waiting for selector');
         // selector not found or empty, try next
       }
     }
@@ -286,9 +272,9 @@ async function extractCaseData(page, url, title) {
     );
 
     return rowData;
-  } catch (err) {
-    logger.error({ url, err }, 'Error extracting');
-    await appendLogs(DATASET_KEY, `ERROR: ${url} - ${err.message}`);
+  } catch (error) {
+    logger.error({ url, error }, 'Error extracting');
+    await appendLogs(DATASET_KEY, `ERROR: ${url} - ${error.message}`);
     return null;
   }
 }
@@ -303,7 +289,7 @@ async function rebuildFromBackup() {
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
     logger.warn('No backup found or backup is empty.');
-    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
     return;
   }
 
@@ -324,8 +310,8 @@ async function rebuildFromBackup() {
           ...row,
           qualityScore,
         };
-      } catch (e) {
-        logger.error({ e }, 'Error parsing backup row');
+      } catch (error) {
+        logger.error({ error }, 'Error parsing backup row');
         return null;
       }
     })
@@ -339,7 +325,7 @@ async function rebuildFromBackup() {
 
   if (topCases.length === 0) {
     logger.warn('No valid cases could be reconstructed from backup.');
-    await appendLogs(DATASET_KEY, `‼ No valid cases – output file unchanged.`);
+    await appendLogs(DATASET_KEY, `⚠️ No valid cases – output file unchanged.`);
     return;
   }
 
@@ -361,6 +347,8 @@ async function rebuildFromBackup() {
 
 /**
  * Main scrape function
+ *
+ * @throws {Error} If recovery mode or browser scraping fails after logging.
  */
 async function scrape() {
   await clearLogs(DATASET_KEY);
@@ -469,10 +457,10 @@ async function scrape() {
       DATASET_KEY,
       `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
     );
-  } catch (err) {
-    logger.error({ err }, '✕ Fatal error');
-    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
-    throw err;
+  } catch (error) {
+    logger.error({ error }, '✕ Fatal error');
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
+    throw error;
   } finally {
     await browser.close();
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
@@ -488,8 +476,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

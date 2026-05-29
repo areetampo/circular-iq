@@ -1,24 +1,6 @@
 
 /**
- * scrape_c2c.js – Cradle-to-Cradle (C2C) certified products scraper
- *
  * Scrapes from https://c2ccertified.org/certified-products
- * Features:
- *   - Pagination handling with retry logic and fallback selectors
- *   - Per-product detail extraction (company, title, certifications, category, description)
- *   - Quality scoring based on certification levels (Gold/Silver/Bronze)
- *   - Backup system: incremental page‑level backup, final flush, and recovery mode
- *   - Detailed logging to dataset‑specific log file
- *   - Stealth plugin to avoid detection
- *
- * Usage:
- *   node scrape_c2c.js                 # normal run
- *   node scrape_c2c.js --use-backup    # rebuild final CSV from backup
- *   node scrape_c2c.js --clear-logs    # clear the log file before starting
- *   node scrape_c2c.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_c2c.js --append-backup     # append to backup instead of clearing on start
- *
- * For detailed logs, see the path printed at the start of the run.
  */
 
 import { fileURLToPath } from 'url';
@@ -70,7 +52,7 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, 
 
 /**
  * Calculate a quality score for a product based on its certification levels.
- * @param {Object} certifications - Certification categories and their levels.
+ * @param {Record<string, string|number|null|undefined>} certifications - Certification categories and their medal/level labels.
  * @returns {number} Score from 0 to 100.
  */
 function scoreProductQuality(certifications) {
@@ -88,6 +70,8 @@ function scoreProductQuality(certifications) {
 /**
  * Rebuild final CSV from backup content.
  * Used when --use-backup flag is passed.
+ *
+ * @throws {Error} If backup reading or CSV writing fails.
  */
 async function rebuildFromBackup() {
   logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
@@ -96,7 +80,7 @@ async function rebuildFromBackup() {
     await appendLogs(DATASET_KEY, `♻️ RECOVERY MODE: Rebuilding from backup started.`);
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `‼ No backup content found. Cannot rebuild output.`;
+      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -141,8 +125,8 @@ async function rebuildFromBackup() {
             qualityScore,
             certCount,
           };
-        } catch (e) {
-          logger.warn({ e }, 'Skipping invalid backup row');
+        } catch (error) {
+          logger.warn({ error }, 'Skipping invalid backup row');
           return null;
         }
       })
@@ -158,7 +142,7 @@ async function rebuildFromBackup() {
 
     if (productDetails.length === 0) {
       logger.warn('No valid product details could be reconstructed from backup');
-      await appendLogs(DATASET_KEY, `‼ No valid products – output file unchanged.`);
+      await appendLogs(DATASET_KEY, `⚠️ No valid products – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -235,6 +219,8 @@ async function rebuildFromBackup() {
 /**
  * Main scraping function.
  * Iterates through pages, extracts product details, scores them, and saves the best.
+ *
+ * @throws {Error} If recovery mode or browser scraping fails after logging.
  */
 async function scrape_c2c() {
   await clearLogs(DATASET_KEY);
@@ -301,7 +287,7 @@ async function scrape_c2c() {
       await appendLogs(DATASET_KEY, `Found ${pageLinks.length} products on page ${pageNum}`);
 
       if (pageLinks.length === 0) {
-        await appendLogs(DATASET_KEY, `‼ No products found on page ${pageNum} – stopping.`);
+        await appendLogs(DATASET_KEY, `⚠️ No products found on page ${pageNum} – stopping.`);
         break;
       }
 
@@ -462,13 +448,13 @@ async function scrape_c2c() {
             });
 
             detailSuccess = true;
-          } catch (err) {
+          } catch (error) {
             detailRetries--;
-            const errMsg = `‼ Error processing product at ${link} (retries left: ${detailRetries}): ${err.message}`;
-            logger.warn(errMsg);
+            const errMsg = `⚠️ Error processing product at ${link} (retries left: ${detailRetries}): ${error.message}`;
+            logger.warn('Error processing product at ${link} (retries left: ${detailRetries}): ${error.message}');
             await appendLogs(DATASET_KEY, errMsg);
             if (detailRetries === 0) {
-              const skipMsg = ` ‼ Skipping product after 2 failed attempts.`;
+              const skipMsg = ` ⚠️ Skipping product after 2 failed attempts.`;
               logger.warn(skipMsg);
               await appendLogs(DATASET_KEY, skipMsg);
             } else {
@@ -488,8 +474,8 @@ async function scrape_c2c() {
           DATASET_KEY,
           `Page ${pageNum}: processed ${pageRows.length} new products (total unique: ${productMap.size}).`,
         );
-      } catch (e) {
-        const backupErr = `‼ Backup add failed for page ${pageNum}: ${e.message}`;
+      } catch (error) {
+        const backupErr = `⚠️ Backup add failed for page ${pageNum}: ${error.message}`;
         logger.warn(backupErr);
         await appendLogs(DATASET_KEY, backupErr);
       }
@@ -522,8 +508,8 @@ async function scrape_c2c() {
             break;
           }
         }
-      } catch (err) {
-        await appendLogs(DATASET_KEY, `‼ Error clicking next button: ${err.message}`);
+      } catch (error) {
+        await appendLogs(DATASET_KEY, `⚠️ Error clicking next button: ${error.message}`);
       }
 
       if (!clicked) {
@@ -673,8 +659,8 @@ async function scrape_c2c() {
       );
       await appendLogs(DATASET_KEY, `\n--- End of run ---\n`);
     } else {
-      logger.warn('‼ No products with quality score > 0 were extracted.');
-      await appendLogs(DATASET_KEY, `‼ No products with quality score > 0 extracted.`);
+      logger.warn('⚠️ No products with quality score > 0 were extracted.');
+      await appendLogs(DATASET_KEY, `⚠️ No products with quality score > 0 extracted.`);
       await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     }
   } catch (error) {
@@ -697,8 +683,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

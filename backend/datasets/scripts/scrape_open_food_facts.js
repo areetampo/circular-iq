@@ -1,23 +1,6 @@
 
 /**
- * scrape_open_food_facts.js - Enhanced version generating problem‑solution pairs
- *
- * Focuses on products with poor Ecoscore ratings (D and E) and uses their detailed
- * environmental data to construct actionable circular economy problems and solutions.
- *
- * Features:
- *   • Targeted search for low Ecoscore products
- *   • API pagination with error handling
- *   • Intelligent problem/solution generation based on packaging, ingredients, and certifications
- *   • Backup system with recovery mode
- *   • Detailed logging to dataset‑specific log file
- *
- * Usage:
- *   node scrape_open_food_facts.js                 # normal run
- *   node scrape_open_food_facts.js --use-backup    # rebuild final CSV from backup
- *   node scrape_open_food_facts.js --clear-logs    # clear the log file before starting
- *   node scrape_open_food_facts.js --append-processed  # append to processed CSV
- *   node scrape_open_food_facts.js --append-backup     # append to backup instead of clearing
+ * Enhanced version generating problem‑solution pairs Focuses on products with poor Ecoscore ratings (D and E) and uses their detailed environmental data to construct actionable circular economy problems and solutions.
  */
 
 import { fileURLToPath } from 'url';
@@ -58,6 +41,10 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, 
 
 /**
  * Fetch one page of results from Open Food Facts API.
+ *
+ * @param {number} page - One-based API page number to request.
+ * @returns {Promise<Array<Record<string, unknown>>>} Product rows from the API response, or an empty array when the page has no products.
+ * @throws {Error} If the API responds with a non-2xx status.
  */
 async function fetchPage(page) {
   const params = new URLSearchParams({
@@ -83,8 +70,11 @@ async function fetchPage(page) {
 }
 
 /**
- * Intelligent transformation of a product into a problem‑solution pair.
+ * Intelligent transformation of a product into a problem-solution pair.
  * Uses ecoscore_data to identify specific environmental issues and suggest improvements.
+ *
+ * @param {Record<string, unknown>} product - Raw Open Food Facts product payload.
+ * @returns {{ problem: string, solution: string, materials: string, circular_strategy: string, category: string, impact: string, source_url: string, metadata_json: string }} Normalized food-product row for CSV output.
  */
 function transformProduct(product) {
   const categories = product.categories || '';
@@ -244,6 +234,8 @@ function transformProduct(product) {
 
 /**
  * Rebuild final CSV from backup content (recovery mode).
+ *
+ * @throws {Error} If backup reading or CSV writing fails.
  */
 async function rebuildFromBackup() {
   logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup');
@@ -252,7 +244,7 @@ async function rebuildFromBackup() {
   try {
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `‼ No backup found.`;
+      const msg = `⚠️ No backup found.`;
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       return;
@@ -268,7 +260,7 @@ async function rebuildFromBackup() {
 
     if (transformed.length === 0) {
       logger.warn('No rows passed filter');
-      await appendLogs(DATASET_KEY, `‼ No rows passed the filter.`);
+      await appendLogs(DATASET_KEY, `⚠️ No rows passed the filter.`);
       return;
     }
 
@@ -358,8 +350,8 @@ async function main() {
 
       // Polite delay
       await new Promise((resolve) => setTimeout(resolve, 500));
-    } catch (err) {
-      const errMsg = `✕ Failed to fetch page ${page}: ${err.message}`;
+    } catch (error) {
+      const errMsg = `✕ Failed to fetch page ${page}: ${error.message}`;
       logger.error(errMsg);
       await appendLogs(DATASET_KEY, errMsg);
       break;
@@ -368,7 +360,7 @@ async function main() {
 
   if (allProducts.length === 0) {
     logger.info('✕ No products fetched. Exiting.');
-    await appendLogs(DATASET_KEY, `‼ No products fetched.`);
+    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
     return;
   }
 
@@ -421,8 +413,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

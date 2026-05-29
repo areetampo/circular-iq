@@ -1,23 +1,7 @@
 
 /**
- * scrape_open_products_facts.js – Expanded version
- *
- * Searches for products with circular economy attributes using a wider set of keywords.
- * Each keyword group defines its own pagination limits.
- * Results are deduplicated and filtered for quality.
- *
- * Changes from original:
- *   • Broader keyword groups (more general sustainability terms)
- *   • Increased MAX_PAGES_TO_FETCH from 20 to 50 per group
- *   • Relaxed MIN_PROBLEM_WORDS / MIN_SOLUTION_WORDS from 5 to 3
- *   • Added additional circular strategies (e.g., "Plastic Free", "Zero Waste")
- *
- * Usage:
- *   node scrape_open_products_facts.js                 # normal run
- *   node scrape_open_products_facts.js --use-backup    # rebuild final CSV from backup
- *   node scrape_open_products_facts.js --clear-logs    # clear the log file before starting
- *   node scrape_open_products_facts.js --append-processed  # append to processed CSV
- *   node scrape_open_products_facts.js --append-backup     # append to backup instead of clearing
+ * Fetches Open Products Facts API results for circular-economy keyword groups with deduplication.
+ * CLI: --use-backup, --clear-logs, --append-processed, --append-backup.
  */
 
 import { fileURLToPath } from 'url';
@@ -224,7 +208,11 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, 
 
 /**
  * Fetch a page of results for a given search term using the v2 API.
- * Returns { products, pageCount }.
+ *
+ * @param {string} searchTerms - Space-joined keyword phrase sent to the API search endpoint.
+ * @param {number} page - One-based API page number.
+ * @param {number} [pageSize=50] - Number of products requested per page.
+ * @returns {Promise<{ products: Array<Record<string, unknown>>, pageCount: number }>} Product rows and reported page count; returns empty products after retry exhaustion or malformed responses.
  */
 async function fetchPage(searchTerms, page, pageSize = 50) {
   const url = new URL(API_BASE);
@@ -265,9 +253,9 @@ async function fetchPage(searchTerms, page, pageSize = 50) {
         products: data.products,
         pageCount: data.page_count || 0,
       };
-    } catch (err) {
+    } catch (error) {
       const isLastAttempt = attempt === MAX_RETRIES;
-      await appendLogs(DATASET_KEY, `  → Attempt ${attempt} failed: ${err.message}`);
+      await appendLogs(DATASET_KEY, `  → Attempt ${attempt} failed: ${error.message}`);
       if (isLastAttempt) {
         return { products: [], pageCount: 0 };
       }
@@ -279,6 +267,9 @@ async function fetchPage(searchTerms, page, pageSize = 50) {
 
 /**
  * Fetch all pages for a single keyword config.
+ *
+ * @param {{ keywords: string[], strategy: string, problem?: string, solution?: string, PAGE_SIZE?: number, START_PAGE?: number, END_PAGE?: number, MAX_PAGES_TO_FETCH?: number }} config - Keyword group and pagination bounds for one product-search pass.
+ * @returns {Promise<Array<Record<string, unknown>>>} Transformed product rows collected across fetched pages.
  */
 async function fetchAllForKeyWord(config) {
   const {
@@ -337,6 +328,10 @@ async function fetchAllForKeyWord(config) {
 
 /**
  * Transform a raw product object into a CSV row.
+ *
+ * @param {Record<string, unknown>} product - Raw Open Products Facts product payload.
+ * @param {{ strategy: string, problem?: string, solution?: string, keywords: string[] }} config - Keyword group defaults used to build fallback problem and solution text.
+ * @returns {{ problem: string, solution: string, materials: string, circular_strategy: string, category: string, impact: string, source_url: string, metadata_json: string }} Normalized CSV row for one product.
  */
 function transformProduct(product, config) {
   const { strategy, problem, solution, keywords } = config;
@@ -376,7 +371,10 @@ function transformProduct(product, config) {
 
 /**
  * Quality filter: problem and solution must have enough words.
- * (Now using relaxed thresholds: 3 words minimum)
+ * Uses the script-level relaxed word thresholds before writing rows.
+ *
+ * @param {{ problem?: string, solution?: string }} row - Normalized product row.
+ * @returns {boolean} `true` when both narrative fields satisfy the minimum word counts.
  */
 function isHighQuality(row) {
   const problemWords = (row.problem || '').split(/\s+/).length;
@@ -385,6 +383,8 @@ function isHighQuality(row) {
 }
 /**
  * Rebuild final CSV from backup content (unchanged).
+ *
+ * @throws {Error} If backup reading or CSV writing fails.
  */
 async function rebuildFromBackup() {
   logger.info('BACKUP RECOVERY MODE: Building final CSV from saved backup content');
@@ -416,7 +416,7 @@ async function rebuildFromBackup() {
       logger.warn('No valid rows after filtering');
       await appendLogs(
         DATASET_KEY,
-        '‼ No valid rows – output file unchanged.',
+        '⚠️ No valid rows – output file unchanged.',
       );
       await appendLogs(
         DATASET_KEY,
@@ -521,7 +521,7 @@ async function main() {
 
   if (productMap.size === 0) {
     logger.info('No products fetched. Exiting.');
-    await appendLogs(DATASET_KEY, `‼ No products fetched.`);
+    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
@@ -573,8 +573,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

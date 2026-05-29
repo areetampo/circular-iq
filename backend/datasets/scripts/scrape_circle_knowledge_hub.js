@@ -1,24 +1,6 @@
 
 /**
- * scrape_circle_knowledge_hub.js - Improved Case Studies Scraper for Circle Economy Knowledge Hub
- *
- * Features:
- *   • Pagination using _start=0,10,20... (10 cases per page)
- *   • Sorted by most popular (_sort=3) to prioritise quality
- *   • Extracts Problem, Solution, Outcome sections using regex on full_text
- *   • Corrects field swapping and filters out low‑quality entries
- *   • Backup every 5 pages (BACKUP_INTERVAL)
- *   • Recovery mode with `--use-backup`
- *   • Clear logs with `--clear-logs`
- *   • Show browser with `--show`
- *
- * Usage:
- *   node scrape_circle_knowledge_hub.js                 # normal run
- *   node scrape_circle_knowledge_hub.js --use-backup    # rebuild from backup
- *   node scrape_circle_knowledge_hub.js --clear-logs    # clear log file
- *   node scrape_circle_knowledge_hub.js --show          # open browser window
- *   node scrape_circle_knowledge_hub.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_circle_knowledge_hub.js --append-backup     # append to backup instead of clearing on start
+ * Improved Case Studies Scraper for Circle Economy Knowledge Hub
  */
 
 import { fileURLToPath } from 'url';
@@ -103,6 +85,9 @@ function extractSection(text, headingPattern) {
 
 /**
  * Determine if a text is likely a company description (rather than a problem).
+ *
+ * @param {string} text - Candidate problem or solution text.
+ * @returns {boolean} `true` when company-profile keywords dominate the text.
  */
 function isCompanyDescription(text) {
   const companyKeywords = [
@@ -124,7 +109,7 @@ function isCompanyDescription(text) {
 
 /**
  * Calculate a quality score for a case study.
- * @param {Object} data - The extracted case data (includes problem, solution, impact, etc.)
+ * @param {{ problem?: string, solution?: string, impact?: string, source?: string }} data - Extracted case payload scored for usable narrative detail and quantified impact.
  * @returns {number} Score from 0 to 100.
  */
 function scoreCaseQuality(data) {
@@ -180,6 +165,12 @@ function scoreCaseQuality(data) {
 
 /**
  * Extract data from a single case detail page (improved version).
+ *
+ * @param {import('puppeteer').Page} page - Browser page used to load the case detail URL.
+ * @param {string} url - Detail page URL used for navigation and source attribution.
+ * @param {string} title - Listing title used as a fallback label.
+ * @param {string} type - Listing content type used for output metadata.
+ * @returns {Promise<Record<string, unknown>|null>} Normalized case row with quality metadata, or `null` when the page has no usable content.
  */
 async function extractCaseData(page, url, title, type) {
   try {
@@ -190,7 +181,7 @@ async function extractCaseData(page, url, title, type) {
     // Get full page text (including any error banners)
     const fullText = await page.$eval('body', (el) => el.innerText).catch(() => '');
     if (fullText.trim() === 'TBC' || fullText.trim().length < 50) {
-      logger.info('    ‼ Page has minimal content (TBC or empty)');
+      logger.info('    ⚠️ Page has minimal content (TBC or empty)');
       return null;
     }
 
@@ -388,7 +379,7 @@ async function rebuildFromBackup() {
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
     logger.warn('No backup found or backup is empty.');
-    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
     return;
   }
 
@@ -420,8 +411,8 @@ async function rebuildFromBackup() {
 
         // Return the original row (without the temporary flags) plus the computed score
         return { ...row, qualityScore };
-      } catch (err) {
-        logger.warn({ err }, 'Skipping invalid row');
+      } catch (error) {
+        logger.warn({ error }, 'Skipping invalid row');
         return null;
       }
     })
@@ -435,7 +426,7 @@ async function rebuildFromBackup() {
 
   if (topCases.length === 0) {
     logger.warn('No valid cases could be reconstructed from backup.');
-    await appendLogs(DATASET_KEY, `‼ No valid cases – output file unchanged.`);
+    await appendLogs(DATASET_KEY, `⚠️ No valid cases – output file unchanged.`);
     return;
   }
 
@@ -467,6 +458,8 @@ async function rebuildFromBackup() {
 
 /**
  * Main scrape function (unchanged except for the use of improved extractCaseData)
+ *
+ * @throws {Error} If scraping, recovery, or CSV writing fails after logging.
  */
 async function scrape() {
   await clearLogs(DATASET_KEY);
@@ -525,14 +518,14 @@ async function scrape() {
           }, BASE_URL);
 
           success = true;
-        } catch (err) {
+        } catch (error) {
           retries--;
-          const msg = `  ‼ Page ${pageNum} error (retries left: ${retries}): ${err.message}`;
+          const msg = `  ⚠️ Page ${pageNum} error (retries left: ${retries}): ${error.message}`;
           logger.warn(msg);
           await appendLogs(DATASET_KEY, msg);
 
           if (retries === 0) {
-            const skipMsg = `  ‼ Skipping page ${pageNum} after 3 failed attempts.`;
+            const skipMsg = `  ⚠️ Skipping page ${pageNum} after 3 failed attempts.`;
             logger.warn(skipMsg);
             await appendLogs(DATASET_KEY, skipMsg);
             break;
@@ -584,7 +577,7 @@ async function scrape() {
       pagesScraped.push(pageNum);
 
       if (pageNum === FINAL_FETCH_PAGE) {
-        const limitMsg = `‼ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
+        const limitMsg = `⚠️ Reached final fetch page (${FINAL_FETCH_PAGE}) – stopping.`;
         logger.warn(limitMsg);
         await appendLogs(DATASET_KEY, limitMsg);
         break;
@@ -621,8 +614,8 @@ async function scrape() {
     );
 
     if (topRows.length === 0) {
-      logger.warn('‼ No valid cases found.');
-      await appendLogs(DATASET_KEY, `‼ No valid cases found.`);
+      logger.warn('⚠️ No valid cases found.');
+      await appendLogs(DATASET_KEY, `⚠️ No valid cases found.`);
       return;
     }
 
@@ -683,8 +676,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

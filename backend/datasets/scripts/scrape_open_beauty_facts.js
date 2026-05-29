@@ -1,29 +1,6 @@
 
 /**
- * scrape_open_beauty_facts.js - Beauty and personal care products scraping
- *
- * Scrapes from the Open Beauty Facts API. Focuses on extracting products aligned with circular
- * economy principles (refillable, sustainable packaging, eco-friendly, etc.) with detailed
- * environmental scorecards (Ecoscore rating).
- *
- * Features:
- *   • Keyword-based search targeting circular economy attributes
- *   • API pagination with graceful handling of non-existent pages
- *   • Per-product detail extraction (company, category, ingredients, packaging, Ecoscore)
- *   • Intelligent problem/solution mapping based on detected attributes
- *   • Backup system: incremental batch-level backup with recovery mode
- *   • Quality filtering based on content completeness
- *   • Detailed logging to dataset-specific log file
- *
- * Usage:
- *   node scrape_open_beauty_facts.js                 # normal run
- *   node scrape_open_beauty_facts.js --use-backup    # rebuild final CSV from backup
- *   node scrape_open_beauty_facts.js --clear-logs    # clear the log file before starting
- *   node scrape_open_beauty_facts.js --append-processed  # append to processed CSV instead of overwriting
- *   node scrape_open_beauty_facts.js --append-backup     # append to backup instead of clearing on start
- *
- * For detailed logs, see the path printed at the start of the run.
- * Note: Requires active internet connection to access Open Beauty Facts API
+ * Scrapes Open Beauty Facts for circular-economy product attributes and Ecoscore data.
  */
 
 import { fileURLToPath } from 'url';
@@ -90,6 +67,11 @@ const backup = createBackupHelper(DATASET_KEY, BACKUP_INTERVAL, !APPEND_BACKUP, 
 
 /**
  * Fetch a single page of products from Open Beauty Facts API.
+ *
+ * @param {string} searchTerms - Keyword phrase sent to the API search endpoint.
+ * @param {number} page - One-based API page number.
+ * @param {number} [pageSize=200] - Number of products requested per page.
+ * @returns {Promise<Array<Record<string, unknown>>>} Product rows from the API response, or an empty array on expected empty/error pages.
  */
 async function fetchPage(searchTerms, page, pageSize = 200) {
   const params = new URLSearchParams({
@@ -114,15 +96,18 @@ async function fetchPage(searchTerms, page, pageSize = 200) {
     }
     const data = await response.json();
     return data.products || [];
-  } catch (err) {
-    await appendLogs(DATASET_KEY, `  → Error fetching page: ${err.message}`);
+  } catch (error) {
+    await appendLogs(DATASET_KEY, `  → Error fetching page: ${error.message}`);
     return [];
   }
 }
 
 /**
  * Transform a raw product into a standardized row for the CSV.
- * Always returns non‑empty problem and solution, enriched with detected circular attributes.
+ * Always returns non-empty problem and solution, enriched with detected circular attributes.
+ *
+ * @param {Record<string, unknown>} product - Raw Open Beauty Facts product payload.
+ * @returns {{ problem: string, solution: string, materials: string, circular_strategy: string, category: string, impact: string, source_url: string, metadata_json: string }} Normalized beauty-product row for CSV output.
  */
 function transformProduct(product) {
   const categories = product.categories || product.categories_en || '';
@@ -310,14 +295,14 @@ async function fetchAllForKeyWord({
 
     try {
       await backup.add(transformed);
-    } catch (e) {
-      logger.warn({keyword, page, e}, "Backup add failed");
-      await appendLogs(DATASET_KEY, `‼ Backup add failed for ${keyword} page ${page}: ${e.message}`);
+    } catch (error) {
+      logger.warn({ keyword, page, error }, 'Backup add failed');
+      await appendLogs(DATASET_KEY, `⚠️ Backup add failed for ${keyword} page ${page}: ${error.message}`);
     }
 
     if (page === keywordFallback) {
       logger.warn({DATASET_KEY, keywordFallbackMaxPages: keywordFallback, keyword}, "Reached fallback max pages - stopping");
-      await appendLogs(DATASET_KEY, `‼ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`);
+      await appendLogs(DATASET_KEY, `⚠️ Reached fallback max pages (${keywordFallback}) for keyword "${keyword}" – stopping.`);
     }
 
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -333,7 +318,7 @@ async function rebuildFromBackup() {
 
     const backupRows = await readBackupCsv(DATASET_KEY);
     if (backupRows.length === 0) {
-      const msg = `‼ No backup content found. Cannot rebuild output.`;
+      const msg = `⚠️ No backup content found. Cannot rebuild output.`;
       logger.warn(msg);
       await appendLogs(DATASET_KEY, msg);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no data) ---\n`);
@@ -348,7 +333,7 @@ async function rebuildFromBackup() {
 
     if (filtered.length === 0) {
       logger.warn('No valid rows after filtering');
-      await appendLogs(DATASET_KEY, `‼ No valid rows – output file unchanged.`);
+      await appendLogs(DATASET_KEY, `⚠️ No valid rows – output file unchanged.`);
       await appendLogs(DATASET_KEY, `\n--- End of recovery run (no output) ---\n`);
       return;
     }
@@ -446,7 +431,7 @@ async function main() {
 
   if (allProducts.length === 0) {
     logger.info('✕ No products fetched. Exiting.');
-    await appendLogs(DATASET_KEY, `‼ No products fetched.`);
+    await appendLogs(DATASET_KEY, `⚠️ No products fetched.`);
     await appendLogs(DATASET_KEY, `\n--- End of run (no output) ---\n`);
     return;
   }
@@ -494,8 +479,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -1,24 +1,6 @@
 
 /**
- * scrape_remanufacturing_eu.js - Remanufacturing EU case study tool extraction
- *
- * Extracts all case studies (industry, title, description, PDF link) and downloads each PDF
- * to datasets/raw/remanufacturing_eu/. Uses backup to track progress.
- *
- * Features:
- *   • Extracts all case studies from the case study tool
- *   • Downloads each PDF to datasets/raw/remanufacturing_eu/
- *   • Backup tracking every 5 cases (BACKUP_INTERVAL)
- *   • Supports --show, --clear-logs, --use-backup flags
- *
- * NOTE: When each button is tapped, several PDFs appear to the left. They all are actually
- * in HTML only and not fetched; their display just changes to none when not to be shown.
- *
- * Usage:
- *   node scrape_remanufacturing_eu.js
- *   node scrape_remanufacturing_eu.js --show
- *   node scrape_remanufacturing_eu.js --clear-logs
- *   node scrape_remanufacturing_eu.js --use-backup   (just logs backup content)
+ * Scrapes Remanufacturing EU case studies and downloads PDFs to `datasets/raw/remanufacturing_eu/`.
  */
 
 import fs from 'fs';
@@ -229,10 +211,10 @@ async function scrape() {
             );
             backupRow.downloaded = 'yes';
           }
-        } catch (err) {
-          logger.error({ err }, 'Error downloading');
-          backupRow.downloaded = `failed (${err.message})`;
-          await appendLogs(DATASET_KEY, `  Download error for ${item.filename}: ${err.message}`);
+        } catch (error) {
+          logger.error({ error }, 'Error downloading');
+          backupRow.downloaded = `failed (${error.message})`;
+          await appendLogs(DATASET_KEY, `  Download error for ${item.filename}: ${error.message}`);
         }
       } else {
         logger.info('File already exists, skipping download');
@@ -274,9 +256,9 @@ async function scrape() {
 
     logger.info({ rawDir: RAW_DIR }, 'Scrape completed');
     await appendLogs(DATASET_KEY, `Scrape completed. Total PDFs: ${totalPdfCollected}`);
-  } catch (err) {
-    logger.error({ err }, 'Fatal error');
-    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
+  } catch (error) {
+    logger.error({ error }, 'Fatal error');
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
   } finally {
     await browser.close();
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
@@ -295,8 +277,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

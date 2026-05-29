@@ -1,29 +1,6 @@
 
 /**
- * scrape_fashion_innovation.js – Fashion for Good Innovation Programme scraping
- *
- * Scrapes from https://www.fashionforgood.com/innovation-platform-2/innovators/
- *
- * Features:
- *   • Flexible selectors to handle potential site changes
- *   • Debug output (screenshot + HTML) when tiles are not found
- *   • Cookie banner dismissal
- *   • Pagination via clicking page numbers (JavaScript-based)
- *   • Per-innovator detail extraction
- *   • Quality scoring and top‑k filtering
- *   • Backup every 3 pages (BACKUP_INTERVAL)
- *   • Recovery mode with `--use-backup`
- *   • Clear logs with `--clear-logs`
- *   • Show browser with `--show`
- *   • Append modes with `--append-processed` and `--append-backup`
- *
- * Usage:
- *   node scrape_fashion_innovation.js                 # normal run
- *   node scrape_fashion_innovation.js --use-backup    # rebuild from backup
- *   node scrape_fashion_innovation.js --clear-logs    # clear log file
- *   node scrape_fashion_innovation.js --show          # open browser window
- *   node scrape_fashion_innovation.js --append-processed  # append to processed CSV
- *   node scrape_fashion_innovation.js --append-backup     # append to backup instead of clearing
+ * Scrapes Fashion for Good innovator listings and detail pages into CSV.
  */
 
 import fs from 'fs';
@@ -78,8 +55,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Score an innovator based on content richness and impact indicators.
- * @param {Object} data - Extracted data (includes description, materials, etc.)
- * @returns {number} Quality score 0‑100
+ * @param {{ description?: string, materials?: string, impact?: string, website?: string }} data - Extracted innovator data scored for richness, materials, quantified impact, and source completeness.
+ * @returns {number} Quality score from 0 to 100.
  */
 function scoreInnovatorQuality(data) {
   let score = 0;
@@ -113,7 +90,7 @@ function scoreInnovatorQuality(data) {
 
 /**
  * Attempt to dismiss common cookie / overlay dialogs.
- * @param {Page} page - Puppeteer page
+ * @param {Page} page - Listing or detail page that may have blocking consent overlays.
  */
 async function dismissDialogs(page) {
   const selectors = [
@@ -140,8 +117,8 @@ async function dismissDialogs(page) {
 
 /**
  * Extract innovator detail links from the current page using multiple strategies.
- * @param {Page} page - Puppeteer page
- * @returns {Promise<string[]>} Array of absolute URLs
+ * @param {Page} page - Listing page containing innovator profile links.
+ * @returns {Promise<string[]>} Absolute innovator profile URLs discovered from listing pages.
  */
 async function extractDetailLinks(page) {
   // Try primary selector: a.tile__image (from original site)
@@ -162,8 +139,8 @@ async function extractDetailLinks(page) {
 
   // If still none, log warning and return empty
   if (!links.length) {
-    logger.warn('  ‼ No innovator links found on this page');
-    await appendLogs(DATASET_KEY, '  ‼ No innovator links found on page');
+    logger.warn('  ⚠️ No innovator links found on this page');
+    await appendLogs(DATASET_KEY, '  ⚠️ No innovator links found on page');
   }
 
   return [...new Set(links)]; // ensure unique
@@ -171,9 +148,9 @@ async function extractDetailLinks(page) {
 
 /**
  * Extract data from a single innovator detail page.
- * @param {Page} page - Puppeteer page object (already on detail page)
- * @param {string} url - Detail URL
- * @returns {Object|null} item and backupRow, or null on failure
+ * @param {Page} page - Puppeteer page already navigated to the innovator detail URL.
+ * @param {string} url - Detail URL used for source attribution and error logs.
+ * @returns {Promise<{ item: Record<string, unknown>, backupRow: Record<string, unknown> }|null>} Extracted CSV row plus backup row, or `null` when required page content is missing or extraction fails.
  */
 async function extractInnovatorData(page, url) {
   try {
@@ -408,9 +385,9 @@ async function extractInnovatorData(page, url) {
     };
 
     return { item, backupRow };
-  } catch (err) {
-    logger.warn({ url, err }, 'Error extracting');
-    await appendLogs(DATASET_KEY, `ERROR: ${url} – ${err.message}`);
+  } catch (error) {
+    logger.warn({ url, error }, 'Error extracting');
+    await appendLogs(DATASET_KEY, `ERROR: ${url} – ${error.message}`);
     return null;
   }
 }
@@ -425,7 +402,7 @@ async function rebuildFromBackup() {
   const backupRows = await readBackupCsv(DATASET_KEY);
   if (!backupRows || backupRows.length === 0) {
     logger.warn('No backup found or backup is empty.');
-    await appendLogs(DATASET_KEY, `‼ No backup content found. Cannot rebuild output.`);
+    await appendLogs(DATASET_KEY, `⚠️ No backup content found. Cannot rebuild output.`);
     return;
   }
 
@@ -464,7 +441,7 @@ async function rebuildFromBackup() {
 
   if (topItems.length === 0) {
     logger.warn('No valid innovators could be reconstructed from backup.');
-    await appendLogs(DATASET_KEY, `‼ No valid items – output file unchanged.`);
+    await appendLogs(DATASET_KEY, `⚠️ No valid items – output file unchanged.`);
     return;
   }
 
@@ -491,6 +468,8 @@ async function rebuildFromBackup() {
 
 /**
  * Main scrape function
+ *
+ * @throws {Error} If listing scraping, extraction, or CSV writing fails after logging.
  */
 async function scrape() {
   await clearLogs(DATASET_KEY);
@@ -520,7 +499,7 @@ async function scrape() {
           timeout: 30000,
         },
       );
-    } catch (err) {
+    } catch (error) {
       // Debug: save screenshot and HTML
       const debugDir = getDatasetBackupFolderPath(DATASET_KEY);
       const screenshotPath = path.join(debugDir, `${DATASET_KEY}_error.png`);
@@ -528,7 +507,7 @@ async function scrape() {
       await page.screenshot({ path: screenshotPath });
       const html = await page.content();
       fs.writeFileSync(htmlPath, html);
-      logger.error({ err }, 'Error');
+      logger.error({ error }, 'Error');
       logger.error({ screenshotPath }, 'Tile selector not found, screenshot saved');
       logger.error({ htmlPath }, 'HTML saved');
       await appendLogs(DATASET_KEY, `✕ Fatal: Tile selector not found. Debug files saved.`);
@@ -575,9 +554,9 @@ async function scrape() {
           } else {
             logger.info('No data extracted');
           }
-        } catch (err) {
-          logger.warn({ err }, 'Error on detail page');
-          await appendLogs(DATASET_KEY, `      ERROR: ${link} – ${err.message}`);
+        } catch (error) {
+          logger.warn({ error }, 'Error on detail page');
+          await appendLogs(DATASET_KEY, `      ERROR: ${link} – ${error.message}`);
         } finally {
           await detailPage.close();
         }
@@ -610,7 +589,7 @@ async function scrape() {
 
       if (!nextLink) {
         logger.info({ currentPage }, 'No next page found, ending');
-        await appendLogs(DATASET_KEY, `  ‼ No next page found. Ending at page ${currentPage}.`);
+        await appendLogs(DATASET_KEY, `  ⚠️ No next page found. Ending at page ${currentPage}.`);
         hasNextPage = false;
         break;
       }
@@ -646,8 +625,8 @@ async function scrape() {
           oldTileHrefs,
         );
         logger.info({ message: 'New tiles loaded successfully' });
-      } catch (err) {
-        logger.warn({ err},'Timed out waiting for new tiles, but continuing');
+      } catch (error) {
+        logger.warn({ error },'Timed out waiting for new tiles, but continuing');
       }
 
       await sleep(2000);
@@ -662,7 +641,7 @@ async function scrape() {
       );
       await appendLogs(
         DATASET_KEY,
-        `‼ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
+        `⚠️ Reached MAX_PAGES_TO_FETCH limit (${MAX_PAGES_TO_FETCH}). Stopping at page ${currentPage - 1}.`,
       );
     }
 
@@ -687,8 +666,8 @@ async function scrape() {
     logger.info({ keeping: top.length, bestScore: top[0]?._qualityScore }, 'Keeping top innovators');
 
     if (top.length === 0) {
-      logger.warn('‼ No valid innovators found.');
-      await appendLogs(DATASET_KEY, `‼ No valid items – skipping CSV write.`);
+      logger.warn('⚠️ No valid innovators found.');
+      await appendLogs(DATASET_KEY, `⚠️ No valid items – skipping CSV write.`);
       return;
     }
 
@@ -732,10 +711,10 @@ async function scrape() {
       `   Last:  ${lastRow.ID} | ${lastRow.problem.substring(0, 50)}...`,
     );
     await appendLogs(DATASET_KEY, `--- End of run ---\n`);
-  } catch (err) {
-    logger.error({ err }, '✕ Fatal error');
-    await appendLogs(DATASET_KEY, `✕ Fatal error: ${err.message}`);
-    throw err;
+  } catch (error) {
+    logger.error({ error }, '✕ Fatal error');
+    await appendLogs(DATASET_KEY, `✕ Fatal error: ${error.message}`);
+    throw error;
   } finally {
     await browser.close();
   }
@@ -750,8 +729,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }
