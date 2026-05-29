@@ -1,6 +1,5 @@
 /**
- * @module BusinessContextContainer
- * @description Business problem/solution inputs and validation on the landing evaluation form.
+ * Business context fields (model, stage, geography, etc.) on the landing evaluation form.
  */
 
 import { Checkbox, Label, ListBox, Select } from '@heroui/react';
@@ -56,22 +55,10 @@ const MATERIAL_OPTIONS = [
 ];
 
 /**
- * Business context select fields bound to the landing-page react-hook-form.
- * @param {Object} props
- * @param {boolean} [props.loading=false] - Disables inputs while scoring is in progress.
- * @returns {import('react').ReactElement}
+ * Renders optional business-context selectors bound to the landing-page form context.
  */
 function BusinessContextContainer({ loading = false }) {
   const { control } = useFormContext();
-
-  // Watch business context values to ensure they're available before rendering
-  // const { watch } = useFormContext();
-  // const businessContextValues = watch('businessContext');
-
-  // Debug: Log current form values
-  // useEffect(() => {
-  //   logger.info('BusinessContextContainer: Current form values:', businessContextValues);
-  // }, [businessContextValues]);
 
   const renderSelect = (name, label, options, description) => (
     <div className="flex flex-col gap-1.5">
@@ -89,11 +76,6 @@ function BusinessContextContainer({ loading = false }) {
         name={`businessContext.${name}`}
         control={control}
         render={({ field }) => {
-          // Debug: Log field value for each business context field
-          // useEffect(() => {
-          // logger.info(`BusinessContext field ${name}:`, field.value);
-          // }, [field.value, name]);
-
           return (
             <Select
               value={

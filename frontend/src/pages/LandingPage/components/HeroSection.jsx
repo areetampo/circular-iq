@@ -1,26 +1,19 @@
 /**
- * @module HeroSection
- * @description Landing hero with animated background, CTAs, and links to methodology drawers.
+ * Landing hero with animated background, CTAs, and links to methodology drawers.
  */
 
 import { motion } from 'framer-motion';
 import { BookOpen, Target } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-import { Button, Tilt3D } from '@/components/common';
-import { FlipWords } from '@/components/ui/flip-words';
+import { Button, Tilt3D, SiteHeroHeading } from '@/components/common';
 import { ShootingStars } from '@/components/ui/shooting-stars';
 import { StarsBackground } from '@/components/ui/stars-background';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import { Vortex } from '@/components/ui/vortex';
 
 /**
- * Landing hero with animated background and methodology / criteria CTAs.
- *
- * @param {Object} props
- * @param {Function} props.openAssessmentMethodologyDrawer - Opens the methodology drawer.
- * @param {Function} props.openEvaluationCriteriaDrawer - Opens the evaluation criteria drawer.
- * @returns {import('react').ReactElement}
+ * Renders the landing hero, trust metrics, and methodology drawer actions.
  */
 export default function HeroSection({
   openAssessmentMethodologyDrawer,
@@ -65,22 +58,8 @@ export default function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, ease: 'easeOut' }}
             >
-              {/* Main heading */}
-              <Tilt3D shadowMode="text">
-                <h1 className="mb-6 font-bold **:font-display **:text-[clamp(38px,5.5vw,60px)] **:leading-[1.1] **:tracking-[-0.03em]">
-                  <span className="block text-(--color-text-primary)">Where circular economy</span>
-                  <FlipWords
-                    words={[
-                      'meets evidence.',
-                      'drives impact.',
-                      'builds purpose.',
-                      'creates value.',
-                    ]}
-                    duration={2000}
-                    className="text-orange-700 italic"
-                  />
-                </h1>
-              </Tilt3D>
+              {/* Hero heading */}
+              <SiteHeroHeading className="font-bold **:text-[clamp(38px,5.5vw,60px)] **:leading-[1.1] **:tracking-[-0.03em]" />
 
               {/* Subtitle */}
               <TextGenerateEffect

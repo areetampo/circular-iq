@@ -1,6 +1,5 @@
 /**
- * @module LandingPage
- * @description Main evaluation entry page — business context, parameters, and scoring stream.
+ * Main evaluation entry page — business context, parameters, and scoring stream.
  * Manages react-hook-form state, session persistence, sample test cases, and navigation to results.
  */
 
@@ -31,9 +30,7 @@ import {
 } from './components';
 
 /**
- * Main evaluation form: business context, eight parameters, streaming score, and session restore.
- *
- * @returns {import('react').ReactElement}
+ * Renders the assessment entry form, restores or autosaves draft state, and starts streamed scoring.
  */
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -68,7 +65,7 @@ export default function LandingPage() {
     formState: { isValid },
   } = methods;
 
-  // Get specific validation error message based on form state
+  // Build one tooltip message from the same length and quality checks used before submission.
   const getValidationErrorMessage = useCallback(() => {
     const problemValue = methods.getValues('businessProblem') || '';
     const solutionValue = methods.getValues('businessSolution') || '';
@@ -78,7 +75,6 @@ export default function LandingPage() {
     const problemMeetsMin = problemCount >= 200;
     const solutionMeetsMin = solutionCount >= 200;
 
-    // Check quality issues
     const problemUniq = uniqueWordRatio(problemValue);
     const solutionUniq = uniqueWordRatio(solutionValue);
     const problemNonLetter = nonLetterDensity(problemValue);
@@ -110,12 +106,12 @@ export default function LandingPage() {
       return `Issues found: ${issues.join(', ')}`;
     }
 
-    return null; // All good
+    return null;
   }, [methods]);
 
-  // Quality validation function (mirrors backend logic)
+  // Mirror backend junk-input checks so obvious invalid submissions fail before starting the stream.
   const validateInputQuality = useCallback((problem, solution) => {
-    const minLength = 50; // Reasonable minimum for detailed input
+    const minLength = 50;
 
     if (!problem || !solution) {
       return { isJunk: true, reason: 'Missing problem or solution' };
@@ -164,7 +160,7 @@ export default function LandingPage() {
     return null;
   }, []);
 
-  // State and refs for full session autosave logic
+  // Refs coordinate autosave with session rehydration without causing render loops.
   const skipAutosaveRef = useRef(false);
   const lastAppliedSessionRef = useRef(null);
   const lastSavedLocalTimestampRef = useRef(null);
@@ -172,7 +168,7 @@ export default function LandingPage() {
   const reevaluateDataAppliedRef = useRef(false);
   const AUTOSAVE_DEBOUNCE_MS = 150;
 
-  // Accordion state management
+  // Keep core form accordions open by default so first-time users see required controls.
   const [businessContextExpandedKeys, setBusinessContextExpandedKeys] = useState(
     new Set(['business-context-heading']),
   );
@@ -189,7 +185,6 @@ export default function LandingPage() {
   );
   const formContainerRef = useRef(null);
 
-  // Full session autosave logic implementation
   const persistInputs = useCallback(
     (values) => {
       if (skipAutosaveRef.current) return;
@@ -201,7 +196,7 @@ export default function LandingPage() {
         businessContext: values?.businessContext || {},
       };
 
-      // Read directly from localStorage to avoid useSession timing race
+      // Read storage directly because useSession can lag behind fast form updates.
       let stored;
       try {
         const storedState = loadEvaluationState();
@@ -220,7 +215,6 @@ export default function LandingPage() {
         };
       }
 
-      // Skip write if nothing changed
       const same = (a, b) => {
         try {
           return (
@@ -282,7 +276,6 @@ export default function LandingPage() {
     persistInputs(values);
   }, [methods, persistInputs]);
 
-  // Callbacks for SampleTestCasesContainer
   const openEvalParams = () => {
     setEvalParamsExpandedKeys(
       new Set([
@@ -298,7 +291,6 @@ export default function LandingPage() {
     setBusinessContextExpandedKeys(new Set(['business-context-heading']));
   };
 
-  // Session sync useEffect
   useEffect(() => {
     const sessionToApply = sessionData;
     if (!sessionToApply) return;
@@ -306,10 +298,10 @@ export default function LandingPage() {
     // Skip if we already applied this session
     if (lastAppliedSessionRef.current === sessionToApply) return;
 
-    // Skip if re-evaluate data was applied - preserve user's re-evaluate choice
+    // Preserve explicit re-evaluate payloads over older session drafts.
     if (reevaluateDataAppliedRef.current) return;
 
-    // Skip if local changes are newer
+    // Local edits win over older persisted snapshots.
     if (
       lastSavedLocalTimestampRef.current &&
       sessionToApply.timestamp &&
@@ -333,7 +325,6 @@ export default function LandingPage() {
     }
   }, [sessionData, location.state?.formData, reset, methods]);
 
-  // Watch subscription useEffect
   useEffect(() => {
     const subscription = watch(() => {
       scheduleAutosave();
@@ -341,7 +332,6 @@ export default function LandingPage() {
     return () => subscription.unsubscribe();
   }, [watch, scheduleAutosave]);
 
-  // Cleanup useEffect for timer
   useEffect(() => {
     return () => {
       if (autosaveTimerRef.current) {
@@ -350,10 +340,9 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Focusout useEffect on formContainerRef
   useEffect(() => {
     const handleFocusOut = (e) => {
-      // Only flush if focus is leaving the form container
+      // Flush only when focus leaves the form so tabbing within fields stays debounced.
       if (!formContainerRef.current?.contains(e.relatedTarget)) {
         flushAutosave();
       }
@@ -368,12 +357,10 @@ export default function LandingPage() {
     }
   }, [flushAutosave]);
 
-  // Beforeunload + pagehide useEffect
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       const values = methods.getValues();
 
-      // Get current form values
       const currentFormState = {
         businessProblem: (values?.businessProblem || '').trim(),
         businessSolution: (values?.businessSolution || '').trim(),
@@ -381,7 +368,6 @@ export default function LandingPage() {
         businessContext: values?.businessContext || {},
       };
 
-      // Get saved session state
       let savedState = null;
       try {
         savedState = loadEvaluationState()?.inputs || {
@@ -399,7 +385,6 @@ export default function LandingPage() {
         };
       }
 
-      // Get default form values for comparison
       const defaultFormState = {
         businessProblem: (evaluationFormDefaults?.businessProblem || '').trim(),
         businessSolution: (evaluationFormDefaults?.businessSolution || '').trim(),
@@ -407,7 +392,6 @@ export default function LandingPage() {
         businessContext: evaluationFormDefaults?.businessContext || {},
       };
 
-      // Check if current form is at default values (handles login scenario)
       const isAtDefaults =
         currentFormState.businessProblem === defaultFormState.businessProblem &&
         currentFormState.businessSolution === defaultFormState.businessSolution &&
@@ -416,7 +400,6 @@ export default function LandingPage() {
         JSON.stringify(currentFormState.businessContext) ===
           JSON.stringify(defaultFormState.businessContext);
 
-      // Compare current form state with saved state
       const hasUnsavedChanges =
         currentFormState.businessProblem !== savedState.businessProblem ||
         currentFormState.businessSolution !== savedState.businessSolution ||
@@ -425,28 +408,17 @@ export default function LandingPage() {
         JSON.stringify(currentFormState.businessContext) !==
           JSON.stringify(savedState.businessContext);
 
-      // Only show alert if there are unsaved changes AND there's actually content to lose
-      // AND the form is not at default values (prevents false alerts after login)
+      // Warn only when meaningful user-entered content differs from the last saved snapshot.
       const hasContentToLose =
         currentFormState.businessProblem ||
         currentFormState.businessSolution ||
         Object.keys(currentFormState.evaluationParameters).length > 0 ||
         Object.keys(currentFormState.businessContext).length > 0;
 
-      // Don't show alert if form is at default values (handles login scenario)
+      // Login redirects can remount at defaults before session data catches up.
       if (isAtDefaults) {
         return;
       }
-
-      // Debug logging
-      logger.log('BeforeUnload Debug:', {
-        currentFormState,
-        savedState,
-        defaultFormState,
-        hasUnsavedChanges,
-        hasContentToLose,
-        isAtDefaults,
-      });
 
       if (hasUnsavedChanges && hasContentToLose) {
         e.preventDefault();
@@ -456,7 +428,7 @@ export default function LandingPage() {
     };
 
     const handlePageHide = () => {
-      // Force immediate save without debounce
+      // Page lifecycle events may not wait for the debounce timer.
       if (autosaveTimerRef.current) {
         clearTimeout(autosaveTimerRef.current);
         autosaveTimerRef.current = null;
@@ -474,25 +446,21 @@ export default function LandingPage() {
     };
   }, [methods, flushAutosave, loadEvaluationState, persistInputs]);
 
-  // Prefetch ResultsPage bundle when form becomes valid
+  // Valid forms are likely to submit soon, so warm the result route bundle.
   useEffect(() => {
     if (isValid) {
-      import('@/pages/ResultsPage/ResultsPage').catch((err) => {
-        logger.warn('Failed to prefetch ResultsPage:', err);
+      import('@/pages/ResultsPage/ResultsPage').catch((error) => {
+        logger.warn('[LANDING_PAGE:RESULTS_PAGE_PREFETCH_FAILED]', error);
       });
     }
   }, [isValid]);
 
-  // Pre-fill form with data from ResultsPage (reevaluate)
   useEffect(() => {
     if (location.state?.formData && !reevaluateDataAppliedRef.current) {
       const { businessProblem, businessSolution, evaluation_parameters, businessContext } =
         location.state.formData;
 
-      logger.info('LandingPage: Received re-evaluate data:', location.state.formData);
-      logger.info('LandingPage: Extracted businessContext:', businessContext);
-
-      // Mark that re-evaluate data is being applied BEFORE any other processing
+      // Mark this before reset so session rehydration cannot overwrite the re-evaluate payload.
       reevaluateDataAppliedRef.current = true;
 
       const newFormData = {
@@ -502,17 +470,15 @@ export default function LandingPage() {
         businessContext: businessContext || {},
       };
 
-      logger.info('LandingPage: Form data to reset:', newFormData);
-
       reset(newFormData);
       window.history.replaceState({}, document.title);
 
-      // Small delay to ensure form reset completes before setting ready state
+      // Let react-hook-form apply reset before persisting the imported values.
       setTimeout(() => {
         persistInputs(newFormData);
       }, 100);
 
-      // Scroll to form when re-evaluating
+      // Re-evaluation returns users directly to the editable form.
       setTimeout(() => {
         const formElement = document.getElementById('ce-assessment-form');
         if (formElement) {
@@ -520,13 +486,12 @@ export default function LandingPage() {
         }
       }, 100);
 
-      // Show toast notification
       toast.success('Form filled with assessment data', { timeout: 3000 });
     }
   }, [location.state?.formData, persistInputs, reset]);
 
   const handleFormSubmit = async (formData) => {
-    // Validate minimum character requirements (excluding spaces)
+    // Minimums exclude spaces to match the validation schema and counter.
     if (getCharacterCount(formData.businessProblem) < 200) {
       toast.danger('Business Problem is too short', {
         description:
@@ -545,7 +510,6 @@ export default function LandingPage() {
       return;
     }
 
-    // Validate input quality (mirrors backend logic)
     const qualityCheck = validateInputQuality(formData.businessProblem, formData.businessSolution);
     if (qualityCheck) {
       toast.danger('Input Quality Issue', {
@@ -579,20 +543,20 @@ export default function LandingPage() {
 
         navigate('/results', { state: { result } });
       },
-      onError: (err) => {
+      onError: (error) => {
         setLoading(false);
         resetProgress();
 
-        // Handle anonymous limit reached
-        if (err?.code === 'ANON_SCORING_LIMIT_REACHED') {
+        if (error?.code === 'ANON_SCORING_LIMIT_REACHED') {
           openLimitReachedDialog({
-            anonScoringLimit: err?.anonScoringLimit,
-            lastUsedAt: err?.lastUsedAt,
+            lastUsedAt: error?.lastUsedAt,
+            anonScoringLimit: error?.anonScoringLimit,
+            anonScoringUsageRetentionDays: error?.anonScoringUsageRetentionDays,
           });
           return;
         }
 
-        const errorMessage = err?.message || err?.error || 'An unexpected error occurred';
+        const errorMessage = error?.message || 'An unexpected error occurred. Please try again.';
         setError(errorMessage);
         toast.danger('Evaluation failed', {
           description: errorMessage,

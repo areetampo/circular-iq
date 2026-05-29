@@ -1,6 +1,5 @@
 /**
- * @module EvaluationParametersContainer
- * @description Eight-factor parameter sliders and guidance for the landing evaluation form.
+ * Eight-factor parameter controls and guidance for the landing evaluation form.
  */
 
 import { Accordion, cn, Label, NumberField } from '@heroui/react';
@@ -40,7 +39,7 @@ const ParameterBox = React.memo(({ paramGroupIdx, paramKey, loading }) => {
         render={({ field }) => {
           const currentValue = field.value ?? 50;
 
-          // Find the closest selected card (within 8 points of a scale score)
+          // Highlight a guidance card when the numeric score is near one of its anchor values.
           const selectedScore =
             scale.find((s) => Math.abs(s.score - currentValue) <= 8)?.score ?? null;
 
@@ -207,12 +206,7 @@ ParameterBox.propTypes = {
 };
 
 /**
- * Grouped evaluation-parameter sliders inside expandable accordions.
- * @param {Object} props
- * @param {boolean} props.loading
- * @param {import('@react-types/shared').Key[]} props.evalParamsExpandedKeys
- * @param {import('@react-types/shared').Dispatch<import('@react-types/shared').Key[]>>} props.setEvalParamsExpandedKeys
- * @returns {import('react').ReactElement}
+ * Renders grouped evaluation-parameter controls inside expandable accordions.
  */
 function EvaluationParametersContainer({
   loading,

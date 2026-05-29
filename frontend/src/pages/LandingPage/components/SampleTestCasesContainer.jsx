@@ -1,10 +1,9 @@
 /**
- * @module SampleTestCasesContainer
- * @description Selectable sample business scenarios that prefill the evaluation form.
+ * Selectable sample business scenarios that prefill the landing evaluation form.
  */
 
 import { ScrollShadow, toast } from '@heroui/react';
-import { BookOpen, CheckCircle2 } from 'lucide-react';
+import { BookOpen, CheckCircle2, ClipboardPenLine } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -16,7 +15,7 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useSession } from '@/features/session';
 import { cn } from '@/utils/cn';
 
-// Helper function to get color based on score
+// Map sample-case score chips to the same coarse status tiers used across result previews.
 const getScoreColor = (score) => {
   if (score >= 75) return 'success';
   if (score >= 55) return 'accent';
@@ -24,7 +23,6 @@ const getScoreColor = (score) => {
   return 'error';
 };
 
-// Helper function to validate and normalize business model type values
 const normalizeBusinessModelType = (value) => {
   if (!value) return null;
   const normalized = String(value).toLowerCase().trim();
@@ -40,7 +38,6 @@ const normalizeBusinessModelType = (value) => {
   return validOptions.includes(normalized) ? normalized : null;
 };
 
-// Helper function to validate and normalize operational stage values
 const normalizeOperationalStage = (value) => {
   if (!value) return null;
   const normalized = String(value).toLowerCase().trim();
@@ -48,7 +45,6 @@ const normalizeOperationalStage = (value) => {
   return validOptions.includes(normalized) ? normalized : null;
 };
 
-// Helper function to validate and normalize geography values
 const normalizeGeography = (value) => {
   if (!value) return null;
   const normalized = String(value).toLowerCase().trim();
@@ -56,7 +52,6 @@ const normalizeGeography = (value) => {
   return validOptions.includes(normalized) ? normalized : null;
 };
 
-// Helper function to validate and normalize volume values
 const normalizeVolume = (value) => {
   if (!value) return null;
   const normalized = String(value).toLowerCase().trim();
@@ -70,7 +65,6 @@ const normalizeVolume = (value) => {
   return validOptions.includes(normalized) ? normalized : null;
 };
 
-// Helper function to validate and normalize material complexity values
 const normalizeMaterialComplexity = (value) => {
   if (!value) return null;
   const normalized = String(value).toLowerCase().trim();
@@ -84,10 +78,7 @@ const normalizeMaterialComplexity = (value) => {
   return validOptions.includes(normalized) ? normalized : null;
 };
 
-// Helper function to map test case business context to form field names.
-// Now that testCases.json uses consistent snake_case field names, this simply
-// validates and passes through the values. The normalize functions ensure enum
-// values are valid according to the form schema.
+// Normalize sample-case context values before injecting them into schema-backed form fields.
 const mapTestCaseContextToFormFields = (testCaseContext) => {
   if (!testCaseContext || typeof testCaseContext !== 'object') {
     return {
@@ -111,11 +102,7 @@ const mapTestCaseContextToFormFields = (testCaseContext) => {
 };
 
 /**
- * Selectable sample business scenarios that prefill the evaluation form.
- *
- * @param {Object} props
- * @param {Function} props.setShowEvaluationParameters
- * @returns {import('react').ReactElement}
+ * Renders sample cases, protects existing text with a confirmation dialog, and loads selected cases into the form.
  */
 export default function SampleTestCasesContainer({
   setShowEvaluationParameters = () => {},
@@ -131,12 +118,10 @@ export default function SampleTestCasesContainer({
   const handleSelectCase = async (testCase) => {
     setSelectedCase(testCase.id);
 
-    // Map business context from test case
     const mappedContext = testCase.businessContext
       ? mapTestCaseContextToFormFields(testCase.businessContext)
       : getValues('businessContext');
 
-    // Get current form state and update only the needed fields
     const currentValues = getValues();
 
     // Use reset() to atomically update all form values at once.
@@ -160,8 +145,7 @@ export default function SampleTestCasesContainer({
       },
     );
 
-    // Validation will be triggered by reset() with keepDirty/keepTouched
-    // but we ensure it completes before proceeding
+    // Let reset settle before saving and expanding dependent accordions.
     await Promise.resolve();
 
     // Persist immediately when a user explicitly selects a sample test case.
@@ -175,8 +159,8 @@ export default function SampleTestCasesContainer({
         },
         timestamp: new Date().toISOString(),
       });
-    } catch (err) {
-      logger.warn('Failed to save session after loading test case', err);
+    } catch (error) {
+      logger.warn('[SAMPLE_CASES:SESSION_SAVE_FAILED]', error);
     }
 
     toast.success('Test case loaded!', {
@@ -185,9 +169,8 @@ export default function SampleTestCasesContainer({
     });
     setShowEvaluationParameters(true);
 
-    // Add a small delay to ensure form reset completes before opening accordions
+    // Open dependent accordions after reset so the loaded values are visible immediately.
     setTimeout(() => {
-      // Open all 5 accordions above Sample Test Cases
       openEvalParams();
       openBusinessContext();
     }, 100);
@@ -235,9 +218,8 @@ export default function SampleTestCasesContainer({
             // shadow={false}
             block
             key={testCase.id}
-            onClick={() => requestSelectCase(testCase)}
             className={cn(
-              'group relative flex cursor-pointer flex-col gap-3 rounded-xl border-2 p-3 transition-all duration-200',
+              'group relative flex flex-col gap-3 rounded-xl border-2 p-3 transition-all duration-200',
               isSelected
                 ? 'border-(--color-accent-alpha-70) bg-amber-100/20 shadow-sm'
                 : 'border-(--color-border-strong-alpha-80) bg-(--color-bg-card)' +
@@ -284,7 +266,15 @@ export default function SampleTestCasesContainer({
             </div>
 
             {/* "View details" button — make it a subtle text link, not a button */}
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                size="sm"
+                variant="success-soft"
+                onPress={() => requestSelectCase(testCase)}
+                icon={ClipboardPenLine}
+              >
+                Load case
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"
