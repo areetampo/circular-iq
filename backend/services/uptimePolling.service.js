@@ -1,11 +1,10 @@
 /**
- * @module uptimePolling.service
- * @description Backend polling service for the uptime monitor.
- * Runs only in production. On each cycle, pings all health endpoints in parallel,
+ * Backend polling service for the uptime monitor.
+ * Runs when `BACKEND_CONFIG.uptime.pollingEnabled` is enabled. On each cycle, pings all health endpoints in parallel,
  * batch-inserts results into Supabase, and broadcasts a 'poll-complete' SSE event
  * to all connected frontend clients via uptime.broadcaster.
  *
- * Guards against overlapping polls with an `isPolling` flag — if the previous cycle
+ * Guards against overlapping polls with an `isPolling` flag; if the previous cycle
  * hasn't finished when the next interval fires, the new cycle is skipped.
  */
 
@@ -21,14 +20,15 @@ let isPolling = false;
  * Ping a single health endpoint and normalize the result for DB insert and SSE broadcast.
  *
  * @param {string} endpointId - Key from HEALTH_ENDPOINTS (e.g. 'health', 'database').
- * @param {string} path       - Route path appended to BACKEND_CONFIG.app.apiUrl.
+ * @param {string} path - Route path appended to BACKEND_CONFIG.app.apiUrl.
  * @returns {Promise<{
  *   endpointId: string,
+ *   endpointPath: string,
  *   status: string,
  *   up: boolean,
  *   responseTimeMs: number,
- *   payload: Object
- * }>}
+ *   payload: Record<string, unknown>
+ * }>} Normalized endpoint probe result persisted to uptime history and broadcast over SSE.
  */
 async function pingEndpoint(endpointId, path) {
   const start = Date.now();
@@ -86,7 +86,6 @@ async function pingEndpoint(endpointId, path) {
  * Run one poll cycle: ping all HEALTH_ENDPOINTS in parallel, batch-insert into uptime_checks,
  * then broadcast 'poll-complete' to SSE clients. Skipped when a previous cycle is still running.
  *
- * @returns {Promise<void>}
  */
 async function runPoll() {
   if (isPolling) {
@@ -103,7 +102,7 @@ async function runPoll() {
     const supabase = getSupabaseClient();
     const results = await Promise.all(HEALTH_ENDPOINTS.map((ep) => pingEndpoint(ep.id, ep.path)));
 
-    // single batch insert
+    // One insert keeps each polling cycle's endpoint snapshots grouped in storage.
     const rows = results.map((result) => ({
       endpoint_id: result.endpointId,
       endpoint_path: result.endpointPath,
@@ -124,7 +123,7 @@ async function runPoll() {
         '[UptimePoll] Poll completed',
       );
 
-      // Broadcast to all SSE clients
+      // Broadcast only after storage succeeds so clients see persisted snapshots.
       broadcastUptimeEvent('poll-complete', {
         timestamp: new Date().toISOString(),
         results: results.map((r) => ({
@@ -136,8 +135,8 @@ async function runPoll() {
         })),
       });
     }
-  } catch (err) {
-    logger.error({ err }, '[UptimePoll] Poll cycle failed');
+  } catch (error) {
+    logger.error({ error }, '[UptimePoll] Poll cycle failed');
   } finally {
     isPolling = false;
   }
@@ -146,9 +145,8 @@ async function runPoll() {
 /**
  * Starts the uptime polling service.
  * Runs one poll immediately on call, then repeats on the configured interval.
- * Safe to call multiple times — subsequent calls are no-ops if already running.
- *
- * @returns {void}
+ * Safe to call multiple times; subsequent calls are no-ops if already running.
+ * Side effects: creates a process interval and writes uptime checks on every cycle.
  */
 export function startUptimePolling() {
   if (pollingInterval) {
@@ -157,7 +155,7 @@ export function startUptimePolling() {
   }
   const interval = BACKEND_CONFIG.uptime.pollIntervalMs;
   logger.info({ intervalMs: interval }, '[UptimePoll] Starting polling');
-  // Run once immediately, then on interval
+  // Run once immediately so fresh deployments do not wait a full interval for first data.
   runPoll();
   pollingInterval = setInterval(runPoll, interval);
 }
@@ -165,8 +163,7 @@ export function startUptimePolling() {
 /**
  * Stops the uptime polling service and clears the interval.
  * Called during graceful server shutdown.
- *
- * @returns {void}
+ * Safe to call when polling is already stopped.
  */
 export function stopUptimePolling() {
   if (pollingInterval) {
