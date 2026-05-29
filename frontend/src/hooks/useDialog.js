@@ -1,20 +1,8 @@
-/**
- * @module useDialog
- * @description Central dialog stack for the app (single active dialog with priority).
- * Higher-priority dialogs block lower-priority ones from opening.
- * Consumed by `DialogContext` and `DialogManager`.
- *
- * @example
- * const { openDeleteAssessmentDialog, onClose, isDialogOpen } = useDialog();
- * openDeleteAssessmentDialog({ assessmentName: 'My Project', onConfirm: handleDelete });
- */
-
 import { useCallback, useState } from 'react';
 
 import DIALOGS from '@/constants/dialogTypes';
 
-// Dialog priority levels (higher = more important)
-// Higher priority dialogs prevent lower priority ones from opening
+// Higher priority dialogs prevent lower priority ones from replacing a critical flow.
 const DIALOG_PRIORITIES = {
   CRITICAL: 20,
   HIGH: 10,
@@ -23,21 +11,22 @@ const DIALOG_PRIORITIES = {
 };
 
 /**
- * Manages a single active modal with priority-based preemption.
+ * Manages one active dialog with priority-based replacement rules.
+ * Lower-priority dialogs cannot replace an already open higher-priority dialog.
  *
  * @returns {{
  *   dialog: { type: string|null, data: Object|null, priority: number },
  *   isDialogOpen: boolean,
  *   onClose: () => void,
  *   openDialogWithPriority: (type: string, data?: Object, priority?: number) => void,
- *   openDeleteAssessmentDialog: (data: Object) => void,
- *   openSaveAssessmentDialog: (data: Object) => void,
- *   openRenameAssessmentDialog: (data: Object) => void,
- *   openReplaceInputsDialog: (data: Object) => void,
- *   openConfirmDialog: (data: Object) => void,
- *   openResultsRestoreDialog: (data: Object) => void,
- *   openLimitReachedDialog: (data: Object) => void
- * }}
+ *   openDeleteAssessmentDialog: (data: { assessmentName?: string, assessmentId?: string, onConfirm?: Function, isLoading?: boolean }) => void,
+ *   openSaveAssessmentDialog: (data: { defaultName?: string, onSave?: Function, scoringResult?: Object }) => void,
+ *   openRenameAssessmentDialog: (data: { defaultName?: string, onRename?: Function, isLoading?: boolean }) => void,
+ *   openReplaceInputsDialog: (data: { title?: string, description?: string, confirmText?: string, cancelText?: string, onConfirm?: Function, onCancel?: Function }) => void,
+ *   openConfirmDialog: (data: { title?: string, description?: string, confirmText?: string, cancelText?: string, onConfirm?: Function, variant?: string, isLoading?: boolean, priority?: number }) => void,
+ *   openResultsRestoreDialog: () => void,
+ *   openLimitReachedDialog: (data: { lastUsedAt?: string|number|Date, anonScoringLimit?: number, anonScoringUsageRetentionDays?: number }) => void
+ * }} Dialog state plus priority-aware opener callbacks for shared modal workflows.
  */
 export default function useDialog() {
   const [dialogState, setDialogState] = useState({ type: null, data: null, priority: 0 });
@@ -45,16 +34,6 @@ export default function useDialog() {
   const openDialogWithPriority = useCallback((type, data = null, priority = 0) => {
     setDialogState((prev) => {
       const currentPriority = prev?.priority || 0;
-      // logger.log(
-      //   'Attempting to open dialog:',
-      //   type,
-      //   'with priority',
-      //   priority,
-      //   'Current dialog:',
-      //   prev?.type,
-      //   'priority',
-      //   currentPriority,
-      // );
       if (prev.type && currentPriority > priority) return prev;
       return { type, data, priority };
     });
@@ -64,9 +43,7 @@ export default function useDialog() {
     setDialogState({ type: null, data: null, priority: 0 });
   }, []);
 
-  // Stable wrappers for dialog openers so their identity doesn't change
-  // when dialogState updates. This prevents consumers from re-running
-  // effects when only dialogState changes.
+  // Stable wrappers prevent consumers from re-running effects when only dialogState changes.
   const openDeleteAssessmentDialog = useCallback(
     (data) =>
       openDialogWithPriority(
@@ -107,7 +84,19 @@ export default function useDialog() {
   );
 
   const openReplaceInputsDialog = useCallback(
-    (data) => openDialogWithPriority(DIALOGS.REPLACE_INPUTS, data, DIALOG_PRIORITIES.LOW),
+    (data) =>
+      openDialogWithPriority(
+        DIALOGS.REPLACE_INPUTS,
+        {
+          title: data?.title,
+          description: data?.description,
+          confirmText: data?.confirmText,
+          cancelText: data?.cancelText,
+          onConfirm: data?.onConfirm,
+          onCancel: data?.onCancel,
+        },
+        DIALOG_PRIORITIES.LOW,
+      ),
     [openDialogWithPriority],
   );
 
@@ -129,8 +118,9 @@ export default function useDialog() {
     [openDialogWithPriority],
   );
 
+  // ResultsRestoreDialog reads localStorage directly, so no caller data is accepted.
   const openResultsRestoreDialog = useCallback(
-    (data) => openDialogWithPriority(DIALOGS.SESSION_RESULTS_RESTORE, data, DIALOG_PRIORITIES.HIGH),
+    () => openDialogWithPriority(DIALOGS.SESSION_RESULTS_RESTORE, null, DIALOG_PRIORITIES.HIGH),
     [openDialogWithPriority],
   );
 
@@ -138,7 +128,11 @@ export default function useDialog() {
     (data) =>
       openDialogWithPriority(
         DIALOGS.LIMIT_REACHED,
-        { anonScoringLimit: data?.anonScoringLimit },
+        {
+          lastUsedAt: data?.lastUsedAt,
+          anonScoringLimit: data?.anonScoringLimit,
+          anonScoringUsageRetentionDays: data?.anonScoringUsageRetentionDays,
+        },
         DIALOG_PRIORITIES.MEDIUM,
       ),
     [openDialogWithPriority],

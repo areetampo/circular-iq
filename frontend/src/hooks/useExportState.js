@@ -1,34 +1,26 @@
-/**
- * @module useExportState
- * @description Manages CSV/PDF export loading state and wraps export handlers with toast feedback.
- */
-
 import { toast } from '@heroui/react';
 import { useState } from 'react';
 
 /**
- * Export loading state and a shared executor for CSV/PDF download handlers.
+ * Manages CSV/PDF export loading flags and toast feedback around export operations.
+ * Failed export functions are caught and converted to `{ success: false, message }`.
  *
  * @returns {{
  *   isExportingPDF: boolean,
  *   isExportingCSV: boolean,
  *   isExporting: boolean,
- *   executeExport: (exportFn: Function, operationType?: 'CSV'|'PDF', ...args: *) => Promise<{success: boolean, message?: string}>
- * }}
+ *   executeExport: (
+ *     exportFn: (...args: Array<unknown>) => Promise<{ success: boolean, message?: string }>,
+ *     operationType?: 'CSV'|'PDF',
+ *     ...args: Array<unknown>
+ *   ) => Promise<{ success: boolean, message?: string }>
+ * }} Export loading flags and a guarded executor that resolves with success/failure status.
  */
 export default function useExportState() {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingCSV, setIsExportingCSV] = useState(false);
-  // toasts are shown directly via HeroUI's toast helper
 
-  /**
-   * Execute an export function with proper state management
-   * @param {Function} exportFn - The export function to execute
-   * @param {string} operationType - 'CSV' or 'PDF' for user feedback
-   * @param {*} args - Arguments to pass to export function
-   */
   const executeExport = async (exportFn, operationType = 'CSV', ...args) => {
-    // Set appropriate loading state based on operation type
     if (operationType === 'PDF') {
       setIsExportingPDF(true);
     } else if (operationType === 'CSV') {
@@ -43,6 +35,7 @@ export default function useExportState() {
           timeout: 3000,
         });
       } else {
+        logger.warn('[EXPORT:OPERATION_FAILED]', { operationType, message: result.message });
         toast.danger(result.message || `${operationType} downloaded successfully`, {
           timeout: 4000,
         });
@@ -50,7 +43,7 @@ export default function useExportState() {
 
       return result;
     } catch (error) {
-      logger.warn(`${operationType} export failed:`, error);
+      logger.warn('[EXPORT:OPERATION_FAILED]', { operationType, error });
       const genericMessage =
         operationType === 'PDF'
           ? 'PDF download functionality is currently unavailable'
@@ -58,7 +51,6 @@ export default function useExportState() {
       toast.danger(genericMessage, { timeout: 4000 });
       return { success: false, message: genericMessage };
     } finally {
-      // Clear appropriate loading state based on operation type
       if (operationType === 'PDF') {
         setIsExportingPDF(false);
       } else if (operationType === 'CSV') {
@@ -67,7 +59,7 @@ export default function useExportState() {
     }
   };
 
-  // Legacy isExporting for backward compatibility (true if either export is active)
+  // Preserve the legacy aggregate flag while newer callers use type-specific loading state.
   const isExporting = isExportingPDF || isExportingCSV;
 
   return {

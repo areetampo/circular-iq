@@ -1,20 +1,13 @@
 import { useRef, useState } from 'react';
 
-import DRAWER_TYPES from '@/constants/drawerTypes';
+import { DRAWER_TYPES } from '@/constants';
 
-/**
- * @module useDrawer
- * @description Side-drawer state with open/close animation timing.
- * Keeps the drawer mounted during the close transition, then unmounts after
- * `CLOSE_ANIMATION_MS`. Consumed by `DrawerContext` and `DrawerManager`.
- */
-
-// Match the CSS transition duration used by Drawer (overlay/content)
-// reduced from 320ms to match the faster CSS transitions + small buffer
+// Matches the Drawer CSS close transition plus a small buffer before unmount.
 const CLOSE_ANIMATION_MS = 200;
 
 /**
- * Opens, animates, and unmounts side drawers by type with stable opener callbacks.
+ * Manages the shared side-drawer state and delayed unmount after close animations.
+ * Opening a new drawer clears any pending close timeout so rapid replacements remain mounted.
  *
  * @returns {{
  *   drawer: { type: string|null, data: Object|null, isOpen: boolean },
@@ -29,12 +22,10 @@ const CLOSE_ANIMATION_MS = 200;
  *   openSpecificEvaluationParameterInfoDrawer: (paramKey: string) => void,
  *   openSampleTestCasesHeadingInfoDrawer: () => void,
  *   openSpecificSampleTestCaseViewDetailsDrawer: (testCase: Object) => void,
- *   openResultsDatabaseEvidenceDetailsDrawer: (evidenceData: Object) => void
- * }}
+ *   openResultsDatabaseEvidenceDetailsDrawer: (caseItem: Object) => void
+ * }} Drawer state plus typed opener callbacks for every drawer used by the app shell.
  */
 export default function useDrawer() {
-  // drawerState.type === null => no drawer mounted
-  // when mounted: { type, data, isOpen }
   const [drawerState, setDrawerState] = useState({ type: null, data: null, isOpen: false });
   const closeTimerRef = useRef(null);
 
@@ -51,8 +42,7 @@ export default function useDrawer() {
   };
 
   const closeDrawer = () => {
-    // Begin closing animation (set isOpen=false) but keep `type` so Drawer
-    // component remains mounted until the animation finishes.
+    // Keep `type` during the close transition so the Drawer content can animate out.
     setDrawerState((s) => (s.type ? { ...s, isOpen: false } : s));
 
     clearCloseTimer();
@@ -64,9 +54,7 @@ export default function useDrawer() {
 
   return {
     drawer: drawerState,
-    // Exposed boolean used by Drawer primitive to control open/closed state
     isDrawerOpen: Boolean(drawerState?.isOpen),
-    // Caller-facing close function (initiates smooth close + delayed unmount)
     onClose: closeDrawer,
 
     openAssessmentMethodologyDrawer: () => openDrawer(DRAWER_TYPES.ASSESSMENT_METHODOLOGY),
@@ -92,7 +80,7 @@ export default function useDrawer() {
     openSpecificSampleTestCaseViewDetailsDrawer: (testCase) =>
       openDrawer(DRAWER_TYPES.SPECIFIC_SAMPLE_TEST_CASE_VIEW_DETAILS, { testCase }),
 
-    openResultsDatabaseEvidenceDetailsDrawer: (evidenceData) =>
-      openDrawer(DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS, evidenceData),
+    openResultsDatabaseEvidenceDetailsDrawer: (caseItem) =>
+      openDrawer(DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS, { caseItem }),
   };
 }

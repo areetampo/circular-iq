@@ -1,27 +1,21 @@
-/**
- * @module useRelativeTime
- * @description Live-updating relative time labels (e.g. "2 hours ago") from a timestamp.
- */
-
 import { useEffect, useState } from 'react';
 
 import { formatRelativeTime } from '@/lib/formatting';
 
 /**
- * useRelativeTime
- * Hook that provides real-time relative time formatting
- * @param {number|string|Date} timestamp - The timestamp to format
- * @returns {string} The formatted relative time string
+ * Maintains a live relative-time label for the supplied instant.
+ * Recomputes immediately when `timestamp` changes, then every second while mounted.
+ *
+ * @param {number|string|Date} timestamp - Instant accepted by `formatRelativeTime`.
+ * @returns {string} Human-readable relative label such as "just now" or "2 minutes ago".
  */
 export default function useRelativeTime(timestamp) {
   const [relativeTime, setRelativeTime] = useState(() => formatRelativeTime(timestamp));
 
-  // Update immediately when timestamp changes (no delay)
   useEffect(() => {
     setRelativeTime(formatRelativeTime(timestamp));
   }, [timestamp]);
 
-  // Then keep updating every second for real‑time countdown
   useEffect(() => {
     const interval = setInterval(() => {
       setRelativeTime(formatRelativeTime(timestamp));

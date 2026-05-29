@@ -1,13 +1,7 @@
-/**
- * @module useDrawer.test
- * @description Tests for drawer open/close state.
- */
-
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import useDrawer from './useDrawer';
 
-/** Minimal component that opens/closes drawers via `useDrawer` for lifecycle tests. */
 function HookHarness() {
   const drawer = useDrawer();
   return (
@@ -32,23 +26,19 @@ describe('useDrawer lifecycle', () => {
   it('keeps drawer mounted for the close animation duration', () => {
     render(<HookHarness />);
 
-    // open
     fireEvent.click(screen.getByText('open'));
     expect(screen.getByTestId('drawer-type').textContent).toMatch(
       /ASSESSMENT|assessment|Assessment/,
     );
 
-    // initiate close — should still show the type immediately after
     fireEvent.click(screen.getByText('close'));
     expect(screen.getByTestId('drawer-type').textContent).not.toBe('null');
 
-    // advance timers by less than the close animation — it should still be mounted
     act(() => {
       vi.advanceTimersByTime(150);
     });
     expect(screen.getByTestId('drawer-type').textContent).not.toBe('null');
 
-    // after the close animation timeout it should be unmounted
     act(() => {
       vi.advanceTimersByTime(200);
     });
