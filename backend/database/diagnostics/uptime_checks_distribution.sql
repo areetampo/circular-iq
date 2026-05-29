@@ -1,5 +1,17 @@
--- backend/database/diagnostics/uptime_checks_distribution.sql
--- Purpose: Audit the frequency and recency of checks per endpoint from Migration 07
+-- ============================================================
+-- FILE: diagnostics/uptime_checks_distribution.sql
+-- PURPOSE: Audit the frequency and recency of checks per endpoint
+-- ============================================================
+
+
+-- ------------------------------------------------------------
+-- [1] Uptime checks distribution per endpoint
+--
+-- Computes aggregate frequency counts and captures the most recent
+-- execution timestamp for each target service. Essential for
+-- verifying that the background monitoring daemon is running on-schedule,
+-- processing jobs uniformly, and not stalling on specific endpoints.
+-- ------------------------------------------------------------
 
 SELECT
     endpoint_id,
@@ -12,57 +24,7 @@ GROUP BY
 ORDER BY
     total_checks DESC;
 
--- output example
-
-[
-  {
-    "endpoint_id": "config",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "database",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "database-aiven",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "detailed",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "health",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "liveness",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "openai",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "readiness",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "system",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  },
-  {
-    "endpoint_id": "version",
-    "total_checks": 2085,
-    "last_check_at": "2026-05-13 00:33:24.672862+00"
-  }
-]
+-- output example:
+-- [
+--
+-- ]
