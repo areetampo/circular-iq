@@ -1,24 +1,6 @@
 /**
- * @module DialogContext
- * @description Global dialog state — wraps useDialog() for app-wide access via useGlobalDialog().
- * Mount DialogProvider in AppProvider; DialogManager renders the active dialog by type.
- *
- * @example
- * import { useGlobalDialog } from '@/contexts/DialogContext';
- *
- * function MyComponent() {
- *   const { openDeleteAssessmentDialog } = useGlobalDialog();
- *
- *   const handleDelete = (assessmentId) => {
- *     openDeleteAssessmentDialog({
- *       assessmentName: 'My Assessment',
- *       assessmentId,
- *       onConfirm: async () => { ... },
- *     });
- *   };
- *
- *   return <Button onPress={() => handleDelete(123)}>Delete</Button>;
- * }
+ * Global dialog state shared through `DialogProvider` and consumed with `useGlobalDialog`.
+ * Mounts in `AppProvider`; `DialogManager` reads the active dialog type, payload, and priority.
  */
 
 import PropTypes from 'prop-types';
@@ -29,11 +11,10 @@ import { useDialog } from '@/hooks';
 const DialogContext = createContext();
 
 /**
- * Provides global dialog state from `useDialog()` to the React tree.
+ * Provides single-dialog state and priority-aware open helpers to the app tree.
  *
- * @param {Object} props
- * @param {import('react').ReactNode} props.children
- * @returns {import('react').ReactElement}
+ * @example
+ * const { openConfirmDialog } = useGlobalDialog();
  */
 export const DialogProvider = ({ children }) => {
   const dialogValue = useDialog();
@@ -45,7 +26,7 @@ DialogProvider.propTypes = {
 };
 
 /**
- * Global dialog API (same surface as `useDialog`, provided via context).
+ * Consumes global dialog state and priority-aware opener helpers. Must be used within `DialogProvider`.
  *
  * @returns {{
  *   dialog: { type: string|null, data: Object|null, priority: number },
@@ -57,18 +38,19 @@ DialogProvider.propTypes = {
  *   openRenameAssessmentDialog: (data: Object) => void,
  *   openReplaceInputsDialog: (data: Object) => void,
  *   openConfirmDialog: (data: Object) => void,
- *   openResultsRestoreDialog: (data: Object) => void,
+ *   openResultsRestoreDialog: () => void,
  *   openLimitReachedDialog: (data: Object) => void
- * }}
+ * }} Dialog context API used by DialogManager and shared dialog triggers.
  * @throws {Error} When used outside `DialogProvider`.
- *
- * @example
- * const { openDeleteAssessmentDialog, isDialogOpen, onClose } = useGlobalDialog();
  */
 export const useGlobalDialog = () => {
   const context = useContext(DialogContext);
   if (!context) {
-    throw new Error('useGlobalDialog must be used within a DialogProvider');
+    throw new Error(
+      'useGlobalDialog must be used within a DialogProvider. ' +
+        'Check that the calling component is not rendered above AppProvider ' +
+        'or inside an ErrorBoundary fallback.',
+    );
   }
   return context;
 };

@@ -1,7 +1,6 @@
 /**
- * @module DrawerContext
- * @description Global drawer state — wraps useDrawer() for app-wide access via useGlobalDrawer().
- * Mount DrawerProvider in AppProvider; DrawerManager renders the active info drawer by type.
+ * Global drawer state shared through `DrawerProvider` and consumed with `useGlobalDrawer`.
+ * Mounts in `AppProvider`; `DrawerManager` reads the active drawer type and payload.
  */
 
 import PropTypes from 'prop-types';
@@ -12,11 +11,10 @@ import { useDrawer } from '@/hooks';
 const DrawerContext = createContext();
 
 /**
- * Provides global drawer state from `useDrawer()` to the React tree.
+ * Provides one active info drawer at a time and preserves delayed unmount state for close animations.
  *
- * @param {Object} props
- * @param {import('react').ReactNode} props.children
- * @returns {import('react').ReactElement}
+ * @example
+ * const { openBusinessProblemInfoDrawer } = useGlobalDrawer();
  */
 export const DrawerProvider = ({ children }) => {
   const drawerValue = useDrawer();
@@ -43,8 +41,8 @@ DrawerProvider.propTypes = {
  *   openSpecificEvaluationParameterInfoDrawer: (paramKey: string) => void,
  *   openSampleTestCasesHeadingInfoDrawer: () => void,
  *   openSpecificSampleTestCaseViewDetailsDrawer: (testCase: Object) => void,
- *   openResultsDatabaseEvidenceDetailsDrawer: (evidenceData: Object) => void
- * }}
+ *   openResultsDatabaseEvidenceDetailsDrawer: (caseItem: Object) => void
+ * }} Drawer context API used by DrawerManager and feature pages.
  * @throws {Error} When used outside `DrawerProvider`.
  */
 export const useGlobalDrawer = () => {

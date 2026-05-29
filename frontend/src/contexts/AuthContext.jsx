@@ -1,20 +1,13 @@
 /**
- * @module AuthContext
- * @description Single source of truth for Supabase authentication state.
- *
- * Responsibilities:
- * - Initializes session once on mount and subscribes to auth state changes.
- * - Fetches backend user profile when a session is present (with timeout).
- * - Clears evaluation session storage on login/logout transitions.
- * - Renews anonymous session_id on login to separate tracked sessions.
- * - Exposes useAuth() for stable, shared auth state across the app.
+ * Supabase auth state shared through `AuthProvider` and consumed with `useAuth`.
+ * Initializes the current session, fetches profile data with a timeout, and separates anonymous evaluation storage on login/logout.
  */
 
 import PropTypes from 'prop-types';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { FRONTEND_CONFIG } from '@/config/frontend.config';
-import { clearEvaluationState } from '@/lib/storage';
+import { clearEvaluationInputs, clearEvaluationState } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { getSessionId } from '@/utils/session';
 
@@ -22,11 +15,11 @@ import { getSessionId } from '@/utils/session';
 const AuthContext = createContext(undefined);
 
 /**
- * Fetch user profile from backend API with a timeout (AbortController)
- * - Returns null on timeout / network error / non-OK response
- * @param {string} token - Access token from Supabase session
- * @param {number} timeoutMs - timeout in milliseconds (default 5000)
- * @returns {Promise<Object|null>} User profile data or null
+ * Fetches `/api/profile` with AbortController timeout; returns null on failure or 404.
+ *
+ * @param {string} token - Supabase access token used for the profile request.
+ * @param {number} [timeoutMs=5000] - Abort timeout for the profile endpoint.
+ * @returns {Promise<Object|null>} Parsed profile JSON, or null when missing, not found, timed out, or unavailable.
  */
 async function fetchUserProfile(token, timeoutMs = 5000) {
   if (!token) return null;
@@ -64,11 +57,11 @@ async function fetchUserProfile(token, timeoutMs = 5000) {
 }
 
 /**
- * Provides auth state to the React tree. Mount once at the app root.
+ * Provides Supabase auth state to the React tree and separates anonymous
+ * evaluation state from authenticated sessions on login/logout.
  *
- * @param {Object} props
- * @param {import('react').ReactNode} props.children
- * @returns {import('react').ReactElement}
+ * @example
+ * const { user, isAuthenticated, signOut } = useAuth();
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -78,10 +71,6 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false); // Track if initial auth check is done
 
-  /**
-   * Sign out the current user
-   * Clears session and local state
-   */
   const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
@@ -91,11 +80,6 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  /**
-   * Handle authentication state changes
-   * Fetches profile when user is authenticated
-   * Only clears session state on actual auth events (login/logout), not initialization
-   */
   const handleAuthChange = useCallback(
     async (newSession) => {
       const wasAuthenticated = isAuthenticated;
@@ -120,7 +104,7 @@ export function AuthProvider({ children }) {
         // Only clear session state on actual login event (not page reload/session restoration)
         if (isAuthEvent && !wasAuthenticated) {
           try {
-            const cleared = clearEvaluationState();
+            const cleared = clearEvaluationInputs();
             logger.info('[SESSION_STATE_CLEARED_ON_LOGIN]', {
               cleared,
               userId: newSession.user.id,
@@ -149,12 +133,12 @@ export function AuthProvider({ children }) {
           }
         } else {
           // Session restoration - don't clear anything
-          // logger.info('[SESSION_RESTORED]', {
-          //   userId: newSession.user.id,
-          //   wasAuthenticated,
-          //   isNowAuthenticated,
-          //   isAuthEvent,
-          // });
+          logger.info('[SESSION_RESTORED]', {
+            userId: newSession.user.id,
+            wasAuthenticated,
+            isNowAuthenticated,
+            isAuthEvent,
+          });
         }
 
         // Fetch full user profile from backend (includes additional profile data)
@@ -211,8 +195,8 @@ export function AuthProvider({ children }) {
             // handleAuthChange updates immediate user/session state synchronously,
             // but it also performs longer-running tasks (profile fetch, pending save).
             // Calling without await prevents the initial "Authenticating..." stall.
-            handleAuthChange(data.session).catch((err) =>
-              logger.warn('[HANDLE_AUTH_CHANGE_ERROR]', err),
+            handleAuthChange(data.session).catch((error) =>
+              logger.warn('[HANDLE_AUTH_CHANGE_ERROR]', error),
             );
           } else {
             setSession(null);
@@ -241,7 +225,9 @@ export function AuthProvider({ children }) {
       if (isMounted) {
         // handleAuthChange will update immediate auth state synchronously and
         // perform follow-ups (profile fetch / pending save) asynchronously.
-        handleAuthChange(newSession).catch((err) => logger.warn('[HANDLE_AUTH_CHANGE_ERROR]', err));
+        handleAuthChange(newSession).catch((error) =>
+          logger.warn('[HANDLE_AUTH_CHANGE_ERROR]', error),
+        );
       }
     });
 
@@ -269,8 +255,7 @@ AuthProvider.propTypes = {
 };
 
 /**
- * Access shared auth state from AuthContext.
- * Returns a safe unauthenticated fallback when used outside AuthProvider (tests, isolated renders).
+ * Consumes auth state from `AuthProvider`. Outside the provider, logs a warning and returns an unauthenticated fallback (no throw).
  *
  * @returns {{
  *   user: Object|null,
@@ -280,7 +265,7 @@ AuthProvider.propTypes = {
  *   isAuthenticated: boolean,
  *   token: string|null,
  *   signOut: () => Promise<void>
- * }}
+ * }} Current auth state plus sign-out action, or unauthenticated fallback outside the provider.
  */
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -290,7 +275,10 @@ export function useAuth() {
   // This preserves previous behavior for normal usage while making the hook
   // resilient in environments where the provider is not mounted.
   if (context === undefined) {
-    logger.warn('useAuth called outside AuthProvider — returning unauthenticated fallback');
+    logger.warn(
+      '[AUTH_CONTEXT:USE_AUTH_OUTSIDE_PROVIDER]',
+      'useAuth was called outside of AuthProvider. Returning unauthenticated fallback.',
+    );
     return {
       user: null,
       profile: null,
