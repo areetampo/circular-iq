@@ -1,6 +1,5 @@
 /**
- * @module GettingStartedSection
- * @description Guide page section — Getting Started.
+ * Guide page section — Getting Started.
  */
 
 import { Info } from 'lucide-react';
@@ -11,8 +10,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Getting Started guide section (`#getting-started`) — quickstart, auth modes, and tips.
- * @returns {import('react').ReactElement}
+ * Renders quickstart steps, anonymous versus signed-in limits, and best-practice tips.
+ *
+ * @returns {import('react').ReactElement} Getting-started section with TOC anchor subsections.
  */
 export default function GettingStartedSection() {
   return (

@@ -1,6 +1,5 @@
 /**
- * @module useGuideScrollSpy
- * @description Intersection-observer scroll spy and smooth scroll for the Guide page TOC.
+ * Intersection-observer scroll spy and smooth scroll for the Guide page TOC.
  * Observes child subsection anchors (not parent sections) to avoid flicker when scrolling.
  */
 
@@ -12,14 +11,14 @@ const SCROLL_LOCK_MS = 900;
 const HEADER_OFFSET_PX = 80;
 
 /**
- * Tracks active guide section while scrolling and provides `scrollToId` for nav clicks.
+ * Tracks the active guide anchor, controls mobile TOC state, and opens parameter accordions before scrolling.
  *
  * @returns {{
  *   activeId: string,
  *   mobileOpen: boolean,
  *   setMobileOpen: import('react').Dispatch<import('react').SetStateAction<boolean>>,
  *   scrollToId: (id: string) => void
- * }}
+ * }} Navigation state plus a smooth-scroll callback that offsets the fixed header and expands parameter rows.
  */
 export default function useGuideScrollSpy() {
   const [activeId, setActiveId] = useState('overview');
@@ -30,6 +29,7 @@ export default function useGuideScrollSpy() {
   useEffect(() => {
     const childIds = NAV_TREE.flatMap((s) => s.children?.map((c) => c.id) ?? []);
     const parentIds = NAV_TREE.map((s) => s.id);
+    // Track child anchors for precise highlight changes; parent ids are fallbacks between children.
     const allObservedIds = [...childIds];
     const elements = allObservedIds.map((id) => document.getElementById(id)).filter(Boolean);
 
@@ -91,6 +91,7 @@ export default function useGuideScrollSpy() {
     }, SCROLL_LOCK_MS);
 
     if (id.startsWith('param-')) {
+      // Parameter anchors live inside accordions, so closed panels must open before scroll positioning.
       const accordionTrigger = el.querySelector('button[aria-expanded="false"]');
       if (accordionTrigger) accordionTrigger.click();
     }

@@ -1,6 +1,5 @@
 /**
- * @module EvaluationCriteriaSection
- * @description Guide page section — Evaluation Criteria.
+ * Guide page section — Evaluation Criteria.
  */
 
 import { Chip, Separator } from '@/components/common';
@@ -9,8 +8,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Evaluation Criteria guide section (`#evaluation-criteria`) — value layers and score calculation.
- * @returns {import('react').ReactElement}
+ * Renders evaluation metrics, value-dimension cards, and the score-calculation flow.
+ *
+ * @returns {import('react').ReactElement} Evaluation-criteria section with TOC anchor subsections.
  */
 export default function EvaluationCriteriaSection() {
   return (

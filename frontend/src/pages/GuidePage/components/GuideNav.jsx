@@ -1,6 +1,5 @@
 /**
- * @module GuideNav
- * @description Sticky sidebar and mobile TOC for the Guide page; scroll-synced via section ids.
+ * Sticky desktop sidebar and collapsible mobile TOC for Guide page anchors.
  */
 
 import { ScrollShadow } from '@heroui/react';
@@ -13,14 +12,7 @@ import { cn } from '@/utils/cn';
 import { NAV_TREE } from '../constants/navTree';
 
 /**
- * Single nav link (top-level section or child anchor).
- *
- * @param {Object} props
- * @param {{ id: string, label: string, children?: Array }} props.item - Nav node.
- * @param {'top'|'sub'} props.level - Indent level.
- * @param {string} props.activeId - Currently highlighted section id.
- * @param {(id: string) => void} props.onNavigate - Scroll handler.
- * @returns {import('react').ReactElement}
+ * Renders one top-level or child TOC button with active-section styling.
  */
 function NavItem({ item, level, activeId, onNavigate }) {
   const isActive = activeId === item.id;
@@ -63,14 +55,7 @@ NavItem.propTypes = {
 };
 
 /**
- * Collapsible mobile table of contents (lg:hidden).
- *
- * @param {Object} props
- * @param {string} props.activeId - Highlighted nav id.
- * @param {boolean} props.mobileOpen - Whether the drawer is expanded.
- * @param {Function} props.setMobileOpen - Toggle mobile nav open state.
- * @param {(id: string) => void} props.scrollToId - Scroll to section handler.
- * @returns {import('react').ReactElement}
+ * Renders the collapsible mobile table of contents and keeps the active item visible while open.
  */
 export function MobileNav({ activeId, mobileOpen, setMobileOpen, scrollToId }) {
   const navRef = React.useRef(null);
@@ -109,7 +94,7 @@ export function MobileNav({ activeId, mobileOpen, setMobileOpen, scrollToId }) {
 
   const handleMobileNavClick = (id) => {
     setMobileOpen(false);
-    // Small delay to let the menu close animation finish before scrolling
+    // Let the menu close before scrolling so the sticky header offset is measured correctly.
     setTimeout(() => scrollToId(id), 50);
   };
 
@@ -180,18 +165,11 @@ MobileNav.propTypes = {
 };
 
 /**
- * Sticky desktop sidebar TOC (hidden below lg breakpoint).
- *
- * @param {Object} props
- * @param {string} props.activeId - Highlighted nav id.
- * @param {(id: string) => void} props.onNavigate - Scroll to section handler.
- * @returns {import('react').ReactElement}
+ * Renders the desktop table of contents and scrolls the active link into view.
  */
 export function DesktopNav({ activeId, onNavigate }) {
-  // Add a ref to the scroll container
   const navRef = useRef(null);
 
-  // Scroll the active nav item into view whenever activeId changes
   useEffect(() => {
     if (!navRef.current) return;
     const activeEl = navRef.current.querySelector(`[data-id="${activeId}"]`);

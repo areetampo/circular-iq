@@ -1,6 +1,5 @@
 /**
- * @module OverviewSection
- * @description Guide page section — Overview.
+ * Guide `#overview` section — assessment flow, data sources, and evaluation layers.
  */
 
 import { BookCopy, Database, FileText, Globe, Target } from 'lucide-react';
@@ -12,8 +11,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Overview guide section (`#overview`) — how the assessment works, data sources, and layers.
- * @returns {import('react').ReactElement}
+ * Renders the guide overview section with methodology cards, source categories, and output layers.
+ *
+ * @returns {import('react').ReactElement} Overview section with anchors used by the Guide TOC.
  */
 export default function OverviewSection() {
   return (

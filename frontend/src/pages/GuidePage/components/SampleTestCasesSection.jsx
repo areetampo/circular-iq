@@ -1,6 +1,5 @@
 /**
- * @module SampleTestCasesSection
- * @description Guide page section — Sample Test Cases.
+ * Guide page section — Sample Test Cases.
  */
 
 import { CircleCheck, Lightbulb } from 'lucide-react';
@@ -9,8 +8,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Sample Test Cases guide section (`#sample-test-cases`) — how to load and use preset inputs.
- * @returns {import('react').ReactElement}
+ * Renders sample-test-case benefits, usage steps, and the final tip callout.
+ *
+ * @returns {import('react').ReactElement} Sample-test-cases section with the how-to-use anchor.
  */
 export default function SampleTestCasesSection() {
   return (

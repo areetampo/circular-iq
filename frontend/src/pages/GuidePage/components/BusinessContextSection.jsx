@@ -1,6 +1,5 @@
 /**
- * @module BusinessContextSection
- * @description Guide page section — Business Context.
+ * Guide page section — Business Context.
  */
 
 import { MoveRight } from 'lucide-react';
@@ -9,8 +8,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Business Context guide section (`#business-context`) — why context matters and field definitions.
- * @returns {import('react').ReactElement}
+ * Renders context-field guidance and why those fields improve benchmark calibration.
+ *
+ * @returns {import('react').ReactElement} Business-context section with TOC anchor subsections.
  */
 export default function BusinessContextSection() {
   return (

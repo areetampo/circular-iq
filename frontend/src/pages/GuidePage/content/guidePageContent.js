@@ -1,11 +1,7 @@
 /**
- * @module guidePageContent
- * @description Content for the Guide page.
- * Provides comprehensive guide content including getting started instructions,
- * scoring and benchmarking explanations, results interpretation, and evaluation parameters.
+ * Structured Guide page copy grouped by rendered section, including nested lists, cards, tables, and icons.
  */
 
-// Import all drawer content
 import { Cog, DollarSign, Users } from 'lucide-react';
 
 import {
@@ -18,9 +14,6 @@ import {
   parameterGuidance,
 } from '@/constants/drawers';
 
-// Transferred content from drawers/GuidePageContent.js
-
-// Getting Started Content
 const GETTING_STARTED = {
   subtitle: 'Everything you need to run your first assessment',
   intro:
@@ -117,7 +110,6 @@ const GETTING_STARTED = {
   ],
 };
 
-// Scoring & Benchmarking Content
 const SCORING_BENCHMARKING = {
   subtitle: 'How your score is calculated and what it means',
   intro:
@@ -203,7 +195,6 @@ const SCORING_BENCHMARKING = {
   },
 };
 
-// Understanding Results Content
 const UNDERSTANDING_RESULTS = {
   subtitle: 'How to read and act on your assessment report',
   intro:
@@ -322,7 +313,6 @@ const UNDERSTANDING_RESULTS = {
   exportNote:
     'All results can be exported as PDF (formatted report) or CSV (raw data). Authenticated users can save assessments, rename them, and compare two assessments side-by-side using the Compare tool.',
 };
-// Export all content as a single bundle for easy importing
 const GUIDE_PAGE_CONTENT = {
   overview: {
     methodologyItems: ASSESSMENT_METHODOLOGY_CONTENT.items,

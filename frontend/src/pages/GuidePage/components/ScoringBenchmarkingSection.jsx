@@ -1,6 +1,5 @@
 /**
- * @module ScoringBenchmarkingSection
- * @description Guide page section — Scoring Benchmarking.
+ * Guide page section — Scoring Benchmarking.
  */
 
 import { Info } from 'lucide-react';
@@ -12,8 +11,9 @@ import { R_STRATEGY_COLORS } from '../constants/navTree';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Scoring & Benchmarking guide section (`#scoring-benchmarking`) — tiers, weights, and R-strategy alignment.
- * @returns {import('react').ReactElement}
+ * Renders tier bands, weighted scoring, consistency checks, knowledge-base notes, and R-strategy guidance.
+ *
+ * @returns {import('react').ReactElement} Scoring-and-benchmarking section with TOC anchor subsections.
  */
 export default function ScoringBenchmarkingSection() {
   return (

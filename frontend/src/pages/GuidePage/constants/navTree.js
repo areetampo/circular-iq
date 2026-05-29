@@ -1,11 +1,11 @@
 /**
- * @module guideNavTree
- * @description Sidebar navigation tree and R-strategy colour tokens for the Guide page.
+ * Structured Guide page navigation and R-strategy class maps consumed by TOC and scoring sections.
  */
 
 /**
- * Hierarchical sidebar TOC for the Guide page (parent sections and child anchor ids).
+ * Hierarchical sidebar TOC for the Guide page, grouped by parent section and child anchor ids.
  * Child ids are observed by `useGuideScrollSpy` for scroll highlighting.
+ *
  * @type {Array<{ id: string, label: string, children?: Array<{ id: string, label: string }> }>}
  */
 export const NAV_TREE = [
@@ -110,7 +110,8 @@ export const NAV_TREE = [
 ];
 
 /**
- * Left-border Tailwind classes keyed by R-strategy label for guide and results UI chips.
+ * Left-border Tailwind classes keyed by R-strategy label for guide strategy chips.
+ *
  * @type {Record<string, string>}
  */
 export const R_STRATEGY_COLORS = {

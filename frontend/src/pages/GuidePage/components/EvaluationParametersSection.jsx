@@ -1,6 +1,5 @@
 /**
- * @module EvaluationParametersSection
- * @description Guide page section — Evaluation Parameters.
+ * Guide page section — Evaluation Parameters.
  */
 
 import { Accordion } from '@heroui/react';
@@ -14,8 +13,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Evaluation Parameters guide section (`#evaluation-parameters`) — per-parameter accordions and guidance.
- * @returns {import('react').ReactElement}
+ * Renders parameter overview cards and expanded scoring guidance for each evaluation factor.
+ *
+ * @returns {import('react').ReactElement} Evaluation-parameters section with accordion-backed parameter anchors.
  */
 export default function EvaluationParametersSection() {
   return (
@@ -51,25 +51,10 @@ export default function EvaluationParametersSection() {
                 key={key}
                 className={cn(
                   'card--lift cursor-pointer rounded-xl p-4',
-                  // getParameterStyling(key),
                   'bg-(--color-success-soft-ui)',
                 )}
-                // style={{
-                //   borderColor: (() => {
-                //     // 1. Get the string of classes
-                //     const classes = getParameterStyling(key);
-                //     // 2. Find the specific border class (e.g., "border-(--color-success)/50")
-                //     const borderClass = classes.split(' ').find((c) => c.startsWith('border-'));
-                //     // 3. Extract the variable.
-                //     // This regex looks for what's inside the parentheses: (--color-something)
-                //     const match = borderClass.match(/\(([^)]+)\)/);
-                //     const varName = match ? match[1] : '--border-color-ui'; // fallback
-                //     return `color-mix(in srgb, var(${varName}), transparent 70%)`;
-                //   })(),
-                // }}
                 onClick={() => {
                   const targetElement = document.getElementById(`param-${key}`);
-                  // logger.log(targetElement, key);
                   if (targetElement) {
                     targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }

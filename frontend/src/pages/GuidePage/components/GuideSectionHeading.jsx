@@ -1,16 +1,11 @@
 /**
- * @module GuideSectionHeading
- * @description H2-style heading used at the top of each major Guide section.
+ * H2-style heading used at the top of each major Guide section.
  */
 
 import PropTypes from 'prop-types';
 
 /**
- * H2-style title for a major Guide page section.
- *
- * @param {Object} props
- * @param {import('react').ReactNode} props.children - Section title text.
- * @returns {import('react').ReactElement}
+ * Renders the standard heading used by each major Guide page section.
  */
 export default function GuideSectionHeading({ children }) {
   return (

@@ -1,6 +1,5 @@
 /**
- * @module BusinessSolutionSection
- * @description Guide page section — Business Solution.
+ * Guide page section — Business Solution.
  */
 
 import { Check, Info, X } from 'lucide-react';
@@ -9,8 +8,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Business Solution guide section (`#business-solution`) — components, loop, pitfalls, and example.
- * @returns {import('react').ReactElement}
+ * Renders solution guidance, loop-closure examples, common pitfalls, pro tips, and an example.
+ *
+ * @returns {import('react').ReactElement} Business-solution section with TOC anchor subsections.
  */
 export default function BusinessSolutionSection() {
   return (

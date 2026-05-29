@@ -1,6 +1,5 @@
 /**
- * @module UnderstandingResultsSection
- * @description Guide page section — Understanding Results.
+ * Guide page section — Understanding Results.
  */
 
 import { Table } from '@heroui/react';
@@ -10,8 +9,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Understanding Results guide section (`#understanding-results`) — score breakdown, roadmap, and exports.
- * @returns {import('react').ReactElement}
+ * Renders result-section explanations, improvement-roadmap fields, SDG notes, evidence copy, and export guidance.
+ *
+ * @returns {import('react').ReactElement} Understanding-results section with TOC anchor subsections.
  */
 export default function UnderstandingResultsSection() {
   return (

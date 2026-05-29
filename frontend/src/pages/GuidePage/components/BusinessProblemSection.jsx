@@ -1,6 +1,5 @@
 /**
- * @module BusinessProblemSection
- * @description Guide page section — Business Problem.
+ * Guide page section — Business Problem.
  */
 
 import { CheckSquare, Info } from 'lucide-react';
@@ -9,8 +8,9 @@ import GuideSectionHeading from './GuideSectionHeading';
 import GUIDE_PAGE_CONTENT from '../content/guidePageContent';
 
 /**
- * Renders the Business Problem guide section (`#business-problem`) — elements, tips, and example copy.
- * @returns {import('react').ReactElement}
+ * Renders problem-statement guidance, scoring impact copy, writing tips, and an example.
+ *
+ * @returns {import('react').ReactElement} Business-problem section with TOC anchor subsections.
  */
 export default function BusinessProblemSection() {
   return (

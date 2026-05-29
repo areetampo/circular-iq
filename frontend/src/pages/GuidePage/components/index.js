@@ -1,7 +1,4 @@
-/**
- * @module GuidePage/components
- * @description Barrel exports for Guide page section components and navigation.
- */
+/** Barrel re-exports for GuidePage components. */
 
 export { default as BusinessContextSection } from './BusinessContextSection.jsx';
 export { default as BusinessProblemSection } from './BusinessProblemSection.jsx';

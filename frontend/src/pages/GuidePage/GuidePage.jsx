@@ -1,7 +1,6 @@
 /**
- * @module GuidePage
- * @description Long-form product guide: methodology, parameters, tiers, and sample workflows.
- * Layout and scroll spy live here; section markup is delegated to `./components`.
+ * Long-form product guide for methodology, inputs, scoring, results, and sample workflows.
+ * Layout and scroll spy state live here while section markup stays in `./components`.
  */
 
 import { TextSearch } from 'lucide-react';
@@ -39,9 +38,9 @@ const GUIDE_SECTIONS = [
 ];
 
 /**
- * Scrollable guide with mobile/desktop TOC and intersection-observer section highlighting.
+ * Renders the full product guide with sticky desktop navigation and collapsible mobile navigation.
  *
- * @returns {import('react').ReactElement}
+ * @returns {import('react').ReactElement} Guide page containing the TOC controls and ordered content sections.
  */
 export default function GuidePage() {
   const { activeId, mobileOpen, setMobileOpen, scrollToId } = useGuideScrollSpy();
