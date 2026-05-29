@@ -1,11 +1,6 @@
 // env.schema.js
 
-/**
- * @module env.schema
- * @description Zod schemas for validating frontend environment variables.
- * Defines strict validation rules for all Vite environment variables used by the frontend,
- * with separate schemas for production/development and test environments.
- */
+/** Zod schemas that validate and coerce Vite frontend environment variables before config export. */
 
 import { z } from 'zod';
 
@@ -68,6 +63,10 @@ const baseFrontendSchema = z.object({
 /* Main Schema */
 /* ------------------------------ */
 
+/**
+ * Browser runtime environment schema with local-development defaults for URLs, Supabase, and uptime limits.
+ * Normalizes `MODE=frontend` to development and rejects localhost app/API URLs when `PROD` is true.
+ */
 export const frontendSchema = baseFrontendSchema
   .extend({
     MODE: z
@@ -156,6 +155,10 @@ export const frontendSchema = baseFrontendSchema
 /* Test Schema */
 /* ------------------------------ */
 
+/**
+ * Strict frontend test environment schema that requires explicit values from the test environment.
+ * Retains the production API URL guard while leaving app URL validation to the shared base schema.
+ */
 export const testFrontendSchema = baseFrontendSchema.refine(
   (data) => {
     if (!data.PROD) return true;

@@ -1,21 +1,6 @@
 /**
- * @module frontend.config
- * @description Central configuration loader and validator for the frontend application.
- * Loads and validates Vite environment variables via Zod schemas, freezes configuration
- * immutably to prevent runtime changes, and supports strict mode for test environments.
- *
- * Environment sources (in order of precedence):
- * 1. Vite import.meta.env
- * 2. Process environment variables (tests/SSR)
- *
- * Exports FRONTEND_CONFIG object with sections:
- * - nodeEnv: MODE string
- * - isProduction: Boolean flag
- * - app: Frontend application settings
- * - supabase: Supabase client configuration
- * - uptime: Uptime monitor configuration
- * - testCredentials: E2E / integration test credentials
- * - routes: Frontend routes and route patterns
+ * Validates Vite runtime environment values and exports the frozen frontend configuration object.
+ * Falls back to `process.env` for tests and SSR-like imports, then fails fast on invalid or unsafe production URLs.
  */
 
 import { FRONTEND_ROUTES } from '@/constants';
@@ -78,20 +63,7 @@ const schema = (rawEnv.MODE || '').toLowerCase() === 'test' ? testFrontendSchema
 const parsed = schema.safeParse(rawEnv);
 
 if (!parsed.success) {
-  logger.error({ error: parsed.error.format() }, '✕ Frontend environment validation failed');
-
-  const isTestEnv = (rawEnv.MODE || '').toLowerCase() === 'test';
-
-  if (isTestEnv) {
-    logger.error(
-      '✕ Test frontend environment validation failed, ensure all required variables are set',
-    );
-  } else {
-    logger.error(
-      '✕ Frontend environment validation failed, check your environment variables configuration',
-    );
-  }
-
+  logger.error('[CONFIG:ENV_VALIDATION_FAILED]', parsed.error.format());
   throw new Error('Invalid frontend environment configuration');
 }
 
@@ -107,8 +79,7 @@ if (env.VITE_STRICT_ENV) {
     .map(([key]) => key);
 
   if (missingExplicit.length > 0) {
-    logger.error({ missingExplicit }, '✕ VITE_STRICT_ENV enabled and missing explicit values');
-
+    logger.error('[CONFIG:STRICT_ENV_MISSING]', { missingExplicit });
     throw new Error(`Missing required explicit frontend env values: ${missingExplicit.join(', ')}`);
   }
 }
@@ -143,6 +114,10 @@ if (env.PROD && env.VITE_API_URL.includes('localhost')) {
 /* Config Object */
 /* ------------------------------ */
 
+/**
+ * Deep-frozen frontend runtime configuration consumed by API, auth, Supabase, routing, and uptime UI modules.
+ * Groups app URLs, test login credentials, Supabase keys, uptime query limits, route metadata, and route behavior notes.
+ */
 export const FRONTEND_CONFIG = deepFreeze({
   nodeEnv: env.MODE,
 
@@ -167,9 +142,9 @@ export const FRONTEND_CONFIG = deepFreeze({
   },
 
   uptime: {
-    refetchIntervalMs: env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS, // Frontend polling interval for uptime monitor data (matches backend's BACKEND_CONFIG.uptime.pollIntervalMs) -> 2 min
-    maxHistoryPerEndpoint: env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 2min interval -> 30/hr * 24h * 28d = 20160 max checks per endpoint -> 30d = 21600 chosen as sufficient
-    queryWindowDaysLimit: env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
+    refetchIntervalMs: env.VITE_UPTIME_CHECKS_REFETCH_INTERVAL_MS, // Uptime dashboard refetch cadence; keep aligned with backend polling cadence.
+    maxHistoryPerEndpoint: env.VITE_UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // Export/history cap per endpoint; 21600 covers roughly 30 days at a 2-minute cadence.
+    queryWindowDaysLimit: env.VITE_UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // Frontend lookback cap in days; keep in sync with backend and database query-window settings.
   },
 
   routes: FRONTEND_ROUTES,
