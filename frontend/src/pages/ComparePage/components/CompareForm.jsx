@@ -1,6 +1,5 @@
 /**
- * @module CompareForm
- * @description Form to enter two assessment public IDs and navigate to comparison results.
+ * Manual comparison form for validating two assessment public IDs before navigation.
  */
 
 import { FieldError, Input, Label, TextField } from '@heroui/react';
@@ -15,8 +14,9 @@ import { isValidUUID } from '@/lib/validation';
 import { useSafeBack } from '@/utils/navigation';
 
 /**
- * Form to enter two assessment public IDs and navigate to comparison results.
- * @returns {import('react').ReactElement}
+ * Renders the two-public-id comparison form with persisted drafts and validation feedback.
+ *
+ * @returns {import('react').ReactElement} Form UI that stores draft IDs, validates both IDs, and links to comparison results.
  */
 export default function CompareForm() {
   const navigate = useNavigate();
@@ -31,15 +31,14 @@ export default function CompareForm() {
   const [validationMessage, setValidationMessage] = useState(null);
   const [validationData, setValidationData] = useState(null);
 
-  // Save form state to sessionStorage whenever publicId1 or publicId2 changes
+  // Persist partial IDs so users can leave the form and resume before comparing.
   useEffect(() => {
-    // Only save if there are values
     if (publicId1.trim() || publicId2.trim()) {
       saveCompareFormState(publicId1, publicId2);
     }
   }, [publicId1, publicId2]);
 
-  // Load saved state from sessionStorage when component mounts
+  // Restore only valid UUID drafts so stale malformed input does not rehydrate errors.
   useEffect(() => {
     const saved = loadCompareFormState();
     if (saved) {
@@ -52,13 +51,13 @@ export default function CompareForm() {
     }
   }, []);
 
-  // Call the hook at the top level of the component, but only enable when both IDs are valid UUIDs
+  // Keep the hook mounted while passing null until both fields can be validated server-side.
   const { validate, validationQuery } = useAssessmentValidation(
     isValidUUID(publicId1) ? publicId1 : null,
     isValidUUID(publicId2) ? publicId2 : null,
   );
 
-  // Sync error state and validation data from validation query to local state
+  // Mirror async validation results into local display state used by the badge area.
   useEffect(() => {
     if (validationQuery.error) {
       setError(validationQuery.error.message || 'Validation failed');
@@ -77,7 +76,6 @@ export default function CompareForm() {
     const id1 = (publicId1 || '').trim();
     const id2 = (publicId2 || '').trim();
 
-    // Check for empty inputs first
     const isEmpty1 = !id1;
     const isEmpty2 = !id2;
 
@@ -86,12 +84,11 @@ export default function CompareForm() {
       return;
     }
 
-    // Check UUID format if inputs are not empty
     const isId1Valid = isValidUUID(id1);
     const isId2Valid = isValidUUID(id2);
 
     if (!isId1Valid || !isId2Valid) {
-      // Set specific empty error for invalid fields to trigger inline error messages
+      // Reuse field-level empty flags to surface HeroUI inline validation text.
       setShowEmptyError({
         id1: !isEmpty1 && !isId1Valid,
         id2: !isEmpty2 && !isId2Valid,
@@ -115,10 +112,8 @@ export default function CompareForm() {
     setValidationMessage('Checking assessment availability...');
 
     try {
-      // Use the validate function from the hook
       await validate();
 
-      // Check for validation error after the validate call
       if (validationQuery.error) {
         setValidating(false);
         setValidationMessage(null);
@@ -126,21 +121,19 @@ export default function CompareForm() {
         return;
       }
 
-      // If validation passes, redirect
       setValidating(false);
       setValidationMessage('Validation successful! Redirecting...');
 
       // Brief delay to show success message
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Clear validation state and navigate
       setValidationMessage(null);
       navigate(`/assessments/compare?id1=${id1}&id2=${id2}`);
-    } catch (err) {
-      logger.error(err);
+    } catch (error) {
+      logger.error('[COMPARE_FORM:VALIDATION_FAILED]', error);
       setValidating(false);
       setValidationMessage(null);
-      setError(err.message || 'One or more ids incorrect');
+      setError(error.message || 'One or more ids incorrect');
     }
   };
 
@@ -157,7 +150,6 @@ export default function CompareForm() {
 
   const handleInputChange = (setter, field) => (e) => {
     setter(e.target.value);
-    // Clear all errors when user starts typing
     if (e.target.value.trim()) {
       setShowEmptyError((prev) => ({ ...prev, [field]: false }));
       setError(null);
@@ -165,7 +157,7 @@ export default function CompareForm() {
       setValidationMessage(null);
       setValidationData(null);
     } else {
-      // If field becomes empty, clear UUID format error but set empty error for validation
+      // Empty fields should show inline required text instead of the global format error.
       setShowEmptyError((prev) => ({ ...prev, [field]: true }));
       setError(null);
       setValidating(false);
