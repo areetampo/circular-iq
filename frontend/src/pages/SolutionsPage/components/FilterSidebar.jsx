@@ -1,6 +1,5 @@
 /**
- * @module FilterSidebar
- * @description Sidebar filters (industry, category, strategy) for CE case search.
+ * Sidebar filters (industry, category, strategy) for CE case search.
  */
 
 import { Accordion, ScrollShadow } from '@heroui/react';
@@ -11,16 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chip } from '@/components/common';
 
 /**
- * Filter sidebar component for solutions search
- * @param {Object} props - Component props
- * @param {Array} props.results - Search results to extract filter values from
- * @param {Array} props.activeStrategies - Currently active strategy filters
- * @param {Function} props.setActiveStrategies - Function to update active strategies
- * @param {Array} props.activeCategories - Currently active category filters
- * @param {Function} props.setActiveCategories - Function to update active categories
- * @param {Array} props.activeSources - Currently active source filters
- * @param {Function} props.setActiveSources - Function to update active sources
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * Accordion filters for strategy, category, and source; options derived from current `results`.
  */
 export default function FilterSidebar({
   results,
@@ -213,18 +203,18 @@ export default function FilterSidebar({
 }
 
 FilterSidebar.propTypes = {
-  /** Search results to extract filter values from */
+  /** Case-search results used to derive strategy, category, and source filter chips. */
   results: PropTypes.array.isRequired,
-  /** Currently active strategy filters */
+  /** Strategy labels currently selected in the parent search state. */
   activeStrategies: PropTypes.array.isRequired,
-  /** Function to update active strategies */
+  /** Receives the next selected strategy list. */
   setActiveStrategies: PropTypes.func.isRequired,
-  /** Currently active category filters */
+  /** Category labels currently selected in the parent search state. */
   activeCategories: PropTypes.array.isRequired,
-  /** Function to update active categories */
+  /** Receives the next selected category list. */
   setActiveCategories: PropTypes.func.isRequired,
-  /** Currently active source filters */
+  /** Source labels currently selected in the parent search state. */
   activeSources: PropTypes.array.isRequired,
-  /** Function to update active sources */
+  /** Receives the next selected source list. */
   setActiveSources: PropTypes.func.isRequired,
 };

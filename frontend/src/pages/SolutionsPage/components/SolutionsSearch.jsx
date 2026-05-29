@@ -1,6 +1,5 @@
 /**
- * @module SolutionsSearch
- * @description Search input and query handling for the Solutions catalog.
+ * Search input and query handling for the Solutions catalog.
  */
 
 import { Label, Pagination, ScrollShadow, SearchField, Switch, Tooltip } from '@heroui/react';
@@ -28,22 +27,7 @@ import { getMatchStrength } from '@/utils/content';
 import FilterSidebar from './FilterSidebar';
 
 /**
- * ResultCard - A card component displaying solution search results
- * Shows detailed information about circular economy solutions with expandable text
- *
- * @param {Object} props - Component props
- * @param {Object} props.result - Solution result object with all solution details
- * @param {boolean} props.isHybridMode - Whether to display in hybrid mode
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ResultCard
- *
- * @example
- * Basic usage
- * <ResultCard result={solutionData} isHybridMode={false} />
- *
- * @example
- * Hybrid mode
- * <ResultCard result={solutionData} isHybridMode={true} />
+ * Single CE case result row with expandable fields and optional hybrid match chip.
  */
 function ResultCard({ result, isHybridMode, ...props }) {
   const {
@@ -76,7 +60,7 @@ function ResultCard({ result, isHybridMode, ...props }) {
             {title || company || 'Untitled'}
           </ExpandableText>
         </div>
-        {isHybridMode && score != null && (
+        {isHybridMode && score !== null && (
           <Chip variant="match" color={getMatchStrength(score)} className="shrink-0">
             {Math.round(score * 100)}% match
           </Chip>
@@ -196,18 +180,14 @@ function ResultCard({ result, isHybridMode, ...props }) {
 }
 
 ResultCard.propTypes = {
-  /** Solution result object with all solution details */
+  /** CE case row data, including optional text fields, source metadata, and match score. */
   result: PropTypes.object.isRequired,
-  /** Whether to display in hybrid mode */
+  /** Enables the hybrid match chip when true. */
   isHybridMode: PropTypes.bool.isRequired,
 };
 
 /**
  * Scrollable grid of `ResultCard` components with overflow fade indicator.
- * @param {Object} props
- * @param {Array<Object>} props.results - CE case search hits.
- * @param {boolean} props.isHybridMode - Whether hybrid search mode is active.
- * @returns {import('react').ReactElement}
  */
 function ResultsGrid({ results, isHybridMode }) {
   const [isResultsOverflowing, setIsResultsOverflowing] = useState(false);
@@ -246,54 +226,25 @@ function ResultsGrid({ results, isHybridMode }) {
 }
 
 ResultsGrid.propTypes = {
-  /** Array of search results to display */
+  /** Paginated case results rendered as cards in the scroll area. */
   results: PropTypes.array.isRequired,
-  /** Whether to display in hybrid mode */
+  /** Passed through so each card can decide whether to show match scores. */
   isHybridMode: PropTypes.bool.isRequired,
 };
 
 // Sub-components for cleaner rendering logic
-/**
- * IdleState - Component displayed when no search query is active
- * Shows a prompt to start searching
- *
- * @param {Object} props - Component props
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered IdleState
- *
- * @example
- * <IdleState />
- */
+/** Prompt shown before the user enters a search query. */
 function IdleState({ ...props }) {
   return <DetailsBadge {...props} variant="info" message="Type to search" icon={Keyboard} />;
 }
 
-/**
- * LoadingState - Component displayed during data fetching
- * Shows a loading message with spinner
- *
- * @param {Object} props - Component props
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered LoadingState
- *
- * @example
- * <LoadingState />
- */
+/** Spinner badge while the cases query is in flight. */
 function LoadingState({ ...props }) {
   return <DetailsBadge {...props} variant="success" message="Fetching solutions ..." spinner />;
 }
 
 /**
- * ErrorState - Component displayed when an error occurs
- * Shows an error message with details
- *
- * @param {Object} props - Component props
- * @param {Error} props.error - Error object containing error details
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ErrorState
- *
- * @example
- * <ErrorState error={new Error('Failed to fetch')} />
+ * Error badge when the cases query fails.
  */
 function ErrorState({ error, ...props }) {
   return (
@@ -306,46 +257,26 @@ function ErrorState({ error, ...props }) {
 }
 
 ErrorState.propTypes = {
-  /** Error object containing error details */
+  /** Query error whose message is shown when available. */
   error: PropTypes.object.isRequired,
 };
 
 /**
- * EmptyState - Component displayed when no search results are found
- * Shows a message indicating no results for the current query
- *
- * @param {Object} props - Component props
- * @param {string} props.query - Search query that returned no results
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered EmptyState
- *
- * @example
- * <EmptyState query="test" />
+ * No-results badge for the current query string.
  */
 function EmptyState({ query, ...props }) {
   return <DetailsBadge {...props} variant="error" message={`No results found for '${query}'`} />;
 }
 
 EmptyState.propTypes = {
-  /** Search query that returned no results */
+  /** Debounced search text used in the no-results message. */
   query: PropTypes.string.isRequired,
 };
 
 /**
- * SolutionsSearch - Main search component for solutions page
- * Handles search queries, filtering, pagination, and result display
+ * Resizable search UI: query field, filters, pagination, and result list (URL-synced state).
  *
- * @param {Object} props - Component props
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered SolutionsSearch
- *
- * @example
- * Basic usage
- * <SolutionsSearch />
- *
- * @example
- * With additional props
- * <SolutionsSearch className="custom-class" />
+ * @returns {import('react').ReactElement} Search controls, URL-synced filters, pagination, and result panels.
  */
 export default function SolutionsSearch({ ...props }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -660,8 +591,8 @@ export default function SolutionsSearch({ ...props }) {
       <div className="space-y-2">
         {/* Pagination */}
         {totalPages > 1 && (
-          <Pagination className="">
-            <Pagination.Content className="">
+          <Pagination>
+            <Pagination.Content>
               <Pagination.Item>
                 <Pagination.Previous
                   isDisabled={page === 1}

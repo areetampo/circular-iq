@@ -1,6 +1,5 @@
 /**
- * @module SolutionsPage
- * @description CE case catalog search page (vector + keyword search over ingested cases).
+ * CE case catalog search page (vector + keyword search over ingested cases).
  */
 
 import { Search } from 'lucide-react';
@@ -9,7 +8,8 @@ import { SolutionsSearch } from './components';
 
 /**
  * Page shell with header and `SolutionsSearch` for exploring case studies.
- * @returns {import('react').ReactElement}
+ *
+ * @returns {import('react').ReactElement} Header and catalog search controls for CE cases.
  */
 export default function SolutionsPage() {
   return (
