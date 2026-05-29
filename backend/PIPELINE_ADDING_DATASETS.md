@@ -130,8 +130,8 @@ Before creating scripts, add your dataset to the registry in `backend/utils/data
      }
    }
 
-   main().catch((err) => {
-     logger.error({ err }, '\n✕ Fatal error');
+   main().catch((error) => {
+     logger.error({ error }, '\n✕ Fatal error');
      process.exit(1);
    });
    ```
@@ -246,8 +246,8 @@ node datasets/scripts/scrape_my_source.js --append
      logger.info({ rows: rows.length, csvPath }, 'Extracted rows to csv');
    }
 
-   main().catch((err) => {
-     logger.error({ err }, '\n✕ Fatal error');
+   main().catch((error) => {
+     logger.error({ error }, '\n✕ Fatal error');
      process.exit(1);
    });
    ```
@@ -314,8 +314,8 @@ async function main() {
   logger.info({rows: rows.length} 'Processed records');
 }
 
-main().catch((err) => {
-  logger.error({ err }, '\n✕ Fatal error');
+main().catch((error) => {
+  logger.error({ error }, '\n✕ Fatal error');
   process.exit(1);
 });
 ```
@@ -362,8 +362,8 @@ async function main() {
   logger.info({ rows: rows.length }, `Fetched and processed records`);
 }
 
-main().catch((err) => {
-  logger.error({ err }, '\n✕ Fatal error');
+main().catch((error) => {
+  logger.error({ error }, '\n✕ Fatal error');
   process.exit(1);
 });
 ```
@@ -615,24 +615,24 @@ Look at existing well-documented scripts:
 
 For complex documents (case studies, PDFs), use Claude/ChatGPT to extract problem/solution pairs:
 
-```python
-# Python script to extract from text using Claude API
-import anthropic
+```js
+// script to extract from text using Claude API
+import Anthropic from '@anthropic-ai/sdk';
 
-client = anthropic.Anthropic()
-response = client.messages.create(
-    model="claude-3-sonnet-20240229",
-    max_tokens=1024,
-    messages=[
-        {
-            "role": "user",
-            "content": f"""Extract problem and solution from this text.
+const client = new Anthropic();
+const response = await client.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  messages: [
+    {
+      role: 'user',
+      content: `Extract problem and solution from this text.
 Return CSV format: problem,solution,materials,strategy,category,impact,source_url
 
-Text: {document_text}"""
-        }
-    ]
-)
+Text: ${documentText}`,
+    },
+  ],
+});
 ```
 
 ## Step 3: Standardize Format

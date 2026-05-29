@@ -53,7 +53,6 @@ backend/
 ├── PIPELINE_RUNNING.md                         # How to run data processing pipeline
 ├── README.md
 ├── package.json
-├── requirements-dev.txt
 │
 ├── config/
 │   ├── backend.config.js                       # Central config object (reads env, includes test defaults)
@@ -98,7 +97,7 @@ backend/
 │
 ├── pipeline/                                   # Data processing scripts
 │   │
-│   ├── ce_cases/                               # For solutions search functionality via database/migrations/05_ce_cases
+│   ├── ce_cases/                               # For solutions search functionality via database/migrations/06_ce_cases
 │   │   ├── embed_ce_cases.js                   # Embed ce_cases knowledge base
 │   │   └── ingest_ce_cases.js                  # Ingest ce_cases data
 │   │
@@ -1054,7 +1053,7 @@ node datasets/scripts/scrape_c2c.js --use-backup
 
 ```code
 ✓ Backup: Saved 45 rows from page 3
-‼ Backup add failed: [error reason]
+⚠️ Backup add failed: [error reason]
 ```
 
 ### Dataset Script CLI Flags
@@ -1321,6 +1320,6 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 ## License & Support
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
-**Last Updated:** 21 May 2026
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
+**Last Updated:** 30 May 2026

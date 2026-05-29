@@ -338,7 +338,7 @@ You can also run scraper scripts with `--append` to add new rows to an existing 
 
 ```txt
 ✓ Backup: Saved 45 rows from page 3
-‼ ️ Backup add failed at page 2: [error reason]
+⚠️ ️ Backup add failed at page 2: [error reason]
 ```
 
 **Recovery mode output:**
@@ -651,9 +651,9 @@ All datasets follow this standardized processing pipeline:
 **Global E-Waste Monitor 2024** – `gewm` key
 
 - Source: <https://ewastemonitor.info/>
-- Inputs: Embedded Python script extracts from PDF using camelot
-- Method: camelot PDF table extraction via Python subprocess
-- Returns: Country-level e-waste generation, collection, recycling
+- Inputs: GEWM report PDF + raw CSV (populated by embedded Python script using camelot)
+- Method: camelot PDF table extraction via Python subprocess; Python packages auto-installed at runtime
+- Returns: Country-level e-waste generation, collection, and recycling data
 
 **Mendeley Data** – `mnd` key
 
