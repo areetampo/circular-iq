@@ -1,7 +1,4 @@
-/**
- * @module SpecificEvaluationParameterInfoDrawer
- * @description Info drawer — Specific Evaluation Parameter Info Drawer.
- */
+/** Parameter-specific guidance drawer for a selected evaluation control. */
 
 import { Drawer } from '@heroui/react';
 import PropTypes from 'prop-types';
@@ -14,11 +11,7 @@ import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 /**
- * Info drawer — Specific Evaluation Parameter Info Drawer.
- *
- * @param {Object} props
- * @param {string} props.paramKey
- * @returns {import('react').ReactElement}
+ * Renders definition, methodology, calibration, scoring scale, and examples for one parameter.
  */
 export default function SpecificEvaluationParameterInfoDrawer({ paramKey }) {
   if (!paramKey) return null;

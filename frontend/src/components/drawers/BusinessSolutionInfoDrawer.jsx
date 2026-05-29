@@ -1,7 +1,4 @@
-/**
- * @module BusinessSolutionInfoDrawer
- * @description Info drawer — Business Solution Info Drawer.
- */
+/** Business-solution guidance drawer backed by drawer content constants. */
 
 import { Drawer } from '@heroui/react';
 import {
@@ -23,7 +20,7 @@ import { BUSINESS_SOLUTION_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
-// Icon mapping for business solution components
+// Titles in BUSINESS_SOLUTION_CONTENT map directly to these explanatory icons.
 const COMPONENT_ICONS = {
   'Materials and Inputs': Package,
   'Process and Technology': Cog,
@@ -36,8 +33,7 @@ const COMPONENT_ICONS = {
 };
 
 /**
- * Info drawer — Business Solution Info Drawer.
- * @returns {import('react').ReactElement}
+ * Renders guidance for writing business-solution details used by scoring and audit checks.
  */
 export default function BusinessSolutionInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

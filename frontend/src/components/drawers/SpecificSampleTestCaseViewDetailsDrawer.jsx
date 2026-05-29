@@ -1,7 +1,4 @@
-/**
- * @module SpecificSampleTestCaseViewDetailsDrawer
- * @description Info drawer — Specific Sample Test Case View Details Drawer.
- */
+/** Sample-test-case details drawer for previewing a selected example. */
 
 import { Drawer } from '@heroui/react';
 import { PencilLine } from 'lucide-react';
@@ -20,11 +17,7 @@ import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 /**
- * Info drawer — Specific Sample Test Case View Details Drawer.
- *
- * @param {Object} props
- * @param {Object} props.testCase
- * @returns {import('react').ReactElement}
+ * Renders problem, solution, evaluation parameters, and business context for a selected sample case.
  */
 export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   if (!testCase) return null;
@@ -34,7 +27,7 @@ export default function SpecificSampleTestCaseViewDetailsDrawer({ testCase }) {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();
 
-  // Filter out empty business context values
+  // Hide unset optional context fields so the details drawer only shows meaningful values.
   const filteredBusinessContext = businessContext
     ? Object.entries(businessContext).filter(
         ([, value]) => value !== null && value !== undefined && value !== '' && value !== false,

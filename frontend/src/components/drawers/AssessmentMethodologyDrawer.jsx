@@ -1,7 +1,4 @@
-/**
- * @module AssessmentMethodologyDrawer
- * @description Info drawer — Assessment Methodology Drawer.
- */
+/** Assessment-methodology drawer explaining scoring approach, data sources, and disclaimers. */
 
 import { Drawer } from '@heroui/react';
 import {
@@ -22,8 +19,7 @@ import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 /**
- * Info drawer — Assessment Methodology Drawer.
- * @returns {import('react').ReactElement}
+ * Renders methodology cards, source datasets, and disclaimer copy for the assessment framework.
  */
 export default function AssessmentMethodologyDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();
@@ -44,7 +40,6 @@ export default function AssessmentMethodologyDrawer() {
             ) : (
               <Drawer.CloseTrigger aria-label="Close" />
             )}
-            {/* ── HEADER ─────────────────────────────────────────────── */}
             <Drawer.Header>
               <div className="flex items-center gap-3 pr-8">
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-(--color-drawer-icon-success-bg)">
@@ -65,9 +60,8 @@ export default function AssessmentMethodologyDrawer() {
               </div>
             </Drawer.Header>
 
-            {/* ── BODY ───────────────────────────────────────────────── */}
             <Drawer.Body className="space-y-5">
-              {/* Intro */}
+              {/* Intro explains the framework before the implementation details. */}
               <p className="text-[0.8125rem] leading-relaxed text-(--color-text-muted)">
                 This evaluation uses a proprietary AI-powered framework combining vector similarity
                 search with GPT-4o-mini reasoning against a database of{' '}
@@ -77,14 +71,14 @@ export default function AssessmentMethodologyDrawer() {
                 .
               </p>
 
-              {/* Methodology cards */}
+              {/* Methodology cards mirror ASSESSMENT_METHODOLOGY_CONTENT.items. */}
               <div className="space-y-3">
                 {ASSESSMENT_METHODOLOGY_CONTENT.items.map((item, idx) => (
                   <div
                     key={idx}
                     className="flex cursor-default items-start gap-3.5 rounded-2xl bg-(--color-bg-card) transition-colors duration-300 ease-out"
                   >
-                    {/* Animated icon */}
+                    {/* Icons use the color configured with each methodology item. */}
                     <div className="mt-0.5 shrink-0 rounded-xl bg-(--color-accent-light) p-2.5">
                       {React.createElement(item.icon, {
                         className: cn('size-4', item.iconColor),
@@ -92,7 +86,6 @@ export default function AssessmentMethodologyDrawer() {
                       })}
                     </div>
 
-                    {/* Text */}
                     <div className="flex min-w-0 flex-col gap-1">
                       <span className="text-[0.8125rem] leading-snug font-medium text-(--color-text-primary)">
                         {item.title}
@@ -105,7 +98,7 @@ export default function AssessmentMethodologyDrawer() {
 
               <Separator pct={60} />
 
-              {/* Data Sources Section */}
+              {/* Data source sections show the evidence base behind the scoring workflow. */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="flex shrink-0 items-center justify-center rounded-lg bg-(--color-success-soft-ui) p-2">
@@ -121,7 +114,7 @@ export default function AssessmentMethodologyDrawer() {
                   </div>
                 </div>
 
-                {/* Data Categories */}
+                {/* Dataset categories are configured as content data for easier maintenance. */}
                 <div className="space-y-6">
                   {ASSESSMENT_METHODOLOGY_CONTENT.dataSources.categories.map((category, catIdx) => {
                     const getIcon = (iconName) => {
@@ -163,7 +156,7 @@ export default function AssessmentMethodologyDrawer() {
                           </div>
                         </div>
 
-                        {/* Datasets Grid */}
+                        {/* Dataset cards expose count and source information for transparency. */}
                         <div className="grid gap-2 sm:grid-cols-2">
                           {category.datasets
                             // .slice(0, 4)
@@ -196,7 +189,7 @@ export default function AssessmentMethodologyDrawer() {
                 </div>
               </div>
 
-              {/* Disclaimer */}
+              {/* Disclaimer frames scores as guidance rather than commercial validation. */}
               <div className="flex items-start gap-3 rounded-xl bg-(--color-error-soft-ui) p-4">
                 <TriangleAlert
                   size={20}

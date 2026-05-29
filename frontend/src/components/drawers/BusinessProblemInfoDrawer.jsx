@@ -1,8 +1,3 @@
-/**
- * @module BusinessProblemInfoDrawer
- * @description Info drawer — Business Problem Info Drawer.
- */
-
 import { Drawer } from '@heroui/react';
 import { ClipboardMinus, Globe, Info, MapPin, Target, TrendingUp, Users, Zap } from 'lucide-react';
 
@@ -10,7 +5,7 @@ import { BUSINESS_PROBLEM_CONTENT } from '@/constants/drawers';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
-// Icon mapping for business problem elements
+// Titles in BUSINESS_PROBLEM_CONTENT map directly to these explanatory icons.
 const ELEMENT_ICONS = {
   'Environmental Impact': Globe,
   'Quantified Scale': TrendingUp,
@@ -21,8 +16,7 @@ const ELEMENT_ICONS = {
 };
 
 /**
- * Info drawer — Business Problem Info Drawer.
- * @returns {import('react').ReactElement}
+ * Renders business-problem writing guidance from `BUSINESS_PROBLEM_CONTENT`.
  */
 export default function BusinessProblemInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

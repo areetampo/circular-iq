@@ -1,7 +1,4 @@
-/**
- * @module EvaluationCriteriaDrawer
- * @description Info drawer — Evaluation Criteria Drawer.
- */
+/** Evaluation-criteria drawer explaining the scoring dimensions and calculation flow. */
 
 import { Drawer } from '@heroui/react';
 import { CircleDollarSign, ClipboardMinus, Link, Settings } from 'lucide-react';
@@ -12,8 +9,7 @@ import { useDrawerDirection } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 /**
- * Info drawer — Evaluation Criteria Drawer.
- * @returns {import('react').ReactElement}
+ * Renders metric groups, value sections, and calculation guidance for evaluation criteria.
  */
 export default function EvaluationCriteriaDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

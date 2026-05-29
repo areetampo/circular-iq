@@ -1,7 +1,4 @@
-/**
- * @module SampleTestCasesHeadingInfoDrawer
- * @description Info drawer — Sample Test Cases Heading Info Drawer.
- */
+/** Sample-test-case guidance drawer for landing-page examples. */
 
 import { Drawer } from '@heroui/react';
 import { ClipboardPenLine, Lightbulb } from 'lucide-react';
@@ -11,8 +8,7 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
 /**
- * Info drawer — Sample Test Cases Heading Info Drawer.
- * @returns {import('react').ReactElement}
+ * Renders benefits, workflow steps, and usage tips for sample test cases.
  */
 export default function SampleTestCasesHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

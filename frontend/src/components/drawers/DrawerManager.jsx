@@ -1,9 +1,9 @@
 /**
- * @module DrawerManager
- * @description Info drawer — Drawer Manager.
+ * Drawer manager that renders the active info drawer from global drawer state.
+ * It switches on `drawer.type` and passes `drawer.data` to the matching drawer component.
  */
 
-import DRAWER_TYPES from '@/constants/drawerTypes';
+import { DRAWER_TYPES } from '@/constants';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 
 import AssessmentMethodologyDrawer from './AssessmentMethodologyDrawer';
@@ -18,8 +18,7 @@ import SpecificEvaluationParameterInfoDrawer from './SpecificEvaluationParameter
 import SpecificSampleTestCaseViewDetailsDrawer from './SpecificSampleTestCaseViewDetailsDrawer';
 
 /**
- * Info drawer — Drawer Manager.
- * @returns {import('react').ReactElement}
+ * Selects the active drawer component from global drawer context.
  */
 export default function DrawerManager() {
   const { drawer } = useGlobalDrawer();
@@ -59,14 +58,10 @@ export default function DrawerManager() {
       return <SpecificSampleTestCaseViewDetailsDrawer testCase={data?.testCase} />;
 
     case DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS:
-      return <ResultsDatabaseEvidenceDetailsDrawer data={data || {}} />;
+      return <ResultsDatabaseEvidenceDetailsDrawer data={data?.caseItem} />;
 
     default:
-      logger.warn('Unknown drawer type:', type);
+      logger.warn('[DRAWER_MANAGER:UNKNOWN_TYPE]', type);
       return null;
   }
 }
-
-DrawerManager.propTypes = {
-  /** No props - gets drawer state directly from context */
-};

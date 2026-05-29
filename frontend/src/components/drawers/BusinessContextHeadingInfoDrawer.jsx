@@ -1,7 +1,4 @@
-/**
- * @module BusinessContextHeadingInfoDrawer
- * @description Info drawer — Business Context Heading Info Drawer.
- */
+/** Business-context section guidance drawer for optional landing-form metadata. */
 
 import { Drawer } from '@heroui/react';
 import { Lightbulb, MoveRight, Target } from 'lucide-react';
@@ -11,8 +8,7 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
 /**
- * Info drawer — Business Context Heading Info Drawer.
- * @returns {import('react').ReactElement}
+ * Renders guidance for optional business-context fields used to tailor AI output.
  */
 export default function BusinessContextHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

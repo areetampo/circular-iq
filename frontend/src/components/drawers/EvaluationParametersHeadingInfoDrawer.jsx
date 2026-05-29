@@ -1,7 +1,4 @@
-/**
- * @module EvaluationParametersHeadingInfoDrawer
- * @description Info drawer — Evaluation Parameters Heading Info Drawer.
- */
+/** Evaluation-parameters guidance drawer for the landing-form scoring controls. */
 
 import { Drawer } from '@heroui/react';
 import {
@@ -22,7 +19,7 @@ import { factorDefinitions } from '@/constants/evaluationData';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 
-// Icon mapping for each factor
+// Factor keys from factorDefinitions map directly to these explanatory icons.
 const FACTOR_ICONS = {
   public_participation: Users,
   infrastructure: Building,
@@ -35,8 +32,7 @@ const FACTOR_ICONS = {
 };
 
 /**
- * Info drawer — Evaluation Parameters Heading Info Drawer.
- * @returns {import('react').ReactElement}
+ * Renders the evaluation-parameters heading drawer with factor definitions and scoring guidance.
  */
 export default function EvaluationParametersHeadingInfoDrawer() {
   const { isDrawerOpen, onClose } = useGlobalDrawer();

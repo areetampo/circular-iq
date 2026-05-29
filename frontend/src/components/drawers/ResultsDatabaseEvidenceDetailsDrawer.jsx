@@ -1,7 +1,4 @@
-/**
- * @module ResultsDatabaseEvidenceDetailsDrawer
- * @description Info drawer — Results Database Evidence Details Drawer.
- */
+/** RAG evidence details drawer for a matched circular economy database case. */
 
 import { Drawer } from '@heroui/react';
 import {
@@ -21,19 +18,13 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import { Chip } from '@/components/common';
-import DRAWER_TYPES from '@/constants/drawerTypes';
+import { DRAWER_TYPES } from '@/constants';
 import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { useDrawerDirection } from '@/hooks';
 import { getMatchStrength } from '@/utils/content';
 
 /**
- * Section block with icon heading and body text.
- * @param {Object} props
- * @param {string} props.title
- * @param {import('react').ElementType} props.icon
- * @param {import('react').ReactNode} props.content
- * @param {import('react').ReactNode} [props.fallback]
- * @returns {import('react').ReactElement|null}
+ * Renders an evidence detail section only when the selected case provides content.
  */
 function DetailSection({ title, icon, content, fallback = null }) {
   if (!content) return null;
@@ -56,24 +47,40 @@ DetailSection.propTypes = {
 };
 
 /**
- * Info drawer — Results Database Evidence Details Drawer.
- *
- * @param {Object} props
- * @param {Object} props.data
- * @returns {import('react').ReactElement}
+ * Renders matched case metadata, evidence fields, and source link for result database evidence.
  */
-export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
+export default function ResultsDatabaseEvidenceDetailsDrawer({ caseItem }) {
+  if (!caseItem) return null;
+
+  // Pull the case fields once so conditional sections stay readable.
+  const {
+    id,
+    case_id,
+    title,
+    similarity,
+    source_display,
+    year,
+    problem,
+    solution,
+    impact,
+    materials,
+    circular_strategy,
+    industry,
+    location,
+    use_type,
+    category,
+    source_url,
+  } = caseItem;
+
   const { drawer, onClose } = useGlobalDrawer();
   const direction = useDrawerDirection();
 
-  // Check if this specific drawer is open and matches the expected type
+  // This drawer can coexist with global drawer state, so it checks its exact active type.
   const isThisDrawerOpen =
     drawer?.type === DRAWER_TYPES.RESULTS_DATABASE_EVIDENCE_DETAILS && drawer?.isOpen;
 
-  const matchPercentage = Math.round((data.similarity || 0) * 100).toFixed(1);
-  const matchStrength = getMatchStrength(data.similarity || 0);
-
-  if (!data) return null;
+  const matchPercentage = Math.round((similarity || 0) * 100).toFixed(1);
+  const matchStrength = getMatchStrength(similarity || 0);
 
   return (
     <Drawer
@@ -102,7 +109,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                 </div>
                 <div>
                   <Drawer.Heading className="drawer__heading">
-                    {data.title || data.case_id || 'Case Details'}
+                    {title || case_id || 'Case Details'}
                   </Drawer.Heading>
                   <p className="mt-0.5 text-[0.7rem] font-normal text-(--color-text-secondary)">
                     Detailed evidence and matched case context
@@ -114,17 +121,15 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
             <Drawer.Body className="space-y-6 p-6">
               {/* Meta Information */}
               <div className="mb-6 grid grid-cols-2 gap-4">
-                {data.id && (
+                {id && (
                   <div className="space-y-1">
                     <span className="text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Case ID
                     </span>
-                    <p className="font-mono text-sm break-all text-(--color-text-primary)">
-                      {data.id}
-                    </p>
+                    <p className="font-mono text-sm break-all text-(--color-text-primary)">{id}</p>
                   </div>
                 )}
-                {data.similarity && (
+                {similarity && (
                   <div>
                     <p className="mb-1 text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Similarity
@@ -134,62 +139,56 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                     </Chip>
                   </div>
                 )}
-                {data.source_display && (
+                {source_display && (
                   <div className="space-y-1">
                     <span className="text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Source
                     </span>
-                    <p className="text-sm text-(--color-text-primary)">{data.source_display}</p>
+                    <p className="text-sm text-(--color-text-primary)">{source_display}</p>
                   </div>
                 )}
-                {data.year && (
+                {year && (
                   <div className="space-y-1">
                     <span className="text-xs font-semibold tracking-wider text-(--color-text-muted) uppercase">
                       Year
                     </span>
-                    <p className="text-sm text-(--color-text-primary)">
-                      {data.year || 'Not specified'}
-                    </p>
+                    <p className="text-sm text-(--color-text-primary)">{year || 'Not specified'}</p>
                   </div>
                 )}
               </div>
 
-              <DetailSection title="Problem Statement" icon={AlertCircle} content={data.problem} />
+              <DetailSection title="Problem Statement" icon={AlertCircle} content={problem} />
 
-              <DetailSection title="Solution Approach" icon={Lightbulb} content={data.solution} />
+              <DetailSection title="Solution Approach" icon={Lightbulb} content={solution} />
 
-              <DetailSection title="Impact" icon={Target} content={data.impact} />
+              <DetailSection title="Impact" icon={Target} content={impact} />
 
-              <DetailSection title="Materials" icon={Package} content={data.materials} />
+              <DetailSection title="Materials" icon={Package} content={materials} />
 
-              <DetailSection
-                title="Circular Strategy"
-                icon={Recycle}
-                content={data.circular_strategy}
-              />
+              <DetailSection title="Circular Strategy" icon={Recycle} content={circular_strategy} />
 
-              <DetailSection title="Industry" icon={Building2} content={data.industry} />
+              <DetailSection title="Industry" icon={Building2} content={industry} />
 
               <DetailSection
                 title="Location"
                 icon={MapPin}
-                content={data.location}
+                content={location}
                 fallback="Not specified"
               />
 
-              <DetailSection title="Use Type" icon={Tag} content={data.use_type} />
+              <DetailSection title="Use Type" icon={Tag} content={use_type} />
 
-              <DetailSection title="Category" icon={FolderOpen} content={data.category} />
+              <DetailSection title="Category" icon={FolderOpen} content={category} />
 
               {/* Case Scores */}
-              {/* {data.case_scores && (
+              {/* {caseItem.case_scores && (
                 <div className="space-y-3">
                   <h4 className="mb-3 text-sm font-semibold text-(--color-text-primary)">
                     Performance Scores
                     <BarChart3 strokeWidth={2.5} size={16} className="ml-2 inline" />
                   </h4>
                   <div className="grid grid-cols-2">
-                    {Object.entries(data.case_scores).map(([key, value]) => (
+                    {Object.entries(caseItem.case_scores).map(([key, value]) => (
                       <div
                         key={key}
                         className="flex items-center justify-start gap-2.5 rounded-lg bg-(--color-bg-field) p-2"
@@ -207,7 +206,7 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
               )} */}
 
               {/* Source URL */}
-              {data.source_url && (
+              {source_url && (
                 <div className="space-y-2">
                   <div>
                     <h4 className="mb-2 text-sm font-semibold text-(--color-text-primary)">
@@ -216,12 +215,12 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
                     </h4>
                   </div>
                   <a
-                    href={data.source_url}
+                    href={source_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-jua text-sm/relaxed break-all text-(--color-accent) hover:underline"
                   >
-                    {data.source_url}
+                    {source_url}
                   </a>
                 </div>
               )}
@@ -234,5 +233,5 @@ export default function ResultsDatabaseEvidenceDetailsDrawer({ data }) {
 }
 
 ResultsDatabaseEvidenceDetailsDrawer.propTypes = {
-  data: PropTypes.object,
+  caseItem: PropTypes.object,
 };
