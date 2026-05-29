@@ -1,24 +1,17 @@
 /**
- * @module app
- * @description Express application factory and middleware configuration.
- * Creates and configures the Express app with all routes, middleware, and error handlers.
- * Separated from server startup logic for testability and modular architecture.
+ * Express app: Helmet, CORS, optional API-key guard, and route mounting.
  *
- * Key features:
- * - CORS configuration with origin validation
- * - API key authentication middleware
- * - Route mounting for all API endpoints
- * - Global error handling
- * - Security headers via Helmet
- *
- * Routes mounted:
- * - /health - Health check endpoints (public)
- * - /api/uptime - Uptime monitoring (public)
- * - /api/analytics - Analytics and statistics (public)
- * - /api/search - CE cases search (public)
- * - /api/score - Scoring/assessment (public with rate limiting)
- * - /api/assessments - Assessment CRUD (requires auth)
- * - /api/profile - User profile (requires auth)
+ * | Prefix | Auth | Notes |
+ * |--------|------|-------|
+ * | `/` | Public | Root deployment ping |
+ * | `/health` | Public | Health and Kubernetes probes |
+ * | `/api/uptime` | Public | Uptime monitor API and SSE stream |
+ * | `/api/analytics` | Public | Dashboard aggregates and reindex trigger |
+ * | `/api/search` | Public | CE case search |
+ * | `/api/score` | Optional Bearer | Rate-limited scoring routes |
+ * | `/api/assessments` | Mixed Bearer/public | Router enforces auth per route |
+ * | `/api/profile` | Bearer | Authenticated profile lookup |
+ * | fallback | Optional API key | Reserved for future routes after mounted routers |
  */
 
 import '#server/bootstrap.js';
@@ -53,10 +46,12 @@ const { apiKey, apiAuthEnabled } = BACKEND_CONFIG.app;
 // ============================================
 
 /**
- * Safely compare API keys using timing-safe comparison to prevent timing attacks
- * @param {string} providedKey - API key provided in request
- * @param {string} storedKey - Expected API key from configuration
- * @returns {boolean} True if keys match
+ * Compares API-key candidates with `crypto.timingSafeEqual` once lengths match.
+ * Length mismatches return early because timing-safe comparison requires equal-sized buffers.
+ *
+ * @param {string} providedKey - API key from `x-api-key` or bearer auth.
+ * @param {string} storedKey - Expected API key from validated backend config.
+ * @returns {boolean} `true` only when both non-empty keys are identical.
  */
 function safeCompare(providedKey, storedKey) {
   if (!providedKey || !storedKey) return false;
@@ -71,8 +66,9 @@ function safeCompare(providedKey, storedKey) {
 }
 
 /**
- * Validate required configuration for API authentication
- * @throws {Error} If API key is required but not set in production
+ * Validates auth-related startup configuration and warns about missing Supabase browser config.
+ *
+ * @throws {Error} If API auth is enabled without an API key in production.
  */
 function validateConfig() {
   if (!apiKey && apiAuthEnabled) {
@@ -90,19 +86,19 @@ function validateConfig() {
 
 /**
  * API key authentication middleware
- * Validates API key for non-public routes when API auth is enabled.
+ * Validates API keys for routes mounted after the public routers when API auth is enabled.
  *
  * Auth flow:
- *  1. Public routes always pass through.
- *  2. If API auth is disabled, pass through.
- *  3. If a Bearer token is present but doesn't match the API key, it is
- *     likely a Supabase JWT — let requireAuth handle it downstream.
- *  4. If a valid x-api-key or Bearer API key is provided, pass through.
- *  5. Otherwise reject with 401.
+ *  1. If API auth is disabled, pass through.
+ *  2. If a Bearer token is present but doesn't match the API key, it is
+ *     likely a Supabase JWT, so let requireAuth handle it downstream.
+ *  3. If a valid x-api-key or Bearer API key is provided, pass through.
+ *  4. Otherwise reject with 401.
  *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * @param {import('express').Request} req - Incoming request that may carry `x-api-key` or bearer credentials.
+ * @param {import('express').Response} res - Response used for API-key failure JSON.
+ * @param {import('express').NextFunction} next - Delegates disabled auth, valid API keys, and JWT-like bearer tokens.
+ * @returns {void|import('express').Response} Delegates to later middleware or ends the request with JSON.
  */
 export function apiKeyGuard(req, res, next) {
   if (!apiAuthEnabled) return next();
@@ -123,8 +119,8 @@ export function apiKeyGuard(req, res, next) {
   const isValidHeader = safeCompare(apiKeyHeader, apiKey);
   const isValidBearer = safeCompare(bearerToken, apiKey);
 
-  // If a Bearer token is present but doesn't match the API key,
-  // it's likely a Supabase JWT — let requireAuth handle it downstream.
+  // If a Bearer token is present but does not match the API key,
+  // it is likely a Supabase JWT, so let requireAuth handle it downstream.
   if (bearerToken && !isValidBearer && !isValidHeader) {
     return next();
   }
@@ -141,12 +137,12 @@ export function apiKeyGuard(req, res, next) {
   });
 }
 
-// apply middleware
+// Helmet and parsers run before CORS/routes so every response gets security headers.
 app.use(helmet());
 app.use(express.json({ limit: '512kb' }));
 app.use(express.urlencoded({ limit: '512kb', extended: true }));
 
-// Catch-all for root pings to stop CORS errors in deployment logs
+// Root pings stay public to keep deployment health checks out of CORS error logs.
 app.get('/', (req, res) => {
   let message = 'Circular Economy API is Running ~\\(≧▽≦)/~';
   if (!BACKEND_CONFIG.isProduction) {
@@ -161,31 +157,30 @@ app.get('/', (req, res) => {
 app.use(
   cors({
     origin: function (origin, callback) {
-      // 1. Allow internal server-to-server requests (Origin is undefined)
-      // This is necessary for your Vercel proxy to work in Production
+      // Server-to-server calls, including the Vercel proxy, do not include Origin.
       if (!origin) {
         return callback(null, true);
       }
 
-      // 2. Direct match from your config
+      // Explicit allow-list entries come from validated backend config.
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // 3. Wildcard support for Vercel preview/branch domains
+      // Vercel preview and branch domains are ephemeral but trusted deployment origins.
       if (origin.endsWith('.vercel.app') || origin.endsWith('.vercel.sh')) {
         return callback(null, true);
       }
 
-      // 4. Fail if none of the above match
+      // Unknown browser origins fail closed and are logged for deployment debugging.
       logger.warn({ origin }, 'CORS error: origin not allowed');
       return callback(new Error('Not allowed by CORS'));
     },
-    credentials: true, // Recommended for Supabase Auth cookies/headers
+    credentials: true, // Supabase Auth relies on credentialed cookies/headers.
   }),
 );
 
-// initialize clients
+// Shared clients are created once and passed into routers that need them.
 const supabase = createSupabaseAnonClient();
 const serviceSupabase = createSupabaseClient();
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
@@ -196,10 +191,10 @@ validateConfig();
 // ROUTES (all before API key guard)
 // ============================================
 
-// Public health routes
+// Health endpoints are mounted before the future API-key guard so probes stay public.
 app.use('/health', createHealthRouter());
 
-// Public API routes (no authentication required)
+// Route-level auth lives inside each router; these mounts remain before the future API-key guard.
 app.use('/api/profile', createProfileRouter(serviceSupabase));
 app.use('/api/score', createScoringRouter(openai, supabase));
 app.use('/api/assessments', createAssessmentsRouter(serviceSupabase));
@@ -212,7 +207,7 @@ app.use('/api/uptime', createUptimeRouter());
 // ============================================
 app.use(apiKeyGuard);
 
-// 404 handler
+// Unmatched paths return JSON rather than Express' default HTML response.
 app.use((req, res) => {
   logger.error({ path: req.path, method: req.method }, 'Endpoint not found');
   res.status(404).json({
@@ -222,31 +217,31 @@ app.use((req, res) => {
   });
 });
 
-// global error handler
-app.use((err, req, res, _next) => {
+// Final error handler sanitizes 5xx responses while preserving client-facing 4xx messages.
+app.use((error, req, res, _next) => {
   const requestId = Math.random().toString(36).slice(2, 9);
-  const statusCode = err.statusCode || err.status || 500;
+  const statusCode = error.statusCode || error.status || 500;
   const isServerError = statusCode >= 500;
   if (isServerError) {
     logger.error(
       {
-        err,
+        error,
         requestId,
         method: req.method,
         path: req.path,
         status: statusCode,
-        code: err.code || 'UNKNOWN',
+        code: error.code || 'UNKNOWN',
       },
       'Request error',
     );
   } else if (!IS_PROD) {
-    logger.warn({ requestId, statusCode }, err.message);
+    logger.warn({ requestId, statusCode }, error.message);
   }
 
   res.status(statusCode).json({
-    error: isServerError ? 'Internal Server Error' : err.message || 'Request failed',
-    message: err.message,
-    code: err.code || (isServerError ? 'INTERNAL_ERROR' : 'REQUEST_ERROR'),
+    error: isServerError ? 'Internal Server Error' : error.message || 'Request failed',
+    message: error.message,
+    code: error.code || (isServerError ? 'INTERNAL_ERROR' : 'REQUEST_ERROR'),
     timestamp: new Date().toISOString(),
     requestId,
   });
@@ -254,6 +249,7 @@ app.use((err, req, res, _next) => {
 
 /**
  * Configured Express application (middleware + routes). Import for tests or `index.js` startup.
+ *
  * @type {import('express').Express}
  */
 export default app;

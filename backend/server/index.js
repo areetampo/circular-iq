@@ -1,20 +1,7 @@
 /**
- * @module index
- * @description Server entry point and HTTP server lifecycle management.
- * Starts the Express HTTP server, initializes background services (uptime monitoring),
- * and handles graceful shutdown on SIGTERM/SIGINT signals.
- *
- * Responsibilities:
- * - Start HTTP server on configured port
- * - Display formatted server startup information
- * - Initialize uptime polling and cleanup tasks
- * - Handle graceful shutdown with background task draining
- * - Global unhandled rejection error handling
- *
- * Environment-specific behavior:
- * - Development: Shows detailed startup banner with configuration
- * - Test: Skips server startup and uptime monitoring
- * - Production: Enables uptime monitoring and cleanup tasks
+ * HTTP server entry: listens on `BACKEND_CONFIG.port`, starts uptime polling when enabled,
+ * and shuts down polling/background cleanup on SIGTERM/SIGINT. The module does not auto-start
+ * the listener when `NODE_ENV=test`, but exported startup helpers remain callable by tests.
  */
 
 import boxen from 'boxen';
@@ -42,8 +29,9 @@ const theme = {
 
 /**
  * Formats a list of URLs for the startup banner (multi-line with indentation).
- * @param {string[]|null|undefined} list
- * @returns {string} Chalk-formatted string
+ *
+ * @param {string[]|null|undefined} list - URL strings to display, or empty/null when unset.
+ * @returns {string} Chalk-formatted multi-line URL list or a red "not set" label.
  */
 const formatList = (list) => {
   if (!list || list.length === 0) return theme.danger('not set');
@@ -55,9 +43,10 @@ const formatList = (list) => {
 
 /**
  * Renders a single config row for the startup banner.
- * @param {string} label
- * @param {string} value - Pre-formatted chalk string
- * @returns {string}
+ *
+ * @param {string} label - Left-column label before padding.
+ * @param {string} value - Chalk-formatted value string for the right column.
+ * @returns {string} Chalk-formatted banner row with aligned label and value columns.
  */
 const renderRow = (label, value) => {
   return `${theme.primary(label.padEnd(20))} ${theme.dim('│')} ${value}`;
@@ -65,8 +54,9 @@ const renderRow = (label, value) => {
 
 /**
  * Returns a colored HTTP method badge for the API service map.
+ *
  * @param {string} method - HTTP verb (GET, POST, etc.)
- * @returns {string} Chalk-formatted badge
+ * @returns {string} Chalk-formatted fixed-width method badge.
  */
 const badge = (method) => {
   const styles = {
@@ -80,11 +70,11 @@ const badge = (method) => {
 };
 
 /**
- * Starts the HTTP server and uptime background tasks (when enabled).
- * Registers SIGTERM/SIGINT handlers for graceful shutdown.
- * Idempotent — returns the existing instance if already listening.
+ * Starts the HTTP server and uptime background tasks.
+ * Idempotent: returns the existing instance if already listening. A first call starts listening
+ * as a side effect and stores the server instance for future calls.
  *
- * @returns {import('http').Server|undefined} Node HTTP server, or undefined in test mode
+ * @returns {import('http').Server|undefined} Existing server when already started; otherwise `undefined` after starting the listener.
  */
 export function startServer() {
   if (serverInstance) return serverInstance;
@@ -98,16 +88,16 @@ export function startServer() {
 
     const processConfig = (obj, prefix = '') => {
       for (const [key, value] of Object.entries(obj)) {
-        // Skip the 'api' section as it's displayed separately
+        // The API service map renders this section separately from scalar config rows.
         if (key === 'api') continue;
 
         const label = prefix ? `${prefix}.${key}` : key;
 
         if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-          // If it's a nested object, recurse
+          // Nested config groups are flattened with dot labels for a compact banner.
           processConfig(value, label);
         } else {
-          // Format the value based on content
+          // Secret-like fields show presence only so the startup banner never prints credentials.
           let formattedValue = theme.secondary(String(value));
 
           if (typeof value === 'boolean') {
@@ -139,7 +129,7 @@ export function startServer() {
 
     const authStatus = BACKEND_CONFIG.app.apiAuthEnabled
       ? chalk.bgGreen.black.bold('🛡️  API AUTH: ACTIVE  ')
-      : chalk.white.bold('‼ ️  API AUTH: DISABLED  ');
+      : chalk.white.bold('⚠️ ️  API AUTH: DISABLED  ');
 
     const content = [
       '',
@@ -172,12 +162,12 @@ export function startServer() {
         logger.warn(theme.warning('\n揪 SIGTERM/SIGINT received. Cleaning up...'));
         logger.warn('SIGTERM/SIGINT received, initiating shutdown');
 
-        // 1. Stop accepting new requests immediately
+        // Stop accepting new requests before draining background work.
         serverInstance.close(async () => {
           logger.info(theme.dim('  - Server stopped accepting new connections.'));
           logger.info('Server stopped accepting new connections');
 
-          // 2. Clear background intervals
+          // Clear intervals before polling state is torn down.
           if (uptimeCleanupInterval) {
             clearInterval(uptimeCleanupInterval);
             uptimeCleanupInterval = null;
@@ -185,8 +175,7 @@ export function startServer() {
           }
           stopUptimePolling();
 
-          // 3. Give background tasks (like Supabase logging) 2-3 seconds to finish
-          // This is crucial for Render redeploys
+          // Render redeploys need a short drain window for in-flight background logging.
           logger.info(theme.dim('  - Draining background tasks...'));
           logger.info('Draining background tasks');
           await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -196,7 +185,7 @@ export function startServer() {
           process.exit(0);
         });
 
-        // Forced kill after 10 seconds if it hangs
+        // Keep container shutdown bounded if active connections never close.
         setTimeout(() => {
           logger.error(theme.danger('! Could not close connections in time, forceful shutdown'));
           logger.error('Forceful shutdown after timeout');
@@ -208,7 +197,7 @@ export function startServer() {
     const { retentionDays, pollingEnabled, cleanupOnStart, cleanupIntervalDurationMs } =
       BACKEND_CONFIG.uptime;
 
-    // Only start uptime background tasks if pollingEnabled is true
+    // Uptime polling owns both API checks and history cleanup, so both share this feature flag.
     if (pollingEnabled) {
       const runCleanup = async () => {
         try {
@@ -218,8 +207,8 @@ export function startServer() {
           });
           if (error) throw error;
           logger.info({ retentionDays, deletedRows: data }, 'Uptime history cleanup completed');
-        } catch (err) {
-          logger.error({ err }, 'Uptime cleanup failed');
+        } catch (error) {
+          logger.error({ error }, 'Uptime cleanup failed');
         }
       };
 
@@ -239,10 +228,10 @@ export function startServer() {
             const { error } = await supabase.rpc('cleanup_old_uptime_checks', { days: 0 });
             if (error) throw error;
             logger.info('Uptime table truncated on server start');
-          } catch (err) {
-            logger.error({ err }, 'Uptime table truncation on start failed');
+          } catch (error) {
+            logger.error({ error }, 'Uptime table truncation on start failed');
           } finally {
-            startMonitoring(); // polling only begins after truncation resolves
+            startMonitoring(); // Avoid polling against rows that cleanup-on-start is deleting.
           }
         })();
       } else {
@@ -265,9 +254,9 @@ export function startServer() {
 
 /**
  * Closes the HTTP server gracefully.
- * Used in tests to tear down without killing the process.
+ * Intended for test teardown; does not call `process.exit`.
  *
- * @returns {Promise<void>} Resolves when the server has closed
+ * @returns {Promise<void>} Resolves after the active server closes, or immediately when no server is running.
  */
 export function stopServer() {
   if (!serverInstance) return Promise.resolve();
@@ -282,7 +271,7 @@ export function stopServer() {
   });
 }
 
-// Prevent background logging errors from crashing the Render instance
+// Log unhandled background failures without crashing production containers.
 process.on('unhandledRejection', (reason) => {
   logger.error({ reason }, 'UNHANDLED REJECTION');
   if (BACKEND_CONFIG.nodeEnv !== 'test') {
@@ -296,6 +285,7 @@ if (BACKEND_CONFIG.nodeEnv !== 'test') {
 
 /**
  * Re-export of the Express app from `#server/app.js` (same singleton).
+ *
  * @type {import('express').Express}
  */
 export default app;
