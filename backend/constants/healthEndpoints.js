@@ -1,8 +1,6 @@
 /**
- * @module healthEndpoints
- * @description Health endpoint definitions used by the uptime polling service and documentation.
- * Defines the set of health check endpoints that are monitored for uptime tracking.
- * Each endpoint includes an ID, path, and human-readable label.
+ * Health routes polled by the uptime service (`uptimePolling.service.js`).
+ * `id` is the DB/SSE key; `path` is appended to `BACKEND_CONFIG.app.apiUrl`.
  *
  * @type {Array<{id: string, path: string, label: string}>}
  */

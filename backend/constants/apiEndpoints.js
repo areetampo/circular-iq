@@ -1,22 +1,7 @@
 /**
- * @module apiEndpoints
- * @description Central registry of all available API endpoints with their HTTP methods and descriptions.
- * Used for documentation, health checks, API discovery, and configuration.
+ * Registry of HTTP routes for API discovery, health checks, and `BACKEND_CONFIG.api`.
+ * Each entry has `{ method, endpoint, description }`; auth notes live in the description field.
  *
- * Endpoint categories:
- * - Health & Root: System health monitoring and root endpoint
- * - User Profile: User profile management
- * - Search: Circular Economy case search
- * - Scoring/RAG: RAG analysis and scoring with streaming support
- * - Assessments: Assessment CRUD operations and comparisons
- * - Uptime Monitor: Real-time uptime monitoring with SSE streaming
- *
- * @type {Array<{method: string, endpoint: string, description: string}>}
- */
-
-/**
- * Array of API endpoint definitions.
- * Each object contains the HTTP method, endpoint path, and description.
  * @type {Array<{method: string, endpoint: string, description: string}>}
  */
 export default [
