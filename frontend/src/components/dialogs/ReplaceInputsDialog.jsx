@@ -1,52 +1,30 @@
-/**
- * @module ReplaceInputsDialog
- * @description Confirms overwriting current landing-page inputs with a sample or restored scenario.
- */
+/** Confirmation dialog for overwriting current landing-page inputs. */
 
 import { AlertDialog } from '@heroui/react';
 import { AlertCircle } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import PropTypes from 'prop-types';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Dialog for confirming overwriting current form inputs
- *
- * Gets data from centralized dialog state
- *
- * @example
- * In a component using useGlobalDialog hook:
- * const { openReplaceInputsDialog } = useGlobalDialog();
- * openReplaceInputsDialog({
- *   onConfirm: handleReplace,
- *   onCancel: handleCancel,
- * });
+ * Renders replace-input confirmation content supplied by `openReplaceInputsDialog`.
+ * Keeps the dialog open if `onConfirm` rejects (async errors reset the closing guard).
  */
-function ReplaceInputsDialogContent() {
-  const { isDialogOpen, onClose, dialog } = useGlobalDialog();
+function ReplaceInputsDialogContent({
+  title,
+  description,
+  confirmText,
+  cancelText,
+  onConfirm,
+  onCancel,
+}) {
+  const { isDialogOpen, onClose } = useGlobalDialog();
 
-  const title = useMemo(
-    () => dialog?.data?.title || 'Replace current inputs?',
-    [dialog?.data?.title],
-  );
-  const description = useMemo(
-    () => dialog?.data?.description || 'Loading a test case will overwrite your current inputs.',
-    [dialog?.data?.description],
-  );
-  const confirmText = useMemo(
-    () => dialog?.data?.confirmText || 'Replace',
-    [dialog?.data?.confirmText],
-  );
-  const cancelText = useMemo(
-    () => dialog?.data?.cancelText || 'Cancel',
-    [dialog?.data?.cancelText],
-  );
-  const onConfirm = useMemo(() => dialog?.data?.onConfirm, [dialog?.data?.onConfirm]);
-  const onCancel = useMemo(() => dialog?.data?.onCancel, [dialog?.data?.onCancel]);
   const isClosingRef = useRef(false);
 
-  // Reset closing flag when dialog opens
+  // A fresh open must allow cancel/confirm handlers after the previous close cycle finished.
   useEffect(() => {
     if (isDialogOpen) {
       isClosingRef.current = false;
@@ -67,13 +45,13 @@ function ReplaceInputsDialogContent() {
       isClosingRef.current = true;
       onClose();
 
-      // Handle async operations in background
+      // Long-running confirmations should not keep the modal visually stuck open.
       if (result instanceof Promise) {
         await result;
       }
     } catch (error) {
-      logger.error('Replace action failed:', error);
-      // Keep dialog open on error
+      logger.error('[DIALOG_REPLACE_INPUTS:CONFIRM_FAILED]', error);
+      // Allow another attempt if the background confirmation fails.
       isClosingRef.current = false;
     }
   }, [onConfirm, onClose]);
@@ -82,13 +60,10 @@ function ReplaceInputsDialogContent() {
     if (isClosingRef.current) return;
 
     try {
-      if (onCancel) {
-        await onCancel();
-      }
-      isClosingRef.current = true;
-      onClose();
+      if (onCancel) await onCancel();
     } catch (error) {
-      logger.error('Cancel action failed:', error);
+      logger.error('[DIALOG_REPLACE_INPUTS:CANCEL_FAILED]', error);
+    } finally {
       isClosingRef.current = true;
       onClose();
     }
@@ -96,7 +71,7 @@ function ReplaceInputsDialogContent() {
 
   const handleBackdropChange = useCallback(
     (newOpen) => {
-      // Prevent reopening if we're in the middle of closing
+      // HeroUI can emit a transient reopen during close animation; ignore that edge.
       if (isClosingRef.current && newOpen) {
         return;
       }
@@ -121,7 +96,6 @@ function ReplaceInputsDialogContent() {
         variant="opaque"
         isDismissable={false}
         isKeyboardDismissDisabled
-        className=""
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog aria-label={title}>
@@ -154,21 +128,34 @@ function ReplaceInputsDialogContent() {
   );
 }
 
-// Memoized to prevent duplicate renders from DialogManager
+// PropTypes live on the internal content component and are reused by the memoized shell.
+ReplaceInputsDialogContent.propTypes = {
+  title: PropTypes.string,
+  description: PropTypes.string,
+  confirmText: PropTypes.string,
+  cancelText: PropTypes.string,
+  onConfirm: PropTypes.func,
+  onCancel: PropTypes.func,
+};
+
+// AlertDialog content is memoized to avoid duplicate render cycles during open/close transitions.
 const MemoizedContent = React.memo(ReplaceInputsDialogContent);
 
-// Memoized wrapper - only renders content when dialog is actually open
-const ReplaceInputsDialog = React.memo(function ReplaceInputsDialog() {
+/**
+ * Forwards props to replace-input content only while the replace-inputs dialog is open.
+ */
+const ReplaceInputsDialog = React.memo(function ReplaceInputsDialog(props) {
   const { isDialogOpen } = useGlobalDialog();
 
-  // Return null when closed - this is critical for preventing double-render issues
+  // Closed dialogs stay unmounted so AlertDialog does not keep stale focus state.
   if (!isDialogOpen) {
     return null;
   }
 
-  return <MemoizedContent key="replace-inputs-dialog" />;
+  return <MemoizedContent key="replace-inputs-dialog" {...props} />;
 });
 
-ReplaceInputsDialog.propTypes = {};
+// Keep shell prop validation aligned with the content component.
+ReplaceInputsDialog.propTypes = ReplaceInputsDialogContent.propTypes;
 
 export default ReplaceInputsDialog;

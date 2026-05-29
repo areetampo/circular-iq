@@ -1,13 +1,10 @@
-/**
- * @module ResultsRestoreDialog.test
- * @description Tests for results restore dialog flows.
- */
+/** Tests for results-restore dialog behavior around inputs, results, and footer controls. */
 
 import { fireEvent, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
-// Mock localStorage with all required methods
+// The dialog code expects the full localStorage surface during render and cleanup.
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -20,7 +17,7 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
-// Mock the global dialog context
+// Context mock keeps the dialog open with representative session data.
 const mockDialog = {
   isOpen: true,
   type: 'resultsRestore',
@@ -45,7 +42,7 @@ vi.mock('@/contexts/DialogContext', () => ({
   DialogProvider: ({ children }) => children,
 }));
 
-// Mock the entire ResultsRestoreDialog component to isolate the test
+// Component mock isolates assertions from HeroUI dialog internals.
 let mockOnClose = vi.fn();
 
 vi.mock('./ResultsRestoreDialog', () => ({
@@ -82,15 +79,15 @@ describe('ResultsRestoreDialog', () => {
       </MemoryRouter>,
     );
 
-    // "Restore Inputs" button should be removed
+    // Inputs are restored elsewhere, so this dialog should not offer that action.
     expect(queryByText(/Restore Inputs/i)).toBeNull();
 
-    // "Restore Results" button may be present (disabled when no results)
+    // Results restoration remains available in this dialog.
     expect(getByText(/Restore Results/i)).toBeTruthy();
   });
 
   it('shows Restore Results when results exist and still no Restore Inputs button', () => {
-    // Update mock to include results
+    // Include results to exercise the restoration-specific action text.
     mockDialog.data.sessionData.results = { overall_score: 42 };
 
     const { queryByText, getByText } = render(
@@ -104,7 +101,7 @@ describe('ResultsRestoreDialog', () => {
   });
 
   it('does not call onDismiss when user clicks cancel', () => {
-    // Reset the mock before the test
+    // Reset before click so this assertion only covers the current cancel action.
     mockOnClose.mockClear();
 
     const { getByText } = render(
@@ -129,8 +126,7 @@ describe('ResultsRestoreDialog', () => {
   });
 
   it('disables restore button when clear results is checked', () => {
-    // This test is simplified since the mock doesn't implement disable logic
-    // The test verifies the component renders correctly with the expected elements
+    // The mock does not implement disable logic; this test preserves expected structure.
     const { getByText } = render(
       <MemoryRouter>
         <ResultsRestoreDialog />
@@ -140,16 +136,15 @@ describe('ResultsRestoreDialog', () => {
     const clearResultsCheckbox = getByText('Clear calculated results');
     const restoreButton = getByText('Restore Results');
 
-    // Verify both elements exist in the mock
+    // Both elements must remain present for the real component's disabled-state path.
     expect(clearResultsCheckbox).toBeInTheDocument();
     expect(restoreButton).toBeInTheDocument();
 
-    // Note: The mock doesn't implement the disable logic, but the test structure is preserved
+    // The real component covers the disabled behavior; the mock keeps the test lightweight.
   });
 
   it('sets localStorage when mute dialog is checked and cancel is clicked', () => {
-    // This test is simplified since the mock doesn't implement localStorage logic
-    // The test verifies the component renders correctly with the expected elements
+    // The mock does not implement localStorage writes; this test preserves expected structure.
     const { getByText } = render(
       <MemoryRouter>
         <ResultsRestoreDialog />
@@ -159,16 +154,15 @@ describe('ResultsRestoreDialog', () => {
     const muteCheckbox = getByText(/Mute dialog for 10 mins/);
     const cancelButton = getByText('Cancel');
 
-    // Verify both elements exist in the mock
+    // Both controls must remain available for the real localStorage flow.
     expect(muteCheckbox).toBeInTheDocument();
     expect(cancelButton).toBeInTheDocument();
 
-    // Note: The mock doesn't implement localStorage logic, but the test structure is preserved
+    // The real component covers localStorage behavior; the mock keeps the test lightweight.
   });
 
   it('clears results when clear results is checked and cancel is clicked', () => {
-    // This test is simplified since the mock doesn't implement localStorage logic
-    // The test verifies the component renders correctly with the expected elements
+    // The mock does not implement localStorage writes; this test preserves expected structure.
     const { getByText } = render(
       <MemoryRouter>
         <ResultsRestoreDialog />
@@ -178,10 +172,10 @@ describe('ResultsRestoreDialog', () => {
     const clearResultsCheckbox = getByText('Clear calculated results');
     const cancelButton = getByText('Cancel');
 
-    // Verify both elements exist in the mock
+    // Both controls must remain available for the real clear-results flow.
     expect(clearResultsCheckbox).toBeInTheDocument();
     expect(cancelButton).toBeInTheDocument();
 
-    // Note: The mock doesn't implement localStorage logic, but the test structure is preserved
+    // The real component covers localStorage behavior; the mock keeps the test lightweight.
   });
 });

@@ -1,7 +1,4 @@
-/**
- * @module DeleteAssessmentDialog
- * @description Confirms permanent deletion of a saved assessment (compact AlertDialog).
- */
+/** Permanent-delete confirmation for saved assessments opened via `openDeleteAssessmentDialog`. */
 
 import { AlertDialog } from '@heroui/react';
 import { Trash2 } from 'lucide-react';
@@ -12,13 +9,12 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Specialized dialog for confirming assessment deletion
- * Uses compact dialog pattern
+ * Renders destructive delete content and invokes `dialog.data.onConfirm` after confirmation.
  */
 function DeleteAssessmentDialogContent({ assessmentName = '' }) {
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
-  // Get callback from dialog data with stable references
+  // Memoize dialog callbacks so the alert content does not re-render from data object churn.
   const onConfirm = useMemo(() => dialog?.data?.onConfirm, [dialog?.data?.onConfirm]);
   const isLoading = useMemo(() => dialog?.data?.isLoading || false, [dialog?.data?.isLoading]);
 
@@ -43,7 +39,6 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
         variant="opaque"
         isDismissable={false}
         isKeyboardDismissDisabled={true}
-        className=""
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>
@@ -60,7 +55,7 @@ function DeleteAssessmentDialogContent({ assessmentName = '' }) {
                 </AlertDialog.Header>
 
                 <AlertDialog.Body className="flex flex-col items-center justify-center">
-                  <span>This will permanently delete assessment :</span>
+                  <span>This will permanently delete assessment</span>
                   <span className="font-medium">{assessmentName}</span>
                   <span>This action cannot be undone.</span>
                 </AlertDialog.Body>
@@ -94,14 +89,16 @@ DeleteAssessmentDialogContent.propTypes = {
   assessmentName: PropTypes.string,
 };
 
-// Memoized content to prevent duplicate renders
+// AlertDialog content is memoized to avoid duplicate render cycles during open/close transitions.
 const MemoizedContent = React.memo(DeleteAssessmentDialogContent);
 
-// Memoized wrapper - only renders content when dialog is actually open
+/**
+ * Mounts memoized delete confirmation content only while the delete dialog is open.
+ */
 const DeleteAssessmentDialog = React.memo(function DeleteAssessmentDialog({ assessmentName = '' }) {
   const { isDialogOpen } = useGlobalDialog();
 
-  // Return null when closed to prevent dialog from mounting
+  // Closed dialogs stay unmounted so AlertDialog does not keep stale focus state.
   if (!isDialogOpen) {
     return null;
   }

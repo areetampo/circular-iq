@@ -1,6 +1,7 @@
 /**
- * @module ResultsRestoreDialog
- * @description Offers to restore a prior evaluation session (results snapshot and/or landing inputs).
+ * Offers to restore a prior evaluation results snapshot from localStorage.
+ * Self-contained: reads session via `loadEvaluationState()` rather than dialog.data.
+ * Inputs are always synced separately; only results restoration is offered here.
  */
 
 import { AlertDialog, Checkbox, Label } from '@heroui/react';
@@ -11,30 +12,27 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 import { cleanUrl, formatTimestamp } from '@/lib/formatting';
+import { loadEvaluationState } from '@/lib/storage';
 import { cn } from '@/utils/cn';
 
 /**
- * Session Restore Dialog
- * - Cancel: Dismiss without restoring
- * - Restore Results: Go to /results page with calculated scores
- *
- * NOTE: Inputs are persisted continuously to local storage and will already
- * be present in the LandingPage — the "Restore Inputs" action has been
- * removed because form inputs are now always synced from persisted session.
- * Restore Results remains available when a results snapshot exists.
+ * Renders restore-result content for a prior scoring snapshot found in localStorage.
+ * Reads `session_evaluation_state` directly; supports clearing results or muting for 10 minutes.
  */
 function ResultsRestoreDialogContent() {
-  const { isDialogOpen, dialog, onClose } = useGlobalDialog();
+  const { isDialogOpen, onClose } = useGlobalDialog();
   const navigate = useNavigate();
   const isClosingRef = useRef(false);
 
-  // State for checkboxes
+  // Checkbox state controls whether cancel clears results or temporarily mutes this prompt.
   const [clearResults, setClearResults] = useState(false);
   const [muteDialog, setMuteDialog] = useState(false);
 
-  const sessionData = dialog?.data?.sessionData;
+  // This dialog owns its localStorage read instead of relying on dialog.data.
+  // AppSessionManager verifies results before opening; re-reading here keeps the modal current.
+  const sessionData = loadEvaluationState();
 
-  // Check if there are actual inputs (not just empty object)
+  // Empty input objects should not trigger a restore prompt on their own.
   const hasInputs = Boolean(
     sessionData?.inputs?.businessProblem ||
     sessionData?.inputs?.businessSolution ||
@@ -42,10 +40,9 @@ function ResultsRestoreDialogContent() {
     sessionData?.businessSolution,
   );
 
-  // Check if there are actual results - must be a real object with content
-  // Not just an empty structure. Results can be in multiple formats.
+  // Results can be stored in several legacy shapes, but empty containers should not count.
   const hasResults = Boolean(
-    // Direct result objects
+    // Direct result objects.
     (sessionData?.results &&
       typeof sessionData.results === 'object' &&
       Object.keys(sessionData.results).length > 0) ||
@@ -55,7 +52,7 @@ function ResultsRestoreDialogContent() {
     (sessionData?.result_json &&
       typeof sessionData.result_json === 'object' &&
       Object.keys(sessionData.result_json).length > 0) ||
-    // Check for result-related fields in the sessionData object itself
+    // Legacy sessions may keep result-related fields at the root.
     (sessionData &&
       typeof sessionData === 'object' &&
       Object.keys(sessionData).some(
@@ -66,7 +63,7 @@ function ResultsRestoreDialogContent() {
       )),
   );
 
-  // Reset closing flag when dialog opens
+  // A fresh open must allow cancel/restore handlers after the previous close cycle finished.
   useEffect(() => {
     if (isDialogOpen) {
       isClosingRef.current = false;
@@ -77,7 +74,7 @@ function ResultsRestoreDialogContent() {
     if (isClosingRef.current) return;
 
     try {
-      // Clear results if checkbox is selected
+      // Clearing only removes calculated output; saved inputs remain available on the form.
       if (clearResults) {
         const sessionData = JSON.parse(localStorage.getItem('session_evaluation_state') || '{}');
         if (sessionData.results) {
@@ -86,19 +83,15 @@ function ResultsRestoreDialogContent() {
         }
       }
 
-      // Set mute dialog in localStorage if checkbox is selected
+      // Muting is temporary so users are reminded again after the short quiet period.
       if (muteDialog) {
         localStorage.setItem('results_restore_dialog_muted', 'true');
-        // Set expiration for 10 minutes from now
         const expirationTime = Date.now() + 10 * 60 * 1000;
         localStorage.setItem('results_restore_dialog_muted_expiration', expirationTime.toString());
       }
-
-      // Stay on the same page when canceling (no navigation needed)
-      isClosingRef.current = true;
-      onClose();
     } catch (error) {
-      logger.error('Cancel action failed:', error);
+      logger.error('[DIALOG_RESULTS_RESTORE:CANCEL_FAILED]', error);
+    } finally {
       isClosingRef.current = true;
       onClose();
     }
@@ -108,10 +101,9 @@ function ResultsRestoreDialogContent() {
     if (isClosingRef.current) return;
 
     try {
-      // Set mute dialog in localStorage if checkbox is selected
+      // Muting before navigation prevents the prompt from immediately reopening on /results.
       if (muteDialog) {
         localStorage.setItem('results_restore_dialog_muted', 'true');
-        // Set expiration for 10 minutes from now
         const expirationTime = Date.now() + 10 * 60 * 1000;
         localStorage.setItem('results_restore_dialog_muted_expiration', expirationTime.toString());
       }
@@ -136,7 +128,7 @@ function ResultsRestoreDialogContent() {
       isClosingRef.current = true;
       onClose();
     } catch (error) {
-      logger.error('Restore results action failed:', error);
+      logger.error('[DIALOG_RESULTS_RESTORE:RESTORE_FAILED]', error);
       isClosingRef.current = true;
       onClose();
     }
@@ -144,7 +136,7 @@ function ResultsRestoreDialogContent() {
 
   const handleBackdropChange = useCallback(
     (newOpen) => {
-      // Prevent reopening if we're in the middle of closing
+      // HeroUI can emit a transient reopen during close animation; ignore that edge.
       if (isClosingRef.current && newOpen) {
         return;
       }
@@ -199,7 +191,7 @@ function ResultsRestoreDialogContent() {
                   )}
                 </p>
               </div>
-              {/* Checkboxes section */}
+              {/* Checkboxes control whether cancel clears output or temporarily mutes this prompt. */}
               <div className="mt-4 flex flex-col gap-3">
                 <Checkbox
                   id="results_restore_dialog_clear_results"
@@ -248,7 +240,7 @@ function ResultsRestoreDialogContent() {
                     )}
                     to={clearResults ? '#' : resultsPageUrl}
                     onClick={(e) => {
-                      // can't visit the results if checked to clear them
+                      // Results navigation is disabled when the user chose to clear them.
                       if (clearResults) {
                         e.preventDefault();
                         return;
@@ -285,14 +277,17 @@ function ResultsRestoreDialogContent() {
   );
 }
 
-// Memoized to prevent duplicate renders from DialogManager
+// AlertDialog content is memoized to avoid duplicate render cycles during open/close transitions.
 const MemoizedContent = React.memo(ResultsRestoreDialogContent);
 
-// Memoized wrapper - only renders content when dialog is actually open
+/**
+ * Shell mounted by DialogManager that renders content only while the restore dialog is open.
+ * Returning null when closed avoids double-mount issues with AlertDialog.
+ */
 const ResultsRestoreDialog = React.memo(function ResultsRestoreDialog() {
   const { isDialogOpen } = useGlobalDialog();
 
-  // Return null when closed - this is critical for preventing double-render issues
+  // Closed dialogs stay unmounted so AlertDialog does not keep stale focus state.
   if (!isDialogOpen) {
     return null;
   }
@@ -300,7 +295,7 @@ const ResultsRestoreDialog = React.memo(function ResultsRestoreDialog() {
   return <MemoizedContent key="session-restore-dialog" />;
 });
 
-// Legacy export for backward compatibility
+// Preserve the historical Content export for tests or legacy imports.
 ResultsRestoreDialog.Content = ResultsRestoreDialogContent;
 
 export default ResultsRestoreDialog;

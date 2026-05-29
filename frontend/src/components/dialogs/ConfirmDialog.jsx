@@ -1,7 +1,4 @@
-/**
- * @module ConfirmDialog
- * @description Generic AlertDialog confirmation (default or destructive) driven by `openConfirmDialog` payload.
- */
+/** Generic AlertDialog confirmation opened via `openConfirmDialog`. */
 
 import { AlertDialog } from '@heroui/react';
 import { AlertCircle, TriangleAlert } from 'lucide-react';
@@ -12,29 +9,8 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Renders when `openConfirmDialog` is active; props are supplied by `DialogManager` from dialog data.
- *
- * @param {Object} props
- * @param {string} [props.title='Confirm'] - Dialog title.
- * @param {string} [props.description] - Body copy.
- * @param {string} [props.confirmText='Confirm'] - Primary button label.
- * @param {string} [props.cancelText='Cancel'] - Dismiss button label.
- * @param {Function|null} [props.onConfirm] - Async/sync handler when user confirms.
- * @param {'default'|'destructive'} [props.variant='default'] - Visual style for the confirm action.
- * @param {boolean} [props.isLoading=false] - Disables actions while an operation runs.
- * @returns {import('react').ReactElement|null}
- *
- * @example
- * In pages/components:
- * const { openConfirmDialog } = useGlobalDialog();
- * openConfirmDialog({
- *   title: 'Delete Item?',
- *   description: 'This action cannot be undone.',
- *   confirmText: 'Delete',
- *   cancelText: 'Cancel',
- *   onConfirm: handleDelete,
- *   variant: 'destructive',
- * });
+ * Renders a default or destructive confirmation dialog from `DialogManager` data.
+ * Async confirm handlers run after the dialog begins closing; failures reset the closing guard.
  */
 export default function ConfirmDialog({
   title = 'Confirm',
@@ -42,7 +18,7 @@ export default function ConfirmDialog({
   confirmText = 'Confirm',
   cancelText = 'Cancel',
   onConfirm = null,
-  variant = 'default', // 'default' | 'destructive'
+  variant = 'default', // 'default' or 'destructive'
   isLoading = false,
 }) {
   const { isDialogOpen, onClose } = useGlobalDialog();
@@ -50,7 +26,7 @@ export default function ConfirmDialog({
   const status = variant === 'destructive' ? 'danger' : 'accent';
   const isClosingRef = useRef(false);
 
-  // Reset closing flag when dialog opens
+  // A fresh open must allow cancel/confirm handlers after the previous close cycle finished.
   useEffect(() => {
     if (isDialogOpen) {
       isClosingRef.current = false;
@@ -71,17 +47,16 @@ export default function ConfirmDialog({
     try {
       const result = onConfirm();
 
-      // Close dialog immediately
       isClosingRef.current = true;
       onClose();
 
-      // Handle async operations in background
+      // Long-running confirmations should not keep the modal visually stuck open.
       if (result instanceof Promise) {
         await result;
       }
     } catch (error) {
       logger.error('[CONFIRM_DIALOG_ERROR]', error);
-      // Keep dialog open on error
+      // Allow another attempt if the background confirmation fails.
       isClosingRef.current = false;
     }
   };
@@ -95,7 +70,7 @@ export default function ConfirmDialog({
   };
 
   const handleBackdropChange = (newOpen) => {
-    // Prevent reopening if we're in the middle of closing
+    // HeroUI can emit a transient reopen during close animation; ignore that edge.
     if (isClosingRef.current && newOpen) {
       return;
     }
@@ -114,7 +89,6 @@ export default function ConfirmDialog({
         variant="opaque"
         isDismissable={false}
         isKeyboardDismissDisabled={true}
-        className=""
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>

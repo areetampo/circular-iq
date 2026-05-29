@@ -1,13 +1,10 @@
-/**
- * @module ResultsRestoreDialog.simple.test
- * @description Lightweight tests for ResultsRestoreDialog.
- */
+/** Lightweight ResultsRestoreDialog tests with a focused component mock. */
 
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
-// Mock localStorage with all required methods
+// The dialog code expects the full localStorage surface during render and cleanup.
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -20,14 +17,14 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
-// Mock the entire ResultsRestoreDialog component to isolate the test
+// Component mock isolates the disabled-state assertion from HeroUI dialog internals.
 vi.mock('./ResultsRestoreDialog', () => ({
   default: () => {
     let clearResults = false;
 
     const handleCheckboxChange = (e) => {
       clearResults = e.target.checked;
-      // Force re-render by updating the button's disabled state
+      // The mock updates the button directly to keep this test focused on expected UI state.
       const restoreButton = document.querySelector('button[data-restore="true"]');
       if (restoreButton) {
         restoreButton.disabled = clearResults;
@@ -70,7 +67,7 @@ describe('ResultsRestoreDialog - Simple Tests', () => {
       </MemoryRouter>,
     );
 
-    // Should find the main dialog elements
+    // The core prompt and actions should be visible.
     expect(screen.getByText(/Restore your previous results/)).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByText('Restore Results')).toBeInTheDocument();
@@ -97,13 +94,13 @@ describe('ResultsRestoreDialog - Simple Tests', () => {
     const clearResultsCheckbox = screen.getByText('Clear calculated results');
     const restoreButton = screen.getByText('Restore Results');
 
-    // Initially should be enabled
+    // The restore action starts enabled before the clear-results choice is selected.
     expect(restoreButton).not.toBeDisabled();
 
-    // Check the clear results checkbox
+    // Selecting clear-results should make restoring unavailable.
     clearResultsCheckbox.click();
 
-    // Should now be disabled
+    // The mock mirrors the real component's disabled restore action.
     expect(restoreButton).toBeDisabled();
   });
 });

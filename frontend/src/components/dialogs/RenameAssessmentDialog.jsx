@@ -1,15 +1,4 @@
-/**
- * @module RenameAssessmentDialog
- * @description Rename a saved assessment title with validation (3–50 characters).
- *
- * @example
- * In a component using useGlobalDialog hook:
- * const { openRenameAssessmentDialog } = useGlobalDialog();
- * openRenameAssessmentDialog({
- *   defaultName: 'Current Name',
- *   onRename: async (newName) => { ... },
- * });
- */
+/** Rename dialog for saved assessment titles with 3-50 character validation. */
 
 import { AlertDialog, FieldError, Input, Label, TextField } from '@heroui/react';
 import { Pencil } from 'lucide-react';
@@ -20,11 +9,8 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Rename dialog; `onRename` is read from `dialog.data` set by `openRenameAssessmentDialog`.
- *
- * @param {Object} props
- * @param {string} [props.defaultName=''] - Current title prefilled in the input.
- * @returns {import('react').ReactElement|null}
+ * Renders the rename form and reads `onRename` from dialog data set by `openRenameAssessmentDialog`.
+ * Validation and rename failures are surfaced inline.
  */
 export default function RenameAssessmentDialog({ defaultName = '' }) {
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
@@ -33,7 +19,7 @@ export default function RenameAssessmentDialog({ defaultName = '' }) {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get callback from dialog data with stable reference
+  // Dialog data owns the current rename handler for the selected assessment.
   const onRename = dialog?.data?.onRename;
 
   useEffect(() => {
@@ -77,8 +63,8 @@ export default function RenameAssessmentDialog({ defaultName = '' }) {
           await onRename(name.trim());
         }
         close();
-      } catch (err) {
-        setError(err?.message || 'Rename failed. Please try again.');
+      } catch (error) {
+        setError(error?.message || 'Rename failed. Please try again.');
       } finally {
         setIsSubmitting(false);
       }
@@ -98,7 +84,6 @@ export default function RenameAssessmentDialog({ defaultName = '' }) {
         variant="opaque"
         isDismissable={false}
         isKeyboardDismissDisabled={true}
-        className=""
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>
@@ -125,7 +110,7 @@ export default function RenameAssessmentDialog({ defaultName = '' }) {
                       value={name}
                       onChange={(e) => {
                         const value = e.target.value;
-                        // Allow up to 50 characters + whitespace for trimming
+                        // Preserve extra whitespace during typing, then validate the trimmed title.
                         if (value.length <= 50) {
                           setName(value);
                           setError('');

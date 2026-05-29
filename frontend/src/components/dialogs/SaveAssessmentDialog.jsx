@@ -1,16 +1,4 @@
-/**
- * @module SaveAssessmentDialog
- * @description Save-assessment flow: name, visibility, and benchmark opt-in before persisting results.
- * Uses global dialog state via `useGlobalDialog()` and HeroUI AlertDialog.
- *
- * @example
- * In a component using useGlobalDialog hook:
- * const { openSaveAssessmentDialog } = useGlobalDialog();
- * openSaveAssessmentDialog({
- *   defaultName: 'Untitled Assessment',
- *   onSave: async (data) => { ... }, // data contains: name, industry, isPublic, contributeToGlobalBenchmarks, scoringResult
- * });
- */
+/** Save-assessment dialog for naming and persisting the current scoring result. */
 
 import { AlertDialog, FieldError, Input, Label, TextField } from '@heroui/react';
 import { Save } from 'lucide-react';
@@ -21,11 +9,10 @@ import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 /**
- * Content component for save assessment dialog
- * Gets data from centralized dialog state (DialogManager passes defaultName prop)
+ * Renders the save form and invokes `dialog.data.onSave` with normalized assessment data.
+ * Validation and save failures are surfaced inline instead of through global toasts.
  */
 function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null }) {
-  // Note: defaultName prop validation handled by wrapper component
   const { isDialogOpen, onClose, dialog } = useGlobalDialog();
 
   const [name, setName] = useState(defaultName);
@@ -33,7 +20,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get callback from dialog data with stable reference
+  // Memoize the save callback because dialog data can be recreated by context updates.
   const onSave = useMemo(() => dialog?.data?.onSave, [dialog?.data?.onSave]);
 
   useEffect(() => {
@@ -77,7 +64,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
       setIsSubmitting(true);
       try {
         if (onSave) {
-          // Let caller throw on validation/server errors so we can show message in-dialog
+          // Let callers throw validation/server errors so the dialog can show them inline.
           await onSave({
             name: trimmedName,
             industry,
@@ -87,9 +74,8 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
           });
         }
         close();
-      } catch (err) {
-        // Surface the error inside the dialog instead of using a toast
-        setError(err?.message || 'Failed to save assessment');
+      } catch (error) {
+        setError(error?.message || 'Failed to save assessment');
       } finally {
         setIsSubmitting(false);
       }
@@ -97,7 +83,7 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
     [name, onSave],
   );
 
-  // Only render when dialog is actually open
+  // Closed dialogs stay unmounted so AlertDialog does not retain stale form state.
   if (!isDialogOpen) {
     return null;
   }
@@ -110,7 +96,6 @@ function SaveAssessmentDialogContent({ defaultName = '', scoringResult = null })
         variant="opaque"
         isDismissable={false}
         isKeyboardDismissDisabled={true}
-        className=""
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>
@@ -192,22 +177,16 @@ SaveAssessmentDialogContent.propTypes = {
   scoringResult: PropTypes.object,
 };
 
-// Memoized content to prevent duplicate renders
+// AlertDialog content is memoized to avoid duplicate render cycles during open/close transitions.
 const MemoizedContent = React.memo(SaveAssessmentDialogContent);
 
-// Memoized wrapper - only renders content when dialog is actually open
 /**
- * Mounts save dialog content when `isDialogOpen`; otherwise returns null.
- *
- * @param {Object} props
- * @param {string} [props.defaultName=''] - Prefilled assessment title.
- * @param {Object|null} [props.scoringResult=null] - Result payload passed to the save handler.
- * @returns {import('react').ReactElement|null}
+ * Mounts save dialog content only while the save dialog is open.
  */
 export default function SaveAssessmentDialog({ defaultName = '', scoringResult = null }) {
   const { isDialogOpen } = useGlobalDialog();
 
-  // Return null when closed to prevent AlertDialog from mounting
+  // Closed dialogs stay unmounted so AlertDialog does not keep stale focus state.
   if (!isDialogOpen) {
     return null;
   }

@@ -1,7 +1,4 @@
-/**
- * @module LimitReachedDialog
- * @description Shown when anonymous users hit the scoring limit; prompts sign-in and lists account benefits.
- */
+/** Sign-in prompt shown when anonymous users reach the scoring limit. */
 
 import { AlertDialog } from '@heroui/react';
 import { Angry, FileDown, InfinityIcon, Orbit, Save, Share, TextSearch } from 'lucide-react';
@@ -10,16 +7,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/common';
 import { useGlobalDialog } from '@/contexts/DialogContext';
+import { formatDuration } from '@/lib/formatting';
 
 /**
- * Anonymous scoring limit gate with sign-in CTA and feature highlights.
- *
- * @param {Object} props
- * @param {number} props.anonScoringLimit - Max anonymous evaluations allowed.
- * @param {string|number|Date} [props.lastUsedAt] - Timestamp of the last anonymous score (for messaging).
- * @returns {import('react').ReactElement|null} Null when the dialog is closed.
+ * Renders the anonymous scoring-limit dialog with reset countdown and account feature highlights.
  */
-export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
+export default function LimitReachedDialog({
+  lastUsedAt,
+  anonScoringLimit,
+  anonScoringUsageRetentionDays,
+}) {
   const { isDialogOpen, onClose } = useGlobalDialog();
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,6 +24,17 @@ export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
   if (!isDialogOpen) {
     return null;
   }
+
+  const targetTime =
+    new Date(lastUsedAt).getTime() + anonScoringUsageRetentionDays * 24 * 60 * 60 * 1000;
+  const timeRemainingMs = targetTime - Date.now();
+
+  // Hide seconds and milliseconds so the reset copy stays stable while the modal is open.
+  const formattedTimeLeft = formatDuration({
+    ms: timeRemainingMs,
+    showSeconds: false,
+    showMs: false,
+  });
 
   const LIMIT_REACHED_DIALOG_POINTS = [
     { icon: InfinityIcon, text: 'Unlimited evaluations' },
@@ -37,14 +45,9 @@ export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
     { icon: FileDown, text: 'Export reports (PDF, CSV)' },
   ];
 
-  const daysLeft = Math.ceil(
-    (new Date(lastUsedAt).getTime() + 30 * 24 * 60 * 60 * 1000 - Date.now()) /
-      (1000 * 60 * 60 * 24),
-  );
-
   const handleSignUp = () => {
     onClose();
-    navigate('/auth', { state: { mode: 'signup', from: location } });
+    navigate('/auth', { state: { view: 'signup', from: location } });
   };
 
   const handleClose = () => {
@@ -58,7 +61,6 @@ export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
         onOpenChange={(open) => {
           if (!open) onClose();
         }}
-        className=""
       >
         <AlertDialog.Container placement="center" size="sm">
           <AlertDialog.Dialog>
@@ -76,12 +78,12 @@ export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
 
                 <AlertDialog.Body className="text-center text-sm/relaxed text-(--color-text-secondary)">
                   You&apos;ve used your{' '}
-                  <span className="font-semibold text-(--color-text-primary)">
+                  <span className="font-medium text-(--color-text-primary)">
                     {anonScoringLimit}
                   </span>{' '}
                   free evaluations. Try again in{' '}
-                  <span className="font-semibold text-(--color-text-primary)">
-                    {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
+                  <span className="font-medium text-(--color-text-primary)">
+                    {formattedTimeLeft}
                   </span>{' '}
                   or create an account to continue assessing your circular economy initiatives:
                   <ul className="mt-4 space-y-2 text-left">
@@ -115,6 +117,7 @@ export default function LimitReachedDialog({ anonScoringLimit, lastUsedAt }) {
 }
 
 LimitReachedDialog.propTypes = {
-  anonScoringLimit: PropTypes.number,
   lastUsedAt: PropTypes.string,
+  anonScoringLimit: PropTypes.number,
+  anonScoringUsageRetentionDays: PropTypes.number,
 };

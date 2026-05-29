@@ -1,28 +1,11 @@
 /**
- * @module DialogManager
- * @description Central renderer for all app dialogs; switches on `dialog.type` from `useGlobalDialog()`.
- * Mounted in `AppContainer` so overlays sit at the correct z-index.
- *
- * This component:
- * 1. Gets the global dialog state via useGlobalDialog()
- * 2. Switches on dialog type
- * 3. Renders the appropriate dialog component
- * 4. Passes data payload to dialog components
- *
- * Each dialog component is responsible for:
- * - Using useGlobalDialog() to get isDialogOpen and onClose
- * - Rendering only if isDialogOpen is true
- * - Managing its own content and interactions
- *
- * @example
- * In AppContainer.jsx:
- * return <DialogManager />;
- * (No props needed - gets dialog state directly from context)
+ * Dialog manager that renders the active modal from global dialog state.
+ * It switches on `dialog.type` and passes `dialog.data` to the matching dialog component.
  */
 
 import React from 'react';
 
-import DIALOG_TYPES from '@/constants/dialogTypes';
+import { DIALOG_TYPES } from '@/constants';
 import { useGlobalDialog } from '@/contexts/DialogContext';
 
 import ConfirmDialog from './ConfirmDialog';
@@ -34,12 +17,10 @@ import ResultsRestoreDialog from './ResultsRestoreDialog';
 import SaveAssessmentDialog from './SaveAssessmentDialog';
 
 /**
- * Renders the active dialog component from global dialog state.
- * @returns {import('react').ReactElement|null}
+ * Selects the active dialog component from global dialog context.
  */
 function DialogManagerContent() {
-  // Get dialog state directly from context instead of props
-  // This allows React.memo() to work properly without prop reference issues
+  // Reading context inside the memoized component avoids prop reference churn from DialogManager.
   const { dialog } = useGlobalDialog();
 
   if (!dialog || !dialog.type) return null;
@@ -59,13 +40,23 @@ function DialogManagerContent() {
       return <RenameAssessmentDialog defaultName={data?.defaultName} />;
 
     case DIALOG_TYPES.REPLACE_INPUTS:
-      return <ReplaceInputsDialog />;
+      return (
+        <ReplaceInputsDialog
+          title={data?.title}
+          description={data?.description}
+          confirmText={data?.confirmText}
+          cancelText={data?.cancelText}
+          onConfirm={data?.onConfirm}
+          onCancel={data?.onCancel}
+        />
+      );
 
     case DIALOG_TYPES.LIMIT_REACHED:
       return (
         <LimitReachedDialog
-          anonScoringLimit={data?.anonScoringLimit}
           lastUsedAt={data?.lastUsedAt}
+          anonScoringLimit={data?.anonScoringLimit}
+          anonScoringUsageRetentionDays={data?.anonScoringUsageRetentionDays}
         />
       );
 
@@ -86,12 +77,12 @@ function DialogManagerContent() {
       return <ResultsRestoreDialog />;
 
     default:
-      logger.warn('Unknown dialog type:', type);
+      logger.warn('[DIALOG_MANAGER:UNKNOWN_TYPE]', type);
       return null;
   }
 }
 
-// Memoize the entire manager - now works properly since it gets state from context directly
+// Memoize the manager while letting context updates drive active dialog changes.
 const DialogManager = React.memo(DialogManagerContent);
 
 DialogManager.propTypes = {};
