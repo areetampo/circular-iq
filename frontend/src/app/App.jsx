@@ -1,18 +1,5 @@
 /**
- * @module App
- * @description Root application component with minimal wrapper logic.
- * Delegates to AppProvider for providers and AppRoutes for routing.
- * Contains no business logic, state, or API calls.
- *
- * Architecture:
- * - AppProvider: Wraps providers (ErrorBoundary, BrowserRouter, Toaster)
- * - AppRoutes: Defines all routes with lazy-loaded pages
- * - App.jsx: Minimal wrapper - NO logic, NO state, NO API calls
- *
- * All business logic, state, and API calls are handled by:
- * - Custom hooks in src/features/assessments/hooks/
- * - API layer in src/features/assessments/api/assessmentApi.js
- * - Page components that consume hooks
+ * Application shell that composes providers, session restoration, and routed pages.
  */
 import { AppSessionManager } from '@/features/session';
 
@@ -20,8 +7,9 @@ import AppProvider from './AppProvider';
 import AppRoutes from './AppRoutes';
 
 /**
- * Root application component with minimal wrapper logic.
- * @returns {import('react').ReactElement}
+ * Renders the root provider stack, session restore manager, and application routes.
+ *
+ * @returns {import('react').ReactElement} Provider-wrapped application tree with session and route managers.
  */
 export default function App() {
   return (

@@ -1,16 +1,6 @@
 /**
- * @module AppRoutes
- * @description Application routing configuration with lazy-loaded pages.
- * Defines all routes with error boundaries and authentication guards.
- *
- * Route structure:
- * - Public routes: /, /auth, /guide, /results, /solutions, /global-activity, /uptime-monitor
- * - Assessment routes: /assessments, /assessments/share, /assessments/share/:id, /assessments/compare
- * - Protected routes: /assessments/:publicId (requires authentication)
- *
- * Order matters (React Router v6: first match wins):
- * - Static path segments before dynamic (/assessments/compare before /assessments/:publicId)
- * - Deeper share routes before shallower ones where relevant
+ * Lazy-loaded route tree with page error boundaries and static assessment routes declared before dynamic IDs.
+ * The assessment detail route requires authentication; public routes include auth, guide, results, share, compare, activity, and uptime pages.
  */
 
 import PropTypes from 'prop-types';
@@ -21,7 +11,7 @@ import DriftingShapesBackground from '@/components/background/DriftingShapesBack
 import { LoaderComponent } from '@/components/common';
 import { GlobalErrorBoundary, PageErrorBoundary } from '@/components/error-boundaries';
 import { ScrollToTop, AppContainer, Footer, Navbar } from '@/components/layout';
-import { useAuth } from '@/hooks';
+import { useAuth, usePageTitle } from '@/hooks';
 
 const AuthPage = lazy(() => import('@/pages/AuthPage/AuthPage'));
 const LandingPage = lazy(() => import('@/pages/LandingPage/LandingPage'));
@@ -36,8 +26,28 @@ const GlobalActivityPage = lazy(() => import('@/pages/GlobalActivityPage/GlobalA
 const UptimeMonitorPage = lazy(() => import('@/pages/UptimeMonitorPage/UptimeMonitorPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
+const ROUTE_TITLES = {
+  '/': 'Evaluate Circular Economy',
+  '/assessments': 'My Assessments',
+  '/assessments/share': 'Share Gateway',
+  '/assessments/compare': 'Compare Assessments',
+  '/results': 'Results',
+  '/guide': 'User Guide',
+  '/solutions': 'Our Solutions',
+  '/global-activity': 'Global Activity',
+  '/uptime-monitor': 'System Status',
+  // Dynamic pages own their page titles because route params or result state affect the label.
+};
+
+function TitleSetter() {
+  const { pathname } = useLocation();
+  const staticTitle = ROUTE_TITLES[pathname]; // undefined for dynamic routes
+  usePageTitle(staticTitle); // only fires for exact matches
+  return null;
+}
+
 /**
- * ProtectedRoute — requires Supabase session (see useAuth).
+ * Renders children when authenticated; otherwise redirects to `redirectTo` after session check.
  */
 function ProtectedRoute({ children, redirectTo = '/auth' }) {
   const { isAuthenticated, authLoading } = useAuth();
@@ -66,23 +76,18 @@ ProtectedRoute.propTypes = {
 };
 
 /**
- * Application routes.
+ * Renders the app's route tree, shared chrome, route-level titles, and page error boundaries.
  *
- * Order matters (React Router v6: first match wins):
- * - Static path segments before dynamic (`/assessments/compare` before `/assessments/:publicId`).
- * - Deeper share routes before shallower ones where relevant.
- *
- * Public (no login): `/`, `/auth`, `/guide`, `/results`, `/solutions`, `/global-activity`, `/assessments/share`, `/assessments/share/:id`, `/assessments`, `/assessments/compare`.
- * Protected: `/assessments/:publicId`.
+ * @returns {import('react').ReactElement} Router tree wrapped in global and per-page error boundaries.
  */
 export default function AppRoutes() {
   return (
     <GlobalErrorBoundary>
       <Routes>
-        {/* Auth route — no navbar, no app-bg wrapper */}
+        {/* Auth route has no navbar or app background wrapper. */}
         <Route path="/auth" element={<AuthPage />} />
 
-        {/* All other routes — with navbar and app-bg */}
+        {/* Primary app routes share navbar, background, footer, and suspense fallback. */}
         <Route
           path="/"
           element={
@@ -91,6 +96,7 @@ export default function AppRoutes() {
               <Navbar />
               <main className="flex-1">
                 <AppContainer>
+                  <TitleSetter />
                   <ScrollToTop />
                   <Suspense
                     fallback={
@@ -108,7 +114,7 @@ export default function AppRoutes() {
             </div>
           }
         >
-          {/* ─── Public Routes ─── */}
+          {/* Public routes */}
           <Route index element={<LandingPage />} />
 
           <Route
@@ -192,7 +198,7 @@ export default function AppRoutes() {
             }
           />
 
-          {/* ─── Protected Routes ─── */}
+          {/* Protected routes */}
           <Route
             path="/assessments/:publicId"
             element={

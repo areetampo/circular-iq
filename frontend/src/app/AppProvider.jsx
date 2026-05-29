@@ -1,18 +1,5 @@
 /**
- * @module AppProvider
- * @description Root provider stack: error boundary, auth, toasts, drawers, dialogs, React Query, and devtools.
- * Wraps the entire app with necessary providers for error handling,
- * authentication, dialogs, drawers, React Query, and loading indicators.
- *
- * Providers (in order):
- * - ErrorBoundary: Global error handling
- * - AuthProvider: Authentication state (SINGLE SHARED INSTANCE)
- * - Toast.Provider: Toast notifications
- * - DrawerProvider: Drawer state management
- * - DialogProvider: Dialog state management
- * - QueryClientProvider: React Query for data fetching
- * - GlobalLoadingBar: Loading indicator
- * - ReactQueryDevtools: Development debugging
+ * Root provider stack that wires error handling, auth, overlays, React Query, and global managers.
  */
 
 import { Toast, toast } from '@heroui/react';
@@ -21,6 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 
+import DialogManager from '@/components/dialogs/DialogManager';
 import DrawerManager from '@/components/drawers/DrawerManager';
 import { ErrorBoundary } from '@/components/error-boundaries';
 import { GlobalLoadingBar } from '@/components/layout';
@@ -28,18 +16,20 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { DialogProvider } from '@/contexts/DialogContext';
 import { DrawerProvider } from '@/contexts/DrawerContext';
 
-// Set of error message strings to skip showing toast notifications
+/**
+ * Error-message fragments whose matching query failures are already surfaced by the active page.
+ */
 const SKIPPED_TOASTS = {
-  // Filter out pagination-related errors that we handle silently
+  // Pagination range misses are expected when a page asks beyond available history.
   'Requested range not satisfiable': "Don't show toast for pagination errors",
 
-  // Filter out compare/share validation errors that are handled by DetailsBadge
+  // Compare and share validation errors are displayed inline by DetailsBadge.
   'Invalid assessment ID': "Don't show toast for validation errors handled by forms",
   'One or more ids incorrect': "Don't show toast for validation errors handled by forms",
   'not public': "Don't show toast for validation errors handled by forms",
   'Validation failed': "Don't show toast for validation errors handled by forms",
 
-  // Filter out assessment view page errors that are handled by DetailsDisplay
+  // Assessment view errors are displayed inline by DetailsDisplay.
   'Failed to load shared assessment':
     "Don't show toast for errors handled by DetailsDisplay on view pages",
   'Failed to load assessment':
@@ -56,11 +46,12 @@ const SKIPPED_TOASTS = {
     "Don't show toast for errors handled by DetailsDisplay on view pages",
 };
 
-// Initialize QueryClient with global error handling
+/**
+ * Shared React Query client with global toast handling for unexpected query and mutation failures.
+ */
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
-      // Check if error message should be skipped
       const errorMsg = error?.message;
       if (errorMsg && Object.keys(SKIPPED_TOASTS).some((skipMsg) => errorMsg.includes(skipMsg))) {
         return;
@@ -87,14 +78,10 @@ const queryClient = new QueryClient({
 });
 
 /**
- * Wraps the app with global providers and enables browser scroll restoration.
- *
- * @param {Object} props
- * @param {import('react').ReactNode} props.children - Routed page tree.
- * @returns {import('react').ReactElement}
+ * Provides application-wide context, overlay managers, React Query, and scroll restoration.
  */
 export default function AppProvider({ children }) {
-  // Enable browser scroll restoration for back/forward navigation
+  // Back/forward navigation should restore the browser-managed scroll position.
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'auto';
@@ -117,6 +104,7 @@ export default function AppProvider({ children }) {
               <GlobalLoadingBar />
               {children}
               <DrawerManager />
+              <DialogManager />
               <ReactQueryDevtools initialIsOpen={false} />
             </QueryClientProvider>
           </DialogProvider>
