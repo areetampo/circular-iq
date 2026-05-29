@@ -1,6 +1,5 @@
 /**
- * @module CategoryAnalysis
- * @description Per evaluation-category score breakdown on the Results page.
+ * Per evaluation-category score breakdown on the Results page.
  */
 
 import PropTypes from 'prop-types';
@@ -10,12 +9,7 @@ import { categoryMapping, validKeys } from '@/constants/evaluationData';
 import { cn } from '@/utils/cn';
 
 /**
- * Per evaluation-category score breakdown on the Results page.
- *
- * @param {Object} props
- * @param {Object} props.actualResult
- * @param {number} props.resolvedBusinessViabilityScore
- * @returns {import('react').ReactElement}
+ * Renders factor scores plus the resolved business-viability score as progress rows.
  */
 export default function CategoryAnalysis({ actualResult, resolvedBusinessViabilityScore }) {
   const getScoreColor = (numValue) => {
@@ -41,7 +35,7 @@ export default function CategoryAnalysis({ actualResult, resolvedBusinessViabili
             const category = categoryMapping[key];
             if (!category) return null;
 
-            const numValue = value != null && !isNaN(value) ? Number(value) : 0;
+            const numValue = value !== null && !isNaN(value) ? Number(value) : 0;
             const barColor = getScoreColor(numValue);
             const badgeColor = getScoreColor(numValue);
 

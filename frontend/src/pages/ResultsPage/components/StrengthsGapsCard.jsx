@@ -1,6 +1,5 @@
 /**
- * @module StrengthsGapsCard
- * @description Combined strengths and gaps summary from audit analysis.
+ * Combined strengths and gaps summary from audit analysis.
  */
 
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -9,12 +8,7 @@ import PropTypes from 'prop-types';
 import { Chip, SectionHeading } from '@/components/common';
 
 /**
- * Combined strengths and gaps summary from audit analysis.
- *
- * @param {Object} props
- * @param {Array<string>} props.strengths
- * @param {Array<string>} props.gaps
- * @returns {import('react').ReactElement}
+ * Shows validated strengths, improvement gaps, and fallback strengths when audit data is sparse.
  */
 export default function StrengthsGapsCard({ strengths, gaps, ...props }) {
   return (

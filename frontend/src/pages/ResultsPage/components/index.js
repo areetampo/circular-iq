@@ -1,13 +1,4 @@
-/**
- * @module ResultsPage.components
- * @description Central export point for ResultsPage components.
- * Re-exports all reusable components for the Results page including
- * AuditSummaryCard, CaseSummaryAccordions, CategoryAnalysis, CircularEconomyTierCard,
- * DatabaseEvidenceCard, GapAnalysisCard, IndustryMetadataSection, IntegrityAnalysis,
- * ParameterConsistencyCard, PerformanceComparison, RecommendationsCard, ResultsActionBar,
- * ResultsSkeleton, RStrategyAlignmentCard, ScoreCategoryBreakdown, ScoreOverviewSection,
- * StrengthsGapsCard, and WeightedScoreCard.
- */
+/** Barrel re-exports for ResultsPage components. */
 
 export { default as AuditSummaryCard } from './AuditSummaryCard';
 export { default as CaseSummaryAccordions } from './CaseSummaryAccordions';

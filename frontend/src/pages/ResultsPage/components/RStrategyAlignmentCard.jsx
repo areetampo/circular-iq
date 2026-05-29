@@ -1,6 +1,5 @@
 /**
- * @module RStrategyAlignmentCard
- * @description R-strategy alignment score and supporting rationale from the audit.
+ * R-strategy alignment score and supporting rationale from the audit.
  */
 
 import PropTypes from 'prop-types';
@@ -11,11 +10,7 @@ import { formatFactorName } from '@/lib/scoring';
 import ScoreCard from './ScoreCard';
 
 /**
- * R-strategy alignment score and supporting rationale from the audit.
- *
- * @param {Object} props
- * @param {Object} props.actualResult
- * @returns {import('react').ReactElement}
+ * Shows detected R-strategy fit, misaligned factors, and well-aligned factors.
  */
 export default function RStrategyAlignmentCard({ actualResult }) {
   if (actualResult?.r_strategy_alignment?.alignment_score == null) return null;

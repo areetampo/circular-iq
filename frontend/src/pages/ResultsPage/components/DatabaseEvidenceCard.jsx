@@ -1,6 +1,5 @@
 /**
- * @module DatabaseEvidenceCard
- * @description Lists database evidence snippets supporting the scoring audit.
+ * Lists database evidence snippets supporting the scoring audit.
  */
 
 import { FileText, FolderSearch, MoveRight } from 'lucide-react';
@@ -11,30 +10,10 @@ import { useGlobalDrawer } from '@/contexts/DrawerContext';
 import { getMatchStrength } from '@/utils/content';
 
 /**
- * Lists database evidence snippets supporting the scoring audit.
- *
- * @param {Object} props
- * @param {Object} props.actualResult
- * @param {Array<Object>} props.casesSummaries
- * @returns {import('react').ReactElement}
+ * Lists similar cases with match strength chips and opens case details from the results drawer.
  */
 export default function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
-  const { openResultsDatabaseEvidenceDetailsDrawer, drawer } = useGlobalDrawer();
-
-  const handleViewDetails = (caseItem) => {
-    logger.log('=== Clicking View Details ===');
-    logger.log('Current drawer state:', drawer);
-    logger.log('Case item being opened:', caseItem);
-
-    // Debug: Check if the function exists and is callable
-    if (typeof openResultsDatabaseEvidenceDetailsDrawer !== 'function') {
-      logger.error('openResultsDatabaseEvidenceDetailsDrawer is not a function!');
-      return;
-    }
-
-    // Call the drawer opening function
-    openResultsDatabaseEvidenceDetailsDrawer(caseItem);
-  };
+  const { openResultsDatabaseEvidenceDetailsDrawer } = useGlobalDrawer();
 
   return (
     <div data-export-section="database-evidence">
@@ -64,7 +43,7 @@ export default function DatabaseEvidenceCard({ actualResult, casesSummaries }) {
                   block
                   key={index}
                   className="group flex h-full cursor-pointer items-start gap-4 rounded-xl border-2 border-(--color-border-strong) p-4 transition-all duration-200 hover:bg-(--color-accent-light)"
-                  onClick={() => handleViewDetails(caseItem)}
+                  onClick={() => openResultsDatabaseEvidenceDetailsDrawer(caseItem)}
                 >
                   <div className="flex flex-1 flex-col gap-3">
                     <h4 className="text-lg text-(--color-text-primary)">{caseTitle}</h4>

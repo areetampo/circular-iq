@@ -1,6 +1,5 @@
 /**
- * @module PerformanceComparison
- * @description Bar comparison of user sub-scores vs market benchmarks.
+ * Bar comparison of user sub-scores vs market benchmarks.
  */
 
 import PropTypes from 'prop-types';
@@ -9,13 +8,7 @@ import { RadarChart } from '@/components/charts';
 import { SectionHeading } from '@/components/common';
 
 /**
- * Bar comparison of user sub-scores vs market benchmarks.
- *
- * @param {Object} props
- * @param {Array<Object>} props.resolvedRadarData
- * @param {Array<Object>} props.radarConfigs
- * @param {boolean} props.detailLoading
- * @returns {import('react').ReactElement}
+ * Displays radar comparison data when available, otherwise shows an empty-state message.
  */
 export default function PerformanceComparison({ resolvedRadarData, radarConfigs, detailLoading }) {
   if (resolvedRadarData && resolvedRadarData.length > 0) {

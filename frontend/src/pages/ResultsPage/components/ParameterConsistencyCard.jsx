@@ -1,6 +1,5 @@
 /**
- * @module ParameterConsistencyCard
- * @description Parameter consistency score and factor-level variance explanation.
+ * Parameter consistency score and factor-level variance explanation.
  */
 
 import PropTypes from 'prop-types';
@@ -11,21 +10,8 @@ import { formatFactorName } from '@/lib/scoring';
 import ScoreCard from './ScoreCard';
 
 /**
- * ParameterConsistencyCard - Component displaying parameter consistency analysis
- * Shows internal consistency score, rating, interpretation, and identified issues
- *
- * @param {Object} props - Component props
- * @param {Object} props.actualResult - Assessment result object containing parameter consistency data
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element|null} Rendered ParameterConsistencyCard or null if no data
- *
- * @example
- * Basic usage
- * <ParameterConsistencyCard actualResult={assessmentResult} />
- *
- * @example
- * With missing data
- * <ParameterConsistencyCard actualResult={null} />
+ * Internal consistency score, rating, interpretation, and identified issues.
+ * Returns null when `actualResult.parameter_consistency` is missing.
  */
 export default function ParameterConsistencyCard({ actualResult, ...props }) {
   if (!actualResult?.parameter_consistency) return null;

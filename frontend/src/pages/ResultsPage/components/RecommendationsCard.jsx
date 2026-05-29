@@ -1,6 +1,5 @@
 /**
- * @module RecommendationsCard
- * @description Bulleted technical recommendations from the scoring audit (with defaults when empty).
+ * Bulleted technical recommendations from the scoring audit (with defaults when empty).
  */
 
 import PropTypes from 'prop-types';
@@ -9,10 +8,6 @@ import { SectionHeading } from '@/components/common';
 
 /**
  * Renders audit `technical_recommendations` or sensible defaults when none exist.
- *
- * @param {Object} props
- * @param {Object} props.actualResult - Scoring result containing `audit.technical_recommendations`.
- * @returns {import('react').ReactElement}
  */
 export default function RecommendationsCard({ actualResult }) {
   return (

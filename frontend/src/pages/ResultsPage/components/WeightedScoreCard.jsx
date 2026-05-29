@@ -1,6 +1,5 @@
 /**
- * @module WeightedScoreCard
- * @description Eight-factor weighted score card with per-factor contributions.
+ * Eight-factor weighted score card with per-factor contributions.
  */
 
 import { TrendingUp } from 'lucide-react';
@@ -12,21 +11,8 @@ import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 
 /**
- * WeightedScoreCard - Component displaying weighted score breakdown
- * Shows how each factor contributed to the overall score with visual progress bars
- *
- * @param {Object} props - Component props
- * @param {Object} props.actualResult - Assessment result object containing weighted score data
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element|null} Rendered WeightedScoreCard or null if no data
- *
- * @example
- * Basic usage
- * <WeightedScoreCard actualResult={assessmentResult} />
- *
- * @example
- * With missing data
- * <WeightedScoreCard actualResult={null} />
+ * Per-factor weighted contributions with progress bars.
+ * Returns null when `actualResult.weighted_score_card` is missing.
  */
 export default function WeightedScoreCard({ actualResult, ...props }) {
   if (!actualResult?.weighted_score_card) return null;

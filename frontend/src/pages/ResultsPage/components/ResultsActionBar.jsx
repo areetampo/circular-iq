@@ -1,45 +1,19 @@
 /**
- * @module ResultsActionBar
- * @description Sticky action bar: export, save, rename, delete, re-evaluate, and navigation on Results.
+ * Sticky action bar: export, save, rename, delete, re-evaluate, and navigation on Results.
  */
 
 import { toast } from '@heroui/react';
 import { CircleX, Download, Eye, FolderPen, MoveLeft, RefreshCw, Save } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, CopyButton } from '@/components/common';
 import { useAssessmentHandlers } from '@/features/export';
 import { getSession, saveSession } from '@/utils/session';
 
 /**
- * ResultsActionBar - Action bar component for results page
- * Provides download, save, rename, delete, and navigation functionality
- *
- * @param {Object} props - Component props
- * @param {Object} props.currentData - Current assessment data object
- * @param {Object} props.user - User object with authentication info
- * @param {boolean} [props.isPublicShare=false] - Whether this is a public share view
- * @param {boolean} [props.isViewFromMyAssessments=false] - Whether this is viewed from My Assessments page
- * @param {Function} props.onSave - Callback for save action
- * @param {Function} props.onOpenRename - Callback for rename dialog
- * @param {Function} props.onOpenDelete - Callback for delete dialog
- * @param {string} [props.defaultAssessmentName] - Default name for new assessments
- * @param {Object} props.actualResult - Actual assessment result data
- * @param {Object} props.resolvedFormData - Form data for resolved assessment
- * @param {Object} props.sessionSnapshot - Session snapshot data
- * @param {Object} props.navigationResult - Navigation result data
- * @param {Function} props.openSaveAssessmentDialog - Callback to open save dialog
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ResultsActionBar
- *
- * @example
- * Basic usage
- * <ResultsActionBar currentData={assessment} user={currentUser} onSave={handleSave} />
- *
- * @example
- * Public share view
- * <ResultsActionBar currentData={assessment} user={currentUser} isPublicShare={true} />
+ * Sticky bar: export, save, rename, delete, re-evaluate, and back navigation.
+ * Hides save/rename/delete when `isPublicShare`; adjusts copy when `isViewFromMyAssessments`.
  */
 export default function ResultsActionBar({
   currentData,
@@ -58,6 +32,7 @@ export default function ResultsActionBar({
   ...props
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Create internal handlers using centralized assessment handlers
   const {
@@ -177,28 +152,26 @@ export default function ResultsActionBar({
                         },
                         results: pendingResults,
                       });
-                    } catch (e) {
-                      logger.warn('Failed to persist session for pending save:', e);
+                    } catch (error) {
+                      logger.warn('[RESULTS_ACTION_BAR:PENDING_SAVE_SESSION_FAILED]', error);
                     }
 
-                    toast.info('Redirecting to sign in', {
-                      description: 'You will be returned to your evaluation after signing in',
-                      duration: 5000,
+                    toast.info('Sign in to save your results', {
+                      description: 'You will be returned to your results after signing in',
+                      duration: 4000,
                     });
-
-                    setTimeout(() => {
-                      window.location.href = '/auth';
-                      // Store redirect state in sessionStorage for auth page to handle
-                      sessionStorage.setItem(
-                        'authRedirectState',
-                        JSON.stringify({ mode: 'signup', from: '/results' }),
-                      );
-                    }, 500);
+                    sessionStorage.setItem('pendingSaveAfterLogin', 'true');
+                    logger.log(
+                      '[RESULTS_ACTION_BAR:PENDING_SAVE_SESSION_SET]',
+                      'set pendingSaveAfterLogin, value now:',
+                      sessionStorage.getItem('pendingSaveAfterLogin'),
+                    );
+                    navigate('/auth', { state: { from: '/results' } });
 
                     return;
-                  } catch (e) {
-                    logger.error('Failed to prepare pending save', e);
-                    toast.error('Failed to prepare save');
+                  } catch (error) {
+                    logger.error('[RESULTS_ACTION_BAR:PENDING_SAVE_PREPARE_FAILED]', error);
+                    toast.error('Failed to prepare save. Please try again.');
                     return;
                   }
                 }

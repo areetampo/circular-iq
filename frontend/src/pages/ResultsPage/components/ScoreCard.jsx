@@ -1,8 +1,3 @@
-/**
- * @module ScoreCard
- * @description Reusable score card with rating, message, and optional factor chips.
- */
-
 import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -11,33 +6,7 @@ import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 
 /**
- * ScoreCard - Reusable card component for displaying score information
- * Shows title, description, score, rating, message, and optional factors
- *
- * @param {Object} props - Component props
- * @param {string} props.title - Card title to display
- * @param {string} props.description - Card description text
- * @param {number|null} props.score - Score value to display (null hides score)
- * @param {string} [props.rating] - Rating text to display
- * @param {string} [props.message] - Message text to display
- * @param {string} [props.scoreColor] - CSS color variable for score display
- * @param {Array} [props.factors=[]] - Array of factor objects to display
- * @param {string} [props.factorType='default'] - Type of factors (warning, danger, success, default)
- * @param {ReactNode} [props.children] - Child elements to render
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ScoreCard
- *
- * @example
- * Basic usage
- * <ScoreCard title="Overall Score" description="Your assessment result" score={85} rating="Excellent" message="Great job!" />
- *
- * @example
- * With factors
- * <ScoreCard title="Parameter Analysis" score={75} factors={factorList} factorType="warning" />
- *
- * @example
- * With custom color
- * <ScoreCard title="Custom Score" score={90} scoreColor="var(--color-accent)" />
+ * Title, description, score, rating, message, and optional factor chips.
  */
 export default function ScoreCard({
   title,
@@ -75,7 +44,7 @@ export default function ScoreCard({
         >
           {title}
         </SectionHeading>
-        {score != null && (
+        {score !== null && (
           <div className="text-right">
             <div className="text-3xl font-bold" style={{ color: scoreColor }}>
               {score}

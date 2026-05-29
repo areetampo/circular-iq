@@ -1,6 +1,5 @@
 /**
- * @module FieldDisplayCard
- * @description Tilt card for a labeled metadata field (value plus help text) on Results.
+ * Tilt card for a labeled metadata field (value plus help text) on Results.
  */
 
 import PropTypes from 'prop-types';
@@ -10,12 +9,6 @@ import { toTitleCase } from '@/lib/formatting';
 
 /**
  * Displays a labeled metadata field with optional help text inside a tilt card.
- *
- * @param {Object} props
- * @param {string} props.label - Field label (shown uppercase).
- * @param {string} [props.value] - Field value; title-cased for display.
- * @param {string} props.helpText - Supporting explanation below the value.
- * @returns {import('react').ReactElement}
  */
 export default function FieldDisplayCard({ label, value, helpText }) {
   return (

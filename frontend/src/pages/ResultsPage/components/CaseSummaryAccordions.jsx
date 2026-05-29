@@ -1,6 +1,5 @@
 /**
- * @module CaseSummaryAccordions
- * @description Expandable accordions summarizing matched CE cases from vector search.
+ * Expandable accordions summarizing matched CE cases from vector search.
  */
 
 import { Accordion } from '@heroui/react';
@@ -14,14 +13,6 @@ import { toTitleCase } from '@/lib/formatting';
 
 /**
  * Single accordion panel with icon header for case-summary sections.
- * @param {Object} props
- * @param {string} props.id
- * @param {import('lucide-react').LucideIcon} props.icon
- * @param {string} props.iconColor - Tailwind colour token suffix.
- * @param {string} props.title
- * @param {string} props.description
- * @param {import('react').ReactNode} props.children
- * @returns {import('react').ReactElement}
  */
 function AccordionItem({ id, icon, iconColor, title, description, children }) {
   return (
@@ -55,10 +46,6 @@ function AccordionItem({ id, icon, iconColor, title, description, children }) {
 
 /**
  * Label/value row for business-context fields inside an accordion.
- * @param {Object} props
- * @param {string} props.label
- * @param {string} props.value
- * @returns {import('react').ReactElement}
  */
 function ContextField({ label, value }) {
   return (
@@ -71,13 +58,6 @@ function ContextField({ label, value }) {
 
 /**
  * Expandable accordions summarizing matched CE cases from vector search.
- *
- * @param {Object} props
- * @param {string} props.businessProblem
- * @param {string} props.businessSolution
- * @param {Object} props.businessContext
- * @param {Object} props.evaluationParameters
- * @returns {import('react').ReactElement}
  */
 export default function CaseSummaryAccordions({
   businessProblem,
@@ -88,7 +68,7 @@ export default function CaseSummaryAccordions({
   // Prepare parameter entries for accordion
   const evaluationParams = evaluationParameters || {};
   const parameterEntries = validKeys
-    .filter((key) => evaluationParams[key] != null)
+    .filter((key) => evaluationParams[key] !== null)
     .map((key) => ({
       key,
       label: parameterLabels[key]?.label || toTitleCase(key),

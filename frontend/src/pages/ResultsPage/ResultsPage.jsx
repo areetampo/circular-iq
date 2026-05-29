@@ -1,6 +1,5 @@
 /**
- * @module ResultsPage
- * @description Displays scoring results, audit breakdown, and actions (save, export, share) for live, saved, or public assessments.
+ * Displays scoring results, audit breakdown, and actions (save, export, share) for live, saved, or public assessments.
  */
 
 import { Checkbox, Label, toast } from '@heroui/react';
@@ -31,8 +30,9 @@ import {
 } from '@/features/assessments/hooks';
 import { reconstructScoringResult } from '@/features/assessments/utils';
 import { useSession } from '@/features/session';
-import { useAuth } from '@/hooks';
+import { useAuth, usePageTitle } from '@/hooks';
 import { cleanUrl, formatTimestamp, truncate } from '@/lib/formatting';
+import { getIndustry } from '@/lib/metadata';
 import { formatFactorName } from '@/lib/scoring';
 import { cn } from '@/utils/cn';
 import { categorizeIntegrityGaps, extractProblemSolution } from '@/utils/content';
@@ -62,11 +62,6 @@ import {
 
 /**
  * Renders the full results dashboard from session, route params, or public share mode.
- *
- * @param {Object} props
- * @param {boolean} [props.isViewFromMyAssessments=false] - Loaded from My Assessments (saved record).
- * @param {boolean} [props.isPublicShare=false] - Read-only public share view.
- * @returns {import('react').ReactElement}
  */
 export default function ResultsPage({ isViewFromMyAssessments = false, isPublicShare = false }) {
   const { publicId } = useParams();
@@ -207,8 +202,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       };
 
       saveSession(stateToSave);
-    } catch (e) {
-      logger.error('Failed to save results to session:', e);
+    } catch (error) {
+      logger.error('[RESULTS:SESSION_SAVE_FAILED]', error);
     }
   }, [navigationResult, isViewFromMyAssessments, isPublicShare, saveSession, resolvedFormData]);
 
@@ -225,7 +220,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       out.similar_cases = out.similar_cases.map((item) => {
         const ci = item || {};
         return {
-          case_id: ci.case_id != null ? String(ci.case_id) : undefined,
+          case_id: ci.case_id !== null ? String(ci.case_id) : undefined,
           title: ci.title == null ? '' : String(ci.title),
           problem: ci.problem == null ? '' : String(ci.problem),
           solution: ci.solution == null ? '' : String(ci.solution),
@@ -335,7 +330,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
         } catch (errCheck) {
           // If the check itself failed due to network/auth, allow create to proceed
           if (errCheck.message === 'Name already exists') throw errCheck;
-          logger.warn('Duplicate name check failed, proceeding to create:', errCheck?.message);
+          logger.warn('[RESULTS:SAVE_DUPLICATE_CHECK_FAILED]', errCheck);
         }
 
         const result = await createAssessmentAsync(saveData);
@@ -354,8 +349,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             },
             results: null, // Clear results
           });
-        } catch (e) {
-          logger.warn('Failed to update session after save:', e);
+        } catch (error) {
+          logger.warn('[RESULTS:POST_SAVE_SESSION_UPDATE_FAILED]', error);
         }
 
         // Redirect to the saved assessment by public_id, not internal id
@@ -367,7 +362,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           setTimeout(() => navigate('/assessments'), 800);
         }
       } catch (error) {
-        logger.warn('Save error:', error);
+        logger.warn('[RESULTS:SAVE_FAILED]', error);
         // Rethrow so callers (SaveAssessmentDialog) can display the error in-dialog
         throw error;
       }
@@ -386,6 +381,43 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
   }, [currentData]);
 
   const actualResult = scoringResult || currentData || null;
+
+  logger.log('[ResultsPage render] pendingSave in storage:', {
+    sessionStorage_pendingSaveAfterLogin: sessionStorage.getItem('pendingSaveAfterLogin'),
+  });
+  // Auto-open save dialog after redirect from anonymous save attempt
+  useEffect(() => {
+    logger.log(
+      '[ResultsPage render]:[pending effect] actualResult:',
+      { actualResult: !!actualResult },
+      'pending:',
+      {
+        sessionStorage_pendingSaveAfterLogin: sessionStorage.getItem('pendingSaveAfterLogin'),
+      },
+    );
+
+    if (!actualResult) return;
+    const pending = sessionStorage.getItem('pendingSaveAfterLogin');
+    if (!pending) return;
+
+    logger.log('[ResultsPage render]:[pending effect] SHOULD OPEN DIALOG');
+
+    sessionStorage.removeItem('pendingSaveAfterLogin');
+    setTimeout(() => {
+      openSaveAssessmentDialog({
+        defaultName: defaultAssessmentName,
+        onSave: handleSave,
+        scoringResult: actualResult,
+      });
+    }, 100);
+  }, [actualResult]);
+
+  // Set page title -> title derives from: saved assessment title → "Results" for live sessions
+  const pageTitle = useMemo(() => {
+    if (isViewFromMyAssessments) return currentData?.title ?? 'Assessment Results';
+    return 'Results';
+  }, [isViewFromMyAssessments, currentData?.title]);
+  usePageTitle(pageTitle);
 
   const caseProblemSolution = useMemo(
     () => extractProblemSolution(actualResult || currentData || {}),
@@ -457,7 +489,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       .filter((key) => key in (actualResult.sub_scores || {}))
       .map((key) => {
         const value = actualResult.sub_scores[key];
-        const numValue = value != null && !isNaN(value) ? Number(value) : 0;
+        const numValue = value !== null && !isNaN(value) ? Number(value) : 0;
         return {
           subject: formatFactorName(key),
           userValue: numValue,
@@ -487,7 +519,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     if (!res) return 0;
     const confidence = res.audit?.confidence_score;
     const normalizedConfidence =
-      confidence != null && confidence <= 1
+      confidence !== null && confidence <= 1
         ? (Number(confidence) || 0) * 100
         : Number(confidence) || 0;
 
@@ -501,16 +533,14 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     if (!source) return '';
 
     // Prefer structured industry when available
-    // lazily import helper to avoid circular imports in some test setups
-    let industryVal = null;
-    try {
-      const { getIndustry } = require('@/lib/metadata');
-      industryVal = getIndustry(source);
-    } catch (err) {
-      logger.warn('Failed to get industry from metadata, falling back to source.industry:', err);
-
-      industryVal = source.industry || source.metadata?.industry || null;
-    }
+    const industryFromGetIndustry = getIndustry(source);
+    if (!industryFromGetIndustry)
+      logger.warn(
+        '[RESULTS:INDUSTRY_FETCH_FAILED]',
+        'Failed to get industry from metadata, falling back to source.industry',
+      );
+    const industryVal =
+      industryFromGetIndustry || source.industry || source.metadata?.industry || null;
 
     const base = source.caseName || source.projectTitle || industryVal || 'Assessment';
 
@@ -547,7 +577,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           timeout: 3000,
         });
       } catch (error) {
-        logger.error('Failed to update sharing settings:', error);
+        logger.error('[RESULTS:TOGGLE_PUBLIC_FAILED]', error);
         toast.danger('Failed to update sharing settings', {
           description: error.message || 'Please try again.',
           timeout: 4000,
@@ -582,15 +612,15 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
           if (dup) throw new Error('Name already exists');
         } catch (checkErr) {
           if (checkErr.message === 'Name already exists') throw checkErr;
-          logger.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
+          logger.warn('[RESULTS:RENAME_DUPLICATE_CHECK_FAILED]', checkErr);
         }
 
         await updateAssessment(id, { title: newTitle });
         await refetch();
         toast.success('Assessment renamed successfully');
-      } catch (err) {
-        logger.error('Rename failed', err);
-        throw err;
+      } catch (error) {
+        logger.error('[RESULTS:RENAME_FAILED]', error);
+        throw error;
       } finally {
         setIsRenaming(false);
       }
@@ -605,10 +635,10 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       await deleteAssessment(id);
       toast.success('Assessment deleted');
       navigate('/assessments');
-    } catch (err) {
-      logger.error('Delete failed', err);
+    } catch (error) {
+      logger.error('[RESULTS:DELETE_FAILED]', error);
       toast.danger('Failed to delete assessment');
-      throw err;
+      throw error;
     } finally {
       setIsDeleting(false);
     }
@@ -650,7 +680,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             label: 'Retry',
             icon: RotateCw,
             variant: 'teal',
-            onPress: refetch,
+            onPress: () => refetch(),
           },
           {
             label: 'Go Back',
@@ -675,7 +705,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
             label: 'Retry',
             icon: RotateCw,
             variant: 'teal',
-            onPress: refetch,
+            onPress: () => refetch(),
           },
           {
             label: 'Go Back',
@@ -711,7 +741,8 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
     );
   }
 
-  const overallScore = actualResult?.overall_score != null ? Number(actualResult.overall_score) : 0;
+  const overallScore =
+    actualResult?.overall_score !== null ? Number(actualResult.overall_score) : 0;
 
   const { strengths, gaps } = categorizeIntegrityGaps(actualResult.audit?.integrity_gaps);
   const casesSummaries = actualResult.audit?.similar_cases_summaries || [];
@@ -734,9 +765,9 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
       ? subScoreEntries.reduce((worst, curr) => (curr[1] < worst[1] ? curr : worst))
       : null;
 
-  logger.log('navigationResult', navigationResult);
-  logger.log('currentData', currentData);
-  logger.log('actualResult', actualResult);
+  // logger.log('navigationResult', navigationResult);
+  // logger.log('currentData', currentData);
+  // logger.log('actualResult', actualResult);
 
   const publicUrl = `${window.location.origin}/assessments/share/${currentData.public_id}`;
   const displayPublicUrl = truncate(
@@ -874,7 +905,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       />
                     </Link>
                   )}
-                  <span className={isUpdatingPublic && 'opacity-30'}>/</span>
+                  <span className={isUpdatingPublic ? 'opacity-30' : ''}>/</span>
                   <CopyButton
                     variant="dark"
                     copyValue={publicUrl}
@@ -883,7 +914,7 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     isDisabled={isUpdatingPublic}
                     noBorder
                   />
-                  <span className={isUpdatingPublic && 'opacity-30'}>/</span>
+                  <span className={isUpdatingPublic ? 'opacity-30' : ''}>/</span>
                   <CopyButton
                     variant="dark"
                     copyValue={`${currentData.public_id}`}

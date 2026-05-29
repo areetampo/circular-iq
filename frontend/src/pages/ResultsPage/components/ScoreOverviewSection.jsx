@@ -1,6 +1,5 @@
 /**
- * @module ScoreOverviewSection
- * @description Hero score overview (overall score, tier, confidence) on Results.
+ * Hero score overview (overall score, tier, confidence) on Results.
  */
 
 import PropTypes from 'prop-types';
@@ -8,24 +7,7 @@ import PropTypes from 'prop-types';
 import { formatDuration, toTitleCase } from '@/lib/formatting';
 
 /**
- * ScoreOverviewSection - Component displaying score overview and metadata
- * Shows industry, confidence level, processing time, and overall score
- *
- * @param {Object} props - Component props
- * @param {Object} props.actualResult - Assessment result object with metadata and processing info
- * @param {number} props.overallScore - Overall assessment score
- * @param {string} props.topFactor - Top contributing factor name
- * @param {string} props.focusFactor - Focus factor for improvement
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ScoreOverviewSection
- *
- * @example
- * Basic usage
- * <ScoreOverviewSection actualResult={result} overallScore={85} topFactor="Materials" focusFactor="Recycling" />
- *
- * @example
- * With missing data
- * <ScoreOverviewSection actualResult={null} overallScore={0} />
+ * Hero block: industry, confidence, processing time, overall score, top and focus factors.
  */
 export default function ScoreOverviewSection({
   actualResult,

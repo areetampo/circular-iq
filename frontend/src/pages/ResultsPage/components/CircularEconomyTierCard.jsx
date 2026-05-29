@@ -1,6 +1,5 @@
 /**
- * @module CircularEconomyTierCard
- * @description Displays circular economy tier classification and explanatory copy.
+ * Displays circular economy tier classification and explanatory copy.
  */
 
 import { Target } from 'lucide-react';
@@ -9,21 +8,8 @@ import PropTypes from 'prop-types';
 import { SectionHeading } from '@/components/common';
 
 /**
- * CircularEconomyTierCard - Component displaying circular economy tier information
- * Shows tier level, score range, percentile, description, and next milestone
- *
- * @param {Object} props - Component props
- * @param {Object} props.actualResult - Assessment result object containing circular economy tier data
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element|null} Rendered CircularEconomyTierCard or null if no data
- *
- * @example
- * Basic usage
- * <CircularEconomyTierCard actualResult={assessmentResult} />
- *
- * @example
- * With missing data
- * <CircularEconomyTierCard actualResult={null} />
+ * Tier level, score range, percentile, description, and next milestone from `actualResult`.
+ * Returns null when `actualResult.circular_economy_tier` is missing.
  */
 export default function CircularEconomyTierCard({ actualResult, ...props }) {
   if (!actualResult?.circular_economy_tier) return null;

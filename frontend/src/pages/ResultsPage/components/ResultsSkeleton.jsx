@@ -1,8 +1,5 @@
 /**
- * @module ResultsSkeleton
- * @description Full-page loading skeleton while assessment results are fetched.
- * ResultsSkeleton Component
- * Clean skeleton with no borders, only content skeletons preserving exact spacing
+ * Full-page loading skeleton that preserves the Results page content structure and spacing.
  */
 import { Skeleton } from '@heroui/react';
 
@@ -10,7 +7,8 @@ import { Separator } from '@/components/common';
 
 /**
  * Full-page loading skeleton while assessment results are fetched.
- * @returns {import('react').ReactElement}
+ *
+ * @returns {import('react').ReactElement} Placeholder layout matching the results page structure.
  */
 export default function ResultsSkeleton() {
   return (

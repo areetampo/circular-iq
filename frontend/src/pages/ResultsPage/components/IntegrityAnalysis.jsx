@@ -1,6 +1,5 @@
 /**
- * @module IntegrityAnalysis
- * @description Strengths and integrity gaps derived from the scoring audit.
+ * Strengths and integrity gaps derived from the scoring audit.
  */
 
 import { Accordion } from '@heroui/react';
@@ -10,12 +9,7 @@ import PropTypes from 'prop-types';
 import { Chip, SectionHeading } from '@/components/common';
 
 /**
- * Strengths and integrity gaps derived from the scoring audit.
- *
- * @param {Object} props
- * @param {Array<string>} props.strengths
- * @param {Array<string>} props.gaps
- * @returns {import('react').ReactElement}
+ * Groups validated strengths and improvement gaps into expandable integrity-analysis sections.
  */
 export default function IntegrityAnalysis({ strengths, gaps }) {
   if (!(gaps.length > 0 || strengths.length > 0)) return null;
