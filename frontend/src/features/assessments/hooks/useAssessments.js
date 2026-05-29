@@ -1,9 +1,3 @@
-/**
- * @module useAssessments
- * @description React Query hook for paginated assessment lists with optimistic delete.
- * Supports session-scoped listing, search, industry filter, and sort parameters.
- */
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -13,9 +7,9 @@ import {
 } from '@/features/assessments/api/assessmentApi';
 
 /**
- * Fetches and mutates the user's saved assessments list.
+ * React Query paginated assessments list with optimistic delete; supports session-scoped anonymous lists.
  *
- * @param {Object} [options]
+ * @param {{ sessionId?: string, page?: number, pageSize?: number, sortBy?: string, order?: 'asc'|'desc', search?: string, industry?: string }} [options] - Query, pagination, and session options for the assessment list.
  * @param {string} [options.sessionId] - Anonymous session id for unauthenticated lists.
  * @param {number} [options.page] - Page number (1-based).
  * @param {number} [options.pageSize] - Items per page.
@@ -24,30 +18,24 @@ import {
  * @param {string} [options.search] - Name search filter.
  * @param {string} [options.industry] - Industry filter.
  * @returns {{
- *   assessments: Array<Object>,
+ *   assessments: Array<Record<string, unknown>>,
  *   total: number,
  *   loading: boolean,
  *   isLoading: boolean,
  *   error: string|null,
  *   isError: boolean,
- *   refetch: Function,
- *   removeAssessment: Function,
- *   removeAssessmentAsync: Function,
+ *   refetch: import('@tanstack/react-query').UseQueryResult['refetch'],
+ *   removeAssessment: import('@tanstack/react-query').UseMutateFunction,
+ *   removeAssessmentAsync: import('@tanstack/react-query').UseMutateAsyncFunction,
  *   isDeleting: boolean,
  *   deleteError: Error|null,
  *   prefetchAssessment: (id: string) => void,
- *   data: Object|undefined
- * }}
+ *   data: { assessments?: Array<Record<string, unknown>>, total?: number }|undefined
+ * }} Assessment list data, delete mutation helpers, cache prefetcher, and query state.
  */
-export default function useAssessments({
-  sessionId,
-  page,
-  pageSize,
-  sortBy,
-  order,
-  search,
-  industry,
-} = {}) {
+export default function useAssessments(options = {}) {
+  const { sessionId, page, pageSize, sortBy, order, search, industry } = options;
+
   const queryClient = useQueryClient();
 
   // Use React Query to fetch assessments
@@ -74,23 +62,15 @@ export default function useAssessments({
   // Use mutation for deleting assessments
   const deleteMutation = useMutation({
     mutationFn: async (deletedId) => {
-      logger.log('[MUTATION_START]', { deletedId });
       try {
         const result = await deleteAssessment(deletedId);
-        logger.log('[MUTATION_SUCCESS]', { deletedId, result });
         return result;
       } catch (error) {
-        logger.error('[MUTATION_FAIL]', {
-          deletedId,
-          error: error.message,
-          stack: error.stack,
-          fullError: error,
-        });
+        logger.error('[ASSESSMENTS:DELETE_FAILED]', { deletedId, error: error.message });
         throw error;
       }
     },
     onMutate: async (deletedId) => {
-      logger.log('[ON_MUTATE]', { deletedId });
       // Cancel any outgoing refetches to prevent race conditions
       await queryClient.cancelQueries({ queryKey: ['assessments'] });
 
@@ -110,7 +90,6 @@ export default function useAssessments({
             assessments: old.assessments.filter((assessment) => assessment.id !== deletedId),
             total: Math.max(0, (old.total || 0) - 1),
           };
-          logger.log('[OPTIMISTIC_UPDATE]', { deletedId, newTotal: updated.total });
           return updated;
         });
       }
@@ -118,17 +97,14 @@ export default function useAssessments({
       // Return snapshot as context for potential rollback
       return { previousAssessments, cacheKey };
     },
-    onError: (err, deletedId, context) => {
-      logger.error('[ON_ERROR]', { deletedId, error: err.message, context });
+    onError: (error, deletedId, context) => {
+      logger.error('[ASSESSMENTS:DELETE_ROLLBACK]', { deletedId, error: error.message });
       // Roll back to the snapshot if the mutation fails
       if (context?.previousAssessments && context?.cacheKey) {
         queryClient.setQueryData(context.cacheKey, context.previousAssessments);
-        logger.log('[ROLLBACK_COMPLETE]', { deletedId });
       }
     },
     onSuccess: (data, deletedId, context) => {
-      logger.log('[ON_SUCCESS]', { deletedId, context });
-
       // Always invalidate all assessment queries to ensure UI is in sync
       if (context?.cacheKey) {
         // Invalidate the specific query

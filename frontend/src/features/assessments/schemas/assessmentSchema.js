@@ -1,13 +1,9 @@
-/**
- * @module assessmentSchema
- * @description Feature module — assessment Schema.
- */
+/** Zod schemas for API assessment payloads and list responses. */
 
 import { z } from 'zod';
 
 /**
- * Zod schema for sub_scores validation
- * All parameters must be 0-100 numeric values
+ * Validates optional evaluation factor scores as 0-100 numeric values.
  */
 const SubScoresSchema = z.object({
   public_participation: z.number().min(0).max(100).optional(),
@@ -21,9 +17,7 @@ const SubScoresSchema = z.object({
 });
 
 /**
- * Zod schema for metadata validation.
- * Allows additional properties via passthrough.
- * @type {z.ZodObject}
+ * Validates known metadata fields while preserving additional backend metadata.
  */
 const MetadataSchema = z
   .object({
@@ -37,10 +31,7 @@ const MetadataSchema = z
   .passthrough(); // Allow additional properties
 
 /**
- * Zod schema for audit information.
- * Includes confidence scores, recommendations, integrity gaps, and SDG alignment.
- * Allows additional properties via passthrough.
- * @type {z.ZodObject}
+ * Validates known audit fields while allowing newer backend audit sections to pass through.
  */
 const AuditSchema = z
   .object({
@@ -56,7 +47,7 @@ const AuditSchema = z
   .passthrough();
 
 /**
- * Zod schema for result_json structure
+ * Validates the stored scoring result payload with optional enrichment sections and passthrough fields.
  */
 const ResultJsonSchema = z
   .object({
@@ -93,7 +84,6 @@ const ResultJsonSchema = z
  * Complete Assessment schema for database records.
  * Validates both the result_json structure and individual column fields.
  * Allows additional properties via passthrough for backward compatibility.
- * @type {z.ZodObject}
  */
 const AssessmentSchema = z
   .object({
@@ -140,7 +130,6 @@ const AssessmentSchema = z
 /**
  * Schema for assessment list response.
  * Validates the paginated assessments list with total count and pagination metadata.
- * @type {z.ZodObject}
  */
 const AssessmentsListSchema = z.object({
   assessments: z.array(AssessmentSchema),
@@ -153,7 +142,7 @@ const AssessmentsListSchema = z.object({
  * Validates and parses assessment data using strict Zod schema.
  *
  * @param {unknown} data - Raw data to validate
- * @returns {Object} Validated assessment data conforming to AssessmentSchema
+ * @returns {z.infer<typeof AssessmentSchema>} Parsed assessment record with passthrough fields preserved for backward compatibility.
  * @throws {z.ZodError} If validation fails with detailed error information
  *
  * @example
@@ -172,7 +161,7 @@ export function validateAssessment(data) {
  * Validates and parses assessment list response using strict Zod schema.
  *
  * @param {unknown} data - Raw data to validate
- * @returns {Object} Validated assessment list conforming to AssessmentsListSchema
+ * @returns {z.infer<typeof AssessmentsListSchema>} Parsed paginated assessment list with total count metadata.
  * @throws {z.ZodError} If validation fails with detailed error information
  *
  * @private
@@ -186,7 +175,7 @@ function validateAssessmentsList(data) {
  * Logs validation errors for debugging.
  *
  * @param {unknown} data - Raw data to validate
- * @returns {Object|null} Validated assessment list or null if validation fails
+ * @returns {z.infer<typeof AssessmentsListSchema>|null} Parsed assessment list, or `null` when validation fails and the error is logged.
  *
  * @example
  * const validated = safeValidateAssessmentsList(rawData);

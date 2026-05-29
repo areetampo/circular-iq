@@ -1,10 +1,3 @@
-/**
- * @module useAssessmentValidation
- * @description Pre-flight validation for the Assessment Comparison page.
- * Confirms both assessment ids exist and are visible to the current user
- * before loading full comparison data.
- */
-
 import { useQuery } from '@tanstack/react-query';
 
 import { validateAssessmentIds } from '@/features/assessments/api/assessmentApi';
@@ -19,7 +12,7 @@ import { validateAssessmentIds } from '@/features/assessments/api/assessmentApi'
  *   isLoading: boolean,
  *   error: Error|null,
  *   validate: () => Promise<void>
- * }}
+ * }} React Query validation state for the pair plus a manual validation trigger.
  */
 export default function useAssessmentValidation(id1, id2) {
   const validationQuery = useQuery({
@@ -40,7 +33,7 @@ export default function useAssessmentValidation(id1, id2) {
         await validationQuery.refetch();
       } catch (error) {
         // Error is already handled by the query state
-        logger.error('Validation failed:', error);
+        logger.error('[ASSESSMENT_VALIDATION:REFETCH_FAILED]', error);
       }
     },
   };

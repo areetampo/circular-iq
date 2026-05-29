@@ -1,8 +1,3 @@
-/**
- * @module useAssessment
- * @description React Query hooks for loading, creating, and mutating saved assessments.
- */
-
 import { toast } from '@heroui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -16,18 +11,19 @@ import {
  * Fetches a single saved assessment by id (authenticated API).
  *
  * @param {string|number} id - Assessment public id
- * @param {Object} [options]
+ * @param {{ enabled?: boolean, placeholderData?: unknown }} [options] - React Query options for enabling and placeholder behavior.
  * @param {boolean} [options.enabled=true] - When false, skips the query
- * @param {*} [options.placeholderData] - React Query placeholder while refetching
+ * @param {unknown} [options.placeholderData] - React Query placeholder while refetching.
  * @returns {{
- *   assessment: Object|null,
+ *   assessment: Record<string, unknown>|null,
  *   loading: boolean,
  *   isLoading: boolean,
  *   error: string|null,
  *   isError: boolean,
- *   refetch: Function,
+ *   refetch: import('@tanstack/react-query').UseQueryResult['refetch'],
+ *   data: Record<string, unknown>|undefined,
  *   isPlaceholderData: boolean
- * }}
+ * }} Saved assessment record plus React Query state and placeholder status.
  */
 export function useAssessment(id, options = {}) {
   const { enabled = true, placeholderData } = options;
@@ -40,10 +36,10 @@ export function useAssessment(id, options = {}) {
     staleTime: 30 * 1000, // 30 seconds - ensures fresh data when navigating back
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
-    onError: (err) => {
+    onError: (error) => {
       // Handle validation errors specifically
-      if (err.message?.includes('Validation failed')) {
-        const fieldMatch = err.message.match(/`(\w+)`/);
+      if (error.message?.includes('Validation failed')) {
+        const fieldMatch = error.message.match(/`(\w+)`/);
         const fieldName = fieldMatch ? fieldMatch[1] : 'data';
         toast.danger(`Missing or invalid field: ${fieldName}`, {
           description: 'Some assessment data may be incomplete. Displaying available data.',
@@ -51,7 +47,7 @@ export function useAssessment(id, options = {}) {
         });
       } else {
         toast.danger('Failed to load assessment', {
-          description: err.message || 'Please try again',
+          description: error.message || 'Please try again',
           timeout: 4000,
         });
       }
@@ -75,16 +71,17 @@ export function useAssessment(id, options = {}) {
  * Uses optional authentication for ownership check but works without it.
  *
  * @param {string} publicId - Public assessment ID to fetch
- * @param {Object} [options={}] - Query options
+ * @param {{ enabled?: boolean }} [options={}] - Query options.
  * @param {boolean} [options.enabled=true] - Whether to enable the query
- * @returns {Object} Query result object
- * @returns {Object|null} returns.assessment - Assessment data or null
- * @returns {boolean} returns.loading - Loading state (legacy)
- * @returns {boolean} returns.isLoading - Loading state
- * @returns {boolean} returns.isError - Error state
- * @returns {string|null} returns.error - Error message or null
- * @returns {Function} returns.refetch - Function to refetch the data
- * @returns {Object} returns.data - Full response data
+ * @returns {{
+ *   assessment: Record<string, unknown>|null,
+ *   loading: boolean,
+ *   isLoading: boolean,
+ *   isError: boolean,
+ *   error: string|null,
+ *   refetch: import('@tanstack/react-query').UseQueryResult['refetch'],
+ *   data: Record<string, unknown>|undefined
+ * }} Public assessment record plus React Query state.
  *
  * @example
  * const { assessment, isLoading, error } = usePublicAssessment('abc-123');
@@ -102,10 +99,10 @@ export function usePublicAssessment(publicId, options = {}) {
     staleTime: 30 * 1000, // 30 seconds - ensures fresh data when navigating back
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch on window focus to avoid unnecessary requests
-    onError: (err) => {
+    onError: (error) => {
       toast.danger('Failed to load shared assessment', {
         description:
-          err.message || 'This link may be invalid or the assessment is no longer public.',
+          error.message || 'This link may be invalid or the assessment is no longer public.',
         timeout: 4000,
       });
     },
@@ -123,11 +120,10 @@ export function usePublicAssessment(publicId, options = {}) {
 }
 
 /**
- * Returns a function to prefetch an assessment by id into the React Query cache.
- * Useful for preloading data before navigation (e.g., on hover or link focus).
+ * Returns a stable prefetcher for warming the assessment detail query cache.
+ * No-ops when called without a public id.
  *
- * @returns {Function} Prefetch function that takes a publicId parameter
- * @param {string} publicId - Assessment ID to prefetch
+ * @returns {(publicId: string) => void} Callback that prefetches a saved assessment by public id.
  *
  * @example
  * const prefetchAssessment = usePrefetchAssessment();
@@ -156,16 +152,17 @@ export function usePrefetchAssessment() {
  * Mutation hook to create an assessment and invalidate the assessments list cache.
  * Automatically refreshes the assessments list after successful creation.
  *
- * @returns {Object} Mutation result object
- * @returns {Function} returns.createAssessment - Function to create assessment (async callback not returned)
- * @returns {Function} returns.createAssessmentAsync - Function to create assessment (returns Promise)
- * @returns {boolean} returns.isLoading - Loading state (legacy)
- * @returns {boolean} returns.isPending - Loading state
- * @returns {boolean} returns.isError - Error state
- * @returns {boolean} returns.isSuccess - Success state
- * @returns {Error|null} returns.error - Error object or null
- * @returns {Object} returns.data - Created assessment data
- * @returns {Function} returns.reset - Function to reset mutation state
+ * @returns {{
+ *   createAssessment: import('@tanstack/react-query').UseMutateFunction,
+ *   createAssessmentAsync: import('@tanstack/react-query').UseMutateAsyncFunction,
+ *   isLoading: boolean,
+ *   isPending: boolean,
+ *   isError: boolean,
+ *   isSuccess: boolean,
+ *   error: Error|null,
+ *   data: Record<string, unknown>|undefined,
+ *   reset: () => void
+ * }} Create mutation methods and mutation state for assessment saves.
  *
  * @example
  * const { createAssessmentAsync, isLoading, error } = useCreateAssessment();
@@ -173,7 +170,7 @@ export function usePrefetchAssessment() {
  *   try {
  *     await createAssessmentAsync(formData);
  *     // Navigate to assessments list
- *   } catch (err) {
+ *   } catch (error) {
  *     // Handle error
  *   }
  * };

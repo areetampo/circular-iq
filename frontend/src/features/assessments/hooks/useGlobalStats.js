@@ -1,49 +1,51 @@
-/**
- * @module useGlobalStats
- * @description React hook for fetching combined global activity statistics.
- * Aggregates data from scoring logs, market data RPC, and assessment stats RPC.
- * Provides distributions, trends, and top-line metrics for the global activity page.
- */
-
 import { useQuery } from '@tanstack/react-query';
 
 import { getGlobalStats } from '@/features/assessments/api/assessmentApi';
 
 /**
  * Fetches combined global activity stats (log aggregates, market data RPC, assessment stats RPC).
- * @param {Object} options - Query options.
+ *
+ * @param {{ enabled?: boolean }} [options={}] - Query options.
  * @param {boolean} [options.enabled=true] - Whether to enable the query.
  * @returns {{
- *   logStats: Object|null,
- *   marketData: Array,
- *   assessmentStats: Object|null,
+ *   logStats: Record<string, unknown>|null,
+ *   marketData: Array<Record<string, unknown>>,
+ *   assessmentStats: Record<string, unknown>|null,
  *   totalScoringCalls: number|null,
  *   avgScore: number|null,
  *   avgConfidence: number|null,
  *   avgTechFeas: number|null,
  *   avgEconViab: number|null,
  *   avgCircPot: number|null,
- *   scoreDistribution: Object,
- *   tierDistribution: Object,
- *   riskDistribution: Object,
- *   industryDistribution: Array,
- *   strategyDistribution: Array,
- *   materialDistribution: Array,
- *   geoDistribution: Array,
- *   scaleDistribution: Array,
+ *   avgParamConsistency: number|null,
+ *   avgRAlignment: number|null,
+ *   scoreDistribution: Record<string, number>,
+ *   tierDistribution: Record<string, number>,
+ *   riskDistribution: Record<string, number>,
+ *   industryDistribution: Array<Record<string, unknown>>,
+ *   strategyDistribution: Array<Record<string, unknown>>,
+ *   materialDistribution: Array<Record<string, unknown>>,
+ *   geoDistribution: Array<Record<string, unknown>>,
+ *   scaleDistribution: Array<Record<string, unknown>>,
  *   junkRate: number|null,
- *   weeklyTrend: Array,
- *   marketDataByIndustry: Array,
+ *   weeklyTrend: Array<Record<string, unknown>>,
+ *   marketDataByIndustry: Array<Record<string, unknown>>,
  *   totalSavedAssessments: number|null,
+ *   assessmentsByTier: Record<string, number>,
+ *   assessmentsByRisk: Record<string, number>,
+ *   assessmentsByScale: Record<string, number>,
+ *   assessmentsByIndustry: Record<string, number>,
  *   isLoading: boolean,
  *   isFetching: boolean,
  *   isError: boolean,
  *   error: string|null,
- *   refetch: Function,
+ *   refetch: import('@tanstack/react-query').UseQueryResult['refetch'],
  *   dataUpdatedAt: number
- * }}
+ * }} Global activity aggregates, loading/error state, and manual refetch handle.
  */
-export default function useGlobalStats({ enabled = true } = {}) {
+export default function useGlobalStats(options = {}) {
+  const { enabled = true } = options;
+
   const { data, isLoading, isFetching, isError, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['global-stats'],
     queryFn: getGlobalStats,

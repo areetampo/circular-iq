@@ -1,9 +1,4 @@
-/**
- * @module validation
- * @description Zod validation schemas for the evaluation form.
- * Provides validation for business problem, solution, evaluation parameters,
- * and business context with quality checks for repetitive patterns and junk input.
- */
+/** Zod schemas and defaults for the landing-page evaluation form (quality heuristics on text fields). */
 
 import { z } from 'zod';
 
@@ -11,10 +6,9 @@ import { getCharacterCount } from '@/lib/validation';
 import { dominantCharRatio, nonLetterDensity, uniqueWordRatio } from '@/utils/formHelpers';
 
 /**
- * Evaluation form validation schema.
- * Validates business problem, solution, evaluation parameters (0-100 range),
- * and business context with quality checks for repetitive patterns and junk input.
- * @type {z.ZodObject}
+ * Evaluation form schema for landing-page submissions.
+ * Text fields enforce minimum meaningful length plus repetition and special-character guards,
+ * while all eight evaluation parameters are clamped by Zod to the 0-100 range.
  */
 export const evaluationFormSchema = z.object({
   businessProblem: z
@@ -138,8 +132,8 @@ export const evaluationFormSchema = z.object({
 });
 
 /**
- * Default values for evaluation form.
- * @type {Object}
+ * Default landing-page form state used before the user enters assessment details.
+ * Nullable business-context fields map directly to optional select/toggle controls.
  */
 export const evaluationFormDefaults = {
   businessProblem: '',

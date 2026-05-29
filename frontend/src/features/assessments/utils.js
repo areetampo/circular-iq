@@ -1,14 +1,8 @@
 /**
- * @module assessments.utils
- * @description Helpers for normalising saved assessment records into scoring result shape.
- * Prefer `result_json` when present; otherwise compose from legacy column fields.
- */
-
-/**
- * Reconstructs a scoring result object from a saved assessment row.
+ * Normalises a saved assessment row to scoring result shape (`result_json` preferred).
  *
- * @param {Object|null} assessment - Assessment record from the API or database.
- * @returns {Object|null} Scoring result shape for results/export UI, or null if no assessment.
+ * @param {Object|null} assessment - Saved assessment row from the API or local cache.
+ * @returns {Object|null} Scoring result payload reconstructed from saved row fields, or `null` for empty input.
  */
 export function reconstructScoringResult(assessment) {
   if (!assessment) return null;

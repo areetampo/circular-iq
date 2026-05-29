@@ -1,16 +1,11 @@
-/**
- * @module useAssessmentStats
- * @description React hook for fetching aggregate statistics for the current user's assessments.
- * Provides totals, averages, distributions by industry/risk/scale, and derived metrics.
- */
-
 import { useQuery } from '@tanstack/react-query';
 
 import { getAssessmentStats } from '@/features/assessments/api/assessmentApi';
 
 /**
  * Fetches aggregate statistics for the current user's assessments (scores, industries, risk).
- * @param {Object} options - Query options.
+ *
+ * @param {{ enabled?: boolean }} [options={}] - Query options.
  * @param {boolean} [options.enabled=true] - Whether to enable the query.
  * @returns {{
  *   totalAssessments: number,
@@ -23,16 +18,18 @@ import { getAssessmentStats } from '@/features/assessments/api/assessmentApi';
  *   avgTechnicalFeasibility: number|null,
  *   avgEconomicViability: number|null,
  *   avgCircularityPotential: number|null,
- *   assessmentsByIndustry: Object,
- *   assessmentsByRisk: Object,
- *   assessmentsByScale: Object,
+ *   assessmentsByIndustry: Record<string, number>,
+ *   assessmentsByRisk: Record<string, number>,
+ *   assessmentsByScale: Record<string, number>,
  *   isLoading: boolean,
  *   isError: boolean,
- *   error: Error|null,
- *   refetch: Function
- * }}
+ *   error: string|null,
+ *   refetch: import('@tanstack/react-query').UseQueryResult['refetch']
+ * }} Current user's assessment aggregates with loading/error state and refetch handle.
  */
-export default function useAssessmentStats({ enabled = true } = {}) {
+export default function useAssessmentStats(options = {}) {
+  const { enabled = true } = options;
+
   const {
     data = {
       totalAssessments: 0,

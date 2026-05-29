@@ -1,23 +1,17 @@
-/**
- * @module useAssessmentValidationSingle
- * @description React hook for validating a single assessment ID.
- * Checks if the ID is valid and publicly accessible with proper error handling.
- */
-
 import { useQuery } from '@tanstack/react-query';
 
 import { validateAssessmentId } from '@/features/assessments/api/assessmentApi';
 
 /**
- * Hook for validating a single assessment ID with proper error handling.
- * Checks if the ID is valid and publicly accessible.
+ * React Query pre-check that a public assessment id exists and is accessible.
  *
- * @param {string} publicId - Assessment public ID to validate
- * @returns {Object} Validation query state and validate function
- * @returns {Object} returns.validationQuery - React Query result object
- * @returns {boolean} returns.isLoading - Validation loading state
- * @returns {Error|null} returns.error - Validation error or null
- * @returns {Function} returns.validate - Function to trigger validation
+ * @param {string} publicId - Public assessment id to validate before navigation/comparison.
+ * @returns {{
+ *   validationQuery: import('@tanstack/react-query').UseQueryResult,
+ *   isLoading: boolean,
+ *   error: Error|null,
+ *   validate: () => Promise<void>
+ * }} React Query validation state plus a manual validation trigger.
  *
  * @example
  * const { validationQuery, isLoading, error, validate } = useAssessmentValidationSingle(publicId);
@@ -45,7 +39,7 @@ export default function useAssessmentValidationSingle(publicId) {
         await validationQuery.refetch();
       } catch (error) {
         // Error is already handled by the query state
-        logger.error('Validation failed:', error);
+        logger.error('[ASSESSMENT_VALIDATION_SINGLE:REFETCH_FAILED]', error);
       }
     },
   };

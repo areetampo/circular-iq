@@ -1,7 +1,5 @@
 /**
- * @module assessmentApi
- * @description HTTP client for assessment CRUD, validation, comparison, global stats, and SSE scoring.
- * All authenticated calls attach the Supabase session Bearer token when available.
+ * HTTP client for assessment CRUD, comparison, global stats, and SSE scoring (Bearer token when session exists).
  * @typedef {Object} DocumentSearchResult
  * @property {string} id
  * @property {string} title
@@ -19,21 +17,20 @@ import { buildApiUrl } from '@/lib/apiClient';
 import { supabase } from '@/lib/supabase';
 
 /**
- * Add Authorization header with bearer token if session exists
+ * Builds JSON headers and adds Authorization when a Supabase session exists.
+ * Failures are logged and treated as anonymous requests.
+ *
  * @private
+ * @returns {Promise<{ 'Content-Type': string, Authorization?: string }>} JSON headers with bearer token when a session is available.
  */
 async function getAuthHeaders() {
   const headers = { 'Content-Type': 'application/json' };
 
   try {
     const { data } = await supabase.auth.getSession();
-    // logger.log('[AUTH_DEBUG] Session data:', data);
 
     if (data?.session?.access_token) {
       headers.Authorization = `Bearer ${data.session.access_token}`;
-      // logger.log('[AUTH_DEBUG] Auth header set');
-    } else {
-      // logger.log('[AUTH_DEBUG] No session or token found');
     }
   } catch (error) {
     logger.error('[AUTH_HEADER_ERROR]', error);
@@ -43,19 +40,20 @@ async function getAuthHeaders() {
 }
 
 /**
- * Make an authenticated API request
+ * Makes an API request with auth headers and no-cache semantics.
+ *
  * @param {string} path - API endpoint path
- * @param {Object} options - Request options
+ * @param {RequestInit} [options={}] - Fetch options merged after auth headers.
  * @returns {Promise<Response>} Fetch response
  */
 async function request(path, options = {}) {
   const headers = await getAuthHeaders();
-  // logger.log('[REQUEST_DEBUG] Headers being sent:', headers);
 
   const finalOptions = {
     ...options,
     headers: {
       ...headers,
+      'Cache-Control': 'no-cache',
       ...options.headers,
     },
   };
@@ -67,11 +65,13 @@ async function request(path, options = {}) {
 }
 
 /**
- * Make an authenticated API request and parse JSON response
+ * Makes an authenticated API request and parses the JSON response body.
+ * Empty or invalid JSON responses are returned as null on success.
+ *
  * @param {string} path - API endpoint path
- * @param {Object} options - Request options
- * @returns {Promise<Object>} Parsed JSON response data
- * @throws {Error} If request fails with detailed error information
+ * @param {RequestInit} [options={}] - Fetch options merged after auth headers.
+ * @returns {Promise<Object|null>} Parsed JSON response data.
+ * @throws {Error} If the API responds with a non-2xx status.
  */
 async function requestJson(path, options = {}) {
   const response = await request(path, options);
@@ -89,29 +89,32 @@ async function requestJson(path, options = {}) {
       data?.message ||
       (typeof data === 'object' ? JSON.stringify(data) : text) ||
       `Request failed (${response.status})`;
-    const err = new Error(`HTTP ${response.status}: ${message}`);
-    err.status = response.status;
-    err.response = data;
-    throw err;
+    const error = new Error(`HTTP ${response.status}: ${message}`);
+    error.status = response.status;
+    error.response = data;
+    throw error;
   }
 
   return data;
 }
 
 /**
- * Fetch user assessments with filtering and pagination
- * @param {Object} [params={}] - Query parameters
- * @param {string} [params.industry] - Filter by industry
- * @param {string} [params.sortBy] - Sort field (created_at, overall_score, title)
- * @param {string} [params.order] - Sort order (asc, desc)
- * @param {number|string} [params.page] - Page number (defaults to 1)
- * @param {number|string} [params.pageSize] - Items per page (max 100)
- * @param {string} [params.search] - Search term for title/industry
- * @param {string} [params.createdFrom] - Filter by creation date (from)
- * @param {string} [params.createdTo] - Filter by creation date (to)
- * @param {number} [params.minScore] - Filter by minimum score
- * @param {number} [params.maxScore] - Filter by maximum score
- * @returns {Promise<{assessments: Array, pagination: Object}>} Validated list with pagination info
+ * Fetches authenticated user assessments with filtering and pagination.
+ * Removes stale `sessionId` and empty query values before sending.
+ *
+ * @param {{ industry?: string, sortBy?: string, order?: 'asc'|'desc'|string, page?: number|string, pageSize?: number|string, search?: string, createdFrom?: string, createdTo?: string, minScore?: number, maxScore?: number, sessionId?: string }} [params={}] - Query parameters.
+ * @param {string} [params.industry] - Industry slug filter.
+ * @param {string} [params.sortBy] - Sort field such as `created_at`, `overall_score`, or `title`.
+ * @param {string} [params.order] - Sort direction accepted by the API.
+ * @param {number|string} [params.page] - Page number; invalid values are sent as page 1.
+ * @param {number|string} [params.pageSize] - Items per page, capped by the API.
+ * @param {string} [params.search] - Search term applied to assessment title/industry.
+ * @param {string} [params.createdFrom] - Inclusive creation-date lower bound.
+ * @param {string} [params.createdTo] - Inclusive creation-date upper bound.
+ * @param {number} [params.minScore] - Minimum overall score filter.
+ * @param {number} [params.maxScore] - Maximum overall score filter.
+ * @returns {Promise<{assessments: Array<Record<string, unknown>>, pagination?: Record<string, unknown>, total?: number}>} Validated list with pagination info.
+ * @throws {Error} If the API responds with a non-2xx status.
  */
 export async function getAssessments(params = {}) {
   // Remove sessionId from params - auth is now handled by token
@@ -142,8 +145,10 @@ export async function getAssessments(params = {}) {
 }
 
 /**
- * Fetch assessment statistics for the current user
- * @returns {Promise<Object>} Assessment statistics including totals, averages, and distributions
+ * Fetches assessment statistics for the current authenticated user.
+ *
+ * @returns {Promise<Record<string, unknown>>} Assessment statistics including totals, averages, and distributions.
+ * @throws {Error} If the API responds with a non-2xx status.
  */
 export async function getAssessmentStats() {
   const data = await requestJson('/api/assessments/stats');
@@ -151,44 +156,32 @@ export async function getAssessmentStats() {
 }
 
 /**
- * Validate a single assessment ID for sharing
- * @param {string} publicId - Assessment public ID
- * @returns {Promise<{valid: boolean}>} Validation result
- * @throws {Error} If validation fails with detailed error information
+ * Validates a single assessment public id for sharing.
+ *
+ * @param {string} publicId - Public assessment id entered by the user.
+ * @returns {Promise<{valid: boolean, isOwner: boolean, isPublic: boolean}>} Visibility and ownership flags from the validation endpoint.
+ * @throws {Error} If the id is invalid, private, or the API rejects validation.
  */
 export async function validateAssessmentId(publicId) {
-  // logger.log('[validateAssessmentId] called with:', { publicId });
-
   // Use optional authentication for validation
   const response = await request(`/api/assessments/validate/${encodeURIComponent(publicId)}`);
 
   const body = await response.json().catch(() => null);
 
-  // logger.log('[validateAssessmentId] API response received:', {
-  //   response: { status: response.status, ok: response.ok, statusText: response.statusText, body },
-  // });
-
   // Check if ID is invalid (NOT_FOUND)
   if (response.status === 404) {
-    // logger.log('[validateAssessmentId] 404 error detected, throwing error');
     throw new Error('Invalid assessment ID');
   }
 
   // Check if ID is not public (FORBIDDEN)
   if (response.status === 403) {
-    // logger.log('[validateAssessmentId] 403 error detected, throwing error');
     throw new Error('Assessment not publicly available');
   }
 
   // Check for any other errors
   if (!response.ok) {
-    // logger.log('[validateAssessmentId] Other error detected, response not OK');
-
-    // logger.log('Error body:', { errorBody: body });
     throw new Error(body?.error || 'Failed to validate assessment ID');
   }
-
-  // logger.log('[validateAssessmentId] Successful response body:', { body });
 
   return {
     valid: body?.valid === true,
@@ -198,15 +191,14 @@ export async function validateAssessmentId(publicId) {
 }
 
 /**
- * Validate assessment IDs for comparison
- * @param {string} id1 - First assessment public ID
- * @param {string} id2 - Second assessment public ID
- * @returns {Promise<{valid1: boolean, valid2: boolean}>} Validation results
- * @throws {Error} If validation fails with detailed error information
+ * Validates two assessment public ids for comparison.
+ *
+ * @param {string} id1 - First public assessment id.
+ * @param {string} id2 - Second public assessment id.
+ * @returns {Promise<{valid1: boolean, valid2: boolean}>} Per-id validity flags from the validation endpoints.
+ * @throws {Error} If either id is invalid, private, or validation fails.
  */
 export async function validateAssessmentIds(id1, id2) {
-  // logger.log('[validateAssessmentIds] called with:', { id1, id2 });
-
   // Use optional authentication for validation
   const [res1, res2] = await Promise.all([
     request(`/api/assessments/validate/${encodeURIComponent(id1)}`),
@@ -222,34 +214,21 @@ export async function validateAssessmentIds(id1, id2) {
     .json()
     .catch(() => null);
 
-  // logger.log('[validateAssessmentIds] API responses received:', {
-  //   res1: { status: res1.status, ok: res1.ok, statusText: res1.statusText, body: body1 },
-  //   res2: { status: res2.status, ok: res2.ok, statusText: res2.statusText, body: body2 },
-  // });
-
   // Check if either ID is invalid (NOT_FOUND)
   if (res1.status === 404 || res2.status === 404) {
-    // logger.log('[validateAssessmentIds] 404 error detected, throwing error');
     throw new Error('One or more ids incorrect');
   }
 
   // Check if either ID is not public (FORBIDDEN)
   if (res1.status === 403 || res2.status === 403) {
-    // logger.log('[validateAssessmentIds] 403 error detected, throwing error');
     throw new Error('One or more assessments not public');
   }
 
   // Check for any other errors
   if (!res1.ok || !res2.ok) {
     // Reuse the already parsed body1 and body2 from above
-
-    // logger.log('[validateAssessmentIds] Other error detected, responses not OK');
-    // logger.log('Error bodies:', { body1, body2 });
-
     throw new Error(body1?.error || body2?.error || 'Failed to validate assessment IDs');
   }
-
-  // logger.log('[validateAssessmentIds] Successful response data body:', { body1, body2 });
 
   return {
     valid1: body1?.valid === true,
@@ -258,10 +237,11 @@ export async function validateAssessmentIds(id1, id2) {
 }
 
 /**
- * Fetch a single assessment by ID
- * @param {string|number} id - Assessment ID
- * @returns {Promise<Object>} Assessment data with validated structure
- * @throws {Error} If ID is missing or validation fails
+ * Fetches a single authenticated assessment by id and validates the returned assessment record.
+ *
+ * @param {string|number} id - Assessment id accepted by the backend route.
+ * @returns {Promise<Object>} API response with `assessment` replaced by the validated assessment record.
+ * @throws {Error} If id is missing, the API fails, or response validation fails.
  */
 export async function getAssessmentById(id) {
   if (!id) {
@@ -288,7 +268,7 @@ export async function getAssessmentById(id) {
  * Sends auth header when a session exists so owners can access private assessments.
  *
  * @param {string} publicId - UUID public identifier.
- * @returns {Promise<{assessment: Object, readonly: boolean}>}
+ * @returns {Promise<{assessment: Object, readonly: boolean}>} Public assessment payload and readonly flag from visibility rules.
  * @throws {Error} With `status` 403/404 when access is denied or not found.
  */
 export async function getPublicAssessment(publicId) {
@@ -327,9 +307,11 @@ export async function getPublicAssessment(publicId) {
 }
 
 /**
- * Create a new assessment
- * @param {Object} payload - Assessment data to create
- * @returns {Promise<Object>} Created assessment data
+ * Creates a new assessment for the authenticated user.
+ *
+ * @param {Record<string, unknown>} payload - Assessment data to create.
+ * @returns {Promise<Record<string, unknown>>} Created assessment data.
+ * @throws {Error} If the API responds with a non-2xx status.
  */
 export async function createAssessment(payload) {
   return requestJson('/api/assessments', {
@@ -339,11 +321,12 @@ export async function createAssessment(payload) {
 }
 
 /**
- * Update an existing assessment
- * @param {string|number} id - Assessment ID
- * @param {Object} updates - Fields to update
- * @returns {Promise<Object>} Updated assessment data
- * @throws {Error} If ID is missing
+ * Updates an existing assessment.
+ *
+ * @param {string|number} id - Assessment id accepted by the backend route.
+ * @param {Record<string, unknown>} updates - Fields to update.
+ * @returns {Promise<Record<string, unknown>>} Updated assessment data.
+ * @throws {Error} If id is missing or the API responds with a non-2xx status.
  */
 export async function updateAssessment(id, updates) {
   if (!id) {
@@ -356,21 +339,19 @@ export async function updateAssessment(id, updates) {
 }
 
 /**
- * Delete an assessment
- * @param {string|number} id - Assessment ID
- * @returns {Promise<Object>} Deletion response
- * @throws {Error} If ID is missing or deletion fails
+ * Deletes an existing assessment and logs failed deletion attempts.
+ *
+ * @param {string|number} id - Assessment id accepted by the backend route.
+ * @returns {Promise<Record<string, unknown>>} Delete response body from the API.
+ * @throws {Error} If id is missing, the API fails, or the response body is empty.
  */
 export async function deleteAssessment(id) {
   if (!id) {
     throw new Error('Assessment id is required');
   }
 
-  // logger.log('[DELETE_ASSESSMENT_API]', { id });
-
   try {
     const response = await requestJson(`/api/assessments/${id}`, { method: 'DELETE' });
-    // logger.log('[DELETE_ASSESSMENT_RESPONSE]', { id, response });
 
     if (!response) {
       throw new Error('Failed to delete assessment: No response from server');
@@ -393,7 +374,7 @@ export async function deleteAssessment(id) {
  *
  * @param {string} id1 - First assessment public UUID.
  * @param {string} id2 - Second assessment public UUID.
- * @returns {Promise<{assessment1: Object, assessment2: Object}>}
+ * @returns {Promise<{assessment1: Object, assessment2: Object}>} Pair of assessments authorized for comparison.
  * @throws {Error} With `status` 403/404 when either assessment is inaccessible.
  */
 export async function getComparisonAssessments(id1, id2) {
@@ -442,13 +423,13 @@ export async function getComparisonAssessments(id1, id2) {
 }
 
 /**
- * Fetch global activity statistics
- * Aggregates data from multiple sources:
+ * Fetches public global activity statistics aggregated from multiple sources:
  * - scoring_results_log (all scoring calls, anonymous + authenticated)
  * - get_market_data RPC for market benchmarks
  * - get_assessment_statistics RPC for global assessment stats
- * No authentication required
- * @returns {Promise<Object>} Global statistics including market data and assessment stats
+ *
+ * @returns {Promise<Object>} Global statistics including market data and assessment stats.
+ * @throws {Error} If the API responds with a non-2xx status.
  */
 export async function getGlobalStats() {
   // Public endpoint - no auth required, but still use proxy in production
@@ -468,12 +449,14 @@ export async function getGlobalStats() {
 }
 
 /**
- * Score assessment with real-time progress streaming via Server-Sent Events
- * @param {Object} formData - Form data with businessProblem, businessSolution, evaluationParameters, businessContext
- * @param {Function} onStage - Callback for progress updates (stage, message)
- * @param {Function} onComplete - Callback for successful completion (result)
- * @param {Function} onError - Callback for errors (error)
- * @returns {Promise<void>} Resolves when the SSE stream closes (success or error handled via callbacks)
+ * Scores an assessment with real-time progress over a streamed SSE-like response.
+ * Anonymous-limit failures are delivered to `onError`; malformed 403 bodies are re-thrown.
+ *
+ * @param {{ businessProblem: string, businessSolution: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> }} formData - Form data sent to the streaming score endpoint.
+ * @param {(stage: string, message: string, data?: Record<string, unknown>) => void} onStage - Callback for progress updates.
+ * @param {(result: Record<string, unknown>) => void} onComplete - Callback for successful completion.
+ * @param {(error: unknown) => void} onError - Callback for errors.
+ * @throws {Record<string, unknown>} Raw 403 body when the backend sends an unrecognized forbidden response.
  */
 export async function scoreAssessmentStream(formData, onStage, onComplete, onError) {
   try {
@@ -544,24 +527,28 @@ export async function scoreAssessmentStream(formData, onStage, onComplete, onErr
             // Call progress callback for all other stages
             onStage(eventData.stage, eventData.message);
           } catch (parseErr) {
-            logger.warn('Failed to parse SSE event:', parseErr, 'Event:', dataMatch[1]);
+            logger.warn('[SCORE_STREAM:SSE_PARSE_FAILED]', { parseErr, event: dataMatch[1] });
           }
         }
       }
     } finally {
       reader.releaseLock();
     }
-  } catch (err) {
-    if (err.code === 'ANON_SCORING_LIMIT_REACHED') {
-      onError(err); // err is the raw body: { code, limit, message, ... }
+  } catch (error) {
+    logger.warn('[SCORE_STREAM:GENERAL_ERROR]', { error });
+    if (error.code === 'ANON_SCORING_LIMIT_REACHED') {
+      onError(error); // error is the raw body: { code, limit, message, ... }
       return;
     }
     if (
-      err.status === 403 ||
-      (typeof err === 'object' && err !== null && !err.message && Object.keys(err).length > 0)
+      error.status === 403 ||
+      (typeof error === 'object' &&
+        error !== null &&
+        !error.message &&
+        Object.keys(error).length > 0)
     ) {
-      throw err;
+      throw error;
     }
-    onError(err);
+    onError(error);
   }
 }
