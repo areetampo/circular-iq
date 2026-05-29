@@ -1,11 +1,9 @@
 /**
- * @module ping
- * @description Vercel serverless function for health check ping.
- * Pings the backend health endpoint to verify connectivity.
+ * Vercel serverless health ping — calls `{VITE_API_URL}/health` and returns `{ status: 'ok' }` or 500.
  *
- * @param {Object} req - Vercel request object.
- * @param {Object} res - Vercel response object.
- * @returns {Promise<void>} Sends JSON response with status.
+ * @param {Object} req - Vercel request
+ * @param {Object} res - Vercel response (`status().json()`)
+ * @returns {Promise<void>}
  */
 export default async function handler(req, res) {
   try {
