@@ -1,20 +1,19 @@
 /**
- * @module uptime.routes
- * @description Express router for the uptime monitor API.
- * All endpoints are public (no authentication required).
+ * Uptime monitor router mounted at `/api/uptime`; all endpoints are public.
  *
- * Routes:
- *   GET /count                          — total checks stored in DB
- *   GET /history/:endpointId            — raw checks for one endpoint
- *   GET /stream                         — SSE stream (poll-complete events)
- *   GET /daily-stats                    — daily uptime % aggregation
- *   GET /heatmap-aggregated             — bucketed heatmap data (supports clock-aligned)
- *   GET /global-trend                   — hourly avg response time (supports clock-aligned)
- *   GET /endpoint-latency               — per-endpoint avg latency scalar
- *   GET /endpoint-buckets/:endpointId   — bucketed endpoint data (supports clock-aligned)
+ * | Method | Path | Auth | Notes |
+ * |--------|------|------|-------|
+ * | GET | `/count` | None | Total checks, optionally filtered by `endpointId` |
+ * | GET | `/stream` | None | SSE stream for connected, heartbeat, and poll-complete events |
+ * | GET | `/history/:endpointId` | None | Raw checks for one endpoint |
+ * | GET | `/global-trend` | None | Hourly response-time trend; supports `clockAligned` |
+ * | GET | `/daily-stats` | None | Daily uptime percentage aggregation |
+ * | GET | `/endpoint-latency` | None | Per-endpoint average latency scalar |
+ * | GET | `/heatmap-aggregated` | None | Bucketed global heatmap data |
+ * | GET | `/endpoint-buckets/:endpointId` | None | Bucketed data for one endpoint |
  *
- * All aggregation endpoints echo back their effective parameters (hours, days,
- * bucketMinutes, clockAligned) so frontend components can derive labels from the
+ * Aggregation endpoints echo back their effective parameters (`hours`, `days`,
+ * `bucketMinutes`, `clockAligned`) so frontend components can derive labels from the
  * response rather than importing constants directly.
  */
 
@@ -23,12 +22,13 @@ import express from 'express';
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getSupabaseClient } from '#database/client.js';
 import { addClient, removeClient } from '#services/uptime.broadcaster.js';
+import { toClientError } from '#utils/errors.js';
 
 /**
- * Creates the Express router for `/api/uptime` endpoints.
+ * Creates uptime monitoring endpoints backed by Supabase RPCs and the SSE broadcaster.
  * Uses the global `logger` (set in `server/index.js`) for request logging.
  *
- * @returns {import('express').Router}
+ * @returns {import('express').Router} Router mounted under `/api/uptime`.
  */
 export default function createUptimeRouter() {
   const router = express.Router();
@@ -37,9 +37,8 @@ export default function createUptimeRouter() {
 
   /**
    * GET /count?endpointId=
-   * Returns `{ total }` — row count in `uptime_checks`, optionally filtered by endpoint.
-   * When endpointId is provided: exact count via index scan.
-   * When unfiltered: fast approximate count via pg_class.reltuples (display stat only).
+   * Accepts no path parameters. Optional query arg `endpointId` switches to an exact per-endpoint
+   * count; unfiltered counts use a fast catalog estimate. Supabase errors map to 500.
    */
   router.get('/count', async (req, res) => {
     const startTime = Date.now();
@@ -48,7 +47,7 @@ export default function createUptimeRouter() {
       let total;
 
       if (req.query.endpointId) {
-        // Filtered — exact count, composite index is used.
+        // Filtered counts stay exact because the composite index keeps this path cheap.
         const { count, error } = await supabase
           .from('uptime_checks')
           .select('*', { count: 'exact', head: true })
@@ -56,26 +55,30 @@ export default function createUptimeRouter() {
         if (error) throw error;
         total = count;
       } else {
-        // Unfiltered — use fast catalogue estimate instead of full table scan.
-        // Suitable for display stats; accurate to ~1% given tuned autovacuum.
+        // Use the catalog estimate for display stats instead of scanning the full table.
         const { data, error } = await supabase.rpc('get_uptime_check_count_estimate');
         if (error) throw error;
         total = data;
       }
 
       res.json({ total });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('GET', '/api/uptime/count', 500, duration, { err });
-      logger.error({ err }, 'Failed to fetch uptime count');
+      logger.logOperation('GET', '/api/uptime/count', 500, duration, { error });
+      logger.error({ error }, 'Failed to fetch uptime count');
 
-      res.status(500).json({ error: 'Failed to fetch count' });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to fetch count'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
    * GET /stream
-   * SSE connection: `connected` on open, `: heartbeat` every `pollIntervalMs`, `poll-complete` from broadcaster.
+   * Accepts no path or query parameters. Opens an SSE connection with a `connected` event,
+   * `: heartbeat` comments every `pollIntervalMs`, and broadcaster `poll-complete` events.
+   * Disconnect cleanup removes the response from the broadcaster and clears the heartbeat.
    */
   router.get('/stream', (req, res) => {
     const startTime = Date.now();
@@ -98,20 +101,22 @@ export default function createUptimeRouter() {
         removeClient(res);
         clearInterval(heartbeat);
       });
-    } catch (err) {
-      logger.error({ err }, 'Failed to establish SSE stream');
-      logger.logOperation('GET', '/api/uptime/stream', 500, Date.now() - startTime, { err });
+    } catch (error) {
+      logger.error({ error }, 'Failed to establish SSE stream');
+      logger.logOperation('GET', '/api/uptime/stream', 500, Date.now() - startTime, { error });
 
-      res
-        .status(500)
-        .json({ error: 'Failed to establish SSE stream', timestamp: new Date().toISOString() });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to establish SSE stream'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
    * GET /history/:endpointId?limit=
-   * Raw checks for one endpoint (newest first in DB, reversed to chronological in response).
-   * Caps `limit` at `maxHistoryPerEndpoint`.
+   * Path param `endpointId` selects one monitored endpoint. Query arg `limit` defaults to
+   * `maxHistoryPerEndpoint` and is clamped to `1..maxHistoryPerEndpoint`. Rows are fetched newest
+   * first for index use, then returned chronologically; Supabase errors map to 500.
    */
   router.get('/history/:endpointId', async (req, res) => {
     const startTime = Date.now();
@@ -142,14 +147,13 @@ export default function createUptimeRouter() {
         createdAt: row.created_at,
       }));
       res.json({ endpointId, checks });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('GET', path, 500, duration, { err });
-      logger.error({ err, endpointId }, 'Failed to fetch uptime history');
+      logger.logOperation('GET', path, 500, duration, { error });
+      logger.error({ error, endpointId }, 'Failed to fetch uptime history');
 
       res.status(500).json({
-        error: 'Failed to fetch history',
-        code: 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to fetch history'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -157,10 +161,9 @@ export default function createUptimeRouter() {
 
   /**
    * GET /global-trend?hours=24&clockAligned=false
-   *
-   * clockAligned=true  → slots anchored to clean HH:00 boundaries.
-   * clockAligned=false → rolling window from NOW() (default).
-   * Echoes back hours and clockAligned.
+   * Accepts no path parameters. Query arg `hours` defaults to 24 and is clamped to the configured
+   * day limit; `clockAligned=true` anchors slots to clean hour boundaries, while the default rolling
+   * window starts from NOW(). Effective values are echoed; RPC failures map to 500.
    */
   router.get('/global-trend', async (req, res) => {
     const startTime = Date.now();
@@ -184,18 +187,23 @@ export default function createUptimeRouter() {
         avgResponseTime: row.avg_response_time !== null ? Number(row.avg_response_time) : null,
       }));
       res.json({ trend, hours, clockAligned });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('GET', '/api/uptime/global-trend', 500, duration, { err });
-      logger.error({ err }, 'Failed to fetch global trend');
+      logger.logOperation('GET', '/api/uptime/global-trend', 500, duration, { error });
+      logger.error({ error }, 'Failed to fetch global trend');
 
-      res.status(500).json({ error: 'Failed to fetch global trend' });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to fetch global trend'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
    * GET /daily-stats?days=28
-   * Daily uptime % per day via `get_daily_uptime_stats` RPC. Echoes clamped `days`.
+   * Accepts no path parameters. Query arg `days` defaults to `queryWindowDaysLimit` and is clamped
+   * to `1..queryWindowDaysLimit`. Daily uptime percentages come from `get_daily_uptime_stats`; RPC
+   * failures map to 500.
    */
   router.get('/daily-stats', async (req, res) => {
     const startTime = Date.now();
@@ -215,19 +223,23 @@ export default function createUptimeRouter() {
       logger.logOperation('GET', '/api/uptime/daily-stats', 200, duration);
 
       res.json({ stats: result, days });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('GET', '/api/uptime/daily-stats', 500, duration, { err });
-      logger.error({ err }, 'Failed to fetch daily stats');
+      logger.logOperation('GET', '/api/uptime/daily-stats', 500, duration, { error });
+      logger.error({ error }, 'Failed to fetch daily stats');
 
-      res.status(500).json({ error: 'Failed to fetch daily stats' });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to fetch daily stats'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
    * GET /endpoint-latency?hours=24
-   * No clock-alignment (scalar per endpoint, no bucket edges).
-   * Echoes back hours.
+   * Accepts no path parameters. Query arg `hours` defaults to 24 and is clamped to the configured
+   * day limit. This scalar aggregation has no clock alignment or bucket edges; RPC failures map
+   * to 500.
    */
   router.get('/endpoint-latency', async (req, res) => {
     const startTime = Date.now();
@@ -247,21 +259,24 @@ export default function createUptimeRouter() {
         avgMs: row.avg_ms !== null ? Number(row.avg_ms) : null,
       }));
       res.json({ latency, hours });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('GET', '/api/uptime/endpoint-latency', 500, duration, { err });
-      logger.error({ err }, 'Failed to fetch endpoint latency');
+      logger.logOperation('GET', '/api/uptime/endpoint-latency', 500, duration, { error });
+      logger.error({ error }, 'Failed to fetch endpoint latency');
 
-      res.status(500).json({ error: 'Failed to fetch endpoint latency' });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to fetch endpoint latency'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
    * GET /heatmap-aggregated?bucketMinutes=180&days=28&reference=<ms>&clockAligned=false
-   *
-   * clockAligned=true  → bucket edges snap to nearest bucketMinutes UTC mark.
-   * clockAligned=false → rolling window from reference timestamp (default).
-   * Echoes back clockAligned so the frontend knows which mode rendered.
+   * Accepts no path parameters. Query arg `days` is clamped to the configured day limit,
+   * `bucketMinutes` defaults to 180 and is capped at the selected window length, `reference`
+   * defaults to `Date.now()`, and `clockAligned=true` snaps bucket edges to UTC marks.
+   * Effective values are echoed; RPC failures map to 500.
    */
   router.get('/heatmap-aggregated', async (req, res) => {
     const startTime = Date.now();
@@ -302,21 +317,24 @@ export default function createUptimeRouter() {
       logger.logOperation('GET', '/api/uptime/heatmap-aggregated', 200, duration);
 
       res.json({ buckets, days, bucketMinutes, clockAligned });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('GET', '/api/uptime/heatmap-aggregated', 500, duration, { err });
-      logger.error({ err }, 'Failed to fetch heatmap aggregated data');
+      logger.logOperation('GET', '/api/uptime/heatmap-aggregated', 500, duration, { error });
+      logger.error({ error }, 'Failed to fetch heatmap aggregated data');
 
-      res.status(500).json({ error: 'Failed to fetch heatmap aggregated data' });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to fetch heatmap aggregated data'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
    * GET /endpoint-buckets/:endpointId?bucketMinutes=15&hours=24&clockAligned=false
-   *
-   * clockAligned=true  → newest bucket boundary snapped to nearest bucketMinutes UTC mark.
-   * clockAligned=false → rolling window from NOW() (default).
-   * Echoes back hours, bucketMinutes, clockAligned.
+   * Path param `endpointId` selects one monitored endpoint. Query arg `hours` defaults to 24 and is
+   * clamped to the configured day limit; `bucketMinutes` defaults to 15 and is capped at the selected
+   * hour window. `clockAligned=true` snaps the newest bucket boundary to a UTC mark; RPC failures
+   * map to 500.
    */
   router.get('/endpoint-buckets/:endpointId', async (req, res) => {
     const startTime = Date.now();
@@ -352,25 +370,27 @@ export default function createUptimeRouter() {
         isPartial: row.is_partial,
       }));
       res.json({ endpointId, buckets, bucketMinutes, hours, clockAligned });
-    } catch (err) {
+    } catch (error) {
       const duration = Date.now() - startTime;
       logger.logOperation('GET', `/api/uptime/endpoint-buckets/${endpointId}`, 500, duration, {
-        err,
+        error,
       });
-      logger.error({ err, endpointId }, 'Failed to fetch endpoint buckets');
+      logger.error({ error, endpointId }, 'Failed to fetch endpoint buckets');
 
-      res.status(500).json({ error: 'Failed to fetch endpoint buckets' });
+      res.status(500).json({
+        ...toClientError(error, 'Failed to fetch endpoint buckets'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
-  // Fallback error handler
-  router.use((err, req, res, _next) => {
-    logger.logOperation('ERROR', `/api/uptime${req.path}`, 500, 0, { err });
-    logger.error({ err }, 'Uptime route error');
+  // Keep delegated RPC/controller failures client-safe even when they bypass route handlers.
+  router.use((error, req, res, _next) => {
+    logger.logOperation('ERROR', `/api/uptime${req.path}`, 500, 0, { error });
+    logger.error({ error }, 'Uptime route error');
 
     res.status(500).json({
-      error: err?.message || 'Internal server error',
-      code: err?.code || 'INTERNAL_ERROR',
+      ...toClientError(error, 'Internal server error'),
       timestamp: new Date().toISOString(),
     });
   });

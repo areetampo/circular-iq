@@ -1,20 +1,17 @@
 /**
- * @module assessments.routes
- * @description Express router for assessment CRUD operations.
- * Provides endpoints for creating, retrieving, sharing, and comparing circular economy
- * business assessments. All endpoints enforce authentication, validation, and appropriate
- * access control rules. Routes delegate to assessments.controller.js for business logic.
+ * Assessment CRUD router mounted at `/api/assessments`.
  *
- * Routes:
- *   POST /                          — Save a completed assessment result
- *   GET /                           — Retrieve list of user's assessments with filtering
- *   GET /stats                      — Retrieve aggregate statistics for user's assessments
- *   GET /public/:publicId           — Retrieve a publicly shared assessment (optional auth)
- *   GET /validate/:publicId         — Validate a public assessment ID and shareability
- *   GET /compare                    — Compare two assessments with privacy enforcement
- *   GET /:publicId                  — Fetch one assessment by public id (auth required)
- *   PATCH /:id                      — Update assessment name/metadata (auth required)
- *   DELETE /:id                     — Delete an assessment (auth required)
+ * | Method | Path | Auth | Notes |
+ * |--------|------|------|-------|
+ * | POST | `/` | Bearer (required) | Validated assessment create |
+ * | GET | `/` | Bearer (required) | Owner-scoped list with filters |
+ * | GET | `/stats` | Bearer (required) | Owner-scoped aggregate stats |
+ * | GET | `/public/:publicId` | Optional Bearer | Public share lookup with owner context |
+ * | GET | `/validate/:publicId` | Optional Bearer | Visibility and UUID validation |
+ * | GET | `/compare?id1=&id2=` | Optional Bearer | Public or owner-visible comparison |
+ * | GET | `/:publicId` | Bearer (required) | Owner-scoped lookup by public id |
+ * | PATCH | `/:id` | Bearer (required) | Owner-scoped update by internal id |
+ * | DELETE | `/:id` | Bearer (required) | Owner-scoped delete by internal id |
  */
 
 import express from 'express';
@@ -23,20 +20,22 @@ import * as assessmentsController from '#controllers/assessments.controller.js';
 import { requireAuth } from '#middleware/auth.middleware.js';
 import { validateAssessment } from '#middleware/validation.middleware.js';
 import { authenticateRequest } from '#services/auth.service.js';
+import { toClientError } from '#utils/errors.js';
 
 /**
- * Creates the assessments router.
+ * Creates assessment routes for authenticated CRUD plus public sharing helpers.
  *
- * @param {Object} serviceSupabase - Service-role Supabase client for unrestricted queries.
- * @returns {express.Router} Configured Express router with assessment endpoints.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} serviceSupabase - Service-role Supabase client used by auth middleware and assessment controllers.
+ * @returns {express.Router} Router mounted under `/api/assessments`.
  */
 export default function createAssessmentsRouter(serviceSupabase) {
   const router = express.Router();
 
   /**
    * POST /
-   * Saves a completed assessment (validated body + raw scoring result).
-   * Returns 201 `{ id, message, assessment }`; 400 on title validation failure.
+   * Requires Bearer auth and no path or query parameters. Saves a validated assessment body plus
+   * the raw scoring result. Validation middleware handles request shape; title errors map to 400,
+   * while unexpected persistence failures map to 500.
    */
   router.post('/', requireAuth(serviceSupabase), validateAssessment, async (req, res) => {
     const startTime = Date.now();
@@ -50,13 +49,12 @@ export default function createAssessmentsRouter(serviceSupabase) {
       );
       logger.logOperation('POST', '/assessments', 201, Date.now() - startTime);
       res.status(201).json(result);
-    } catch (err) {
-      logger.error({ err }, 'Error saving assessment');
-      const statusCode = err.code === 'TITLE_LENGTH_INVALID' ? 400 : 500;
+    } catch (error) {
+      logger.error({ error }, 'Error saving assessment');
+      const statusCode = error.code === 'TITLE_LENGTH_INVALID' ? 400 : 500;
       logger.logOperation('POST', '/assessments', statusCode, Date.now() - startTime);
       res.status(statusCode).json({
-        error: err.message || 'Failed to save assessment',
-        code: err.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to save assessment'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -64,9 +62,10 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /
-   * Lists the authenticated user's assessments with filtering, sorting, and pagination.
-   * Query: `industry`, `sortBy`, `order`, `page`, `pageSize`, `search`, `createdFrom`, `createdTo`, `minScore`, `maxScore`.
-   * Returns `{ assessments, pagination }`.
+   * Requires Bearer auth and no path parameters. Query args: `industry`, `sortBy`, `order`, `page`,
+   * `pageSize`, `search`, `createdFrom`, `createdTo`, `minScore`, `maxScore`. The controller clamps
+   * `pageSize` to 100, defaults unsafe sort values, and returns owner-scoped rows with pagination
+   * fields; query failures map to 500.
    */
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
@@ -79,12 +78,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
       );
       logger.logOperation('GET', '/assessments', 200, Date.now() - startTime);
       res.json(result);
-    } catch (err) {
-      logger.error({ err }, 'Error fetching assessments');
+    } catch (error) {
+      logger.error({ error }, 'Error fetching assessments');
       logger.logOperation('GET', '/assessments', 500, Date.now() - startTime);
       res.status(500).json({
-        error: err.message || 'Failed to fetch assessments',
-        code: err.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to fetch assessments'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -92,7 +90,8 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /stats
-   * Retrieve aggregate statistics for user's assessments
+   * Requires Bearer auth and no path or query parameters. Returns aggregate counts and score
+   * summaries for the authenticated user's saved assessments. RPC failures map to 500.
    */
   router.get('/stats', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
@@ -101,12 +100,11 @@ export default function createAssessmentsRouter(serviceSupabase) {
       const stats = await assessmentsController.getAssessmentStats(serviceSupabase, req.user);
       logger.logOperation('GET', '/assessments/stats', 200, Date.now() - startTime);
       res.json(stats);
-    } catch (err) {
-      logger.error({ err }, 'Error fetching assessment stats');
+    } catch (error) {
+      logger.error({ error }, 'Error fetching assessment stats');
       logger.logOperation('GET', '/assessments/stats', 500, Date.now() - startTime);
       res.status(500).json({
-        error: err.message || 'Failed to fetch assessment statistics',
-        code: err.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to fetch assessment statistics'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -114,13 +112,15 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /public/:publicId
-   * Retrieve a publicly shared assessment (optional auth for ownership check)
+   * Path param `publicId` is the assessment public UUID; no query parameters are read. Optional
+   * Bearer auth lets owners access private shares. Missing rows map to 404; other controller
+   * failures, including private non-owner access, currently map to 500 in this route.
    */
   router.get('/public/:publicId', async (req, res) => {
     const startTime = Date.now();
 
     try {
-      // Handle optional authentication using centralized auth service
+      // Optional auth lets owners access private share URLs without blocking public reads.
       const { user } = await authenticateRequest(req, serviceSupabase, {
         required: false,
       });
@@ -146,8 +146,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         Date.now() - startTime,
       );
       res.status(statusCode).json({
-        error: error.message || 'Failed to fetch assessment',
-        code: error.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to fetch assessment'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -155,13 +154,15 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /validate/:publicId
-   * Validate a public assessment ID exists and is shareable
+   * Path param `publicId` is the assessment public UUID; no query parameters are read. Optional
+   * Bearer auth allows private-owner validation. Invalid UUIDs map to 400, hidden private rows to
+   * 403, missing rows to 404, and unexpected failures to 500.
    */
   router.get('/validate/:publicId', async (req, res) => {
     const startTime = Date.now();
 
     try {
-      // Handle optional authentication using centralized auth service
+      // Optional auth lets owners validate private IDs that would be hidden from anonymous users.
       const { user } = await authenticateRequest(req, serviceSupabase, {
         required: false,
       });
@@ -193,48 +194,26 @@ export default function createAssessmentsRouter(serviceSupabase) {
         statusCode,
         Date.now() - startTime,
       );
-      res.status(statusCode).json({ error: error.message });
+      res.status(statusCode).json({
+        ...toClientError(error, 'Failed to validate assessment'),
+        timestamp: new Date().toISOString(),
+      });
     }
   });
 
   /**
-   * GET /compare
-   * Compare two assessments by publicId with visibility rules
-   * Query params: id1, id2 (both required)
-   * Supports cross-user comparison with privacy enforcement
-   * Allows both authenticated and unauthenticated access
-   *
-   * NOTE: This route must appear before `GET /:publicId` to avoid the dynamic
-   * param route capturing the literal path segment `compare`.
+   * GET /compare?id1=&id2=
+   * Query args `id1` and `id2` are required public UUIDs; there are no path params. Optional
+   * Bearer auth enables owner access to private rows. Whitespace-only IDs are rejected as 400,
+   * private non-owner access maps to 403, and this route must stay before `GET /:publicId`.
    */
   router.get('/compare', async (req, res) => {
     const startTime = Date.now();
 
     const { id1, id2 } = req.query;
 
-    // logger.info(
-    //   {
-    //     query: req.query,
-    //     id1,
-    //     id2,
-    //     types: { id1: typeof id1, id2: typeof id2 },
-    //     falsy: { id1: !id1, id2: !id2 },
-    //     details: {
-    //       id1_length: id1 ? id1.length : 'null',
-    //       id2_length: id2 ? id2.length : 'null',
-    //       id1_trimmed: id1 ? id1.trim() : 'null',
-    //       id2_trimmed: id2 ? id2.trim() : 'null',
-    //       id1_empty_after_trim: id1 ? id1.trim() === '' : 'null',
-    //       id2_empty_after_trim: id2 ? id2.trim() === '' : 'null',
-    //       id1_constructor: id1 ? id1.constructor.name : 'null',
-    //       id2_constructor: id2 ? id2.constructor.name : 'null',
-    //     },
-    //   },
-    //   '[COMPARE_ROUTE_DEBUG] Query params received',
-    // );
-
     try {
-      // More robust validation - check for null, undefined, empty string, or whitespace-only
+      // Reject whitespace-only IDs before optional auth so bad requests stay cheap.
       if (!id1 || !id2 || id1.trim() === '' || id2.trim() === '') {
         throw {
           code: 'INVALID_IDS',
@@ -242,16 +221,10 @@ export default function createAssessmentsRouter(serviceSupabase) {
         };
       }
 
-      // Handle optional authentication using centralized auth service
+      // Optional auth lets owners compare private assessments they can access.
       const { user } = await authenticateRequest(req, serviceSupabase, {
         required: false,
       });
-
-      // logger.info('[COMPARE_DEBUG] Authentication result:', {
-      //   user: user ? { id: user.id, email: user.email } : null,
-      // });
-
-      // logger.info({ id1, id2 }, '[COMPARE_ROUTE_DEBUG] Calling controller with params');
 
       const result = await assessmentsController.compareAssessments(
         serviceSupabase,
@@ -284,8 +257,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         Date.now() - startTime,
       );
       res.status(statusCode).json({
-        error: error.message || 'Failed to compare assessments',
-        code: error.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to compare assessments'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -293,8 +265,8 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * GET /:publicId
-   * Retrieve a single assessment by publicId (auth required, user-specific)
-   * Note: Uses public_id instead of primary key for security
+   * Requires Bearer auth. Path param `publicId` is the public UUID, not the database primary key;
+   * no query parameters are read. Missing or unauthorized owner-scoped rows respond as 404.
    */
   router.get('/:publicId', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
@@ -321,8 +293,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         Date.now() - startTime,
       );
       res.status(statusCode).json({
-        error: error.message || 'Failed to fetch assessment',
-        code: error.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to fetch assessment'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -330,7 +301,9 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * PATCH /:id
-   * Update assessment fields (e.g., is_public)
+   * Requires Bearer auth. Path param `id` is the internal assessment UUID; no query parameters are
+   * read. Updates owner-scoped JSON body fields such as title or visibility. Title validation maps
+   * to 400, missing rows to 404, and other failures to 500.
    */
   router.patch('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
@@ -358,8 +331,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         Date.now() - startTime,
       );
       res.status(statusCode).json({
-        error: error.message || 'Failed to update assessment',
-        code: error.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to update assessment'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -367,7 +339,8 @@ export default function createAssessmentsRouter(serviceSupabase) {
 
   /**
    * DELETE /:id
-   * Delete a saved assessment
+   * Requires Bearer auth. Path param `id` is the internal assessment UUID; no query parameters are
+   * read. Deletes only owner-scoped rows. Missing rows map to 404; other failures map to 500.
    */
   router.delete('/:id', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
@@ -389,8 +362,7 @@ export default function createAssessmentsRouter(serviceSupabase) {
         Date.now() - startTime,
       );
       res.status(statusCode).json({
-        error: error.message || 'Failed to delete assessment',
-        code: error.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to delete assessment'),
         timestamp: new Date().toISOString(),
       });
     }

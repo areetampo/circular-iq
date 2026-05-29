@@ -1,49 +1,49 @@
 /**
- * @module analytics.routes
- * @description Express router for analytics endpoints.
- * Provides routes for dashboard statistics, global analytics, and background tasks.
- * All endpoints are public (no authentication required).
+ * Analytics router mounted at `/api/analytics`; all endpoints are public.
  *
- * Routes:
- *   POST /embeddings/reindex         — Starts background embedding pipeline reindex
- *   GET /global-stats                — Aggregated dashboard statistics from all sources
+ * | Method | Path | Auth | Notes |
+ * |--------|------|------|-------|
+ * | POST | `/embeddings/reindex` | None | Spawns the embedding pipeline in the background |
+ * | GET | `/global-stats` | None | Aggregates scoring logs and benchmark RPCs |
  */
 
 import express from 'express';
 
 import * as analyticsController from '#controllers/analytics.controller.js';
+import { toClientError } from '#utils/errors.js';
 
 /**
- * Creates the analytics router.
+ * Creates public analytics endpoints that delegate aggregation and reindex work to controllers.
  *
- * @param {Object} serviceSupabase - Service-role Supabase client for unrestricted queries.
- * @returns {express.Router} Configured Express router with analytics endpoints.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} serviceSupabase - Service-role Supabase client passed to analytics controllers for aggregate queries.
+ * @returns {express.Router} Router mounted under `/api/analytics`.
  */
 export default function createAnalyticsRouter(serviceSupabase) {
   const router = express.Router();
 
   /**
    * POST /embeddings/reindex
-   * Spawns `pipeline/rag/generate_embeddings.js` as a detached background process.
-   * Returns `{ started: true, pid }` immediately.
+   * Accepts no path or query parameters. Starts the embedding reindex pipeline in a detached
+   * background process and responds immediately with `{ started: true, pid }`; startup failures
+   * are converted by the controller into a 500 response.
    */
   router.post('/embeddings/reindex', analyticsController.postEmbeddingsReindex());
 
   /**
    * GET /global-stats
-   * Aggregates dashboard statistics from scoring logs, market RPC, and assessment RPC.
-   * No authentication required.
+   * Accepts no path or query parameters. Returns public dashboard aggregates from scoring logs,
+   * market RPCs, and assessment RPCs. Missing service-client setup returns 503; individual RPC
+   * failures degrade their section to empty data instead of failing the whole response.
    */
   router.get('/global-stats', analyticsController.getGlobalStats(serviceSupabase));
 
-  // fallback error handler for unexpected errors
-  router.use((err, req, res, _next) => {
-    logger.logOperation('ERROR', `/api/analytics${req.path}`, 500, 0, { err });
-    logger.error({ err }, 'Analytics route error');
+  // Keep delegated controller failures client-safe even when they bypass route handlers.
+  router.use((error, req, res, _next) => {
+    logger.logOperation('ERROR', `/api/analytics${req.path}`, 500, 0, { error });
+    logger.error({ error }, 'Analytics route error');
 
     res.status(500).json({
-      error: err?.message || 'Internal server error',
-      code: err?.code || 'INTERNAL_ERROR',
+      ...toClientError(error, 'Internal server error'),
       timestamp: new Date().toISOString(),
     });
   });
