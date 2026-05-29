@@ -9,9 +9,6 @@
 /* HeroUI v3 styles - Essential for Modal/AlertDialog/Form components */
 @import '@heroui/styles';
 
-/* Dark mode variant for Tailwind v4 */
-@custom-variant dark (&:is(.dark *));
-
 /* Tailwind plugins */
 @plugin 'tailwindcss-animate';
 
@@ -518,10 +515,6 @@
   /* General UI Colors */
   --color-ui-brown: #8b6f47; /* Used by LoaderIcon.jsx via getComputedStyle */
 
-  /* Dark Mode Colors */
-  --color-dark-bg: #0a0a0a;
-  --color-dark-text: #fafafa;
-
   /* Border and Hover Colors */
   --color-border-dark-20: var(--theme-border-black-20);
   --color-hover-accent-strong: var(--theme-accent-hover-strong);
@@ -609,10 +602,6 @@
 
   body {
     @apply min-h-screen min-w-80 bg-(--color-bg) font-sans text-[15px] leading-relaxed text-(--color-text-primary);
-  }
-
-  .dark body {
-    @apply bg-(--color-dark-bg) text-(--color-dark-text);
   }
 
   /* Kill all default browser focus outlines */
@@ -794,7 +783,7 @@
   /*  TOAST                                       */
   /* ============================================= */
   .toast {
-    @apply z-9999! flex! w-fit! items-center! justify-center! gap-2! rounded-2xl! border-0! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! backdrop-blur-lg! transition-all! duration-300! ease-in-out!;
+    @apply z-9999! flex! min-h-fit! w-fit! items-center! justify-center! gap-2! rounded-2xl! border-0! border-black! bg-(--color-toast-bg)! p-3! px-4! shadow-toast! backdrop-blur-lg! transition-all! duration-300! ease-in-out!;
   }
   .toast__content {
     @apply flex! flex-col! gap-0! p-0!;
@@ -1696,7 +1685,7 @@
 
   .alert-dialog__backdrop,
   [data-slot='backdrop'].alert-dialog__backdrop {
-    @apply bg-(--color-alert-backdrop) backdrop-blur-[2px];
+    @apply bg-transparent! backdrop-blur-[1px]!;
   }
 
   .alert-dialog__container,
