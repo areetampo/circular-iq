@@ -1,6 +1,5 @@
 /**
- * @module NotFoundPage
- * @description 404 fallback route with navigation back to the app.
+ * 404 fallback route with links back into the main assessment flows.
  */
 
 import { BarChart3, Compass, Files, Home } from 'lucide-react';
@@ -9,8 +8,7 @@ import { Link } from 'react-router-dom';
 import { Button, Separator } from '@/components/common';
 
 /**
- * Friendly not-found message and link home.
- * @returns {import('react').ReactElement}
+ * Renders the not-found message with home and saved-assessments navigation actions.
  */
 export default function NotFoundPage() {
   return (
