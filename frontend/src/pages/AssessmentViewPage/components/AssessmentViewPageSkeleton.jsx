@@ -1,17 +1,14 @@
 /**
- * @module AssessmentViewPageSkeleton
- * @description Loading skeleton for the read-only assessment view page.
- * AssessmentViewPageSkeleton Component
- * Skeleton for AssessmentViewPage (/assessments/share/:id)
- * Accurately matches the actual component structure and layout
+ * Loading placeholders for the public assessment view, aligned to the loaded page structure.
  */
 import { Skeleton } from '@heroui/react';
 
 import { Separator } from '@/components/common';
 
 /**
- * Loading skeleton for the read-only assessment view page.
- * @returns {import('react').ReactElement}
+ * Renders the read-only assessment page placeholder while public assessment data loads.
+ *
+ * @returns {import('react').ReactElement} Skeleton view matching the public assessment layout.
  */
 export default function AssessmentViewPageSkeleton() {
   return (

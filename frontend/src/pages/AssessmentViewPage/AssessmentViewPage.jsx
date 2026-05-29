@@ -1,6 +1,5 @@
 /**
- * @module AssessmentViewPage
- * @description Read-only view of one saved assessment (same column layout as comparison).
+ * Read-only assessment page that reuses the comparison column layout for a single public result.
  */
 
 import { Eye, FingerprintPattern, MoveLeft, RotateCw } from 'lucide-react';
@@ -12,22 +11,21 @@ import { Button } from '@/components/common';
 import DetailsDisplay from '@/components/common/DetailsDisplay';
 import { usePublicAssessment } from '@/features/assessments/hooks';
 import { reconstructScoringResult } from '@/features/assessments/utils';
-import { useAuth } from '@/hooks';
+import { usePageTitle, useAuth } from '@/hooks';
 import { AssessmentColumn } from '@/pages/AssessmentComparisonPage/components';
 import { computeAssessmentData } from '@/pages/AssessmentComparisonPage/utils/assessmentUtils';
 import AssessmentViewPageSkeleton from '@/pages/AssessmentViewPage/components/AssessmentViewPageSkeleton';
 import { useSafeBack } from '@/utils/navigation';
 
 /**
- * Loads a single assessment by route `publicId` for viewing.
- * @returns {import('react').ReactElement}
+ * Loads a public assessment by prop or route ID, redirecting owners back to their editable view.
  */
 export default function AssessmentViewPage({ publicId: propPublicId }) {
   const { id: urlParamId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Get publicId from either props (from SharePage) or URL params (direct access)
+  // SharePage can pass the ID directly; direct route access falls back to the URL param.
   const publicId = propPublicId || urlParamId;
 
   const {
@@ -39,10 +37,9 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
     enabled: !!publicId,
   });
 
-  // Redirect owners to /assessments/:id when accessing via /assessments/share/:id
+  // Owners should land on the editable assessment route instead of the public read-only route.
   useEffect(() => {
     if (responseData && isAuthenticated && responseData.readonly === false) {
-      // User owns this assessment (readonly === false), redirect to owner route
       navigate(`/assessments/${publicId}`, { replace: true });
     }
   }, [responseData, isAuthenticated, publicId, navigate]);
@@ -55,6 +52,9 @@ export default function AssessmentViewPage({ publicId: propPublicId }) {
   const handleRefresh = useCallback(() => {
     window.location.reload();
   }, [navigate]);
+
+  // Keep the browser title aligned with the loaded assessment once data resolves.
+  usePageTitle(assessment?.title);
 
   const goBackSafely = useSafeBack('/');
 
