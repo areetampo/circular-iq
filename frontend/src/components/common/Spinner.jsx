@@ -1,7 +1,4 @@
-/**
- * @module Spinner
- * @description Lightweight Ring2 loading indicator (size and colour configurable).
- */
+/** Lightweight Ring2 loading indicator for buttons, checkboxes, and inline states. */
 
 import { Ring2 } from 'ldrs/react';
 import 'ldrs/react/Ring2.css';
@@ -32,13 +29,7 @@ import PropTypes from 'prop-types';
 //* check components/common/button for another usage example
 
 /**
- * Compact Ring2 loading indicator for buttons, checkboxes, and inline states.
- *
- * @param {Object} props
- * @param {number} [props.size=16] - Diameter in pixels.
- * @param {string} [props.color='var(--color-dark-brown)'] - Ring stroke colour.
- * @param {string} [props.className] - Optional wrapper class (passed to Ring2).
- * @returns {import('react').ReactElement}
+ * Renders the ldrs Ring2 indicator with configurable size and color.
  */
 export default function Spinner({
   size = 16,

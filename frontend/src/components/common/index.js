@@ -1,12 +1,13 @@
-/**
- * @module common
- * @description Central export point for common UI components.
- * Re-exports Brand, Button, Chip, CopyButton, DetailsBadge, DetailsDisplay,
- * ExpandableText, LoaderComponent, LoaderIcon, SectionHeading,
- * Separator, Spinner, Tilt3D, and TruncatedTextTooltip.
- */
+/** Barrel re-exports for common UI components. */
 
-export { SITE_FULL_NAME, SITE_NAME, SiteFullName, SiteLogo, SiteName } from './Brand';
+export {
+  SITE_FULL_NAME,
+  SITE_NAME,
+  SiteFullName,
+  SiteHeroHeading,
+  SiteLogo,
+  SiteName,
+} from './Brand';
 export { default as Button } from './Button';
 export { default as ButtonStages } from './ButtonStages';
 export { default as Chip } from './Chip';

@@ -1,7 +1,4 @@
-/**
- * @module Button
- * @description Accessible button/link primitive with variants, icons, and loading state (React Aria).
- */
+/** Accessible button/link primitive with variants, icons, and loading states. */
 import PropTypes from 'prop-types';
 import { forwardRef, useRef } from 'react';
 import { mergeProps, useButton } from 'react-aria';
@@ -72,54 +69,7 @@ const spinnerSizeMap = {
 };
 
 /**
- * Button component with consistent styling and accessibility features
- * Supports icons, loading states, and various visual variants
- * Built with React Aria for proper keyboard and screen reader support
- *
- * @param {Object} props - Component props
- * @param {string} props.className - Additional CSS classes
- * @param {'primary'|'ghost'|'ghastly'|'bordered'|'danger'|'teal'|'info-soft'|'success-soft'|'warning-soft'|'danger-soft'} props.variant - Visual style variant (default: 'primary')
- * @param {'xs'|'sm'|'md'|'lg'} props.size - Button size (default: 'md')
- * @param {Function} props.onPress - Click handler function
- * @param {boolean} props.isDisabled - Whether button is disabled (default: false)
- * @param {boolean} props.isLoading - Whether to show loading state (default: false)
- * @param {React.ElementType} props.icon - Icon component to display (Lucide icon)
- * @param {Object} props.iconProps - Additional props to pass to icon component
- * @param {number} props.iconSize - Custom icon size in pixels (overrides size-based sizing)
- * @param {number} props.iconStrokeWidth - Custom icon stroke width (overrides size-based sizing)
- * @param {boolean} props.iconRight - Whether to position icon on the right (default: false)
- * @param {React.ElementType} props.loadingIcon - Custom loading icon component
- * @param {boolean} props.spinLoadingIcon - Whether to spin the loading icon (default: false)
- * @param {boolean} props.loadingIconInline - Whether to show loading icon inline (default: false)
- * @param {boolean} props.fullWidth - Whether button should take full width (default: false)
- * @param {React.ReactNode} props.children - Button content
- * @param {React.ElementType} props.as - Component to render as (default: 'button')
- * @param {string} props.to - Navigation target for links
- * @param {string} props.href - URL for link elements
- * @param {string} props.type - HTML button type (default: 'button')
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered Button component
- *
- * @example
- * Basic button
- * <Button onPress={handleClick}>Click me</Button>
- *
- * @example
- * Button with icon and loading state
- * <Button
- *   icon={Save}
- *   isLoading={loading}
- *   onPress={handleSave}
- *   variant="primary"
- * >
- *   Save
- * </Button>
- *
- * @example
- * Link button
- * <Button as={Link} to="/home" variant="ghost">
- *   Go Home
- * </Button>
+ * Renders a React Aria-backed button or link with variant styling, optional icons, and loading states.
  */
 const Button = forwardRef(function Button(
   {
@@ -198,14 +148,14 @@ const Button = forwardRef(function Button(
   iconSize = iconSize || iconSizeMap[size] || iconSizeMap.md;
   iconStrokeWidth = iconStrokeWidth || iconStrokeWidthMap[size] || iconStrokeWidthMap.md;
 
-  // Render lucide-icon with appropriate size
+  // Icon sizing follows the selected button size unless callers override it.
   const renderIcon = () => {
     if (!icon) return null;
     const IconComponent = icon;
     return <IconComponent size={iconSize} strokeWidth={iconStrokeWidth} {...iconProps} />;
   };
 
-  // Render loading icon or spinner
+  // Custom loading icons inherit the resolved icon metrics for visual consistency.
   const renderLoadingIcon = () => {
     if (loadingIcon) {
       const LoadingIconComponent = loadingIcon;
@@ -220,12 +170,10 @@ const Button = forwardRef(function Button(
     return <Spinner color={spinnerColor} size={spinnerSize} />;
   };
 
-  // Content rendering: original content always keeps its layout (icon + text side by side)
-  // The wrapper span always has the same classes – only its visibility changes.
-  // Loading icon is absolutely positioned over the same area, does not affect button size.
+  // Original content stays in layout while an absolute loading indicator overlays it.
   const content = (
     <span className="relative inline-flex items-center justify-center">
-      {/* Original children – always in layout, never changes display style */}
+      {/* Original children stay in layout so loading does not resize the button. */}
       <span
         className={cn(
           'inline-flex items-center justify-center gap-1.5',
@@ -239,7 +187,7 @@ const Button = forwardRef(function Button(
         {iconRight && !isLoading && renderIcon()}
       </span>
 
-      {/* Loading icon or spinner – absolute, centered, only shown when loading and not inline */}
+      {/* Centered overlay is only used when callers do not request inline loading. */}
       {isLoading && !loadingIconInline && (
         <span className="absolute inset-0 flex items-center justify-center">
           {renderLoadingIcon()}

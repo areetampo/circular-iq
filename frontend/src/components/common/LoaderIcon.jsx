@@ -1,9 +1,6 @@
-/**
- * @module LoaderIcon
- * @description Inline animated loader icon used inside buttons during async actions.
- */
+/** Inline ldrs loader that randomly rotates through allowed animations on a fixed interval. */
 
-// styles (required)
+// ldrs components require their matching CSS modules to be imported before render.
 import 'ldrs/react/Bouncy.css';
 import 'ldrs/react/BouncyArc.css';
 import 'ldrs/react/DotPulse.css';
@@ -56,7 +53,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
-// Create a factory function that generates loaders with resolved color
+// Loader factories defer color selection until the component resolves theme tokens.
 const createLoaders = (accentColor) => [
   ({ color }) => <Bouncy size="45" speed="1.75" color={color || accentColor} />,
   ({ color }) => <BouncyArc size="70" speed="1.65" color={color || accentColor} />,
@@ -82,7 +79,7 @@ const createLoaders = (accentColor) => [
   ({ color }) => <Zoomies size="45" speed="1.75" color={color || accentColor} />,
 ];
 
-// Define the loader names in the exact order of createLoaders
+// Names must stay in the same order as createLoaders so allowedLoaderNames maps correctly.
 const LOADER_NAMES = [
   'Bouncy',
   'BouncyArc',
@@ -108,10 +105,16 @@ const LOADER_NAMES = [
   'Zoomies',
 ];
 
-// Helper to get random index from allowed set, excluding current
+/**
+ * Picks a random loader index from the allowed set without repeating the current one when possible.
+ *
+ * @param {number} exclude - Current loader index to avoid on the next cycle.
+ * @param {number[]} allowedIndices - Loader indices available for random selection.
+ * @returns {number} Index from `allowedIndices`, or `exclude` when no alternative exists.
+ */
 const getRandomIndex = (exclude, allowedIndices) => {
   const candidates = allowedIndices.filter((idx) => idx !== exclude);
-  if (candidates.length === 0) return exclude; // fallback (shouldn't happen)
+  if (candidates.length === 0) return exclude;
   const randomPos = Math.floor(Math.random() * candidates.length);
   return candidates[randomPos];
 };
@@ -120,39 +123,18 @@ const SWITCH_INTERVAL = 6000;
 const FADE_DURATION = 400;
 
 /**
- * LoaderIcon component that displays animated loading indicators
- * Automatically switches between different loader animations for visual variety
- *
- * @param {Object} props - Component props
- * @param {string} [props.color='#8b6f47'] - Color for the loader
- * @param {boolean} [props.isButton=false] - Whether the loader is used in a button context
- * @param {string[]} [props.allowedLoaderNames] - Array of specific loader names to use (e.g., ['Spiral', 'Bouncy'])
- * @param {string} [props.className] - Additional CSS classes
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered LoaderIcon component
- *
- * @example
- * Basic usage
- * <LoaderIcon />
- *
- * @example
- * Custom color and size
- * <LoaderIcon color="#ff0000" className="w-8 h-8" />
- *
- * @example
- * Specific loaders only
- * <LoaderIcon allowedLoaderNames={['Bouncy', 'Spiral']} />
+ * Renders a themed loader that crossfades between allowed ldrs animations.
  */
 export default function LoaderIcon({
   color = '#8b6f47',
   isButton = false,
-  allowedLoaderNames, // array of strings like ['Spiral', 'Bouncy']
+  allowedLoaderNames, // names from LOADER_NAMES, such as ['Pinwheel', 'Bouncy']
   className,
   ...props
 }) {
   const [visible, setVisible] = useState(true);
 
-  // Resolve CSS variable at render time
+  // Resolve CSS variables after mount because SSR has no document styles.
   const accentColor = useMemo(() => {
     if (typeof window === 'undefined') return '#8b6f47';
     const cssValue = getComputedStyle(document.documentElement)
@@ -161,10 +143,10 @@ export default function LoaderIcon({
     return cssValue || '#8b6f47';
   }, []);
 
-  // Get loaders with resolved color
+  // Rebuild loader factories when the resolved theme color changes.
   const loaders = useMemo(() => createLoaders(accentColor), [accentColor]);
 
-  // Convert allowed loader names to indices
+  // Invalid allow-list names fall back to the complete loader set.
   const availableIndices = useMemo(() => {
     const total = loaders.length;
     if (allowedLoaderNames && Array.isArray(allowedLoaderNames) && allowedLoaderNames.length > 0) {
@@ -174,19 +156,17 @@ export default function LoaderIcon({
           return idx !== -1 ? idx : null;
         })
         .filter((idx) => idx !== null && idx >= 0 && idx < total);
-      // If after filtering we have at least one valid index, use them; otherwise fallback to all.
       if (indices.length > 0) return indices;
     }
-    // Default: all loaders
     return Array.from({ length: total }, (_, i) => i);
   }, [allowedLoaderNames, loaders.length]);
 
-  // Initial random index from allowed set
+  // Pick the initial loader from the resolved allow-list.
   const [index, setIndex] = useState(() => {
     const randomPos = Math.floor(Math.random() * availableIndices.length);
     return availableIndices[randomPos];
   });
-  // for ordered loaders:
+  // Ordered cycling can be restored for deterministic visual tests.
   // const [cursor, setCursor] = useState(0);
   // const index = availableIndices[cursor];
 
@@ -208,7 +188,7 @@ export default function LoaderIcon({
 
   // useEffect(() => {
   //   const el = document.getElementById('loader-icon');
-  //   logger.log(LOADER_NAMES[index], `: Wd ${el.offsetWidth}px, Ht ${el.offsetHeight}px`);
+  //   logger.log(LOADER_NAMES[index], `: Width ${el.offsetWidth}px, Height ${el.offsetHeight}px`);
   // });
 
   return (

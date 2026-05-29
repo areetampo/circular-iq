@@ -1,13 +1,10 @@
-/**
- * @module DetailsDisplay
- * @description Label/value rows for structured detail blocks in drawers and results.
- */
+/** Centered empty, error, or info panel with icon, copy support, and configurable actions. */
 
 import { ScrollShadow } from '@heroui/react';
 import { AlertTriangle, Ghost, Home, Info, RotateCw, ServerOff, XCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 
 import { cn } from '@/utils/cn';
@@ -15,7 +12,7 @@ import { cn } from '@/utils/cn';
 import Button from './Button';
 import CopyButton from './CopyButton';
 
-// Variant-specific styling
+// Variant styles drive icon choice and CSS variable tokens for each status panel.
 const variants = {
   neutral: {
     iconBg: '',
@@ -60,44 +57,8 @@ const variants = {
 };
 
 /**
- * Reusable display component with beautiful, consistent styling
- * Used across error boundaries, error states, informational messages, and various UI states
- *
- * @param {Object} props - Component props
- * @param {'neutral'|'error'|'warning'|'info'|'404'} props.variant - Visual variant theme (default: 'error')
- * @param {React.ElementType} props.icon - Custom icon component (Lucide icon)
- * @param {string} [props.title='An Error Occurred'] - Main heading/title text (default: 'An Error Occurred')
- * @param {boolean} [props.showTitle=true] - Whether to display the title (default: true)
- * @param {string} [props.description='Something went wrong. Please try again later.'] - Descriptive message text (default: 'Something went wrong. Please try again later.')
- * @param {boolean} [props.showDescription=true] - Whether to display the description (default: true)
- * @param {React.ReactNode} props.children - Additional custom content to display
- * @param {Array<Object>} props.actions - Array of action buttons: [{ label, icon, onPress, variant, size, className, state, as, to, smooth, iconRight }]
- * @param {boolean} [props.showDefaultActions=true] - Whether to show default "Refresh" and "Return Home" buttons (default: true)
- * @param {boolean} [props.fullScreen=false] - Whether to use full screen height (default: false)
- * @param {string|Object|Error} props.errorDetails - Error details to show in dev mode
- * @param {string} [props.className] - Additional CSS classes
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered DetailsDisplay component
- *
- * @example
- * Basic error display
- * <DetailsDisplay
- *   variant="error"
- *   title="Network Error"
- *   description="Unable to connect to the server. Please check your internet connection."
- *   actions={[{ label: 'Retry', onPress: handleRetry }]}
- * />
- *
- * @example
- * Info message with custom icon
- * <DetailsDisplay
- *   variant="info"
- *   icon={Info}
- *   title="Sign In Required"
- *   description="Please sign in to access this feature."
- *   showDefaultActions={false}
- *   actions={[{ label: 'Sign In', onPress: handleSignIn }]}
- * />
+ * Renders a centered status panel used by error boundaries, empty states, and inline messages.
+ * Default actions use React Router Link; callers above ErrorBoundary should disable them.
  */
 export default function DetailsDisplay({
   variant = 'error',
@@ -114,15 +75,14 @@ export default function DetailsDisplay({
   className,
   ...props
 }) {
-  const navigate = useNavigate();
   const handleRefresh = useCallback(() => {
     window.location.reload();
-  }, [navigate]);
+  }, []);
 
   const style = variants[variant] || variants.error;
   const Icon = CustomIcon || style.defaultIcon;
 
-  // Default actions
+  // Default actions assume the component is rendered inside a Router.
   const defaultActions = showDefaultActions
     ? [
         {
@@ -141,13 +101,13 @@ export default function DetailsDisplay({
       ]
     : [];
 
-  const allActions = [...actions, ...defaultActions];
+  const allActions = [...defaultActions, ...actions];
 
   const errorDetailsMsg =
     errorDetails instanceof Error
       ? errorDetails.stack || errorDetails.message
       : typeof errorDetails === 'object'
-        ? JSON.stringify(errorDetails, null, 2) // Pretty-print if it's a standard object
+        ? JSON.stringify(errorDetails, null, 2) // Keep nested dev errors readable in the panel.
         : String(errorDetails);
 
   return (
@@ -165,7 +125,7 @@ export default function DetailsDisplay({
           borderColor: `var(${style.borderColor})`,
         }}
       >
-        {/* Icon + title */}
+        {/* Icon and title share the variant token set so status colors stay consistent. */}
         <div className="mb-6 text-center">
           <div className="mb-4 flex justify-center">
             <div className="rounded-full p-2.5" style={{ backgroundColor: `var(${style.iconBg})` }}>
@@ -193,10 +153,10 @@ export default function DetailsDisplay({
           )}
         </div>
 
-        {/* Custom children */}
+        {/* Custom children appear between the message and actions for contextual details. */}
         {children && <div className="mb-4 text-center">{children}</div>}
 
-        {/* Error details (dev only) */}
+        {/* Error details stay development-only to avoid exposing internals in production. */}
         {import.meta.env.DEV && errorDetails && (
           <div className="mb-4 rounded-sm border-l-4 border-l-(--color-danger) bg-(--color-error-soft-ui) p-3">
             <CopyButton
@@ -214,14 +174,13 @@ export default function DetailsDisplay({
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions support buttons, router links, and hash links from one configuration object. */}
         {allActions.length > 0 && (
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {allActions.map((action, index) => {
               const ActionIcon = action.icon;
 
-              // Determine which component to use as the base
-              // Use HashLink if smooth is present, otherwise standard Link, otherwise 'button'
+              // Smooth hash links need HashLink; route navigation uses Link; everything else is a button.
               const Component =
                 action.smooth !== undefined ? HashLink : action.to ? Link : 'button';
 
@@ -231,10 +190,10 @@ export default function DetailsDisplay({
                   {...(ActionIcon && { icon: ActionIcon })}
                   {...(ActionIcon && { iconSize: 15 })}
                   {...(ActionIcon && action.iconRight && { iconRight: 15 })}
-                  as={Component} // Pass the component type here
+                  as={Component}
                   to={action.to}
-                  state={action.state} // Pass state for Link navigation
-                  smooth={action.smooth} // HashLink will use this, standard Link will ignore it
+                  state={action.state}
+                  smooth={action.smooth}
                   onPress={action.onPress}
                   variant={action.variant || 'ghost'}
                   className={cn('gap-2', action.className)}

@@ -1,31 +1,11 @@
-/**
- * @module SectionHeading
- * @description Page section title with optional icon; large and small typography variants.
- */
+/** Page section title with optional leading icon; large and small typography variants. */
 
 import PropTypes from 'prop-types';
 
 import { cn } from '@/utils/cn';
 
 /**
- * SectionHeading Component
- * Reusable section heading with icon support
- *
- * @param {Object} props - Component props
- * @param {string} props.children - Heading text
- * @param {'large'|'small'} [props.variant='large'] - 'large' or 'small'
- * @param {ReactNode} [props.icon=null] - Optional icon component
- * @param {string} [props.className=''] - Additional CSS classes
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered SectionHeading component
- *
- * @example
- * Basic usage
- * <SectionHeading>My Section</SectionHeading>
- *
- * @example
- * With icon and small variant
- * <SectionHeading variant="small" icon={<Icon />}>Subsection</SectionHeading>
+ * Renders a section heading with optional leading icon and size-specific typography.
  */
 export default function SectionHeading({
   children,

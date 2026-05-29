@@ -1,7 +1,4 @@
-/**
- * @module Chip
- * @description Filter and status chips (industry filters, tiers, tags) with truncation tooltips.
- */
+/** Filter and status chip primitive with variant-specific styling and truncation tooltips. */
 
 import PropTypes from 'prop-types';
 import { forwardRef } from 'react';
@@ -11,8 +8,7 @@ import { cn } from '@/utils/cn';
 import TruncatedTextTooltip from './TruncatedTextTooltip';
 
 /**
- * Variant styles for the luxury minimal chip system
- * Based on UI-59 specifications and design references
+ * Variant style classes shared by chip usages across filters, evidence cards, and result summaries.
  *
  * NOTE: All styles previously in index.css under the CHIP section are
  * co-located here. You can safely delete those overrides from index.css.
@@ -28,7 +24,7 @@ const variantStyles = {
     'transition-all duration-150 ease-in-out cursor-pointer',
   ].join(' '),
 
-  // Tag chips — compact label chips
+  // Tag chips for compact labels.
   tag: [
     'rounded-full border font-medium normal-case',
     'border-(--color-border-subtle) bg-(--color-chip-bg) text-(--color-text-secondary)',
@@ -114,9 +110,7 @@ const variantStyles = {
   ].join(' '),
 };
 
-/**
- * Size styles - applied to all chip variants.
- */
+/** Size classes applied consistently across every chip variant. */
 const sizeStyles = {
   xs: 'px-1.5 py-0 text-[0.65rem]',
   sm: 'px-2 py-0.5 text-xs',
@@ -125,7 +119,13 @@ const sizeStyles = {
 };
 
 /**
- * Color overrides for specific variants depending on state
+ * Resolves state-specific classes or inline colors for chip variants with semantic color states.
+ *
+ * @param {string} variant - Chip variant whose color mapping should be applied.
+ * @param {string} color - Semantic color or state key such as `success`, `public`, or `high`.
+ * @param {boolean} active - Whether a filter chip is currently selected.
+ * @returns {string|{backgroundColor: string, color: string, borderColor: string, borderWidth: number}}
+ *   Tailwind class string for most variants, or inline color styles for access-type chips.
  */
 const getColorOverrides = (variant, color, active) => {
   if (variant === 'filter') {
@@ -161,7 +161,7 @@ const getColorOverrides = (variant, color, active) => {
   }
 
   if (variant === 'info') {
-    // Matches .chip--info--* in index.css — uses -chip-bg tokens, not -soft-ui
+    // Matches .chip--info--* in index.css by using chip-bg tokens instead of soft-ui tokens.
     switch (color) {
       case 'success':
         return 'border-(--color-success-border) bg-(--color-success-chip-bg) text-(--color-success)';
@@ -248,24 +248,7 @@ const getColorOverrides = (variant, color, active) => {
 };
 
 /**
- * Custom Chip component with minimal variant system
- * Pure custom implementation without HeroUI dependencies
- *
- * All CSS that was previously in index.css under the CHIP section is
- * now co-located here — that block can be safely removed from index.css.
- *
- * @param {Object} props - Chip props
- * @param {string} [props.variant] - Chip variant:
- *   filter | tag | access-type | source | match | strategy |
- *   materials | factor | status | info | case | severity | score-pill
- * @param {string} [props.size] - Chip size (xs | sm | md | lg)
- * @param {string} [props.color] - Color override:
- *   default | accent | success | warning | danger | error |
- *   strong | decent | weak | high | medium | low | public | private
- * @param {boolean} [props.active] - Active state for filter variant
- * @param {string} [props.className] - Additional CSS classes
- * @param {ReactNode} props.children - Chip content
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
+ * Renders a pill label with variant-specific colors and tooltip truncation for long text.
  */
 const Chip = forwardRef(function Chip(
   {

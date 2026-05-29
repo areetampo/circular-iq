@@ -1,40 +1,24 @@
-/**
- * @module Brand
- * @description Site branding primitives: logo avatar, short name link, and full platform title.
- * Used in the navbar, auth panels, and anywhere the Xerneas identity is shown.
- */
+/** Site branding primitives for navigation, auth panels, and landing hero copy. */
 
 import { Avatar } from '@heroui/react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 
+import { FlipWords } from '@/components/ui/flip-words';
 import { cn } from '@/utils/cn';
 
-/** @constant {string} Short product name shown in navbar and auth UI. */
+import Tilt3D from './Tilt3D';
+
 export const SITE_NAME = 'Xerneas';
 
-/** @constant {string} Full platform title for hero sections and metadata. */
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
 /**
- * SiteName component - displays the site name as a clickable link to home
- *
- * @param {Object} props - Component props
- * @param {string} [props.className] - Additional CSS classes
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered SiteName component
- *
- * @example
- * Basic usage
- * <SiteName />
- *
- * @example
- * With custom styling
- * <SiteName className="text-lg font-bold" />
+ * Renders the short product name as a home link.
  */
 export const SiteName = ({ className, ...props }) => {
   return (
-    // Spreading props here ensures onClick, target="_blank", etc., work natively on the anchor tag
+    // Forward link props so callers can attach native anchor behavior such as onClick.
     <Link to="/" {...props}>
       <span className={cn('inline-block cursor-pointer text-mauve-900', className)}>
         {SITE_NAME}
@@ -48,23 +32,10 @@ SiteName.propTypes = {
 };
 
 /**
- * SiteFullName component - displays the full site name as a span element
- *
- * @param {Object} props - Component props
- * @param {string} [props.className] - Additional CSS classes
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered SiteFullName component
- *
- * @example
- * Basic usage
- * <SiteFullName />
- *
- * @example
- * With custom styling
- * <SiteFullName className="text-xl" />
+ * Renders the full platform title as non-interactive text.
  */
 export const SiteFullName = ({ className, ...props }) => (
-  <span {...props} className={cn('inline-block text-(--color-text-secondary)', className)}>
+  <span {...props} className={cn('inline-block text-mauve-600', className)}>
     {SITE_FULL_NAME}
   </span>
 );
@@ -74,25 +45,7 @@ SiteFullName.propTypes = {
 };
 
 /**
- * SiteLogo component - displays the site logo as a clickable Avatar that links to home
- *
- * @param {Object} props - Component props
- * @param {string} [props.className] - Additional CSS classes
- * @param {'sm'|'md'|'lg'} [props.size='md'] - Avatar size
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered SiteLogo component
- *
- * @example
- * Basic usage
- * <SiteLogo />
- *
- * @example
- * Custom size
- * <SiteLogo size="lg" />
- *
- * @example
- * With custom styling
- * <SiteLogo className="border-2" />
+ * Renders the product logo as a home link inside a HeroUI avatar.
  */
 export const SiteLogo = ({ className, size = 'md', ...props }) => {
   return (
@@ -117,4 +70,29 @@ export const SiteLogo = ({ className, size = 'md', ...props }) => {
 SiteLogo.propTypes = {
   className: PropTypes.string,
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
+};
+
+/**
+ * Renders the landing hero headline with mouse-tracked tilt and cycling suffix words.
+ */
+export const SiteHeroHeading = ({
+  className,
+  words = ['meets evidence.', 'drives impact.', 'builds purpose.', 'creates value.'],
+  duration = 2000,
+  ...props
+}) => {
+  return (
+    <Tilt3D shadowMode="text" {...props}>
+      <h1 className={cn('mb-6 **:font-display', className)}>
+        <span className="block text-(--color-text-primary)">Where circular economy</span>
+        <FlipWords words={words} duration={duration} className="text-orange-700 italic" />
+      </h1>
+    </Tilt3D>
+  );
+};
+
+SiteHeroHeading.propTypes = {
+  className: PropTypes.string,
+  words: PropTypes.arrayOf(PropTypes.string),
+  duration: PropTypes.number,
 };

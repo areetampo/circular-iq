@@ -1,7 +1,4 @@
-/**
- * @module CopyButton
- * @description Clipboard copy control with animated check feedback (share links, ids).
- */
+/** Clipboard copy control with animated check feedback for share links and identifiers. */
 
 import { Check, Copy } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -9,18 +6,8 @@ import { useCallback, useState } from 'react';
 
 import { cn } from '@/utils/cn';
 
-// ─── Private sub-component ────────────────────────────────────────────────────
-
 /**
- * CopyIcon sub-component that displays copy and check icons with transition animation
- * Shows copy icon by default, transforms to checkmark when hasCopied is true
- *
- * @param {Object} props - Component props
- * @param {string} [props.className] - Additional CSS classes for icon container
- * @param {boolean} [props.hasCopied=false] - Whether to show checkmark instead of copy icon (default: false)
- * @param {number} [props.size=16] - Icon size in pixels (default: 16)
- * @param {number} [props.strokeWidth=2.5] - Icon stroke width (default: 2.5)
- * @returns {JSX.Element} Rendered CopyIcon component
+ * Renders copy and check icons in the same footprint so success feedback does not shift layout.
  */
 function CopyIcon({ className, hasCopied = false, size = 16, strokeWidth = 2.5 }) {
   return (
@@ -59,8 +46,7 @@ CopyIcon.propTypes = {
   strokeWidth: PropTypes.number,
 };
 
-// ─── Style maps (mirrored from Button.jsx) ───────────────────────────────────
-
+// Keep copy-button variants aligned with Button.jsx without coupling to Button internals.
 const variantStyles = {
   primary:
     'bg-(--color-accent) text-white hover:bg-(--color-accent-hover) border border-transparent',
@@ -92,7 +78,7 @@ const sizeStyles = {
   lg: 'px-3 py-2 text-base',
 };
 
-// Icon-only mode: square padding so the button stays compact
+// Icon-only mode uses square padding so the button stays compact.
 const iconOnlySizeStyles = {
   xs: 'p-1',
   sm: 'p-1.5',
@@ -114,38 +100,8 @@ const iconStrokeWidthMap = {
   lg: 2.5,
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 /**
- * CopyButton component for copying text to clipboard with visual feedback
- * Shows a copy icon that transforms to a checkmark when copied
- *
- * @param {Object} props - Component props
- * @param {string} [props.copyValue={}] - Text value to copy to clipboard
- * @param {boolean} [props.isDisabled={false}] - Whether the button is disabled (default: false)
- * @param {string} [props.title={}] - Text to display next to icon (empty for icon-only mode)
- * @param {string} [props.titleCn={}] - Additional CSS classes for the title text
- * @param {'primary'|'ghost'|'ghastly'|'dim'|'dark'|'bordered'|'danger'|'teal'|'info-soft'|'info-text'|'success-soft'|'warning-soft'|'danger-soft'|'danger-text'} [props.variant={'ghastly'}] - Visual style variant (default: 'ghastly')
- * @param {'xs'|'sm'|'lg'} [props.size={'md'}] - Button size (default: 'md')
- * @param {number} [props.iconSize={}] - Custom icon size in pixels (overrides size-based sizing)
- * @param {number} [props.iconStrokeWidth={}] - Custom icon stroke width (overrides size-based sizing)
- * @param {boolean} [props.noBorder={false}] - Remove border styling (default: false)
- * @param {string} props.buttonCn - Additional CSS classes for the button element
- * @param {string} props.iconCn - Additional CSS classes for the icon container
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered CopyButton component
- *
- * @example
- * Icon-only copy button
- * <CopyButton copyValue="text-to-copy" variant="ghost" size="sm" />
- *
- * @example
- * Copy button with title
- * <CopyButton
- *   copyValue="https://example.com"
- *   title="Copy URL"
- *   variant="primary"
- * />
+ * Copies `copyValue` to the clipboard and briefly shows a check icon on success.
  */
 export default function CopyButton({
   copyValue = '',
@@ -185,7 +141,7 @@ export default function CopyButton({
     hasTitle
       ? (sizeStyles[size] ?? sizeStyles.md)
       : (iconOnlySizeStyles[size] ?? iconOnlySizeStyles.md),
-    // noBorder strips whatever border the variant applies
+    // noBorder strips whatever border the selected variant applies.
     noBorder && '!border-transparent',
     isDisabled && 'pointer-events-none cursor-not-allowed opacity-50',
     buttonCn,

@@ -1,29 +1,10 @@
-/**
- * @module Tilt3D
- * @description Subtle 3D tilt-on-hover wrapper for assessment cards and CTAs.
- */
+/** Mouse-tracked 3D tilt and reactive shadow wrapper for cards and hero text. */
 
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import PropTypes from 'prop-types';
 
 /**
- * Tilt3D — wraps any children with a mouse-tracked 3D tilt + reactive shadow.
- *
- * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Children to wrap with 3D tilt effect
- * @param {number} [props.perspective=600] - CSS perspective depth
- * @param {Object} [props.rotateRange={ x: 8, y: 10 }] - Max tilt degrees { x: number, y: number }
- * @param {number} [props.shadowRange=6] - Max shadow offset in px
- * @param {Object} [props.springConfig={ stiffness: 200, damping: 20 }] - Framer spring { stiffness, damping }
- * @param {'box'|'text'} [props.shadowMode='box'] - Whether to apply boxShadow or textShadow
- * @param {boolean} [props.shadow=true] - Whether to apply shadow effects
- * @param {string} [props.shadowColor='0,0,0'] - Shadow color as RGB values (e.g., '0,0,0')
- * @param {string} [props.shadowColorSoft] - Soft shadow color as RGB values, falls back to shadowColor when unset
- * @param {boolean} [props.block=false] - Whether to use block display instead of inline-block
- * @param {string} [props.className] - Additional CSS classes
- * @param {Object} [props.style] - Extra styles on the inner motion element
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered Tilt3D component
+ * Wraps children in a mouse-tracked 3D tilt container with optional box or text shadow.
  */
 export default function Tilt3D({
   children,
@@ -61,7 +42,7 @@ export default function Tilt3D({
     springConfig,
   );
 
-  // Opacity scales with mouse distance from center — 0 at rest, 1 at full tilt
+  // Opacity scales with mouse distance from center: 0 at rest, 1 at full tilt.
   const shadowOpacity = useSpring(
     useTransform([mouseX, mouseY], ([x, y]) => Math.min(Math.sqrt(x * x + y * y) / 0.5, 1)),
     springConfig,

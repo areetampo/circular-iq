@@ -1,7 +1,4 @@
-/**
- * @module ExpandableText
- * @description Long text with show more/less toggle for assessment and case summaries.
- */
+/** Expandable long-text block for assessment and case summaries. */
 
 import PropTypes from 'prop-types';
 import { useState } from 'react';
@@ -9,27 +6,8 @@ import { useState } from 'react';
 import { cn } from '@/utils/cn';
 
 /**
- * ExpandableText component that truncates text and provides expand/collapse functionality
- * Used by ProblemText and SolutionText components
- *
- * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Text content to display and potentially truncate
- * @param {number} [props.limit=280] - Character limit before truncation
- * @param {string} [props.className=''] - Additional CSS classes
- * @param {string} [props.showMoreText='Show more'] - Text for expand button
- * @param {string} [props.showLessText='Show less'] - Text for collapse button
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered ExpandableText component
- *
- * @example
- * Basic usage
- * <ExpandableText>This is a long text that will be truncated...</ExpandableText>
- *
- * @example
- * Custom limit and button text
- * <ExpandableText limit={100} showMoreText="Read more" showLessText="Read less">
- *   Very long text content here...
- * </ExpandableText>
+ * Renders string-like children with a show more/less toggle after the configured character limit.
+ * Non-string children render unchanged without truncation.
  */
 export default function ExpandableText({
   children,
@@ -41,7 +19,7 @@ export default function ExpandableText({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  // Extract text content from children
+  // Accept primitive and string-like children while leaving opaque React nodes untouched.
   let textContent = null;
   if (typeof children === 'string') {
     textContent = children;
@@ -55,7 +33,7 @@ export default function ExpandableText({
     }
   }
 
-  // If no text content found, render children as-is
+  // Opaque React nodes cannot be safely truncated without changing their structure.
   if (!textContent) {
     return <div className={className}>{children}</div>;
   }

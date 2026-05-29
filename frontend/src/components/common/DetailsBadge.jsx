@@ -1,7 +1,4 @@
-/**
- * @module DetailsBadge
- * @description Compact badge for metadata labels on results and assessment cards.
- */
+/** Compact status badge with variant icon for results and assessment cards. */
 
 import { CircleCheck, CircleX, Info, TriangleAlert } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -27,45 +24,7 @@ const ICONS = {
 };
 
 /**
- * DetailsBadge component for displaying status messages with icons and color-coded styling.
- *
- * Features:
- * - Auto-dismisses when message is empty or whitespace-only
- * - Animated entrance with zoom and fade effects
- * - Multiple visual variants with appropriate icons
- * - Custom icon support
- * - Full-width layout option
- *
- * @example
- * Basic usage :
- * <DetailsBadge message="Operation completed successfully" variant="success" />
- *
- * @example
- * With custom icon and full width :
- * <DetailsBadge
- *   message="Custom notification"
- *   variant="info"
- *   icon={CustomIcon}
- *   fullWidth
- * />
- *
- * @example
- * Error state :
- * <DetailsBadge
- *   message="Failed to load data"
- *   variant="error"
- *   className="mt-4"
- * />
- *
- * @param {Object} props - Component props
- * @param {'neutral'|'info'|'success'|'warning'|'error'} [props.variant='info'] - Visual style variant that determines color scheme and default icon
- * @param {string} props.message - Message text to display. Component renders null if empty or whitespace-only
- * @param {string} [props.className] - Additional CSS classes to apply to the inner badge container
- * @param {React.ComponentType} [props.icon] - Custom icon component to override the default variant icon. Should accept size, strokeWidth, and color props
- * @param {boolean} [props.fullWidth=false] - Whether the badge should take full width of its container
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- *
- * @returns {React.ReactElement|null} Rendered badge component or null if message is empty
+ * Renders an inline status pill with a variant icon, or nothing when the message is blank.
  */
 export default function DetailsBadge({
   variant = 'info',
@@ -92,7 +51,7 @@ export default function DetailsBadge({
           fullWidth ? 'w-full' : 'w-fit',
         )}
       >
-        {/* passing components/common/spinner works - it will accept size and color correctly but not strokeWidth */}
+        {/* Spinner accepts the shared color token even though it does not use icon stroke width. */}
         {spinner ? (
           <Spinner color="currentColor" />
         ) : (

@@ -1,28 +1,11 @@
-/**
- * @module LoaderComponent
- * @description Full-width or overlay loading state with optional message and stage text.
- */
+/** Centered full-area loading state with LoaderIcon, heading, and message. */
 
 import PropTypes from 'prop-types';
 
 import LoaderIcon from './LoaderIcon';
 
 /**
- * LoaderComponent - A full-page loading component with heading and message
- * Displays a loader icon with optional heading and message text
- *
- * @param {Object} props - Component props
- * @param {string} [props.heading='Loading...'] - Heading text to display above the loader
- * @param {string} [props.message='Please wait while we retrieve your data...'] - Descriptive message to display below the heading
- * @returns {JSX.Element} Rendered LoaderComponent
- *
- * @example
- * Basic usage
- * <LoaderComponent />
- *
- * @example
- * Custom heading and message
- * <LoaderComponent heading="Fetching data..." message="This may take a few seconds..." />
+ * Renders a centered loading panel with optional heading and supporting message.
  */
 export default function LoaderComponent({
   heading = 'Loading...',

@@ -1,7 +1,4 @@
-/**
- * @module ButtonStages
- * @description Primary action button that crossfades label text through multi-stage loading flows.
- */
+/** Multi-stage action button for submit flows that report loading progress. */
 
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
@@ -12,36 +9,8 @@ import Button from './Button';
 import LoaderIcon from './LoaderIcon';
 
 /**
- * ButtonStages - A button component that handles different states with loading animations
- *
- * This component displays a button that can show different stages of a process
- * with smooth crossfade animations during loading states. It shows a loader
- * icon and animates between different stage text when the stage changes.
- *
- * @param {Object} props - Component props
- * @param {boolean} props.isLoading - Whether the button is in a loading state
- * @param {boolean} props.isValid - Whether the button action is currently valid/enabled
- * @param {Function} props.onPress - Callback function when the button is pressed
- * @param {string} props.currentStage - Current stage text to display during loading
- * @param {string} [props.variant='teal'] - Button variant/color scheme
- * @param {boolean} [props.fullWidth=false] - Whether to button should take full width
- * @param {string} [props.buttonText='Press Button'] - Text to display on button when not loading
- * @param {string} [props.className] - Additional CSS classes to apply
- * @param {string} [props.buttonTextCn] - Additional CSS classes for button text
- *
- * @returns {JSX.Element} A button component with stage animations
- *
- * @example
- * <ButtonStages
- *   isLoading={isLoading}
- *   isValid={isFormValid}
- *   onPress={handleSubmit}
- *   currentStage="Validating input..."
- *   variant="blue"
- *   fullWidth={true}
- *   buttonText="Submit"
- *   className="rounded-full"
- * />
+ * Renders a submit-style button that crossfades between idle text and animated loading stages.
+ * Stage text animates out/in when `currentStage` changes during an active load.
  */
 export default function ButtonStages({
   isLoading,
@@ -55,31 +24,25 @@ export default function ButtonStages({
   buttonTextCn,
   ...props
 }) {
-  // Content for non-loading state
+  // Separate flags let idle and loading text crossfade without changing button layout.
   const [showNonLoading, setShowNonLoading] = useState(true);
-  // Content for loading state
   const [showLoading, setShowLoading] = useState(false);
-  // Stage animation state for loading text changes
   const [displayedStage, setDisplayedStage] = useState('');
   const [stageAnimation, setStageAnimation] = useState(''); // 'out' or 'in'
   const timeoutRef = useRef(null);
   const prevStageRef = useRef('');
 
-  // Handle transition between button text and loading content
+  // Loading starts after the idle label exits, keeping the two text layers from overlapping.
   useEffect(() => {
     if (isLoading) {
-      // Start exit of button text
       setShowNonLoading(false);
-      // After exit animation, show loading content
       const timer = setTimeout(() => {
         setShowLoading(true);
-        // Set first stage immediately with no stage animation (will be handled below)
         setDisplayedStage(currentStage || 'Processing...');
         prevStageRef.current = currentStage || 'Processing...';
       }, 300);
       return () => clearTimeout(timer);
     } else {
-      // Exit loading content
       setShowLoading(false);
       const timer = setTimeout(() => {
         setShowNonLoading(true);
@@ -91,30 +54,28 @@ export default function ButtonStages({
     }
   }, [isLoading, currentStage]);
 
-  // Handle stage changes while loading is active AND content is visible
+  // Stage changes animate only after loading content is visible and no text transition is active.
   useEffect(() => {
     if (!showLoading) return;
     if (!currentStage) return;
     if (currentStage === prevStageRef.current) return;
     if (stageAnimation !== '') return;
 
-    // Start exit animation on current displayed stage
     setStageAnimation('out');
 
-    // After exit, swap text and start enter animation
+    // Swap text between exit and enter phases so the replacement does not pop in.
     const timer = setTimeout(() => {
       setDisplayedStage(currentStage);
       prevStageRef.current = currentStage;
       setStageAnimation('in');
 
-      // After enter finishes, clear animation state
       const timer2 = setTimeout(() => setStageAnimation(''), 300);
       timeoutRef.current = timer2;
     }, 300);
     timeoutRef.current = timer;
   }, [currentStage, showLoading, displayedStage, stageAnimation]);
 
-  // Cleanup on unmount
+  // Prevent late stage timers from updating unmounted buttons.
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
