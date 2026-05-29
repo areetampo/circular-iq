@@ -1,13 +1,5 @@
-/**
- * @module industries
- * @description Industry classification options for assessments.
- * Provides a list of valid industry categories for filtering and classification.
- */
+/** Lowercase industry slug list for filters and assessment metadata. */
 
-/**
- * Array of valid industry options for assessments.
- * @type {string[]}
- */
 export const INDUSTRY_OPTIONS = [
   'agriculture',
   'construction',

@@ -1,15 +1,10 @@
-/**
- * @module specificSampleTestCase
- * @description Content and helpers for specific sample test case drawer.
- * Provides content structure and helper functions for formatting
- * business context labels, values, and icons.
- */
+/** Labels, headings, and context-field helpers for the sample test case detail drawer. */
 
 import { Briefcase, Globe, Layers, Package, TrendingUp } from 'lucide-react';
 
 /**
- * Test case detail content object.
- * @type {Object}
+ * Structured labels, headings, and field maps used to render sample test case details.
+ * Supports both snake_case and camelCase context keys from sample data or restored assessment payloads.
  */
 export const TEST_CASE_DETAIL_CONTENT = {
   subheading: 'Detailed assessment results and business information',
@@ -66,19 +61,21 @@ export const TEST_CASE_DETAIL_CONTENT = {
 };
 
 /**
- * Helper function to get the formatted label for a business context field.
- * @param {string} key - The context field key.
- * @returns {string} Formatted label.
+ * Resolves a business-context field key to the drawer display label.
+ *
+ * @param {string} key - Context key from a sample test case.
+ * @returns {string} Known label or a spaced fallback derived from the key.
  */
 export const getContextFieldLabel = (key) => {
   return TEST_CASE_DETAIL_CONTENT.contextFieldLabels[key] || key.replace(/([A-Z])/g, ' $1').trim();
 };
 
 /**
- * Helper function to format business context values.
- * @param {string} key - The context field key.
- * @param {*} value - The value to format.
- * @returns {string} Formatted value.
+ * Formats a context value for drawer display.
+ *
+ * @param {string} key - Context key associated with the value.
+ * @param {string|number|boolean|null|undefined} value - Raw context value from a sample test case.
+ * @returns {string} Title-cased display value, "Yes" for true, or "[Not specified]" for empty/false values.
  */
 export const getContextValueLabel = (key, value) => {
   if (value === null || value === undefined || value === '' || value === false) {
@@ -94,9 +91,10 @@ export const getContextValueLabel = (key, value) => {
 };
 
 /**
- * Helper function to get icon for a business context field.
- * @param {string} key - The context field key.
- * @returns {React.Component|null} Icon component or null.
+ * Resolves the icon component used for a context field.
+ *
+ * @param {string} key - Context key to normalize before icon lookup.
+ * @returns {import('react').ComponentType|null} Matching icon component, or null when no icon is configured.
  */
 export const getContextFieldIcon = (key) => {
   const normalizedKey = key.toLowerCase().replace(/_/g, '');

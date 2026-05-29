@@ -1,15 +1,10 @@
-/**
- * @module assessmentMethodology
- * @description Content for the assessment methodology drawer.
- * Explains the evaluation framework including semantic analysis, AI reasoning,
- * multi-dimensional scoring, and integrity validation with data source information.
- */
+/** Drawer and guide-page copy for assessment methodology, framework steps, and data sources. */
 
 import { Bot, ChartColumn, CircleCheck, Search } from 'lucide-react';
 
 /**
- * Assessment methodology content object.
- * @type {Object}
+ * Structured copy for the methodology drawer and guide page.
+ * Items provide card icons/copy, while `dataSources.categories` groups dataset metadata for expandable source lists.
  */
 export const ASSESSMENT_METHODOLOGY_CONTENT = {
   title: 'Assessment Methodology',

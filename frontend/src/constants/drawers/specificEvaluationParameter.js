@@ -1,13 +1,5 @@
-/**
- * @module specificEvaluationParameter
- * @description Content for the specific evaluation parameter info drawer.
- * Provides sections for parameter weight, scoring guidelines, and tips.
- */
+/** Section labels for the per-parameter info drawer content blocks. */
 
-/**
- * Specific parameter content object.
- * @type {Object}
- */
 export const SPECIFIC_PARAMETER_CONTENT = {
   sections: {
     weight: {

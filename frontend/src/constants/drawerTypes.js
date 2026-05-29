@@ -1,17 +1,4 @@
-/**
- * @module drawerTypes
- * @description Constants — drawer Types.
- * Drawer Type Constants
- * Defines all available drawer types in the application
- * Used for centralized dialog state management via DrawerManager
- *
- * Location: src/constants/drawerTypes.js
- *
- * @example
- * import DRAWER_TYPES from '@/constants/drawerTypes';
- * const { openAssessmentMethodologyDrawer } = useGlobalDrawer();
- * onClick={() => openAssessmentMethodologyDrawer()};
- */
+/** Drawer type string keys consumed by `DrawerManager` and `useDrawer` openers. */
 
 const DRAWER_TYPES = {
   ASSESSMENT_METHODOLOGY: 'assessment-methodology',

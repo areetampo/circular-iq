@@ -1,14 +1,5 @@
-/**
- * @module businessSolution
- * @description Content for the business solution guide drawer.
- * Provides guidance on writing effective business solution descriptions
- * with components, pitfalls, pro tips, and an example.
- */
+/** Drawer and guide-page copy for writing an effective business solution statement. */
 
-/**
- * Business solution content object.
- * @type {Object}
- */
 export const BUSINESS_SOLUTION_CONTENT = {
   title: 'Business Solution Guide',
   subtitle: 'How your business solves the problem',

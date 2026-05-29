@@ -1,17 +1,4 @@
-/**
- * @module dialogTypes
- * @description Constants — dialog Types.
- * Dialog Type Constants
- * Defines all available dialog types in the application
- * Used for centralized dialog state management via DialogManager
- *
- * Location: src/constants/dialogTypes.js
- *
- * @example
- * import DIALOG_TYPES from '@/constants/dialogTypes';
- * const { openDeleteAssessmentDialog } = useGlobalDialog();
- * openDeleteAssessmentDialog({ assessmentName: 'My Assessment' });
- */
+/** Dialog type string keys consumed by `DialogManager` and `useDialog` openers. */
 
 const DIALOG_TYPES = {
   DELETE_ASSESSMENT: 'delete-assessment',

@@ -1,13 +1,8 @@
 /**
- * @module evaluationData
- * @description Evaluation data and parameter guidance for circular economy assessment.
- * Provides educational content, calibration guidance, benchmark examples,
- * and score interpretation scales for all 8 evaluation factors.
+ * Evaluation parameter copy and scoring metadata shared by drawers, landing-form sliders, and results views.
+ * Parameter entries include weights, calibration text, score-band labels, examples, and display grouping.
  */
 
-/**
- * Parameter Guidance - Complete educational content for each factor
- */
 export const parameterGuidance = {
   public_participation: {
     name: 'Public Participation',
@@ -399,7 +394,7 @@ export const parameterGuidance = {
 };
 
 /**
- * Parameter groups for organized display
+ * Ordered parameter groups used to render landing-form accordions and grouped test-case score sections.
  */
 export const parameterGroups = {
   'Access Value': ['public_participation', 'infrastructure'],
@@ -408,7 +403,7 @@ export const parameterGroups = {
 };
 
 /**
- * Parameter labels for display
+ * Display labels and top-level categories keyed by evaluation parameter slug.
  */
 export const parameterLabels = {
   public_participation: { label: 'Public Participation', category: 'Access Value' },
@@ -422,7 +417,7 @@ export const parameterLabels = {
 };
 
 /**
- * Factor definitions for info modals
+ * Short factor definitions rendered in the evaluation-parameters guidance drawer.
  */
 export const factorDefinitions = {
   public_participation: {
@@ -468,7 +463,7 @@ export const factorDefinitions = {
 };
 
 /**
- * Valid parameter keys
+ * Canonical parameter key order for score extraction, radar data, and result summaries.
  */
 export const validKeys = [
   'public_participation',
@@ -482,7 +477,7 @@ export const validKeys = [
 ];
 
 /**
- * Category mapping for display
+ * Results-page category copy keyed by evaluation parameter slug.
  */
 export const categoryMapping = {
   public_participation: {
@@ -520,11 +515,11 @@ export const categoryMapping = {
 };
 
 /**
- * Tier configuration for score-based color coding
- * Each tier defines minScore and color classes for selected/unselected states
+ * Score-tier styling for landing-form option cards.
+ * Tiers are ordered from highest to lowest threshold so callers can use the first `minScore` match.
  */
 export const TIER_CONFIG = [
-  // ≥90 — Deep forest green (excellent score)
+  // >=90 - Deep forest green (excellent score).
   {
     minScore: 90,
     selected:
@@ -532,7 +527,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.70_0.062_145/_0.1)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.98_0.015_145/_0.15)]',
   },
-  // ≥80 — Emerald green (very good score)
+  // >=80 - Emerald green (very good score).
   {
     minScore: 80,
     selected:
@@ -540,7 +535,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.72_0.058_145/_0.1)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.97_0.018_145/_0.14)]',
   },
-  // ≥70 — Sage green (good score)
+  // >=70 - Sage green (good score).
   {
     minScore: 70,
     selected:
@@ -548,7 +543,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.74_0.054_145/_0.1)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.021_145/_0.13)]',
   },
-  // ≥60 — Light olive (moderate-high score)
+  // >=60 - Light olive (moderate-high score).
   {
     minScore: 60,
     selected:
@@ -556,7 +551,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.76_0.050_120/_0.34)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.020_120/_0.12)]',
   },
-  // ≥50 — Warm moss (moderate score)
+  // >=50 - Warm moss (moderate score).
   {
     minScore: 50,
     selected:
@@ -564,7 +559,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.78_0.046_95/_0.32)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.019_95/_0.11)]',
   },
-  // ≥40 — Golden tan (moderate-low score)
+  // >=40 - Golden tan (moderate-low score).
   {
     minScore: 40,
     selected:
@@ -572,7 +567,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.80_0.042_68/_0.3)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.018_68/_0.1)]',
   },
-  // ≥30 — Warm amber (low score)
+  // >=30 - Warm amber (low score).
   {
     minScore: 30,
     selected:
@@ -580,7 +575,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.82_0.038_55/_0.28)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.017_55/_0.09)]',
   },
-  // ≥20 — Sandy orange (very low score)
+  // >=20 - Sandy orange (very low score).
   {
     minScore: 20,
     selected:
@@ -588,7 +583,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.84_0.034_35/_0.26)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.016_35/_0.08)]',
   },
-  // ≥10 — Terracotta (critical score)
+  // >=10 - Terracotta (critical score).
   {
     minScore: 10,
     selected:
@@ -596,7 +591,7 @@ export const TIER_CONFIG = [
     unselected:
       'border-[oklch(0.86_0.030_20/_0.24)] bg-transparent text-(--color-text-secondary) hover:bg-[oklch(0.96_0.015_20/_0.07)]',
   },
-  // ≥0 — Deep red (worst score)
+  // >=0 - Deep red (worst score).
   {
     minScore: 0,
     selected:

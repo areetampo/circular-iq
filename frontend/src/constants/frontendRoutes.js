@@ -1,10 +1,6 @@
 /**
- * @module frontendRoutes
- * @description Constants — frontend Routes.
- * Frontend Routes Configuration
- *
- * Contains all frontend routes with their metadata, query parameters, and behavior patterns.
- * Used for documentation, validation, and route management.
+ * Route catalog consumed by runtime config, navigation docs, and route-state validation.
+ * Entries include auth requirements plus optional query, path, state, and behavior metadata.
  */
 
 export default [

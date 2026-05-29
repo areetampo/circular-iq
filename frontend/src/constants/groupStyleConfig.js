@@ -1,9 +1,4 @@
-/**
- * @module groupStyleConfig
- * @description Styling configuration for parameter groups in the UI.
- * Provides icons, colors, and Tailwind classes for the three main parameter
- * categories: Access Value, Embedded Value, and Processing Value.
- */
+/** Icons, subtitles, and Tailwind classes keyed by evaluation parameter group name. */
 
 import { CircleDollarSign, Cpu, Users } from 'lucide-react';
 
@@ -12,8 +7,8 @@ import { cn } from '@/utils/cn.js';
 import { parameterGroups } from './evaluationData.js';
 
 /**
- * Shared group style configuration for parameter-themed UI (icons + Tailwind classes).
- * @type {Object}
+ * Parameter group style metadata used by landing-form accordions and score badges.
+ * Each group provides an icon component, subtitle, and Tailwind classes for parameter chips.
  */
 export const GROUP_STYLE_CONFIG = {
   'Access Value': {
@@ -42,6 +37,9 @@ export const GROUP_STYLE_CONFIG = {
   },
 };
 
+/**
+ * Fallback style metadata for unknown parameter keys or groups not found in `parameterGroups`.
+ */
 export const DEFAULT_CONFIG = {
   Icon: Cpu,
   iconColor: 'text-(--color-text-muted)',
@@ -52,9 +50,10 @@ export const DEFAULT_CONFIG = {
 };
 
 /**
- * Helper function to get parameter styling classes based on parameter key
- * @param {string} paramKey - The parameter key (e.g., 'public_participation')
- * @returns {string} - Combined Tailwind classes for background, text, and border
+ * Resolves chip styling for a scoring parameter.
+ *
+ * @param {string} paramKey - Evaluation parameter key such as `public_participation`; unmatched result labels use fallback styling.
+ * @returns {string} Tailwind background, text-color, and border classes for the resolved group or fallback style.
  */
 export function getParameterStyling(paramKey) {
   const category = Object.entries(parameterGroups).find(([, factors]) =>
@@ -65,9 +64,10 @@ export function getParameterStyling(paramKey) {
 }
 
 /**
- * Helper function to get progress bar background color based on parameter key
- * @param {string} paramKey - The parameter key (e.g., 'public_participation')
- * @returns {string} - Background color class for progress bar
+ * Resolves the progress-bar fill class for a scoring parameter.
+ *
+ * @param {string} paramKey - Evaluation parameter key such as `public_participation`.
+ * @returns {string} Tailwind background-color class derived from the parameter group's text color.
  */
 export function getProgressBarColor(paramKey) {
   const category = Object.entries(parameterGroups).find(([, factors]) =>

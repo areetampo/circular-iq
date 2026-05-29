@@ -1,13 +1,5 @@
-/**
- * @module businessContextHeading
- * @description Content for the business context heading drawer.
- * Defines the six business context fields with descriptions and hints.
- */
+/** Drawer and guide-page copy describing the six business context fields and their scoring relevance. */
 
-/**
- * Business context heading content object.
- * @type {Object}
- */
 export const BUSINESS_CONTEXT_HEADING_CONTENT = {
   fields: [
     {

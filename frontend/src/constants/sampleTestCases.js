@@ -1,15 +1,8 @@
 /**
- * @module sampleTestCases
- * @description Sample test cases for circular economy assessment.
- * Provides 20 example business cases with problems, solutions, evaluation parameters,
- * and business context for demonstration and testing purposes.
+ * Demo assessment cases loaded into the landing form as complete circular-economy examples.
+ * Each case includes problem/solution copy, eight evaluation parameter scores, and business context fields.
  */
 
-/**
- * Array of sample test cases for circular economy assessment.
- * Each case includes problem description, solution, evaluation parameters, and business context.
- * @type {Array<Object>}
- */
 export const sampleTestCases = [
   {
     id: 1,

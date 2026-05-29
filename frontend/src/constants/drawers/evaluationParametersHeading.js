@@ -1,13 +1,5 @@
-/**
- * @module evaluationParametersHeading
- * @description Content for the evaluation parameters heading drawer.
- * Explains how parameters work, their categories, and the scoring scale.
- */
+/** Drawer copy for parameter categories, weights, and the 0-100 scoring scale. */
 
-/**
- * Evaluation parameters heading content object.
- * @type {Object}
- */
 export const EVALUATION_PARAMETERS_HEADING_CONTENT = {
   heading: 'Evaluation Parameters Guide',
   description:

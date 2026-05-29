@@ -1,14 +1,5 @@
-/**
- * @module businessProblem
- * @description Content for the business problem guide drawer.
- * Provides guidance on writing effective business problem descriptions
- * with elements, writing tips, and an example.
- */
+/** Drawer and guide-page copy for writing an effective business problem statement. */
 
-/**
- * Business problem content object.
- * @type {Object}
- */
 export const BUSINESS_PROBLEM_CONTENT = {
   title: 'Business Problem Guide',
   subtitle: 'Environmental or circular economy challenge',
