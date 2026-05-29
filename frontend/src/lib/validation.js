@@ -1,17 +1,13 @@
-/**
- * @module validation
- * @description Input validation and character counting helpers.
- * Provides functions for character counting, input validation, UUID validation,
- * and Zod schemas for authentication (username/password) validation.
- */
+/** Input validation, character counting, UUID checks, and Zod schemas for auth and assessments. */
 
 import { z } from 'zod';
 
 /**
- * Count meaningful characters (excluding leading/trailing whitespace)
- * Matches the validation logic in App.jsx
- * @param {string} text - Text to count
- * @returns {number} Character count
+ * Count non-whitespace characters after collapsing internal whitespace runs.
+ * Used by `validateInput` and landing-page character counters for min-length checks.
+ *
+ * @param {string} text - User input whose trimmed character length is needed.
+ * @returns {number} Count of non-whitespace characters after coercing non-null values to strings.
  */
 export function getCharacterCount(text) {
   if (!text && text !== 0) return 0;
@@ -21,11 +17,12 @@ export function getCharacterCount(text) {
 }
 
 /**
- * Validate input before submission
- * @param {string} problem - Problem description
- * @param {string} solution - Solution description
- * @param {number} minLength - Minimum length (default 50)
- * @returns {Object} Validation result {valid: boolean, error?: string}
+ * Validates landing-page problem and solution descriptions before scoring.
+ *
+ * @param {string} problem - Business problem text from the assessment form.
+ * @param {string} solution - Business solution text from the assessment form.
+ * @param {number} [minLength=50] - Required non-whitespace character count for each field.
+ * @returns {{valid: boolean, error?: string}} Validity flag plus the first user-facing error message.
  */
 export function validateInput(problem, solution, minLength = 50) {
   if (!problem || !solution) {
@@ -56,9 +53,10 @@ export function validateInput(problem, solution, minLength = 50) {
 }
 
 /**
- * Validate UUID format
- * @param {string} uuid - UUID string to validate
- * @returns {boolean} True if valid UUID format
+ * Checks whether a share or compare id is in canonical UUID format.
+ *
+ * @param {string} uuid - Candidate public assessment id from a form or URL.
+ * @returns {boolean} True when the value matches the 8-4-4-4-12 UUID pattern.
  */
 export function isValidUUID(uuid) {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -217,8 +215,9 @@ export const signupSchema = z
 
 /**
  * Checks if trimmed username length is within allowed range.
- * @param {string} value - Username input.
- * @returns {boolean} True if length between MIN and MAX.
+ *
+ * @param {string} value - Username input from signup validation.
+ * @returns {boolean} True when trimmed length is between the configured username bounds.
  */
 export function validateUsernameLength(value) {
   const length = value?.trim().length || 0;
@@ -229,8 +228,9 @@ export function validateUsernameLength(value) {
 
 /**
  * Checks if username contains only letters, numbers, underscore or hyphen.
- * @param {string} value - Username input.
- * @returns {boolean} True if only allowed characters.
+ *
+ * @param {string} value - Username input from signup validation.
+ * @returns {boolean} True when only letters, numbers, `_`, or `-` are present.
  */
 export function validateUsernameChars(value) {
   const trimmed = value?.trim() || '';
@@ -241,8 +241,9 @@ export function validateUsernameChars(value) {
 
 /**
  * Ensures username contains at least one letter (a-z or A-Z).
- * @param {string} value - Username input.
- * @returns {boolean} True if at least one letter present.
+ *
+ * @param {string} value - Username input from signup validation.
+ * @returns {boolean} True when the username includes at least one ASCII letter.
  */
 export function validateUsernameHasLetter(value) {
   const trimmed = value?.trim() || '';
@@ -253,8 +254,9 @@ export function validateUsernameHasLetter(value) {
 
 /**
  * Verifies username has no spaces (any whitespace) in raw input.
- * @param {string} value - Username input (untrimmed).
- * @returns {boolean} True if no spaces.
+ *
+ * @param {string} value - Untrimmed username input from signup validation.
+ * @returns {boolean} True when the raw value contains no whitespace.
  */
 export function validateUsernameNoSpaces(value) {
   // No spaces allowed - check the actual value without trimming
@@ -264,8 +266,9 @@ export function validateUsernameNoSpaces(value) {
 
 /**
  * Checks if password length is within allowed range.
- * @param {string} value - Password input.
- * @returns {boolean} True if length between MIN and MAX.
+ *
+ * @param {string} value - Password input from signup validation.
+ * @returns {boolean} True when length is between the configured password bounds.
  */
 export function validatePasswordLength(value) {
   const length = value?.length || 0;
@@ -276,8 +279,9 @@ export function validatePasswordLength(value) {
 
 /**
  * Ensures password contains at least one special character.
- * @param {string} value - Password input.
- * @returns {boolean} True if special character found.
+ *
+ * @param {string} value - Password input from signup validation.
+ * @returns {boolean} True when at least one allowed special character is present.
  */
 export function validatePasswordSpecialChar(value) {
   // Must include at least one special character
@@ -287,8 +291,9 @@ export function validatePasswordSpecialChar(value) {
 
 /**
  * Verifies password has no spaces (any whitespace) in raw input.
- * @param {string} value - Password input (untrimmed).
- * @returns {boolean} True if no spaces.
+ *
+ * @param {string} value - Untrimmed password input from signup validation.
+ * @returns {boolean} True when the raw value contains no whitespace.
  */
 export function validatePasswordNoSpaces(value) {
   // No spaces allowed - check the actual value without trimming
@@ -298,9 +303,10 @@ export function validatePasswordNoSpaces(value) {
 
 /**
  * Checks if password and confirm password match.
- * @param {string} password - Password input.
- * @param {string} confirmPassword - Confirm password input.
- * @returns {boolean} True if passwords match.
+ *
+ * @param {string} password - Primary password input from signup validation.
+ * @param {string} confirmPassword - Confirmation password input from signup validation.
+ * @returns {boolean} True when both values match and the password is non-empty.
  */
 export function validatePasswordMatch(password, confirmPassword) {
   return password === confirmPassword && password.length > 0;

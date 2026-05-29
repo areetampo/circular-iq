@@ -1,14 +1,8 @@
 /**
- * @module scoring
- * @description Score classification and formatting helpers.
- * Provides functions for formatting factor names to readable title case.
- */
-
-/**
- * Format factor names to readable title case
- * Converts snake_case or camelCase to Title Case with spaces
- * @param {string} factorName - Raw factor name
- * @returns {string} Formatted factor name
+ * Formats snake_case or camelCase factor keys to Title Case labels for results UI.
+ *
+ * @param {string} factorName - Score factor key from API payloads or local result objects.
+ * @returns {string} Human-readable factor label such as "Technical Feasibility".
  */
 export function formatFactorName(factorName) {
   if (!factorName) return '';

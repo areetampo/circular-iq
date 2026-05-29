@@ -1,54 +1,89 @@
 /**
- * @module formatting
- * @description Date, number, URL, and string formatting helpers shared across the app.
+ * Date, number, URL, and string formatting helpers shared across the app.
  * Used by results pages, uptime monitor charts, navbar, and assessment lists.
  */
 
 /**
- * Formats a timestamp into a human-readable string.
+ * Returns the user's local timezone label formatted for UI displays like chart axis subtitles.
  *
- * @param {number|string|Date} timestamp - The value to format.
- * @param {Object} [options={}] - Configuration for the output format.
- * @param {boolean} [options.showYear=true] - Include year in output.
- * @param {boolean} [options.showMonth=true] - Include month in output.
- * @param {boolean} [options.showDay=true] - Include day in output.
- * @param {boolean} [options.showSeconds=false] - Whether to include seconds.
- * @param {boolean} [options.showMs=false] - Whether to include milliseconds.
- * @param {boolean} [options.use24Hour=false] - Use 24-hour format instead of AM/PM.
- * @param {boolean} [options.showTimezone=true] - Append short timezone name (e.g. GMT).
- * @returns {string} The formatted date string or an error message.
+ * @param {{ style?: 'minimal'|'full' }} [options] - Controls whether output is localized or the full IANA zone.
+ * @param {'minimal'|'full'} [options.style='minimal'] - `minimal` uses a localized abbreviation; `full` returns the IANA id.
+ * `minimal` returns a short localized abbreviation (e.g., "GMT+1", "EST"),
+ * while `full` returns the IANA timezone identifier (e.g., "Europe/London").
+ * @returns {string} Timezone label such as "IST" or "Asia/Calcutta".
+ *
+ * @example
+ * // Assuming user is in New York (EST)
+ * getTimezoneLabel(); // Returns "EST"
+ * getTimezoneLabel({ style: 'full' }); // Returns "America/New_York"
  */
-export function formatTimestamp(
-  timestamp,
-  {
+export function getTimezoneLabel(options = {}) {
+  const { style = 'minimal' } = options;
+
+  const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (style === 'full') return resolved;
+
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZoneName: 'short' }).formatToParts(
+    new Date(),
+  );
+  return parts.find((p) => p.type === 'timeZoneName')?.value ?? resolved;
+}
+
+/**
+ * Formats a timestamp into a strictly ordered day-month-year format with custom time settings.
+ *
+ * @param {number|string|Date} timestamp - Value accepted by `Date`; falsy/invalid values return bracketed fallback labels.
+ * @param {{ showYear?: boolean, showMonth?: boolean, showDay?: boolean, showSeconds?: boolean, showMs?: boolean, use24Hour?: boolean, showTimezone?: boolean, timezoneStyle?: 'minimal'|'full' }} [options] - Date/time visibility options.
+ * @param {boolean} [options.showYear=true] - Include the numeric year.
+ * @param {boolean} [options.showMonth=true] - Include the short month name.
+ * @param {boolean} [options.showDay=true] - Include the day of month.
+ * @param {boolean} [options.showSeconds=false] - Include seconds in the time portion.
+ * @param {boolean} [options.showMs=false] - Include millisecond precision.
+ * @param {boolean} [options.use24Hour=true] - Use 24-hour time instead of AM/PM.
+ * @param {boolean} [options.showTimezone=true] - Append the current timezone label.
+ * @param {'minimal'|'full'} [options.timezoneStyle='minimal'] - Label style forwarded to `getTimezoneLabel`.
+ * @returns {string} Display timestamp such as "24 May 2026, 13:05 IST".
+ */
+export function formatTimestamp(timestamp, options = {}) {
+  const {
     showYear = true,
     showMonth = true,
     showDay = true,
     showSeconds = false,
     showMs = false,
-    use24Hour = false,
+    use24Hour = true,
     showTimezone = true,
-  } = {},
-) {
+    timezoneStyle = 'minimal',
+  } = options;
+
   if (!timestamp) return '[Unknown time]';
 
   const d = new Date(timestamp);
   if (isNaN(d.getTime())) return '[Invalid timestamp]';
 
-  const localeOptions = {
+  const dateParts = [];
+  if (showDay) dateParts.push(d.toLocaleDateString('en-GB', { day: 'numeric' }));
+  if (showMonth) dateParts.push(d.toLocaleDateString('en-GB', { month: 'short' }));
+  if (showYear) dateParts.push(d.toLocaleDateString('en-GB', { year: 'numeric' }));
+
+  const dateString = dateParts.join(' ');
+
+  const timeOptions = {
     hour: '2-digit',
     minute: '2-digit',
     hour12: !use24Hour,
   };
+  if (showSeconds || showMs) timeOptions.second = '2-digit';
+  if (showMs) timeOptions.fractionalSecondDigits = 3;
 
-  if (showYear) localeOptions.year = 'numeric';
-  if (showMonth) localeOptions.month = 'short';
-  if (showDay) localeOptions.day = 'numeric';
-  if (showSeconds || showMs) localeOptions.second = '2-digit';
-  if (showMs) localeOptions.fractionalSecondDigits = 3;
-  if (showTimezone) localeOptions.timeZoneName = 'short';
+  let timeString = d.toLocaleTimeString('en-GB', timeOptions);
 
-  return d.toLocaleString('en-GB', localeOptions);
+  if (showTimezone) {
+    const tzLabel = getTimezoneLabel({ style: timezoneStyle });
+    timeString += ` ${tzLabel}`;
+  }
+
+  return dateString ? `${dateString}, ${timeString}` : timeString;
 }
 
 /**
@@ -64,8 +99,8 @@ export function formatTimestamp(
  *  ≥1 year  → "N yr[s] [N month[s] | N w] ago"
  *               months shown if >0; else weeks if calDays ≥7; else nothing
  *
- * @param {number|string|Date} timestamp
- * @returns {string}
+ * @param {number|string|Date} timestamp - Past timestamp to compare with the current browser time.
+ * @returns {string} Relative label such as "2 hrs ago", "1 mo 2 w ago", or "in the future".
  */
 export function formatRelativeTime(timestamp) {
   if (!timestamp) return '[Unknown time]';
@@ -151,59 +186,64 @@ export function formatRelativeTime(timestamp) {
 }
 
 /**
- * Format str from snake_case to Title Case
- * @param {string} str - str name.g. "material_reuse"
- * @returns {string} Formatted string e.g. "Material Reuse" or "N/A" if empty
- */
-export function toTitleCase(str) {
-  if (!str) return 'N/A';
-  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-/**
- * Converts a duration object to a compact human-readable label.
- * All fields are optional and can be mixed and matched.
+ * Converts a duration object to a compact human-readable label with optional unit toggles.
+ * All duration input fields are optional and can be mixed and matched.
  *
- * @param {Object} [options={}]
- * @param {number} [options.days=0]
- * @param {number} [options.hours=0]
- * @param {number} [options.minutes=0]
- * @param {number} [options.seconds=0]
- * @param {number} [options.ms=0]
- * @param {boolean} [options.combineSecAndMs=false] If true, combines seconds and ms into a decimal string for values >= 1000ms (e.g., "22.555s")
- * @returns {string} e.g. "15 mins", "1 day", "22.555s", "200 ms"
+ * @param {{ days?: number, hours?: number, minutes?: number, seconds?: number, ms?: number, combineSecAndMs?: boolean, showDays?: boolean, showHours?: boolean, showMinutes?: boolean, showSeconds?: boolean, showMs?: boolean }} [options={}] - Duration parts and unit visibility controls.
+ * @param {number} [options.days=0] - Whole days to include in the total duration.
+ * @param {number} [options.hours=0] - Whole hours to include in the total duration.
+ * @param {number} [options.minutes=0] - Whole minutes to include in the total duration.
+ * @param {number} [options.seconds=0] - Whole seconds to include in the total duration.
+ * @param {number} [options.ms=0] - Milliseconds to include in the total duration.
+ * @param {boolean} [options.combineSecAndMs=false] - If true, combines seconds and ms into a decimal string for values >= 1000ms (e.g., "22.555s"). Takes precedence over showSeconds/showMs if true and total remaining time >= 1000ms.
+ * @param {boolean} [options.showDays=true] - Whether to include days in the output string.
+ * @param {boolean} [options.showHours=true] - Whether to include hours in the output string.
+ * @param {boolean} [options.showMinutes=true] - Whether to include minutes in the output string.
+ * @param {boolean} [options.showSeconds=true] - Whether to include seconds in the output string.
+ * @param {boolean} [options.showMs=true] - Whether to include milliseconds in the output string.
+ * @returns {string} Compact duration label such as "1 day 5 hrs", "15 mins", or "0 seconds".
  *
  * @example
- * // --- Standard Formatting (combineSecAndMs = false) ---
- * formatDuration({ minutes: 15 });                         // "15 mins"
- * formatDuration({ hours: 24 });                           // "1 day"
- * formatDuration({ seconds: 5, ms: 200 });                 // "5 secs 200 ms"
- * formatDuration({ ms: 72455 });                           // "1 min 12 secs 455 ms"
+ * // --- Default Visibility (All units true) ---
+ * formatDuration({ minutes: 15 });                          // "15 mins"
+ * formatDuration({ hours: 25 });                            // "1 day 1 hr"
+ * formatDuration({ seconds: 5, ms: 200 });                  // "5 secs 200 ms"
+ * formatDuration({ ms: 72455 });                            // "1 min 12 secs 455 ms"
  *
- * // --- Combined Formatting (combineSecAndMs = true) ---
- * formatDuration({ ms: 22555, combineSecAndMs: true }); // "22.555s" (>= 1000ms gets combined)
- * formatDuration({ ms: 200, combineSecAndMs: true });   // "200 ms" (< 1000ms strips the 0. decimal)
- * formatDuration({ seconds: 4, combineSecAndMs: true });// "4s" (clean integer if ms is 0)
+ * // --- Toggling Unit Visibility ---
+ * // Force hiding minutes/seconds from a large ms pool
+ * formatDuration({ ms: 90000, showSeconds: false });        // "1 min" (15000ms remainder dropped)
+ * formatDuration({ days: 2, hours: 5, showDays: false });   // "5 hrs"
  *
- * // --- Mixed Units with Combination ---
- * formatDuration({ minutes: 1, ms: 12455, combineSecAndMs: true }); // "1 min 12.455s"
- * formatDuration({ hours: 2, seconds: 30, combineSecAndMs: true });  // "2 hrs 30s"
- * formatDuration({ minutes: 5, ms: 350, combineSecAndMs: true });    // "5 mins 350 ms" (< 1000ms fallback)
+ * // --- Combined Seconds and Milliseconds ---
+ * formatDuration({ ms: 22555, combineSecAndMs: true });     // "22.555 s"
+ * formatDuration({ ms: 200, combineSecAndMs: true });       // "200 ms" (< 1000ms fallback)
+ * formatDuration({ minutes: 1, ms: 12455, combineSecAndMs: true }); // "1 min 12.455 s"
+ *
+ * // --- Hiding Combined Layout Fallbacks ---
+ * formatDuration({ ms: 2500, combineSecAndMs: true, showSeconds: false }); // "2.5 s" (combineSecAndMs overrides showSeconds if >= 1000ms)
+ * formatDuration({ ms: 350, combineSecAndMs: true, showMs: false });       // "0 seconds" (< 1000ms honors showMs flag)
  *
  * // --- Edge Cases & Fallbacks ---
  * formatDuration();                                         // "0 seconds"
- * formatDuration({});                                       // "0 seconds"
+ * formatDuration({ minutes: 30, showMinutes: false });      // "0 seconds" (nothing left to show)
  * formatDuration({ ms: -500 });                             // "0 seconds" (handles negative totals)
- * formatDuration({ combineSecAndMs: true });            // "0 seconds"
  */
-export function formatDuration({
-  days = 0,
-  hours = 0,
-  minutes = 0,
-  seconds = 0,
-  ms = 0,
-  combineSecAndMs = false,
-} = {}) {
+export function formatDuration(options = {}) {
+  const {
+    days = 0,
+    hours = 0,
+    minutes = 0,
+    seconds = 0,
+    ms = 0,
+    combineSecAndMs = false,
+    showDays = true,
+    showHours = true,
+    showMinutes = true,
+    showSeconds = true,
+    showMs = true,
+  } = options;
+
   // Convert everything down to the smallest unit (ms) to sum it up accurately
   const msInSecond = 1000;
   const msInMinute = 60 * msInSecond;
@@ -213,7 +253,7 @@ export function formatDuration({
   const totalMs =
     days * msInDay + hours * msInHour + minutes * msInMinute + seconds * msInSecond + ms;
 
-  if (totalMs <= 0) return '0 seconds'; // fallback
+  if (totalMs <= 0) return '0 seconds';
 
   // Break down the total ms into chronological chunks
   const wholeDays = Math.floor(totalMs / msInDay);
@@ -226,31 +266,29 @@ export function formatDuration({
   remainder %= msInMinute;
 
   const parts = [];
-  if (wholeDays > 0) parts.push(`${wholeDays} day${wholeDays === 1 ? '' : 's'}`);
-  if (wholeHours > 0) parts.push(`${wholeHours} hr${wholeHours === 1 ? '' : 's'}`);
-  if (wholeMinutes > 0) parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
+  if (showDays && wholeDays > 0) parts.push(`${wholeDays} day${wholeDays === 1 ? '' : 's'}`);
+  if (showHours && wholeHours > 0) parts.push(`${wholeHours} hr${wholeHours === 1 ? '' : 's'}`);
+  if (showMinutes && wholeMinutes > 0)
+    parts.push(`${wholeMinutes} min${wholeMinutes === 1 ? '' : 's'}`);
 
-  // Handle seconds and ms based on the configuration option
-  if (combineSecAndMs) {
-    if (remainder > 0) {
-      // If remaining time is a full second or more, make it a decimal (e.g., 12.455s)
-      if (remainder >= msInSecond) {
-        const combinedSeconds = remainder / msInSecond;
-        parts.push(`${combinedSeconds} s`);
-      } else {
-        // If remaining time is less than 1s, keep it as just the number + ms (e.g., 200 ms)
-        parts.push(`${remainder} ms`);
-      }
-    }
+  // Handle seconds and ms based on configuration options
+  if (combineSecAndMs && remainder >= msInSecond) {
+    // combineSecAndMs handles values >= 1s explicitly as a unified decimal
+    const combinedSeconds = remainder / msInSecond;
+    parts.push(`${combinedSeconds} s`);
   } else {
     const wholeSeconds = Math.floor(remainder / msInSecond);
     const wholeMs = remainder % msInSecond;
 
-    if (wholeSeconds > 0) parts.push(`${wholeSeconds} sec${wholeSeconds === 1 ? '' : 's'}`);
-    if (wholeMs > 0) parts.push(`${wholeMs} ms`);
+    if (showSeconds && wholeSeconds > 0) {
+      parts.push(`${wholeSeconds} sec${wholeSeconds === 1 ? '' : 's'}`);
+    }
+    if (showMs && wholeMs > 0) {
+      parts.push(`${wholeMs} ms`);
+    }
   }
 
-  // Fallback case: if nothing was pushed because values were all 0 but totalMs > 0
+  // Fallback case: if values are masked by configurations or hit 0
   if (parts.length === 0) {
     return '0 seconds';
   }
@@ -259,28 +297,23 @@ export function formatDuration({
 }
 
 /**
- * Returns the user's local timezone label for chart axis subtitles.
+ * Converts snake_case display keys to Title Case labels.
  *
- * @param {Object} [options={}]
- * @param {'minimal'|'full'} [options.style='minimal'] - `minimal` uses short name (e.g. GMT+1).
- * @returns {string}
+ * @param {string} str - Snake-case label such as "material_reuse".
+ * @returns {string} Title-cased label such as "Material Reuse", or "N/A" when empty.
  */
-export function getTimezoneLabel({ style = 'minimal' } = {}) {
-  const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  if (style === 'full') return resolved;
-
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZoneName: 'short' }).formatToParts(
-    new Date(),
-  );
-  return parts.find((p) => p.type === 'timeZoneName')?.value ?? resolved;
+export function toTitleCase(str) {
+  if (!str) return 'N/A';
+  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**
  * Removes a specific number of characters from the end of a string
  * and appends an ellipsis.
- * @param {string} str - The target string.
+ *
+ * @param {string} str - Display text whose trailing characters should be replaced by an ellipsis.
  * @param {number} charsToRemove - How many characters to cut off.
- * @returns {string} The truncated string.
+ * @returns {string} Shortened text with "...", or the original text when no truncation is needed.
  */
 export function truncate(str, charsToRemove) {
   if (!str || typeof str !== 'string') return '';
@@ -296,14 +329,15 @@ export function truncate(str, charsToRemove) {
 /**
  * Cleans and formats a URL string based on provided transformation options.
  * Useful for displaying "pretty" URLs in the UI or normalizing URLs for comparison.
- * @param {string} urlStr - The raw URL or domain string to be cleaned.
- * @param {Object} [options={}] - Transformation settings.
- * @param {boolean} [options.stripProtocol=true] - Remove 'http://' or 'https://'.
+ *
+ * @param {string} urlStr - URL or domain-like string; missing protocols are added only for parsing.
+ * @param {{ stripProtocol?: boolean, stripWww?: boolean, stripPort?: boolean, stripQuery?: boolean, stripTrailingSlash?: boolean }} [options={}] - Transformation settings.
+ * @param {boolean} [options.stripProtocol=false] - Remove 'http://' or 'https://'.
  * @param {boolean} [options.stripWww=false] - Remove the 'www.' prefix from the hostname.
  * @param {boolean} [options.stripPort=false] - Remove the port number (e.g., ':5173').
- * @param {boolean} [options.stripQuery=true] - Remove query parameters (e.g., '?id=1').
+ * @param {boolean} [options.stripQuery=false] - Remove query parameters (e.g., '?id=1').
  * @param {boolean} [options.stripTrailingSlash=true] - Remove the final forward slash.
- * @returns {string} The formatted URL string. If parsing fails, returns the original input.
+ * @returns {string} Display URL with requested parts removed, or the original input when parsing fails.
  */
 export function cleanUrl(urlStr, options = {}) {
   const defaults = {
@@ -348,18 +382,18 @@ export function cleanUrl(urlStr, options = {}) {
     const query = settings.stripQuery ? '' : url.search;
 
     return `${protocol}${host}${port}${path}${query}`;
-  } catch (err) {
-    logger.warn('Failed to clean URL:', err);
+  } catch (error) {
+    logger.warn('[FORMAT:CLEAN_URL_FAILED]', error);
     // Fallback if the string is completely mangled
     return urlStr;
   }
 }
 
 /**
- * Get initials from username.
+ * Builds a compact avatar fallback from the first character of each username word.
  *
- * @param {string} username - Username string.
- * @returns {string} Initials (max 2 chars).
+ * @param {string} username - Display username from profile or auth state.
+ * @returns {string} Up to two uppercase initials, or "-" when no username is available.
  */
 export function getUserInitials(username) {
   if (!username) return '-';

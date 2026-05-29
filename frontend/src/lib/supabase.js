@@ -1,9 +1,3 @@
-/**
- * @module supabase
- * @description Initialised Supabase client singleton.
- * Creates and exports a Supabase client using environment variables.
- */
-
 import { createClient } from '@supabase/supabase-js';
 
 import { FRONTEND_CONFIG } from '@/config/frontend.config';

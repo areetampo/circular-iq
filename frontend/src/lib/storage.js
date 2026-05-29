@@ -1,13 +1,5 @@
 /**
- * @module storage
- * @description LocalStorage and sessionStorage helpers with JSON serialisation.
- * Provides functions for managing evaluation state, share form state,
- * and compare form state with expiry handling.
- *
- * Storage Keys:
- * - session_evaluation_state: Current evaluation form state + unsaved results
- * - share_form_state: Share form assessment ID
- * - compare_form_state: Compare form assessment IDs
+ * localStorage helpers for evaluation, share, and compare form state (`session_evaluation_state`, 30-day expiry).
  */
 
 // ============================================================================
@@ -21,11 +13,10 @@ const SESSION_EVALUATION_STATE_KEY = 'session_evaluation_state';
 const SESSION_EXPIRY_DAYS = 30;
 
 /**
- * Save evaluation state with unified structure
- * Supports partial updates: only provided fields are updated, others are preserved
- * @param {Object} state - State to save (can be partial)
- * @param {Object} state.inputs - User inputs (businessProblem, businessSolution, parameters)
- * @param {Object|null} state.results - Complete results object (null to clear, undefined to preserve existing)
+ * Persists the anonymous evaluation session with partial-update semantics.
+ * Provided fields replace existing values, omitted fields are preserved, and new result snapshots are enriched with their input context.
+ *
+ * @param {{ inputs?: { businessProblem?: string, businessSolution?: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> }|null, results?: Record<string, unknown>|null, calculatedResults?: Record<string, unknown>|null, timestamp?: string, businessProblem?: string, businessSolution?: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> }} state - Partial evaluation state; omitted fields preserve existing session values.
  * @returns {boolean} True when persisted successfully.
  */
 export function saveEvaluationState(state) {
@@ -37,33 +28,41 @@ export function saveEvaluationState(state) {
     const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
 
+    // If inputs are explicitly set to null (e.g., via clearEvaluationInputs),
+    // bypass the deep property fallback pipeline to allow an intentional clear.
+    const cleanInputs =
+      state?.inputs === null
+        ? {
+            businessProblem: '',
+            businessSolution: '',
+            evaluationParameters: {},
+            businessContext: {},
+          }
+        : {
+            businessProblem:
+              state?.inputs?.businessProblem ??
+              state?.businessProblem ??
+              existingState.inputs?.businessProblem ??
+              '',
+            businessSolution:
+              state?.inputs?.businessSolution ??
+              state?.businessSolution ??
+              existingState.inputs?.businessSolution ??
+              '',
+            evaluationParameters:
+              state?.inputs?.evaluationParameters ??
+              state?.evaluationParameters ??
+              existingState.inputs?.evaluationParameters ??
+              {},
+            businessContext:
+              state?.inputs?.businessContext ??
+              state?.businessContext ??
+              existingState.inputs?.businessContext ??
+              {},
+          };
+
     const stateToSave = {
-      // Always update inputs if provided. Use nullish coalescing so empty strings
-      // and empty objects are persisted ("" is a valid value and must not be
-      // treated as 'not provided'). The previous implementation used `||` and
-      // therefore ignored empty strings.
-      inputs: {
-        businessProblem:
-          state?.inputs?.businessProblem ??
-          state?.businessProblem ??
-          existingState.inputs?.businessProblem ??
-          '',
-        businessSolution:
-          state?.inputs?.businessSolution ??
-          state?.businessSolution ??
-          existingState.inputs?.businessSolution ??
-          '',
-        evaluationParameters:
-          state?.inputs?.evaluationParameters ??
-          state?.evaluationParameters ??
-          existingState.inputs?.evaluationParameters ??
-          {},
-        businessContext:
-          state?.inputs?.businessContext ??
-          state?.businessContext ??
-          existingState.inputs?.businessContext ??
-          {},
-      },
+      inputs: cleanInputs,
       // PRESERVE existing results unless explicitly provided or set to null
       // If `state.results` is provided (including an empty object), we treat this as
       // an intentional update of the snapshot. When a new snapshot is stored we
@@ -113,7 +112,7 @@ export function saveEvaluationState(state) {
     localStorage.setItem(SESSION_EVALUATION_STATE_KEY, JSON.stringify(stateToSave));
     return true;
   } catch (error) {
-    logger.error('Failed to save evaluation state:', error);
+    logger.warn('[STORAGE:SAVE_EVALUATION_STATE_FAILED]', error);
     return false;
   }
 }
@@ -123,11 +122,11 @@ export function saveEvaluationState(state) {
  * Clears and returns null when the 30-day expiry has passed.
  *
  * @returns {{
- *   inputs: { businessProblem: string, businessSolution: string, evaluationParameters: Object, businessContext: Object },
- *   results: Object|null,
+ *   inputs: { businessProblem: string, businessSolution: string, evaluationParameters: Record<string, number>, businessContext: Record<string, unknown> },
+ *   results: Record<string, unknown>|null,
  *   timestamp: string,
  *   expiresAt: string
- * }|null}
+ * }|null} Restored evaluation session, or null when missing/expired/invalid.
  */
 export function loadEvaluationState() {
   try {
@@ -145,13 +144,14 @@ export function loadEvaluationState() {
 
     return state;
   } catch (error) {
-    logger.error('Failed to load evaluation state:', error);
+    logger.warn('[STORAGE:LOAD_EVALUATION_STATE_FAILED]', error);
     return null;
   }
 }
 
 /**
  * Removes evaluation state from localStorage.
+ *
  * @returns {boolean} True when cleared successfully.
  */
 export function clearEvaluationState() {
@@ -159,14 +159,38 @@ export function clearEvaluationState() {
     localStorage.removeItem(SESSION_EVALUATION_STATE_KEY);
     return true;
   } catch (error) {
-    logger.error('Failed to clear evaluation state:', error);
+    logger.warn('[STORAGE:CLEAR_EVALUATION_STATE_FAILED]', error);
+    return false;
+  }
+}
+
+/**
+ * Clears only the inputs portion of evaluation state, preserving results.
+ * Used on login so pending unsaved results survive the auth transition.
+ *
+ * @returns {boolean} True when cleared and saved successfully.
+ */
+export function clearEvaluationInputs() {
+  try {
+    const current = loadEvaluationState();
+    if (!current) return true;
+
+    // Explicitly assigning inputs as null behaves correctly with our cleanInputs patch above
+    saveEvaluationState({
+      ...current,
+      inputs: null,
+    });
+    return true;
+  } catch (error) {
+    logger.warn('[STORAGE:CLEAR_EVALUATION_INPUTS_FAILED]', error);
     return false;
   }
 }
 
 /**
  * Returns whether persisted evaluation state contains non-empty inputs or saved results.
- * @returns {boolean}
+ *
+ * @returns {boolean} True when the saved session has restorable form inputs or result data.
  */
 export function hasEvaluationContent() {
   const state = loadEvaluationState();
@@ -194,8 +218,9 @@ const COMPARE_FORM_KEY = 'compare_form_state';
 const FORM_EXPIRY_HOURS = 24; // Forms persist for 24 hours
 
 /**
- * Save share form state to sessionStorage
- * @param {string} publicId - The assessment ID to persist
+ * Persists the share-page public assessment id draft in sessionStorage for 24 hours.
+ *
+ * @param {string} publicId - Public assessment id kept in sessionStorage so share form restores after navigation.
  * @returns {boolean} True when persisted successfully.
  */
 export function saveShareFormState(publicId) {
@@ -208,14 +233,14 @@ export function saveShareFormState(publicId) {
     sessionStorage.setItem(SHARE_FORM_KEY, JSON.stringify(state));
     return true;
   } catch (error) {
-    logger.error('Failed to save share form state:', error);
+    logger.warn('[STORAGE:SAVE_SHARE_FORM_STATE_FAILED]', error);
     return false;
   }
 }
 
 /**
  * Loads share form state from sessionStorage (24h expiry).
- * @returns {{ publicId: string, timestamp: string, expiresAt: string }|null}
+ * @returns {{ publicId: string, timestamp: string, expiresAt: string }|null} Share form draft, or null when missing/expired/invalid.
  */
 export function loadShareFormState() {
   try {
@@ -232,7 +257,7 @@ export function loadShareFormState() {
 
     return state;
   } catch (error) {
-    logger.error('Failed to load share form state:', error);
+    logger.warn('[STORAGE:LOAD_SHARE_FORM_STATE_FAILED]', error);
     return null;
   }
 }
@@ -246,15 +271,16 @@ export function clearShareFormState() {
     sessionStorage.removeItem(SHARE_FORM_KEY);
     return true;
   } catch (error) {
-    logger.error('Failed to clear share form state:', error);
+    logger.warn('[STORAGE:CLEAR_SHARE_FORM_STATE_FAILED]', error);
     return false;
   }
 }
 
 /**
- * Save compare form state to sessionStorage
- * @param {string} publicId1 - First assessment ID
- * @param {string} publicId2 - Second assessment ID
+ * Persists compare-page public assessment id drafts in sessionStorage for 24 hours.
+ *
+ * @param {string} publicId1 - First public assessment id restored into the compare form.
+ * @param {string} publicId2 - Second public assessment id restored into the compare form.
  * @returns {boolean} True when persisted successfully.
  */
 export function saveCompareFormState(publicId1, publicId2) {
@@ -268,14 +294,14 @@ export function saveCompareFormState(publicId1, publicId2) {
     sessionStorage.setItem(COMPARE_FORM_KEY, JSON.stringify(state));
     return true;
   } catch (error) {
-    logger.error('Failed to save compare form state:', error);
+    logger.warn('[STORAGE:SAVE_COMPARE_FORM_STATE_FAILED]', error);
     return false;
   }
 }
 
 /**
  * Loads compare form state from sessionStorage (24h expiry).
- * @returns {{ publicId1: string, publicId2: string, timestamp: string, expiresAt: string }|null}
+ * @returns {{ publicId1: string, publicId2: string, timestamp: string, expiresAt: string }|null} Compare form draft, or null when missing/expired/invalid.
  */
 export function loadCompareFormState() {
   try {
@@ -292,7 +318,7 @@ export function loadCompareFormState() {
 
     return state;
   } catch (error) {
-    logger.error('Failed to load compare form state:', error);
+    logger.warn('[STORAGE:LOAD_COMPARE_FORM_STATE_FAILED]', error);
     return null;
   }
 }
@@ -306,7 +332,7 @@ export function clearCompareFormState() {
     sessionStorage.removeItem(COMPARE_FORM_KEY);
     return true;
   } catch (error) {
-    logger.error('Failed to clear compare form state:', error);
+    logger.warn('[STORAGE:CLEAR_COMPARE_FORM_STATE_FAILED]', error);
     return false;
   }
 }

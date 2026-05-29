@@ -1,8 +1,3 @@
-/**
- * @module storage.test
- * @description Unit tests for evaluation session storage.
- */
-
 /* global afterEach, test, expect */
 
 import {
