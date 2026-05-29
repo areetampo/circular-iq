@@ -190,6 +190,10 @@ COMMENT ON INDEX idx_ce_cases_circular_strategy_trgm IS
 
 ALTER TABLE ce_cases ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS ce_cases_service_role_full  ON ce_cases;
+DROP POLICY IF EXISTS ce_cases_authenticated_read ON ce_cases;
+DROP POLICY IF EXISTS ce_cases_anon_read          ON ce_cases;
+
 -- service_role: full access (ingestion pipeline writes).
 CREATE POLICY "ce_cases_service_role_full"
     ON ce_cases FOR ALL TO service_role

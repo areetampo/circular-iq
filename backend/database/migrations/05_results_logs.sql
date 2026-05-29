@@ -231,6 +231,9 @@ CREATE INDEX IF NOT EXISTS idx_srl_r_alignment_score
 
 ALTER TABLE scoring_results_log ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS srl_service_role_full_access      ON scoring_results_log;
+DROP POLICY IF EXISTS srl_authenticated_select_own      ON scoring_results_log;
+
 -- service_role: full access — all writes come from the Express backend.
 CREATE POLICY "srl_service_role_full_access"
     ON scoring_results_log FOR ALL TO service_role
