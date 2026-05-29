@@ -1,18 +1,17 @@
 /**
- * @module search.controller
- * @description Handlers for `GET /api/search/ce-cases` (keyword and hybrid CE case search).
+ * Handlers for `GET /api/search/ce-cases` (keyword and hybrid CE case search).
  * Database access is handled internally by ceCasesRepository, which resolves
  * its own Supabase client via getSupabaseClient().
  *
  * Modes:
- *   - `keyword` (default) — full-text search, no OpenAI call
- *   - `hybrid` — vector similarity + keyword scoring (embeds query via OpenAI)
+ *   - `keyword` (default): full-text search, no OpenAI call
+ *   - `hybrid`: vector similarity + keyword scoring (embeds query via OpenAI)
  *
  * Query parameters:
  *   q             {string}  Required search string.
  *   mode          {string}  `keyword` | `hybrid`. Default: `keyword`.
- *   limit         {number}  Max results (1–50). Default: 20.
- *   vector_weight {number}  Hybrid only, 0.0–1.0. Default: 0.7.
+ *   limit         {number}  Max results (1-50). Default: 20.
+ *   vector_weight {number}  Hybrid only, 0.0-1.0. Default: 0.7.
  */
 
 import { ceCasesRepository } from '#database/index.js';
@@ -27,8 +26,22 @@ const DEFAULT_VECTOR_WEIGHT = 0.7;
  * Format a raw row from the RPC function into a clean response shape.
  * Extracts useful fields from metadata_json without exposing the raw blob.
  *
- * @param {Object} row - Raw row from search_ce_cases_keyword or search_ce_cases_hybrid
- * @returns {Object} Formatted result
+ * @param {Record<string, unknown>} row - Raw row from `search_ce_cases_keyword` or `search_ce_cases_hybrid`.
+ * @returns {{
+ *   id: string,
+ *   problem: string|null,
+ *   solution: string|null,
+ *   materials: string|null,
+ *   circular_strategy: string|null,
+ *   category: string|null,
+ *   impact: string|null,
+ *   source_url: string|null,
+ *   score: number,
+ *   title: string|null,
+ *   company: string|null,
+ *   summary: string|null,
+ *   source_display: string|null
+ * }} Search result item normalized for client display without raw metadata blobs.
  */
 function formatResult(row) {
   const meta = row.metadata_json || {};
@@ -70,8 +83,9 @@ function formatResult(row) {
 }
 
 /**
- * Search CE cases knowledge base.
- * @returns {Function} Express async handler
+ * Creates the `GET /api/search/ce-cases` handler that validates query params, executes keyword or hybrid search, and normalizes rows for the frontend.
+ *
+ * @returns {import('express').RequestHandler} Async handler that writes search results or sanitized errors.
  */
 export function searchCeCases() {
   return async function handler(req, res) {
@@ -133,7 +147,7 @@ export function searchCeCases() {
         } catch (embedError) {
           logger.error({ embedError, query }, 'Failed to create query embedding');
           return res.status(503).json({
-            error: 'Embedding service temporarily unavailable. Try mode=keyword instead.',
+            error: 'Semantic search temporarily unavailable. Try keyword search instead.',
             code: 'EMBEDDING_FAILED',
             timestamp: new Date().toISOString(),
           });
@@ -170,7 +184,8 @@ export function searchCeCases() {
       logger.logOperation('searchCeCases', '/search', 'error', processingMs);
 
       return res.status(500).json({
-        error: error.message || 'Search failed',
+        // error: error.message || 'Failed to fetch solutions. Internal server error.',
+        error: 'Failed to fetch solutions. Internal server error.',
         code: error.code || 'INTERNAL_ERROR',
         timestamp: new Date().toISOString(),
       });
