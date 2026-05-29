@@ -1,13 +1,10 @@
 /**
- * @module validation.middleware
- * @description Request body validation middleware using Zod schema validation.
- * Provides middleware for validating assessment POST requests with structured
- * error reporting. Ensures data integrity and proper error handling for invalid input.
+ * Zod validation for POST `/api/assessments` bodies (strict schema, no unknown keys).
  */
 
 import { z } from 'zod';
 
-// Assessment schema for internal validation - not exported
+// Keep this private so request normalization stays coupled to the middleware below.
 const assessmentSchema = z
   .object({
     name: z
@@ -33,28 +30,18 @@ const assessmentSchema = z
     contribute_to_global_benchmarks: z.boolean().optional(),
     businessProblem: z.string().optional(),
     businessSolution: z.string().optional(),
-    parameters: z.record(z.number()).optional(), // Frontend sends 'parameters', not 'evaluation_parameters'
+    parameters: z.record(z.number()).optional(), // Preserve the frontend field name used by saved assessment payloads.
   })
   .strict();
 
 /**
- * Middleware: Validate assessment request body against schema.
- * Applied to POST /api/assessments route to ensure valid assessment data.
- * Enforces strict schema (no unknown fields) and provides detailed validation errors.
+ * Parses `req.body` with `assessmentSchema`; empty `industry` becomes `'Unknown'`.
+ * On success sets `req.validatedBody`; on Zod failure responds 400 with `details`.
  *
- * @param {Object} req - Express request object.
- * @param {Object} req.body - Request body to validate.
- * @param {string} req.body.name - Assessment name (3-50 characters).
- * @param {string} req.body.industry - Industry classification.
- * @param {Object} req.body.result_json - Assessment scores and results (must not be empty).
- * @param {boolean} [req.body.is_public] - Whether assessment is publicly shareable.
- * @param {boolean} [req.body.contribute_to_global_benchmarks] - Opt-in for benchmark data.
- * @param {string} [req.body.businessProblem] - Business problem description.
- * @param {string} [req.body.businessSolution] - Business solution description.
- * @param {Object} [req.body.parameters] - Additional parameters mapping.
- * @param {Object} res - Express response object.
- * @param {Function} next - Express next middleware function.
- * @throws {Object} res.status(400).json() - If validation fails.
+ * @param {import('express').Request} req - Request carrying the candidate assessment body.
+ * @param {import('express').Response} res - Response used for Zod validation failures.
+ * @param {import('express').NextFunction} next - Called after `req.validatedBody` is populated.
+ * @returns {import('express').Response|undefined} JSON 400 response on validation failure; otherwise undefined after handing off to the next middleware.
  */
 export function validateAssessment(req, res, next) {
   try {
@@ -73,13 +60,13 @@ export function validateAssessment(req, res, next) {
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const formattedErrors = error.errors.map((err) => ({
-        path: err.path.join('.'),
-        message: err.message,
-        code: err.code,
+      const formattedErrors = error.errors.map((error) => ({
+        path: error.path.join('.'),
+        message: error.message,
+        code: error.code,
       }));
 
-      // Log validation failures for debugging "bad actors"
+      // Include field-level context so malformed assessment payloads can be diagnosed from logs.
       logger.warn(
         {
           endpoint: req.path,
@@ -100,7 +87,7 @@ export function validateAssessment(req, res, next) {
       });
     }
 
-    // Handle non-Zod errors
+    // Non-Zod parser failures still map to 400 because the request body could not be trusted.
     logger.warn(
       { endpoint: req.path, method: req.method, ip: req.ip, error },
       'Assessment validation error occurred',

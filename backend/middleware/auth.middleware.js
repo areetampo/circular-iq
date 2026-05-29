@@ -1,26 +1,17 @@
 /**
- * @module auth.middleware
- * @description Authentication middleware for Express routes.
- * Verifies Supabase user tokens from Authorization headers and attaches
- * authenticated user information to request objects for downstream handlers.
- * Includes test mode bypass for development/testing scenarios.
+ * Supabase bearer-token auth middleware factory.
+ * In `NODE_ENV=test`, missing Bearer tokens receive a fixed mock user instead of 401.
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 /**
- * Middleware: Require valid Supabase authentication.
- * Verifies bearer token from Authorization header and attaches user to req.user.
- * In test mode, automatically attaches a mock user without token verification.
+ * Creates Express middleware that verifies Supabase bearer tokens and attaches a compact user.
+ * Test mode intentionally permits missing tokens by assigning a deterministic mock user, which
+ * keeps route tests focused on controller behavior instead of auth setup.
  *
- * @param {Object} serviceSupabase - Supabase client instance for token verification.
- * @returns {Function} Express middleware function.
- *
- * @example
- * import { requireAuth } from '#middleware/auth.middleware.js';
- * router.get('/profile', requireAuth(supabaseClient), (req, res) => {
- *   logger.info({reqUserId: req.user.id}); // Authenticated user's ID
- * });
+ * @param {{ auth: { getUser: (token: string) => Promise<{ data: { user?: { id: string, email?: string, user_metadata?: Record<string, unknown> } }, error?: unknown }> } }} serviceSupabase - Supabase service client used to validate bearer tokens.
+ * @returns {import('express').RequestHandler} Middleware that sets `req.user` on success or sends auth error JSON.
  */
 export function requireAuth(serviceSupabase) {
   return async (req, res, next) => {
@@ -29,14 +20,9 @@ export function requireAuth(serviceSupabase) {
     try {
       const IS_TEST = BACKEND_CONFIG.nodeEnv === 'test';
 
-      // Debug: Log when requireAuth is called
-      // logger.info({ reqPath: req.path, originalUrl: req.originalUrl }, '🔐 requireAuth called');
-      // logger.info({ reqHeaders: Object.keys(req.headers) }, '🔐 Headers');
-
-      // Extract token from Authorization header
       const authHeader = req.headers.authorization || '';
       if (!authHeader.startsWith('Bearer ')) {
-        // In test mode, allow unauthenticated access with mock user
+        // Route tests run without Supabase tokens, so test mode receives a deterministic user.
         if (IS_TEST) {
           req.user = {
             id: '00000000-0000-0000-0000-000000000000',
@@ -62,7 +48,6 @@ export function requireAuth(serviceSupabase) {
         });
       }
 
-      // Verify token with Supabase
       const { data, error } = await serviceSupabase.auth.getUser(token);
 
       if (error || !data.user) {
@@ -73,7 +58,6 @@ export function requireAuth(serviceSupabase) {
         });
       }
 
-      // Attach user to request for downstream handlers
       req.user = {
         id: data.user.id,
         email: data.user.email,
