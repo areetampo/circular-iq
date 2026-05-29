@@ -1,22 +1,18 @@
 /**
- * @module analytics.controller
- * @description Controller for analytics and dashboard statistics endpoints.
- * Aggregates scoring logs, market RPC, and assessment stats for the Global Activity page.
- *
- * Endpoints:
- * - POST /api/analytics/embeddings/reindex - Starts embedding pipeline reindex in background
- * - GET /api/analytics/global-stats - Aggregates dashboard data from multiple sources
+ * Global Activity analytics: background embedding reindex and aggregated dashboard stats.
  */
 
 import { spawn } from 'child_process';
 import path from 'path';
 
+import { toClientError } from '#utils/errors.js';
 import { safeNumber } from '#utils/formatting.js';
 
 /**
- * Compute ISO week key in format YYYY-Www for a UTC date
- * @param {Date} date - Date object
- * @returns {string|null} ISO week key (e.g., "2024-W01") or null if invalid
+ * Computes an ISO week key from a UTC date for the 12-week activity trend.
+ *
+ * @param {Date} date - Date-like object already parsed from a timestamp column.
+ * @returns {string|null} ISO week key such as `2024-W01`, or `null` when no date is supplied.
  */
 function getISOWeekKey(date) {
   if (!date) return null;
@@ -37,7 +33,7 @@ function getISOWeekKey(date) {
  * Spawns detached `pipeline/rag/generate_embeddings.js` (reads archived chunks, writes embedded JSONL).
  * Returns immediately with the child PID for tracking.
  *
- * @returns {import('express').RequestHandler} Express middleware handler
+ * @returns {import('express').RequestHandler} Handler that starts the background embedding pipeline and responds with child process metadata.
  */
 export function postEmbeddingsReindex() {
   return async (req, res) => {
@@ -54,12 +50,11 @@ export function postEmbeddingsReindex() {
 
       logger.logOperation('POST', '/analytics/embeddings/reindex', 200, Date.now() - startTime);
       res.json({ started: true, pid: child.pid });
-    } catch (err) {
-      logger.error({ err }, 'Failed to start embedding pipeline');
+    } catch (error) {
+      logger.error({ error }, 'Failed to start embedding pipeline');
       logger.logOperation('POST', '/analytics/embeddings/reindex', 500, Date.now() - startTime);
       res.status(500).json({
-        error: err?.message || 'Failed to start embedding pipeline',
-        code: err?.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to start embedding pipeline'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -70,17 +65,17 @@ export function postEmbeddingsReindex() {
  * GET /api/analytics/global-stats
  *
  * Aggregate dashboard data from three sources:
- *   1. scoring_results_log (service-role) — all scoring calls, anon + auth,
+ *   1. scoring_results_log (service-role): all scoring calls, anon + auth,
  *      junk excluded. Widest possible data coverage.
- *   2. get_market_data() RPC — per-industry/scale/strategy benchmarks from
+ *   2. get_market_data() RPC: per-industry/scale/strategy benchmarks from
  *      opted-in saved assessments only.
- *   3. get_assessment_statistics() RPC (no user_uuid) — global saved
+ *   3. get_assessment_statistics() RPC (no user_uuid): global saved
  *      assessment stats.
  *
- * Uses serviceSupabase — no RLS restriction, no PII returned.
+ * Uses serviceSupabase with no RLS restriction and returns no PII.
  *
- * @param {Object} serviceSupabase - Service-role Supabase client.
- * @returns {import('express').RequestHandler} Express middleware handler.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} serviceSupabase - Service-role Supabase client used for unrestricted aggregate queries.
+ * @returns {import('express').RequestHandler} Handler that returns global activity aggregates while tolerating partial RPC failures.
  */
 export function getGlobalStats(serviceSupabase) {
   return async (req, res) => {
@@ -174,7 +169,7 @@ export function getGlobalStats(serviceSupabase) {
         const ind = r.industry || 'other';
         if (!industryAcc[ind]) industryAcc[ind] = { count: 0, scores: [] };
         industryAcc[ind].count++;
-        if (r.overall_score != null) industryAcc[ind].scores.push(safeNumber(r.overall_score));
+        if (r.overall_score !== null) industryAcc[ind].scores.push(safeNumber(r.overall_score));
       });
       const industryDist = Object.entries(industryAcc)
         .map(([industry, d]) => ({
@@ -246,7 +241,7 @@ export function getGlobalStats(serviceSupabase) {
         if (key && weekBuckets.has(key)) {
           const b = weekBuckets.get(key);
           b.count++;
-          if (r.overall_score != null) b.scores.push(safeNumber(r.overall_score));
+          if (r.overall_score !== null) b.scores.push(safeNumber(r.overall_score));
         }
       });
       const weeklyTrend = Array.from(weekBuckets.values()).map((b) => ({
@@ -259,7 +254,7 @@ export function getGlobalStats(serviceSupabase) {
       const metricAvg = (key) => {
         const vals = logRows
           .map((r) => r[key])
-          .filter((v) => v != null && Number.isFinite(Number(v)));
+          .filter((v) => v !== null && Number.isFinite(Number(v)));
         return vals.length
           ? Number((vals.reduce((a, b) => a + Number(b), 0) / vals.length).toFixed(1))
           : null;
@@ -297,12 +292,11 @@ export function getGlobalStats(serviceSupabase) {
           statsResult.status === 'fulfilled' ? statsResult.value?.data?.[0] || null : null,
         generated_at: new Date().toISOString(),
       });
-    } catch (err) {
-      logger.error({ err }, '[getGlobalStats] unexpected error');
+    } catch (error) {
+      logger.error({ error }, '[getGlobalStats] unexpected error');
       logger.logOperation('GET', '/analytics/global-stats', 500, Date.now() - startTime);
       res.status(500).json({
-        error: err?.message || 'Failed to fetch global stats',
-        code: err?.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to fetch global stats'),
         timestamp: new Date().toISOString(),
       });
     }
