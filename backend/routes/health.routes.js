@@ -1,18 +1,18 @@
 /**
- * @module health.routes
- * @description Express router for health monitoring endpoints.
- * Provides comprehensive health checks for database, OpenAI, system resources,
- * configuration, readiness, and liveness probes. Supports both minimal checks
- * for load balancers and detailed checks for monitoring dashboards.
+ * Health router mounted at `/health`; all endpoints are public.
  *
- * Routes:
- *   GET /                           — Basic health check for load balancers
- *   GET /detailed                   — Comprehensive multi-component health check
- *   GET /database                   — Database connectivity check
- *   GET /database/aiven             — Aiven PostgreSQL specific check
- *   GET /openai                     — OpenAI API connectivity check
- *   GET /system                     — System resources check (memory, CPU, disk)
- *   GET /config                     — Configuration integrity check
+ * | Method | Path | Auth | Notes |
+ * |--------|------|------|-------|
+ * | GET | `/` | None | Minimal probe for load balancers |
+ * | GET | `/detailed` | None | Optional `checks` query; degraded status still returns 200 |
+ * | GET | `/database` | None | Primary database connection |
+ * | GET | `/database/aiven` | None | Aiven PostgreSQL pool |
+ * | GET | `/openai` | None | OpenAI API key and connectivity probe |
+ * | GET | `/system` | None | Memory and uptime |
+ * | GET | `/config` | None | Required environment keys |
+ * | GET | `/readiness` | None | Database and configuration readiness |
+ * | GET | `/liveness` | None | Process liveness |
+ * | GET | `/version` | None | Build and runtime metadata |
  */
 
 import express from 'express';
@@ -27,28 +27,26 @@ import {
   getMinimalHealth,
   getSystemHealth,
 } from '#services/health.service.js';
+import { toClientError } from '#utils/errors.js';
 
 /**
- * Creates the health check router.
+ * Creates public health and Kubernetes probe endpoints.
  *
- * @returns {express.Router} Configured Express router with health endpoints.
+ * @returns {express.Router} Router mounted under `/health`.
  */
 export default function createHealthRouter() {
   const router = express.Router();
 
   /**
-   * GET /health - Basic health check for load balancers
-   * Returns minimal status with appropriate HTTP status codes
+   * GET /
+   * Accepts no path or query parameters. Runs the minimal load-balancer probe and returns 200 for
+   * `status: "ok"` or 503 for unhealthy checks and thrown failures.
    */
   router.get('/', async (req, res) => {
     const startTime = Date.now();
     try {
       const healthData = await getMinimalHealth();
       const statusCode = healthData.status === 'ok' ? 200 : 503;
-
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_check', '/health', 'success', duration);
-
       res.status(statusCode).json(healthData);
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -64,10 +62,10 @@ export default function createHealthRouter() {
   });
 
   /**
-   * GET /health/detailed - Comprehensive health check
-   * Query parameters:
-   * - checks: comma-separated list of checks (database,openai,system,config)
-   * - timeout: timeout in milliseconds for each check (default: 5000)
+   * GET /detailed?checks=
+   * Query arg `checks` is an optional comma-separated list from `database`, `openai`, `system`,
+   * and `config`; defaults to all four. Degraded checks return 200, unhealthy checks and thrown
+   * failures return 503.
    */
   router.get('/detailed', async (req, res) => {
     const startTime = Date.now();
@@ -79,17 +77,10 @@ export default function createHealthRouter() {
       const statusCode =
         healthData.status === 'healthy' ? 200 : healthData.status === 'degraded' ? 200 : 503;
 
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_detailed', '/health/detailed', 'success', duration, {
-      //   checks: checks || 'default',
-      // });
-
       res.status(statusCode).json(healthData);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_detailed', '/health/detailed', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_detailed', '/health/detailed', 'error', duration, { error });
       logger.error({ error, path: '/health/detailed' }, 'Detailed health check failed');
 
       res.status(503).json({
@@ -101,144 +92,127 @@ export default function createHealthRouter() {
   });
 
   /**
-   * GET /health/database - Database health check
+   * GET /database
+   * Accepts no path or query parameters. Checks the primary configured database connection and
+   * returns 503 when the service reports anything other than `healthy` or throws.
    */
   router.get('/database', async (req, res) => {
     const startTime = Date.now();
     try {
       const dbHealth = await checkDatabase();
       const statusCode = dbHealth.status === 'healthy' ? 200 : 503;
-
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_database', '/health/database', 'success', duration);
-
       res.status(statusCode).json(dbHealth);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_database', '/health/database', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_database', '/health/database', 'error', duration, { error });
       logger.error({ error, path: '/health/database' }, 'Database health check failed');
 
       res.status(503).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'Database health check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/database/aiven - Aiven PostgreSQL health check
+   * GET /database/aiven
+   * Accepts no path or query parameters. Checks the Aiven PostgreSQL pool independently of
+   * Supabase and returns 503 when the pool is unhealthy or throws.
    */
   router.get('/database/aiven', async (req, res) => {
     const startTime = Date.now();
     try {
       const aivenHealth = await checkAivenDatabase();
       const statusCode = aivenHealth.status === 'healthy' ? 200 : 503;
-
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_aiven', '/health/database/aiven', 'success', duration);
-
       res.status(statusCode).json(aivenHealth);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_aiven', '/health/database/aiven', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_aiven', '/health/database/aiven', 'error', duration, { error });
       logger.error({ error, path: '/health/database/aiven' }, 'Aiven database health check failed');
 
       res.status(503).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'Aiven database health check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/openai - OpenAI API health check
+   * GET /openai
+   * Accepts no path or query parameters. Checks OpenAI API connectivity without exposing secrets
+   * and returns 503 when connectivity is not `healthy` or the probe throws.
    */
   router.get('/openai', async (req, res) => {
     const startTime = Date.now();
     try {
       const openaiHealth = await checkOpenAI();
       const statusCode = openaiHealth.status === 'healthy' ? 200 : 503;
-
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_openai', '/health/openai', 'success', duration);
-
       res.status(statusCode).json(openaiHealth);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_openai', '/health/openai', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_openai', '/health/openai', 'error', duration, { error });
       logger.error({ error, path: '/health/openai' }, 'OpenAI health check failed');
 
       res.status(503).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'OpenAI health check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/system - System resources health check
+   * GET /system
+   * Accepts no path or query parameters. Returns process and resource health including memory and
+   * uptime information; unexpected resource-check failures map to 500.
    */
   router.get('/system', (req, res) => {
     const startTime = Date.now();
     try {
       const systemHealth = checkSystemResources();
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_system', '/health/system', 'success', duration);
-
       res.json(systemHealth);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_system', '/health/system', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_system', '/health/system', 'error', duration, { error });
       logger.error({ error, path: '/health/system' }, 'System resources health check failed');
 
       res.status(500).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'System resources check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/config - Configuration health check
+   * GET /config
+   * Accepts no path or query parameters. Verifies required environment configuration and reports
+   * missing keys; unexpected configuration-check failures map to 500.
    */
   router.get('/config', (req, res) => {
     const startTime = Date.now();
     try {
       const configHealth = checkConfiguration();
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_config', '/health/config', 'success', duration);
-
       res.status(200).json(configHealth);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_config', '/health/config', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_config', '/health/config', 'error', duration, { error });
       logger.error({ error, path: '/health/config' }, 'Configuration health check failed');
 
       res.status(500).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'Configuration check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/readiness - Kubernetes readiness probe
-   * Checks if the application is ready to serve traffic
+   * GET /readiness
+   * Accepts no path or query parameters. Combines database and configuration checks for Kubernetes
+   * readiness; failed dependencies or thrown probe errors return 503.
    */
   router.get('/readiness', async (req, res) => {
     const startTime = Date.now();
@@ -250,11 +224,6 @@ export default function createHealthRouter() {
       const isReady = dbHealth.status === 'healthy' && configHealth.status === 'healthy';
       const statusCode = isReady ? 200 : 503;
 
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_readiness', '/health/readiness', 'success', duration, {
-      //   ready: isReady,
-      // });
-
       res.status(statusCode).json({
         status: isReady ? 'ready' : 'not-ready',
         checks: {
@@ -265,31 +234,26 @@ export default function createHealthRouter() {
       });
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_readiness', '/health/readiness', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_readiness', '/health/readiness', 'error', duration, { error });
       logger.error({ error, path: '/health/readiness' }, 'Readiness probe failed');
 
       res.status(503).json({
         status: 'not-ready',
-        error: error.message,
+        ...toClientError(error, 'Readiness check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/liveness - Kubernetes liveness probe
-   * Checks if the application is still running
+   * GET /liveness
+   * Accepts no path or query parameters. Confirms the process is running and reports uptime;
+   * unexpected failures map to 500.
    */
   router.get('/liveness', (req, res) => {
     const startTime = Date.now();
     try {
       const uptime = process.uptime();
-
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_liveness', '/health/liveness', 'success', duration, { uptime });
-
       res.status(200).json({
         status: 'alive',
         uptime,
@@ -297,21 +261,21 @@ export default function createHealthRouter() {
       });
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_liveness', '/health/liveness', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_liveness', '/health/liveness', 'error', duration, { error });
       logger.error({ error, path: '/health/liveness' }, 'Liveness probe failed');
 
       res.status(500).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'Liveness check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
   /**
-   * GET /health/version - Version and build information
+   * GET /version
+   * Accepts no path or query parameters. Returns package version, environment, runtime, build,
+   * commit, and timestamp metadata; unexpected failures map to 500.
    */
   router.get('/version', (req, res) => {
     const startTime = Date.now();
@@ -326,31 +290,23 @@ export default function createHealthRouter() {
         gitCommit: process.env.GIT_COMMIT || 'unknown',
         timestamp: new Date().toISOString(),
       };
-
-      // const duration = Date.now() - startTime;
-      // logger.logOperation('health_version', '/health/version', 'success', duration, {
-      //   version: versionInfo.version,
-      // });
-
       res.json(versionInfo);
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.logOperation('health_version', '/health/version', 'error', duration, {
-        error,
-      });
+      logger.logOperation('health_version', '/health/version', 'error', duration, { error });
       logger.error({ error, path: '/health/version' }, 'Version endpoint failed');
 
       res.status(500).json({
         status: 'error',
-        error: error.message,
+        ...toClientError(error, 'Version check failed'),
         timestamp: new Date().toISOString(),
       });
     }
   });
 
-  // Error handler for health routes
-  router.use((err, req, res, _next) => {
-    logger.logOperation('health_error', req.path, 'error', 0, { err });
+  // Any unexpected route-layer error should look like a failed health check to callers.
+  router.use((error, req, res, _next) => {
+    logger.logOperation('health_error', req.path, 'error', 0, { error });
 
     res.status(503).json({
       status: 'error',
