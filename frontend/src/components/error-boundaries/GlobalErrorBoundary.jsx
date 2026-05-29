@@ -1,16 +1,12 @@
 /**
- * @module GlobalErrorBoundary
- * @description Top-level error boundary wrapping the app shell; logs failures and offers reload.
+ * App-wide class error boundary around routed content.
+ * Its fallback keeps DetailsDisplay defaults, so the home action expects Router context.
  */
-
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import DetailsDisplay from '@/components/common/DetailsDisplay';
 
-/**
- * Global Error Boundary for routing level - catches page-level errors
- */
 class GlobalErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -22,7 +18,7 @@ class GlobalErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    logger.error('Error caught by GlobalErrorBoundary:', error, errorInfo);
+    logger.error('[GLOBAL_ERROR_BOUNDARY:RENDER_ERROR]', error, errorInfo);
   }
 
   render() {

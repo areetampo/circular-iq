@@ -1,15 +1,15 @@
 /**
- * @module ErrorBoundary
- * @description React class error boundary that catches render errors and shows a recoverable fallback UI.
+ * Last-resort class error boundary that renders a fullscreen recovery state for render failures.
+ * Its fallback avoids Router-dependent actions because it can run before routing has mounted.
  */
-
+import { Home, RotateCw } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Component } from 'react';
 
 import DetailsDisplay from '@/components/common/DetailsDisplay';
 
 /**
- * App-level Error Boundary - Last resort catch-all for catastrophic errors
+ * Catches render errors below it and renders a fullscreen recovery state.
  */
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -22,7 +22,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    logger.error('ErrorBoundary caught an error', error, info);
+    logger.error('[ERROR_BOUNDARY:RENDER_ERROR]', error, info);
   }
 
   render() {
@@ -34,6 +34,22 @@ export default class ErrorBoundary extends Component {
           description="An unexpected error occurred. Please try refreshing the page."
           errorDetails={this.state.error}
           fullScreen={true}
+          // ErrorBoundary may fire before Router mounts, so actions use window.location directly.
+          showDefaultActions={false}
+          actions={[
+            {
+              label: 'Refresh Page',
+              icon: RotateCw,
+              onPress: () => window.location.reload(),
+            },
+            {
+              label: 'Return Home',
+              icon: Home,
+              onPress: () => {
+                window.location.href = '/';
+              },
+            },
+          ]}
         />
       );
     }
