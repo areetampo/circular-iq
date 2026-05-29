@@ -1,26 +1,6 @@
 
 /**
- * extract_ifixit.js - Extracts problem/solution pairs from iFixit repairability scores
- *
- * Processes multiple device categories and converts each bullet point in the "Summary"
- * field into a standardized row.
- *
- * Features:
- *   • Reads all CSV files from datasets/raw/ifixit/
- *   • Determines category from filename
- *   • Parses the Summary field (bullet list with +, -, •)
- *   • For each bullet, generates a problem and solution (with fallbacks)
- *   • Stores bullet type and original data in metadata_json
- *   • Scores each row based on text length, keyword density, bullet type, and repairability score extremity
- *   • Keeps only the top MAX_ROWS (default 300) highest-quality rows
- *   • Outputs standardized CSV to datasets/processed/ifixit_processed.csv
- *
- * Usage:
- *   node datasets/scripts/extract_ifixit.js
- *
- * Dependencies:
- *   - csv-parse/sync
- *   - #utils/datasetsUtils.js for path helpers, writeCsv, cleanText
+ * Extracts problem/solution pairs from iFixit repairability scores Processes multiple device categories and converts each bullet point in the "Summary" field into a standardized row.
  */
 
 import fs from 'fs';
@@ -298,8 +278,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Error processing iFixit dataset');
+  main().catch((error) => {
+    logger.error({ error }, 'Error processing iFixit dataset');
     process.exit(1);
   });
 }

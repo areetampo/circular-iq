@@ -1,24 +1,6 @@
 
 /**
- * extract_remanufacturing_eu.js - Remanufacturing EU case study publications and text extraction
- *
- * IMPORTANT: Scraping must be done first using scrape_remanufacturing_eu.js to download PDFs.
- *
- * Extracts text from downloaded Remanufacturing EU case study PDFs, chunks and scores content,
- * and produces a standardized CSV.
- *
- * Features:
- *   • Higher MIN_SCORE (35) for quality filtering
- *   • Longer MIN_CHUNK_LENGTH (250) for meaningful content
- *   • Filters duplicate rows where problem == solution
- *   • Sentence-aware chunking to reduce truncation
- *   • Automatic ID generation with dataset key prefix
- *
- * Usage:
- *   node extract_remanufacturing_eu.js
- *
- * Input: PDF documents in datasets/raw/remanufacturing_eu/
- * Output: CSV with standardized columns in datasets/processed/
+ * Remanufacturing EU case study publications and text extraction IMPORTANT: Scraping must be done first using scrape_remanufacturing_eu.js to download PDFs. Extracts text from downloaded Remanufacturing EU case study PDFs, chunks and scores content, and produces a standardized CSV.
  */
 
 import { Buffer } from 'buffer';
@@ -57,6 +39,9 @@ const FINAL_ROW_LIMIT = 500; // keep top 500 rows overall
 
 /**
  * Check if a file starts with the PDF header.
+ *
+ * @param {string} filePath - Candidate PDF file path.
+ * @returns {boolean} `true` when the first bytes match the `%PDF-` header.
  */
 function isValidPdf(filePath) {
   try {
@@ -72,6 +57,9 @@ function isValidPdf(filePath) {
 
 /**
  * Extract text from a PDF file using pdfjs-dist.
+ *
+ * @param {string} filePath - PDF file path to parse.
+ * @returns {Promise<string|null>} Normalized PDF text, or `null` when pdfjs cannot parse the file.
  */
 async function extractTextFromPdf(filePath) {
   const dataBuffer = await fs.promises.readFile(filePath);
@@ -80,8 +68,8 @@ async function extractTextFromPdf(filePath) {
   let pdfDocument;
   try {
     pdfDocument = await loadingTask.promise;
-  } catch (err) {
-    logger.error({ err }, 'PDF parse error');
+  } catch (error) {
+    logger.error({ error }, 'PDF parse error');
     return null;
   }
 
@@ -97,6 +85,9 @@ async function extractTextFromPdf(filePath) {
 
 /**
  * Score a chunk for overall quality (presence of keywords, numbers, length).
+ *
+ * @param {string} text - Candidate PDF text chunk.
+ * @returns {number} Quality score based on quantified impact, CE keywords, and length.
  */
 function scoreChunk(text) {
   let score = 0;
@@ -141,6 +132,9 @@ function scoreChunk(text) {
 
 /**
  * Split text into candidate chunks, respecting sentence boundaries.
+ *
+ * @param {string} text - Full PDF text.
+ * @returns {string[]} Candidate chunks within the configured length bounds.
  */
 function chunkText(text) {
   // First split into sentences (roughly)
@@ -195,6 +189,9 @@ function chunkText(text) {
 
 /**
  * Extract materials from text.
+ *
+ * @param {string} text - Candidate chunk text.
+ * @returns {string} Comma-separated material keywords found in the chunk.
  */
 function extractMaterials(text) {
   const materialKeywords = [
@@ -254,6 +251,9 @@ function extractMaterials(text) {
 
 /**
  * Infer circular strategy from text.
+ *
+ * @param {string} text - Candidate chunk text.
+ * @returns {string} Strategy label inferred from keyword matches.
  */
 function inferStrategy(text) {
   const lower = text.toLowerCase();
@@ -273,6 +273,9 @@ function inferStrategy(text) {
 /**
  * Extract problem, solution, impact from a chunk using sentence scoring.
  * Returns null if problem and solution are too similar.
+ *
+ * @param {string} chunk - Candidate text chunk.
+ * @returns {{ problem: string, solution: string, impact: string }|null} Extracted narrative fields, or `null` when the chunk cannot produce distinct problem and solution text.
  */
 function extractProblemSolutionImpact(chunk) {
   const sentences = chunk.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 15);
@@ -567,8 +570,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

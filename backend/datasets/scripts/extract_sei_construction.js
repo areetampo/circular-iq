@@ -1,28 +1,6 @@
 
 /**
- * extract_sei_construction.js - Circular economy case studies and best practices extraction
- *
- * Extracts from Stockholm Environment Institute (SEI) construction industry reports and guidelines.
- * Processes PDF documents to extract structured case studies, building material innovations, and
- * circular construction strategy implementations.
- *
- * Features:
- *   • PDF text extraction using pdfjs-dist with proper worker configuration
- *   • Multi-document processing with metadata preservation
- *   • Case study identification and section-level parsing
- *   • Construction-specific vocabulary and classification
- *   • Building material and waste stream categorization
- *   • Smart problem/solution generation for construction sector
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
- *   • Page-level content extraction with character buffering
- *
- * Usage:
- *   node extract_sei_construction.js
- *
- * Input: PDF reports and case studies on circular construction
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Scope: Covers circular design, material reuse, waste management in construction sector
+ * Extracts SEI construction circular-economy content from PDFs into CSV.
  */
 
 import fs from 'fs';
@@ -631,8 +609,8 @@ async function main() {
 
       allRows.push(...rows);
       logger.info({ count: rows.length }, 'Extracted records');
-    } catch (err) {
-      logger.error({ file, err }, 'Error processing file');
+    } catch (error) {
+      logger.error({ file, error }, 'Error processing file');
     }
   }
 
@@ -661,8 +639,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -1,14 +1,6 @@
 
 /**
- * extract_eippcb.js - Hybrid extraction for EIPPCB BAT Conclusions and BREFs
- *
- * Filters for the top 300 highest-quality rows based on quantified impacts.
- *
- * Usage:
- *   node extract_eippcb.js
- *
- * Input: multiple PDF files specified in dataset.raw_folder_contents
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
+ * Hybrid extraction for EIPPCB BAT Conclusions and BREFs Filters for the top 300 highest-quality rows based on quantified impacts.
  */
 
 import fs from 'fs';
@@ -85,6 +77,9 @@ const PDF_METADATA = buildPdfMetadata();
 
 /**
  * Quality Scorer: Prioritizes rows with quantified emission levels and rich descriptions.
+ *
+ * @param {{ impact: string, solution: string }} row - Candidate BAT row scored for quantified impact and descriptive solution text.
+ * @returns {number} Ranking score used to keep the highest-quality extracted rows.
  */
 function calculateQualityScore(row) {
   let score = 0;
@@ -212,8 +207,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Error during extraction');
+  main().catch((error) => {
+    logger.error({ error }, 'Error during extraction');
     process.exit(1);
   });
 }

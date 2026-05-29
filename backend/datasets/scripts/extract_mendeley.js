@@ -1,27 +1,5 @@
 /**
- * extract_mendeley.js
- *
- * Extracts circular economy research data from Mendeley API/dataset exports.
- * Processes academic research metadata including sustainable material innovations (SMI),
- * sustainable business models (SBM), and related publications. Uses intelligent sampling
- * to balance coverage across research categories while maintaining diversity.
- *
- * Features:
- *   - XLSX (Excel) file parsing with multiple sheet support (via ExcelJS)
- *   - Reservoir sampling for efficient random selection from large populations
- *   - Category-based research classification (SMI, SBM, etc.)
- *   - Academic metadata preservation (authors, DOI, keywords, publication year)
- *   - Research impact scoring based on citation count and publication year
- *   - Intelligent problem/solution extraction from research titles and abstracts
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
- *
- * Usage:
- *   node extract_mendeley.js
- *
- * Input: XLSX file with research publication metadata sheets
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Sampling: Configurable sample sizes per research category (SME_SAMPLE_SIZE, SBM_SAMPLE_SIZE)
+ * Extracts Mendeley circular-economy research metadata into CSV.
  */
 
 import fs from 'fs';
@@ -70,6 +48,9 @@ const MAX_ROWS = 300; // Maximum number of rows
  * Drop-in replacement for XLSX.readFile().
  * Returns an object shaped like { SheetNames: string[], Sheets: { [name]: worksheet } }
  * so all downstream code can stay identical.
+ *
+ * @param {string} filePath - Excel workbook path to load with ExcelJS.
+ * @returns {Promise<{ SheetNames: string[], Sheets: Record<string, import('exceljs').Worksheet> }>} Workbook facade compatible with the former XLSX call sites.
  */
 async function readWorkbook(filePath) {
   const workbook = new ExcelJS.Workbook();
@@ -87,6 +68,9 @@ async function readWorkbook(filePath) {
  * Returns an array-of-arrays where every cell value is a primitive (string / number / boolean).
  * Gaps between cells are filled with '' to match the defval: '' behaviour.
  * Rich-text, formula results, and hyperlink objects are unwrapped to plain strings.
+ *
+ * @param {import('exceljs').Worksheet} sheet - Worksheet to convert.
+ * @returns {Array<Array<string|number|boolean>>} Row arrays with sparse cells filled as empty strings.
  */
 function sheetToJson(sheet) {
   const rows = [];
@@ -191,7 +175,7 @@ async function processMaskLCA() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.mask_lca);
   if (!filePath || !fs.existsSync(filePath)) {
-    logger.warn('‼ ️  Mask LCA file not found, skipping.');
+    logger.warn('⚠️ ️  Mask LCA file not found, skipping.');
     return rows;
   }
 
@@ -201,7 +185,7 @@ async function processMaskLCA() {
   const data = sheetToJson(sheet);
 
   if (data.length < 3) {
-    logger.warn('‼ ️  Mask LCA sheet has insufficient rows.');
+    logger.warn('⚠️ ️  Mask LCA sheet has insufficient rows.');
     return rows;
   }
 
@@ -222,7 +206,7 @@ async function processMaskLCA() {
   }
 
   if (headerRowIndex === -1) {
-    logger.warn('‼ ️  Could not find header row containing "Material flows".');
+    logger.warn('⚠️ ️  Could not find header row containing "Material flows".');
     return rows;
   }
 
@@ -275,7 +259,7 @@ async function processSMESurvey() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.sme_practices);
   if (!filePath || !fs.existsSync(filePath)) {
-    logger.warn('‼ ️  SME Survey file not found, skipping.');
+    logger.warn('⚠️ ️  SME Survey file not found, skipping.');
     return rows;
   }
 
@@ -344,7 +328,7 @@ async function processSWARA() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.bwm_scores);
   if (!filePath || !fs.existsSync(filePath)) {
-    logger.warn('‼ ️  SWARA file not found, skipping.');
+    logger.warn('⚠️ ️  SWARA file not found, skipping.');
     return rows;
   }
 
@@ -368,7 +352,7 @@ async function processSWARA() {
     }
   }
   if (startRow === -1) {
-    logger.warn('‼ ️  Could not find "Drivers Means by SWARA" table.');
+    logger.warn('⚠️ ️  Could not find "Drivers Means by SWARA" table.');
     return rows;
   }
 
@@ -411,7 +395,7 @@ async function processSWARA() {
       'Extracted top challenge'
     );
   } else {
-    logger.warn('‼ ️  No valid challenge data found.');
+    logger.warn('⚠️ ️  No valid challenge data found.');
   }
   return rows;
 }
@@ -421,7 +405,7 @@ async function processNetworkCentrality() {
   const rows = [];
   const filePath = path.join(MENDELEY_DIR, dataset.raw_folder_contents?.network_scores);
   if (!filePath || !fs.existsSync(filePath)) {
-    logger.warn('‼ ️  Network Centrality file not found, skipping.');
+    logger.warn('⚠️ ️  Network Centrality file not found, skipping.');
     return rows;
   }
 
@@ -430,7 +414,7 @@ async function processNetworkCentrality() {
     (name) => /network|scenario/i.test(name) && !/flow|figure/i.test(name),
   );
   if (!targetSheetName) {
-    logger.warn('‼ ️  No suitable data sheet found in Network Centrality file.');
+    logger.warn('⚠️ ️  No suitable data sheet found in Network Centrality file.');
     return rows;
   }
   const sheet = workbook.Sheets[targetSheetName];
@@ -454,7 +438,7 @@ async function processNetworkCentrality() {
   }
 
   if (headerRowIndex === -1) {
-    logger.warn('‼ ️  Could not find header row containing "Name".');
+    logger.warn('⚠️ ️  Could not find header row containing "Name".');
     return rows;
   }
 
@@ -616,7 +600,7 @@ async function main() {
   }
 
   if (allRows.length === 0) {
-    logger.warn('\n‼ ️  No rows extracted. Check Excel file paths and structure.');
+    logger.warn('\n⚠️ ️  No rows extracted. Check Excel file paths and structure.');
     return;
   }
 
@@ -643,8 +627,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

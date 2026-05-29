@@ -1,28 +1,6 @@
 
 /**
- * extract_kaggle_lca.js - Life cycle assessment (LCA) data extraction
- *
- * Processes multi-source LCA data from Kaggle datasets in CSV format with automatic delimiter
- * detection (comma or semicolon). Identifies key environmental impact indicators and generates
- * insights about product life cycles, material flows, and circular potential.
- *
- * Features:
- *   • Automatic CSV delimiter detection (comma or semicolon)
- *   • UTF-8 BOM handling (removes byte-order marks from headers)
- *   • Flexible column name matching across multiple datasets
- *   • LCA impact category identification (energy, water, emissions, etc.)
- *   • Problem/solution generation based on product life cycle stages
- *   • **Quality scoring based on original data completeness** (replaces random sampling)
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
- *
- * Usage:
- *   node extract_kaggle_lca.js
- *
- * Input: LCA CSV files from Kaggle (various formats with flexible delimiter)
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Target rows: TARGET_ROWS (default 300) highest‑quality rows
- * Scope: Covers product-level LCA data with environmental impact metrics
+ * Extracts multi-source Kaggle LCA CSVs with delimiter auto-detection.
  */
 
 import fs from 'fs';
@@ -59,10 +37,10 @@ const TARGET_ROWS = 300;
 
 // ---------- Helper: compute quality score based on original data ----------
 /**
- * Computes a quality score for a row by counting non‑empty, non‑null fields
+ * Computes a quality score for a row by counting non-empty, non-null fields
  * in the original metadata (stored in metadata_json).
- * @param {Object} row - The transformed row object containing metadata_json.
- * @returns {number} - Number of meaningful fields in the original data.
+ * @param {{ metadata_json: string }} row - Normalized LCA row whose `metadata_json` string stores the original source fields.
+ * @returns {number} Number of meaningful source fields parsed from `metadata_json`; `0` when parsing fails.
  */
 function computeQualityScoreFromMetadata(row) {
   try {
@@ -266,8 +244,8 @@ async function main() {
         allRows.push(row);
       }
       logger.info({ count: rows.length }, 'High-quality rows processed');
-    } catch (err) {
-      logger.error({ fileName: file.name, err }, 'Error processing file');
+    } catch (error) {
+      logger.error({ fileName: file.name, error }, 'Error processing file');
     }
   }
 
@@ -294,8 +272,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Error in main execution');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Error in main execution');
     process.exit(1);
   });
 }

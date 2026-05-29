@@ -1,19 +1,6 @@
 
 /**
- * extract_cgr_2025.js – Final improved version
- *
  * Extracts business‑oriented problem‑solution pairs from the Circularity Gap Report 2025.
- * Features:
- *   • Multi‑keyword scoring for theme classification
- *   • Unit validation (percentages vs. tonnes)
- *   • Confidence threshold to drop uncertain rows
- *   • Uses `writeCsv` from utils for correct quoting (unquoted header, quoted data)
- *
- * Usage:
- *   node extract_cgr_2025.js
- *
- * Input:  datasets/raw/circularity_gap_report/CGR_2025.pdf
- * Output: datasets/processed/cgr_processed.csv
  */
 
 import fs from 'fs/promises';
@@ -152,7 +139,10 @@ const THEMES = [
 // =============================================================================
 
 /**
- * Remove spaced‑letter artifacts by merging runs of single‑letter tokens.
+ * Removes OCR artifacts by merging runs of single-letter tokens back into words.
+ *
+ * @param {string} text - PDF text that may contain words split into individual letters.
+ * @returns {string} Text with three-or-more single-letter runs merged.
  */
 function fixSpacedLetters(text) {
   const tokens = text.split(' ');
@@ -186,7 +176,10 @@ function fixSpacedLetters(text) {
 }
 
 /**
- * Extract all statistics from a sentence.
+ * Extracts quantitative statistics that can support a Circularity Gap Report row.
+ *
+ * @param {string} sentence - Candidate sentence from the report text.
+ * @returns {string[]} Matched numeric values with supported units such as `%`, `Gt`, or `tonnes`.
  */
 function extractStats(sentence) {
   const statsRegex =
@@ -196,7 +189,10 @@ function extractStats(sentence) {
 
 /**
  * Determine the most relevant theme with confidence score.
- * Returns null if below threshold or no match.
+ *
+ * @param {string} sentence - Candidate sentence to classify.
+ * @param {string[]} stats - Quantitative matches extracted from the same sentence.
+ * @returns {Object|null} Theme config when confidence passes the threshold, otherwise `null`.
  */
 function classifyTheme(sentence, stats) {
   const lower = sentence.toLowerCase();
@@ -241,7 +237,12 @@ function classifyTheme(sentence, stats) {
 }
 
 /**
- * Build a problem statement.
+ * Builds a problem statement by combining report context with the theme template.
+ *
+ * @param {string} sentence - Source sentence containing the statistic.
+ * @param {string[]} stats - Quantitative matches extracted from the sentence.
+ * @param {{ problemTemplate: (stat: string) => string }} theme - Theme config selected for the sentence.
+ * @returns {string} Cleaned problem statement for the output CSV.
  */
 function buildProblem(sentence, stats, theme) {
   const stat = stats[0] || 'unprecedented levels';
@@ -346,8 +347,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -1,28 +1,6 @@
 
 /**
- * extract_unep.js - Environmental impact and waste management data extraction
- *
- * Processes datasets from United Nations Environment Programme (UNEP) with event-based
- * CSV parsing for efficient handling of large environmental databases. Focuses on global
- * environmental statistics and pollution/waste indicators.
- *
- * Features:
- *   • Stream-based CSV parsing for memory-efficient processing of large files
- *   • Event-driven row processing with callback patterns
- *   • Multi-file aggregation with configurable target row limits
- *   • UNEP environmental indicator classification and mapping
- *   • Pollution and waste stream categorization
- *   • Smart problem/solution generation based on environmental metrics
- *   • Skip list support for filtering specific rows/regions
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
- *
- * Usage:
- *   node extract_unep.js
- *
- * Input: CSV files with UNEP environmental indicators
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Configuration: Target row count (TARGET_ROWS), regional filters, environmental indicators
+ * Extracts UNEP environmental and waste indicators from event-based CSV sources.
  */
 
 import fs from 'fs';
@@ -269,8 +247,8 @@ async function main() {
       const results = await fh.handler(filePath);
       logger.info({ count: results.length }, 'Extracted records');
       allResults.push(...results);
-    } catch (err) {
-      logger.error({ fileName: fh.name, err }, 'Error processing file');
+    } catch (error) {
+      logger.error({ fileName: fh.name, error }, 'Error processing file');
     }
   }
 
@@ -302,8 +280,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

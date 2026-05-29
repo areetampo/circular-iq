@@ -1,22 +1,6 @@
 
 /**
- * extract_world_bank_projects.js – Final version
- *
- * Reads local JSON files (basic and detailed project lists), optionally parses
- * sector taxonomy from a PDF, and extracts text from PDF reports to create a
- * curated CSV of circular‑economy‑relevant projects.
- *
- * Improvements:
- * - Increased character limits for problem (2000) and solution (3000) to avoid truncation.
- * - Uses full components section from reports where available.
- * - Uses the full abstract as solution when no report exists.
- * - All metadata fields remain unchanged.
- *
- * Usage:
- *   node extract_world_bank_projects.js
- *
- * Input:  JSON files and PDF reports stored in the raw folder
- * Output: datasets/processed/world_bank_projects_processed.csv
+ * Reads local JSON files (basic and detailed project lists), optionally parses sector taxonomy from a PDF, and extracts text from PDF reports to create a curated CSV of circular‑economy‑relevant projects. Improvements:
  */
 
 import fs from 'fs';
@@ -114,7 +98,7 @@ async function extractTextFromPDF(filePath) {
 // ----------------------------------------------------------------------
 async function parseTaxonomyPDF(filePath) {
   if (!fs.existsSync(filePath)) {
-    logger.warn('‼ Taxonomy PDF not found, using hard‑coded sector mapping.');
+    logger.warn('⚠️ Taxonomy PDF not found, using hard‑coded sector mapping.');
     return FALLBACK_SECTOR_MAP;
   }
 
@@ -132,7 +116,7 @@ async function parseTaxonomyPDF(filePath) {
       }
     }
     if (startIdx === -1) {
-      logger.warn('‼ Could not find the sector table in PDF, using hard‑coded mapping.');
+      logger.warn('⚠️ Could not find the sector table in PDF, using hard‑coded mapping.');
       return FALLBACK_SECTOR_MAP;
     }
 
@@ -161,14 +145,14 @@ async function parseTaxonomyPDF(filePath) {
     }
 
     if (sectorMap.size === 0) {
-      logger.warn('‼ PDF parsing returned 0 codes, using hard‑coded mapping.');
+      logger.warn('⚠️ PDF parsing returned 0 codes, using hard‑coded mapping.');
       return FALLBACK_SECTOR_MAP;
     }
 
     logger.info({ codes: sectorMap.size }, 'Sector taxonomy loaded from PDF');
     return sectorMap;
-  } catch (err) {
-    logger.warn({ err }, 'Error parsing taxonomy PDF, using hard-coded mapping');
+  } catch (error) {
+    logger.warn({ error }, 'Error parsing taxonomy PDF, using hard-coded mapping');
     return FALLBACK_SECTOR_MAP;
   }
 }
@@ -414,7 +398,7 @@ function buildSolution(project, reportSections) {
     );
   }
 
-  // ‼ REMOVE THE SUBSTRING TRUNCATION – we want the full text for chunking
+  // ⚠️ REMOVE THE SUBSTRING TRUNCATION – we want the full text for chunking
   return parts.join(' ');
 }
 
@@ -581,8 +565,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

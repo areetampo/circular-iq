@@ -1,22 +1,6 @@
 
 /**
- * extract_wbcsd.js — WBCSD Circular Economy Case Studies Extraction
- *
- * Extracts circular economy case studies and business case data from World Business
- * Council for Sustainable Development (WBCSD) reports and guidelines. Processes PDF
- * documents with structured extraction of company initiatives, sustainability commitments,
- * and circular economy strategy implementations.
- *
- * Improvements:
- *   • Full results sections for CTI case studies (no truncation)
- *   • Enhanced sentence‑aware truncation that avoids mid‑word cutoffs
- *   • Full section content stored in metadata_json for traceability
- *
- * Usage:
- *   node extract_wbcsd.js
- *
- * Input: WBCSD PDF reports in datasets/raw/wbcsd/
- * Output: CSV file with standardized columns in datasets/processed/
+ * Extracts WBCSD circular-economy case studies from PDF reports into CSV.
  */
 
 import fs from 'fs';
@@ -644,8 +628,8 @@ async function main() {
 
       allRows.push(...rows);
       logger.info({ count: rows.length }, 'Extracted records');
-    } catch (err) {
-      logger.error({ file, err }, 'Error processing file');
+    } catch (error) {
+      logger.error({ file, error }, 'Error processing file');
     }
   }
 
@@ -676,8 +660,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

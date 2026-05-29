@@ -1,21 +1,6 @@
 
 /**
- * extract_wrap.js - Problem/solution pair extraction from WRAP PDF reports and case studies
- *
- * IMPORTANT: Run `scrape_wrap.js` before executing this script; PDFs must be downloaded first.
- *
- * Processes all PDFs in datasets/raw/wrap_resources/ and its subfolders (reports/, guides/).
- * Uses pdfjs-dist with worker configuration.
- *
- * Features:
- *   • Recursive PDF scanning (root + subfolders)
- *   • Sentence-level problem/solution extraction with improved pairing logic
- *   • Minimum keyword scores to ensure relevance
- *   • Category guessed from filename or folder
- *   • Outputs standardized CSV, limited to top MAX_ROWS by paragraph score
- *
- * Usage:
- *   node datasets/scripts/extract_wrap.js
+ * Extracts problem/solution pairs from WRAP PDFs (run `scrape_wrap.js` first).
  */
 
 import fs from 'fs';
@@ -355,8 +340,8 @@ async function main() {
           }
         }
       });
-    } catch (err) {
-      logger.error({ relPath, err }, 'Failed to extract text from file');
+    } catch (error) {
+      logger.error({ relPath, error }, 'Failed to extract text from file');
     }
   }
 
@@ -401,8 +386,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

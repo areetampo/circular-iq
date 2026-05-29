@@ -1,27 +1,6 @@
 
 /**
- * extract_epa_tri.js - Toxic Release Inventory (TRI) database extraction
- *
- * Extracts and scores U.S. industrial facility pollution data from EPA's Toxic Release Inventory
- * (TRI) database. Identifies facilities with significant pollution and waste streams, highlighting
- * opportunities for circular economy interventions (recovery, recycling, safer material substitution)
- * and waste reduction strategies.
- *
- * Features:
- *   • CSV parsing with robust column name matching (handles variation in column headers)
- *   • Multi-dimensional facility scoring (pollution severity, recovery potential, waste disposal ratios)
- *   • Configurable weighting system for different scoring dimensions
- *   • Facility-level aggregation and high-value row selection
- *   • Numeric field parsing with comma removal and null handling
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with file locking
- *
- * Usage:
- *   node extract_epa_tri.js
- *
- * Input: 2024 U.S. EPA TRI CSV file with facility names, chemicals, releases, recovery, disposal data
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Scoring dimensions: Total Release (40%), Recovery Activity (35%), Disposal Inefficiency (25%)
+ * Extracts EPA TRI facility pollution data scored for CE opportunities.
  */
 
 import fs from 'fs/promises';
@@ -60,6 +39,9 @@ const WEIGHTS = {
 
 /**
  * Safely parse numeric values, removing commas and handling empty strings.
+ *
+ * @param {unknown} v - CSV cell value that may include commas or be blank.
+ * @returns {number} Parsed number, or `0` when the cell is empty or invalid.
  */
 function num(v) {
   if (!v) return 0;
@@ -67,7 +49,11 @@ function num(v) {
 }
 
 /**
- * Find a column key that contains all of the given substrings (case‑insensitive).
+ * Find a column key that contains all of the given substrings (case-insensitive).
+ *
+ * @param {string[]} keys - Header names from the parsed CSV.
+ * @param {...string} substrings - Required substrings that must all appear in the header.
+ * @returns {string|undefined} Matching header key, or `undefined` when none match.
  */
 function findColumn(keys, ...substrings) {
   return keys.find((k) => substrings.every((sub) => k.toLowerCase().includes(sub.toLowerCase())));
@@ -78,9 +64,9 @@ async function main() {
   let raw;
   try {
     raw = await fs.readFile(inputFile, 'utf-8');
-  } catch (err) {
+  } catch (error) {
     logger.error({ inputFile }, 'Input file not found');
-    throw err;
+    throw error;
   }
 
   const records = parse(raw, {
@@ -208,8 +194,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

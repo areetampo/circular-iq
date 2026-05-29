@@ -1,26 +1,6 @@
 
 /**
- * extract_environmental_sustainability.js - Environmental sustainability indicators and country-level extraction
- *
- * Processes environmental performance data from UN/UNDP environmental databases. Filters out
- * aggregate regions and focuses on specific country records with quantified environmental metrics.
- * Scores countries by data completeness and selects top performers.
- *
- * Features:
- *   • CSV parsing with automatic column detection
- *   • Aggregation filtering (removes region-level aggregates to focus on countries)
- *   • Quality scoring based on completeness of environmental data (non-null fields)
- *   • Top N selection after comprehensive sorting by score
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation
- *   • Conflict resolution via stable sorting order
- *
- * Usage:
- *   node extract_environmental_sustainability.js
- *
- * Input: CSV file with country environmental indicators (Location, various environmental metrics)
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Note: Aggregate regions like 'World', 'Arab States', regional groups are excluded
+ * Extracts country-level UN/UNDP sustainability indicators into CSV.
  */
 
 import fs from 'fs/promises';
@@ -66,9 +46,9 @@ async function main() {
   let raw;
   try {
     raw = await fs.readFile(INPUT_FILE, 'utf-8');
-  } catch (err) {
+  } catch (error) {
     logger.error({ inputFile: INPUT_FILE }, 'Input file not found');
-    throw err;
+    throw error;
   }
 
   const records = parse(raw, { columns: true, skip_empty_lines: true });
@@ -121,8 +101,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '✕ Fatal error');
     process.exit(1);
   });
 }

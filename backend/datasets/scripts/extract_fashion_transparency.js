@@ -1,28 +1,6 @@
 
 /**
- * extract_fashion_transparency.js - Supply chain transparency and environmental accountability extraction
- *
- * Processes data from the Fashion Transparency Index (FTI). Extracts company-level transparency
- * scores, environmental impact assessments, and knowledge assessments from both CSV and PDF sources.
- * Focuses on identifying transparency gaps and circular economy improvement opportunities in the
- * fashion and apparel industry.
- *
- * Features:
- *   • Multi-source data extraction (CSV and PDF)
- *   • PDF text parsing with page-level precision
- *   • Dual scoring systems: Overall transparency index + environmental knowledge assessment
- *   • Company-level aggregation with deduplication
- *   • Configurable row limits and data filtering
- *   • Smart problem/solution generation based on transparency gaps
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
- *
- * Usage:
- *   node extract_fashion_transparency.js
- *
- * Input: Fashion Transparency Index data files (CSV with company scores, PDF with supplementary data)
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Configuration: Max rows limit (MAX_ROWS) and year/scope definitions
+ * Extracts Fashion Transparency Index CSV/PDF data into CSV.
  */
 
 import fs from 'fs';
@@ -106,8 +84,8 @@ function parseCSVFile(filePath, expectedColumns, options = {}) {
       relax_column_count: options.relax_column_count || false,
     });
     return records.filter((row) => expectedColumns.every((col) => col in row));
-  } catch (err) {
-    logger.warn({ filePath, err }, 'Warning: Could not parse file');
+  } catch (error) {
+    logger.warn({ filePath, error }, 'Warning: Could not parse file');
     return [];
   }
 }
@@ -288,8 +266,8 @@ async function main() {
     try {
       pdfInsights = await extractPDFInsights(pdfPath);
       logger.info({ count: pdfInsights.length }, 'Found PDF insights');
-    } catch (err) {
-      logger.error({ err }, 'Error extracting PDF');
+    } catch (error) {
+      logger.error({ error }, 'Error extracting PDF');
     }
   } else {
     logger.warn('PDF file not found, skipping');
@@ -420,8 +398,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

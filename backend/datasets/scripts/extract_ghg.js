@@ -1,28 +1,6 @@
 
 /**
- * extract_ghg.js
- *
- * Extracts greenhouse gas (GHG) emission data from CSV sources with standardized
- * global warming potential (GWP) calculations. Processes multi-year emission records
- * across different gases (CO2, CH4, N2O, F-gases) and converts them to CO2-equivalent
- * values. Targets recent data (2020-2024) and high-impact emission sources.
- *
- * Features:
- *   - CSV parsing with flexible column name matching
- *   - GWP-based emission standardization (AR5 coefficients)
- *   - Multi-year time-series filtering with recent year prioritization
- *   - Emission source identification and categorization
- *   - Smart problem/solution generation based on gas type and sector
- *   - Highest-impact emission sources selection (top rows by magnitude)
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
- *
- * Usage:
- *   node extract_ghg.js
- *
- * Input: GHG emission CSV with columns: source, gas type, year, emission values
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Scope: Covers CO2, CH4 (methane), N2O (nitrous oxide), and F-gases with proper weighting
+ * Extracts GHG emissions with GWP conversion to CO2-equivalent CSV rows.
  */
 
 import fs from 'fs/promises';
@@ -239,8 +217,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Error in main execution');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Error in main execution');
     process.exit(1);
   });
 }

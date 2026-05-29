@@ -1,27 +1,6 @@
 
 /**
- * extract_eurostat.js - European circular economy and waste management statistics extraction
- *
- * Aggregates multiple CSV sources from Eurostat (European statistical office) datasets covering
- * waste generation, recycling rates, and circular material flows across EU countries. Focuses
- * on recent data (year >= MIN_YEAR) with configurable row limits per dataset.
- *
- * Features:
- *   • Multi-file CSV parsing with automatic column name matching
- *   • Time-series filtering (minimum year threshold configurable)
- *   • Dataset-specific row limits to balance coverage and detail
- *   • Auto-mapped problem/solution generation based on waste type and metrics
- *   • Row-level sampling for large datasets
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
- *   • Per-dataset file validation (checks for raw_folder_contents definition)
- *
- * Usage:
- *   node extract_eurostat.js
- *
- * Input: Multiple Eurostat CSV files (waste statistics, recycling rates, etc.)
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Configuration: Raw file names defined in DATASET_LOOKUP[DATASET_KEYS.eurostat].raw_folder_contents
+ * Aggregates Eurostat waste and circular-material CSVs into processed CSV.
  */
 
 import fs from 'fs';
@@ -126,8 +105,12 @@ const datasets = [
 // ==================== PARSERS ====================
 
 /**
- * Parse wide‑format Eurostat files (TIME, 2013, , 2014, , …)
- * These files rarely contain quoted commas, so line‑splitting is safe.
+ * Parse wide-format Eurostat files such as `TIME, 2013, , 2014, , ...`.
+ * These files rarely contain quoted commas, so line-splitting is safe.
+ *
+ * @param {string[]} lines - Non-empty CSV lines from the Eurostat file.
+ * @param {number} headerIndex - Index of the `TIME` header row.
+ * @returns {Array<{country: string, year: number, value: number}>} Normalized rows parsed from paired year/value columns.
  */
 function parseWide(lines, headerIndex) {
   const headerCols = lines[headerIndex].split(',');
@@ -171,6 +154,10 @@ function parseWide(lines, headerIndex) {
 /**
  * Parse long‑format Eurostat files using csv-parse to handle quoted commas.
  * Returns an array of { country, year, value }.
+ *
+ * @param {string} content - Raw Eurostat CSV content.
+ * @returns {Array<{country: string, year: number, value: number}>} Normalized long-format rows.
+ * @throws {Error} If required long-format columns are absent.
  */
 function parseLong(content) {
   // Parse the entire CSV content into an array of objects.
@@ -222,6 +209,10 @@ function parseLong(content) {
 
 /**
  * Detect format and delegate to the appropriate parser.
+ *
+ * @param {string} filePath - Eurostat CSV file path to inspect and parse.
+ * @returns {Array<{country: string, year: number, value: number}>} Normalized Eurostat rows.
+ * @throws {Error} If the file has no recognizable Eurostat header.
  */
 function parseEurostatCSV(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -279,8 +270,8 @@ async function main() {
     let rows;
     try {
       rows = parseEurostatCSV(filePath);
-    } catch (err) {
-      logger.error({ file: ds.file, err }, 'Error parsing file');
+    } catch (error) {
+      logger.error({ file: ds.file, error }, 'Error parsing file');
       continue;
     }
 
@@ -343,8 +334,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

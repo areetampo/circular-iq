@@ -1,30 +1,6 @@
 
 /**
- * extract_gewm.js
- *
- * Extracts Global E-Waste Monitor (GEWM) data on electronic waste streams and management
- * practices across world regions. Uses an embedded Python extraction script (invoked via
- * child_process) to parse PDF or complex data sources, then post-processes the results
- * into structured CSV format with regional waste management insights.
- *
- * Features:
- *   - Cross-language processing: Node.js wrapper with embedded Python extraction
- *   - System command execution (subprocess) for Python script invocation
- *   - CSV parsing with automatic column name matching
- *   - Regional-level data aggregation and validation
- *   - E-waste generation and management metric extraction
- *   - Smart problem/solution generation for waste reduction strategies
- *   - Automatic ID generation with dataset key prefix
- *   - Centralized CSV writing with directory creation and file locking
- *   - Buffer handling for binary/encoded data
- *
- * Usage:
- *   node extract_gewm.js
- *
- * Input: GEWM data files (CSV or complex formats processed by embedded Python)
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Dependencies: Python installation required for embedded extraction script
- * Regions: Asia, Europe, Africa, Americas, Oceania
+ * Extracts Global E-Waste Monitor data via embedded Python into processed CSV.
  */
 
 import { Buffer } from 'buffer';
@@ -114,26 +90,31 @@ async function runPythonExtraction() {
     );
   }
 
-  // Check if camelot is installed
-  try {
-    await execPromise('py -c "import camelot"');
-  } catch {
-    logger.warn(
-      '‼ ️ Camelot is not installed. Attempting to install it (this may take a moment)...',
-    );
+  // Ensure required packages are installed
+  const requiredPackages = [
+    { importName: 'camelot', pipName: 'camelot-py[cv]' },
+    { importName: 'pandas', pipName: 'pandas' },
+  ];
+
+  for (const pkg of requiredPackages) {
     try {
-      await execPromise('py -m pip install camelot-py[cv]');
-    } catch (pipError) {
-      throw new Error(
-        `Failed to install camelot. Please install it manually: pip install camelot-py[cv], Error: ${pipError.message}`,
-      );
+      await execPromise(`py -c "import ${pkg.importName}"`);
+      logger.info(`✓ ${pkg.importName} is available.`);
+    } catch {
+      logger.warn(`⚠️️ ${pkg.importName} not found. Installing ${pkg.pipName}...`);
+      try {
+        await execPromise(`py -m pip install "${pkg.pipName}"`);
+        logger.info(`✓ Installed ${pkg.pipName}.`);
+      } catch (pipError) {
+        throw new Error(
+          `Failed to install ${pkg.pipName}. Please install it manually: pip install "${pkg.pipName}"\nError: ${pipError.message}`,
+        );
+      }
     }
   }
 
   // Encode the Python script in base64 to avoid escaping issues
   const base64Script = Buffer.from(PYTHON_SCRIPT, 'utf8').toString('base64');
-
-  // Command that decodes and executes the script (works on all platforms)
   const command = `py -c "import base64; exec(base64.b64decode('${base64Script}').decode())"`;
 
   try {
@@ -229,7 +210,7 @@ async function cleanData() {
   logger.info({ count: uniqueCountries.length }, 'After deduplication');
 
   if (uniqueCountries.length === 0) {
-    logger.warn('‼ ️  No countries found. The CSV might be empty or misparsed.');
+    logger.warn('⚠️ ️  No countries found. The CSV might be empty or misparsed.');
     return;
   }
 
@@ -295,7 +276,7 @@ async function main() {
   await cleanData();
 }
 
-main().catch((err) => {
-  logger.error({ err }, 'Unhandled error');
+main().catch((error) => {
+  logger.error({ error }, 'Unhandled error');
   process.exit(1);
 });

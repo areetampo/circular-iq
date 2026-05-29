@@ -1,19 +1,6 @@
 
 /**
- * extract_metabolic.js - Quality improved version with enhanced problem/solution filtering
- *
- * IMPORTANT: Scraping must be done first using scrape_metabolic.js to download the PDFs.
- *
- * Features:
- *   • Reads metadata.json from raw folder to populate source_url for each PDF
- *   • Higher MIN_SCORE (35), longer MIN_CHUNK_LENGTH (250)
- *   • Sentence-aware chunking to reduce truncation
- *   • Filters out rows where problem == solution or one is substring of the other
- *   • Ensures problem and solution come from different sentences when possible
- *   • Final row limit remains 400
- *
- * Usage:
- *   node extract_metabolic.js
+ * Quality improved version with enhanced problem/solution filtering IMPORTANT: Scraping must be done first using scrape_metabolic.js to download the PDFs.
  */
 
 import { Buffer } from 'buffer';
@@ -57,6 +44,9 @@ const FINAL_ROW_LIMIT = 400; // keep top 400 rows
 
 /**
  * Check if a file starts with the PDF header.
+ *
+ * @param {string} filePath - Candidate PDF file path.
+ * @returns {boolean} `true` when the first bytes match the `%PDF-` header.
  */
 function isValidPdf(filePath) {
   try {
@@ -65,13 +55,16 @@ function isValidPdf(filePath) {
     fs.readSync(fd, buffer, 0, 5, 0);
     fs.closeSync(fd);
     return buffer.toString() === '%PDF-';
-  } catch (err) {
+  } catch (error) {
     return false;
   }
 }
 
 /**
  * Extract text from a PDF file using pdfjs-dist.
+ *
+ * @param {string} filePath - PDF file path to parse.
+ * @returns {Promise<string|null>} Normalized PDF text, or `null` when pdfjs cannot parse the file.
  */
 async function extractTextFromPdf(filePath) {
   const dataBuffer = await fs.promises.readFile(filePath);
@@ -80,8 +73,8 @@ async function extractTextFromPdf(filePath) {
   let pdfDocument;
   try {
     pdfDocument = await loadingTask.promise;
-  } catch (err) {
-    logger.error({ err }, 'PDF parse error');
+  } catch (error) {
+    logger.error({ error }, 'PDF parse error');
     return null;
   }
 
@@ -97,6 +90,9 @@ async function extractTextFromPdf(filePath) {
 
 /**
  * Score a chunk for overall quality.
+ *
+ * @param {string} text - Candidate PDF text chunk.
+ * @returns {number} Quality score based on quantified impact, CE keywords, and length.
  */
 function scoreChunk(text) {
   let score = 0;
@@ -141,6 +137,9 @@ function scoreChunk(text) {
 
 /**
  * Split text into candidate chunks, respecting sentence boundaries.
+ *
+ * @param {string} text - Full PDF text.
+ * @returns {string[]} Candidate chunks within the configured length bounds.
  */
 function chunkText(text) {
   // First split into sentences (roughly)
@@ -191,6 +190,9 @@ function chunkText(text) {
 
 /**
  * Extract materials from text.
+ *
+ * @param {string} text - Candidate chunk text.
+ * @returns {string} Comma-separated material keywords found in the chunk.
  */
 function extractMaterials(text) {
   const materialKeywords = [
@@ -250,6 +252,9 @@ function extractMaterials(text) {
 
 /**
  * Infer circular strategy from text.
+ *
+ * @param {string} text - Candidate chunk text.
+ * @returns {string} Strategy label inferred from keyword matches.
  */
 function inferStrategy(text) {
   const lower = text.toLowerCase();
@@ -268,6 +273,10 @@ function inferStrategy(text) {
 
 /**
  * Infer category from text and filename.
+ *
+ * @param {string} text - Candidate chunk text.
+ * @param {string} filename - Source PDF filename used as a category hint.
+ * @returns {string} Dataset category inferred from text and filename keywords.
  */
 function inferCategory(text, filename) {
   const lower = text.toLowerCase() + ' ' + filename.toLowerCase();
@@ -292,6 +301,9 @@ function inferCategory(text, filename) {
 /**
  * Extract problem, solution, impact from a chunk using sentence scoring.
  * Returns null if problem and solution are too similar.
+ *
+ * @param {string} chunk - Candidate text chunk.
+ * @returns {{ problem: string, solution: string, impact: string }|null} Extracted narrative fields, or `null` when the chunk cannot produce distinct problem and solution text.
  */
 function extractProblemSolutionImpact(chunk) {
   const sentences = chunk.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 15);
@@ -566,8 +578,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

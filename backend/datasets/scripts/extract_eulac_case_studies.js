@@ -1,28 +1,6 @@
 
 /**
- * extract_eulac_case_studies.js - EU-LAC circular economy case studies extraction
- *
- * EU-LAC (Europe-Latin America-Caribbean) circular economy best practice case studies extraction
- * from a structured PDF document. Each case study covers a company implementing circular economy
- * strategies with detailed information on background, context, motivation, objectives,
- * implementation steps, and social/environmental contributions.
- *
- * Features:
- *   • PDF text extraction with UTF-8 support
- *   • Structured field-based parsing using pre-defined case boundaries and field headers
- *   • Case-insensitive field detection with regex pattern matching
- *   • Automatic text normalization (whitespace, special character handling)
- *   • Per-case metadata preservation (case ID, name, website)
- *   • Automatic ID generation with dataset key prefix
- *   • Centralized CSV writing with directory creation and file locking
- *
- * Usage:
- *   node extract_eulac_case_studies.js
- *
- * Input: EU-LAC case study PDF with structured company/field layout
- * Output: CSV file with ID, problem, solution, materials, circular_strategy, category, impact, source_url, metadata_json
- * Note: Case page ranges and metadata defined in CASE_RANGES array
- * Configuration: Field headers defined in FIELD_HEADERS array for parsing
+ * Extracts EU-LAC circular economy case studies from PDF into CSV.
  */
 
 import fs from 'fs';
@@ -89,6 +67,11 @@ const CASE_RANGES = [
 
 /**
  * Extract text from a range of pages.
+ *
+ * @param {string} filePath - PDF file path to parse.
+ * @param {number} startPage - First one-based page number to include.
+ * @param {number} endPage - Last one-based page number to include, capped by the PDF length.
+ * @returns {Promise<string>} Cleaned text from the requested page range.
  */
 async function extractPagesText(filePath, startPage, endPage) {
   const data = new Uint8Array(fs.readFileSync(filePath));
@@ -105,6 +88,10 @@ async function extractPagesText(filePath, startPage, endPage) {
 
 /**
  * Extract a field value that may span multiple lines, stopping at the next known header.
+ *
+ * @param {string} text - Case-study text block.
+ * @param {string} fieldName - Header label whose value should be captured.
+ * @returns {string} Field value without trailing header artifacts, or an empty string when missing.
  */
 function extractField(text, fieldName) {
   // Escape fieldName for regex
@@ -126,6 +113,10 @@ function extractField(text, fieldName) {
 
 /**
  * Extract a section (e.g., BACKGROUND, OBJECTIVES) that may contain multiple paragraphs.
+ *
+ * @param {string} text - Case-study text block.
+ * @param {string[]} sectionNames - Possible header labels for the section.
+ * @returns {string} Cleaned section body, or an empty string when no header matches.
  */
 function extractSection(text, sectionNames) {
   const namesPattern = sectionNames.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
@@ -139,6 +130,9 @@ function extractSection(text, sectionNames) {
 
 /**
  * Extract a problem sentence from BACKGROUND / CONTEXT.
+ *
+ * @param {string} text - Full case-study text.
+ * @returns {string} Challenge sentence or fallback background excerpt.
  */
 function extractProblem(text) {
   const background = extractSection(text, ['BACKGROUND', 'CONTEXT']);
@@ -155,6 +149,9 @@ function extractProblem(text) {
 
 /**
  * Extract a solution sentence from OBJECTIVES / MOTIVATION / STEP BY STEP.
+ *
+ * @param {string} text - Full case-study text.
+ * @returns {string} Product or implementation sentence selected from solution-oriented sections.
  */
 function extractSolution(text) {
   const objectives = extractSection(text, ['OBJECTIVES', 'MOTIVATION', 'STEP BY STEP']);
@@ -181,6 +178,9 @@ function extractSolution(text) {
 
 /**
  * Detect circular strategy from text keywords.
+ *
+ * @param {string} text - Full case-study text.
+ * @returns {string} Strategy label inferred from circular-economy keywords.
  */
 function detectCircularStrategy(text) {
   const t = text.toLowerCase();
@@ -195,6 +195,9 @@ function detectCircularStrategy(text) {
 
 /**
  * Extract materials mentioned in text.
+ *
+ * @param {string} text - Full case-study text.
+ * @returns {string} Semicolon-separated material keywords found in the case text.
  */
 function extractMaterials(text) {
   const materials = [
@@ -230,6 +233,9 @@ function extractMaterials(text) {
 
 /**
  * Extract quantitative metrics (numbers with units).
+ *
+ * @param {string} text - Full case-study text.
+ * @returns {string} Semicolon-separated unique metrics, or an empty string when none match.
  */
 function extractMetrics(text) {
   const matches = text.match(
@@ -239,7 +245,10 @@ function extractMetrics(text) {
 }
 
 /**
- * Build a human‑readable impact description.
+ * Build a human-readable impact description.
+ *
+ * @param {string} text - Full case-study text.
+ * @returns {string} Impact sentence that combines metrics with contribution narrative when available.
  */
 function extractImpact(text) {
   const metrics = extractMetrics(text);
@@ -268,8 +277,8 @@ async function main() {
     let text;
     try {
       text = await extractPagesText(RAW_PDF, range.start, range.end);
-    } catch (err) {
-      logger.error({ caseId: range.id, err }, 'Failed to extract pages for case');
+    } catch (error) {
+      logger.error({ caseId: range.id, error }, 'Failed to extract pages for case');
       continue; // skip this case study and move to next
     }
 
@@ -320,8 +329,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\n✕ Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, '\n✕ Fatal error');
     process.exit(1);
   });
 }

@@ -1,25 +1,6 @@
 
 /**
- * extract_data_europa.js – Final version (includes PDF indicator extraction)
- *
- * Extracts from European Commission (Data Europa) CSV datasets and PDF reports.
- * Generates business‑oriented problem‑solution pairs from:
- *   - French project registry (Pays de la Loire) – after translation
- *   - Eurostat recycling and hazardous waste statistics
- *   - SDG monitoring and ecosystem accounting PDFs (extracted as indicator rows)
- *
- * Features:
- *   • Batch translation (French → English) with caching
- *   • Problem statements framed as business challenges
- *   • Tailored solutions for statistics and indicators
- *   • PDF indicator extraction with theme classification
- *   • CSV writing via `writeCsv` (unquoted header, quoted data – already correct)
- *
- * Usage:
- *   ENABLE_TRANSLATION=true node extract_data_europa.js
- *
- * Input: CSV and PDF files in raw data directory
- * Output: datasets/processed/dataeu_processed.csv
+ * Extracts from European Commission (Data Europa) CSV datasets and PDF reports. Generates business‑oriented problem‑solution pairs from:
  */
 
 import fs from 'fs';
@@ -175,6 +156,9 @@ const DEFAULT_PDF_THEME = {
 
 /**
  * Batch translates an array of French texts to English.
+ *
+ * @param {string[]} texts - French source strings aligned to the input rows.
+ * @returns {Promise<string[]>} English translations, or the original strings when translation is disabled or fails.
  */
 async function translateBatchFrenchToEnglish(texts) {
   if (!ENABLE_TRANSLATION) return texts;
@@ -195,14 +179,17 @@ async function translateBatchFrenchToEnglish(texts) {
     });
     logger.info({ count: translated.length }, 'Translated texts from French to English');
     return translated;
-  } catch (err) {
-    logger.warn({ err }, 'Batch translation failed');
+  } catch (error) {
+    logger.warn({ error }, 'Batch translation failed');
     return texts; // fallback to original
   }
 }
 
 /**
  * Detect CSV delimiter by looking at first line.
+ *
+ * @param {string} filePath - CSV file path to sample.
+ * @returns {Promise<','|';'>} Delimiter inferred from the first line.
  */
 async function detectDelimiter(filePath) {
   const sample = await fs.promises.readFile(filePath, 'utf8').then((text) => text.split('\n')[0]);
@@ -211,6 +198,10 @@ async function detectDelimiter(filePath) {
 
 /**
  * Parse CSV with given delimiter.
+ *
+ * @param {string} filePath - CSV file path to parse.
+ * @param {','|';'} [delimiter=';'] - Delimiter selected from dataset inspection.
+ * @returns {Array<Record<string, string>>} Parsed row objects keyed by CSV headers.
  */
 function parseCSV(filePath, delimiter = ';') {
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -225,6 +216,9 @@ function parseCSV(filePath, delimiter = ';') {
 
 /**
  * Transform rows from French project registry.
+ *
+ * @param {Array<Record<string, string>>} rows - Project registry rows with French column names.
+ * @returns {Promise<Array<Record<string, string>>>} Normalized project rows with translated narrative fields.
  */
 async function transformProjectRows(rows) {
   if (rows.length === 0) return [];
@@ -275,6 +269,10 @@ async function transformProjectRows(rows) {
 
 /**
  * Transform Eurostat recycling/hazardous waste rows.
+ *
+ * @param {Array<Record<string, string>>} rows - Eurostat indicator rows.
+ * @param {'recycling'|'hazardous'} type - Indicator type used to select problem and solution templates.
+ * @returns {Array<Record<string, string>>} Latest per-country indicator rows normalized for CSV output.
  */
 function transformStatRows(rows, type) {
   const latestPerGeo = new Map();
@@ -328,6 +326,10 @@ function transformStatRows(rows, type) {
 
 /**
  * Extract text from a PDF (first N pages).
+ *
+ * @param {string} filePath - PDF file path to parse.
+ * @param {number} [maxPages=30] - Upper bound on pages read from the PDF.
+ * @returns {Promise<string>} Concatenated text from the parsed pages.
  */
 async function extractPDFText(filePath, maxPages = 30) {
   const data = new Uint8Array(fs.readFileSync(filePath));
@@ -344,6 +346,9 @@ async function extractPDFText(filePath, maxPages = 30) {
 
 /**
  * Classify a sentence into a theme based on keywords.
+ *
+ * @param {string} sentence - Candidate PDF sentence.
+ * @returns {Object} Matching PDF theme config, or the default theme when no keywords match.
  */
 function classifyPDFTheme(sentence) {
   const lower = sentence.toLowerCase();
@@ -357,6 +362,9 @@ function classifyPDFTheme(sentence) {
 
 /**
  * Extract statistics from a sentence (percentages, years, etc.).
+ *
+ * @param {string} sentence - Candidate PDF sentence.
+ * @returns {string[]} Matched statistic strings with supported units.
  */
 function extractPDFStats(sentence) {
   const statsRegex =
@@ -365,7 +373,11 @@ function extractPDFStats(sentence) {
 }
 
 /**
- * Process a PDF and extract indicator‑based rows.
+ * Process a PDF and extract indicator-based rows.
+ *
+ * @param {string} filePath - PDF file path to scan.
+ * @param {string} fileName - Source file name stored in output metadata.
+ * @returns {Promise<Array<Record<string, string>>>} Indicator rows built from quantified PDF sentences.
  */
 async function processPDFIndicators(filePath, fileName) {
   logger.info({ fileName }, 'Processing PDF for indicators');
@@ -481,8 +493,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, '\nFatal Error during extraction');
+  main().catch((error) => {
+    logger.error({ error }, '\nFatal Error during extraction');
     process.exit(1);
   });
 }

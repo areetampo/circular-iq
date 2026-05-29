@@ -1,12 +1,6 @@
 
 /**
- * extract_greentechguardians.js
- *
- * Extracts green technology and sustainability innovation data from the Green Tech
- * Guardians dataset (JSONL + CSV). Merges all sources, deduplicates by problem/solution,
- * scores rows by quality, and keeps only the highest‑scoring MAX_ROWS entries.
- *
- * NEW FEATURE: MAX_ROWS controls the number of highest‑quality rows written to the output CSV.
+ * Merges Green Tech Guardians JSONL/CSV, dedupes, and keeps top-scoring rows (MAX_ROWS).
  */
 
 import fs from 'fs';
@@ -58,22 +52,25 @@ const MAX_ROWS = 1400;
  * Compute a quality score for a parsed record.
  * Higher score = higher quality.
  * JSONL rows with metadata score highest; CSV rows get a base score.
+ *
+ * @param {Record<string, unknown>} record - Parsed JSONL or CSV record with optional embedded/access/processing scores.
+ * @returns {number} Ranking score used for deduped top-row selection.
  */
 function computeQualityScore(record) {
   let score = 0;
 
   // embedded_value (0‑1) – most valuable signal
-  if (record.embedded_value != null && !isNaN(parseFloat(record.embedded_value))) {
+  if (record.embedded_value !== null && !isNaN(parseFloat(record.embedded_value))) {
     score += parseFloat(record.embedded_value) * 2;
   }
 
   // access_level (0‑1)
-  if (record.access_level != null && !isNaN(parseFloat(record.access_level))) {
+  if (record.access_level !== null && !isNaN(parseFloat(record.access_level))) {
     score += parseFloat(record.access_level) * 1;
   }
 
   // processing_level (0‑1)
-  if (record.processing_level != null && !isNaN(parseFloat(record.processing_level))) {
+  if (record.processing_level !== null && !isNaN(parseFloat(record.processing_level))) {
     score += parseFloat(record.processing_level) * 1;
   }
 
@@ -120,8 +117,8 @@ async function main() {
         if (!records.has(key) || PRIORITY[file] > (records.get(key).priority || 0)) {
           records.set(key, { record: data, priority: PRIORITY[file] || 0 });
         }
-      } catch (e) {
-        logger.warn({ file, e }, 'Skipping invalid JSON');
+      } catch (error) {
+        logger.warn({ file, error }, 'Skipping invalid JSON');
       }
     }
   }
@@ -219,8 +216,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }

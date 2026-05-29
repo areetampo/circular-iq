@@ -1,23 +1,6 @@
 
 /**
- * extract_oecd.js - OECD Environmental Data Extraction
- *
- * Samples and processes OECD environmental data CSVs (municipal waste, material use, etc.)
- * to generate a condensed dataset of high-value rows for analysis. Applies keyword filtering,
- * year filtering, and selects the top MAX_ROWS based on a quality score.
- *
- * Features:
- *   • CSV parsing via csv-parse/sync
- *   • Statistical data extraction and sampling
- *   • Multi-dataset consolidation with consistent formatting
- *   • Automatic ID generation with dataset key prefix
- *   • Quality scoring to keep only the best rows
- *
- * Usage:
- *   node extract_oecd.js [datasetKey|all]
- *
- * Input: CSV files in datasets/raw/oecd/
- * Output: CSV with standardized columns in datasets/processed/
+ * Samples OECD environmental CSVs with keyword/year filters into condensed CSV.
  */
 
 import fs from 'fs';
@@ -399,8 +382,8 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }
