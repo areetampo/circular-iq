@@ -1,16 +1,6 @@
 /**
- * @module database.client
- * @description Database client factory and connection pool management.
- * Provides singleton instances of Supabase clients and PostgreSQL connection pools
- * for both Supabase and Aiven databases. Supports test overrides for mocking.
- *
- * Key functions:
- * - getSupabaseClient: Returns singleton Supabase client (service role)
- * - getSupabasePgPool: Returns PostgreSQL pool for Supabase
- * - getAivenPgPool: Returns PostgreSQL pool for Aiven
- * - getDatabaseClient: Unified accessor based on configuration
- * - setDatabaseClientOverride: Override for testing
- * - closeAllPools: Cleanup function for test teardown
+ * Singleton Supabase client and Postgres pools (Supabase + Aiven).
+ * `setDatabaseClientOverride` swaps the client used by repositories in tests.
  */
 
 import { Pool } from 'pg';
@@ -27,11 +17,11 @@ let _overrideClient = null;
 let _overrideType = null;
 
 /**
- * Sets a custom database client override for testing or special cases.
- * The type string influences SQL vs RPC behavior in repositories.
+ * Overrides the repository database client until the process resets or another override is set.
+ * Tests use this to inject mock Supabase clients or pg pools without touching runtime config.
  *
- * @param {Object} client - Custom database client (e.g., mocked Supabase object).
- * @param {string} [type='supabase'] - Client type: 'supabase' or 'postgres'.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Pool|Record<string, unknown>|null} client - Custom database client, or `null` to clear the override.
+ * @param {'supabase'|'postgres'} [type='supabase'] - Client behavior mode used by repository branching.
  */
 export function setDatabaseClientOverride(client, type = 'supabase') {
   _overrideClient = client;
@@ -39,10 +29,10 @@ export function setDatabaseClientOverride(client, type = 'supabase') {
 }
 
 /**
- * Returns a singleton Supabase client with service role key.
- * Lazily initializes the client on first call.
+ * Returns the singleton service-role Supabase client, creating it on first access.
+ * Initialization is logged once so startup diagnostics show which client path repositories use.
  *
- * @returns {Object} Supabase client instance.
+ * @returns {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} Service-role Supabase client or offline stub from `createSupabaseClient`.
  */
 export function getSupabaseClient() {
   if (!_supabaseClient) {
@@ -58,11 +48,10 @@ export function getSupabaseClient() {
 }
 
 /**
- * Creates or returns an existing PostgreSQL connection pool for Aiven.
- * The pool is lazily instantiated and reused across calls.
- * Supports SSL with CA certificate for secure connections.
+ * Returns the singleton Aiven PostgreSQL pool, creating it with SSL settings from config.
+ * CA-based SSL takes precedence over connection-string setup so hostname verification works.
  *
- * @returns {Pool} PostgreSQL connection pool instance.
+ * @returns {Pool} Reused Aiven PostgreSQL connection pool.
  */
 export function getAivenPgPool() {
   if (!_aivenPgPool) {
@@ -109,10 +98,9 @@ export function getAivenPgPool() {
 }
 
 /**
- * Creates or returns an existing PostgreSQL connection pool for Supabase.
- * The pool is lazily instantiated and reused across calls.
+ * Returns the singleton Supabase PostgreSQL pool used for raw SQL paths that the JS client cannot express.
  *
- * @returns {Pool} PostgreSQL connection pool instance.
+ * @returns {Pool} Reused Supabase PostgreSQL connection pool.
  */
 export function getSupabasePgPool() {
   if (!_supabasePgPool) {
@@ -137,10 +125,11 @@ export function getSupabasePgPool() {
 }
 
 /**
- * Returns the appropriate database client based on configuration or override.
- * Respects test overrides and the useSupabaseDocuments configuration flag.
+ * Resolves the active repository database client.
+ * Explicit overrides win first; otherwise config chooses Supabase JS for document-table mode or
+ * the Aiven pg pool for direct PostgreSQL mode.
  *
- * @returns {Object} Database client (Supabase client or PostgreSQL pool).
+ * @returns {import('@supabase/supabase-js').SupabaseClient|Pool|Record<string, unknown>} Active repository client, honoring test overrides before configuration.
  */
 export function getDatabaseClient() {
   if (_overrideClient) {
@@ -155,10 +144,10 @@ export function getDatabaseClient() {
 }
 
 /**
- * Returns the effective database type for the current client.
- * Used by repositories to distinguish between Supabase and PostgreSQL behaviors.
+ * Reports the behavior mode repositories should use for the current database client.
+ * Overrides may force either Supabase RPC behavior or raw PostgreSQL behavior.
  *
- * @returns {string} Database type: 'supabase' or 'postgres'.
+ * @returns {'supabase'|'postgres'} Effective database type for repository branching.
  */
 export function getDatabaseType() {
   if (_overrideClient) return _overrideType || 'supabase';
@@ -166,11 +155,8 @@ export function getDatabaseType() {
 }
 
 /**
- * Closes all database connections and pools.
- * Used in test cleanup to prevent open handles from hanging the test runner.
- * Includes a 3-second timeout for graceful shutdown.
- *
- * @returns {Promise<void>} Resolves when all pools are closed or timeout expires.
+ * Closes initialized pg pools and clears cached database clients during shutdown or tests.
+ * Pool shutdown is bounded by a 3-second timeout so test cleanup cannot hang forever.
  */
 export async function closeAllPools() {
   logger.info('🔌 Closing all database connections...');
@@ -178,8 +164,8 @@ export async function closeAllPools() {
 
   if (_aivenPgPool) {
     promises.push(
-      _aivenPgPool.end().catch((err) => {
-        logger.error({ err }, 'Error closing Aiven pool');
+      _aivenPgPool.end().catch((error) => {
+        logger.error({ error }, 'Error closing Aiven pool');
         return null; // Don't fail the cleanup
       }),
     );
@@ -188,8 +174,8 @@ export async function closeAllPools() {
 
   if (_supabasePgPool) {
     promises.push(
-      _supabasePgPool.end().catch((err) => {
-        logger.error({ err }, 'Error closing Supabase pool');
+      _supabasePgPool.end().catch((error) => {
+        logger.error({ error }, 'Error closing Supabase pool');
         return null; // Don't fail the cleanup
       }),
     );
@@ -209,8 +195,8 @@ export async function closeAllPools() {
         ),
       ]);
       logger.info('✓ Database connections closed');
-    } catch (err) {
-      logger.warn({ err }, '⚠️ Database close timeout/error');
+    } catch (error) {
+      logger.warn({ error }, '⚠️ Database close timeout/error');
     }
   } else {
     logger.info('✓ No database connections to close');

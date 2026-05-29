@@ -79,21 +79,9 @@ backend/database/
 │
 ├── repositories/
 │   ├── documents.repository.js        ← DocumentsRepository class (Supabase + Aiven routing)
-│   └── ce_cases.repository.js         ← ce_cases stateless query functions
+│   └── ce_cases.repository.js         ← CeCasesRepository class (Supabase RPC)
 │
-└── diagnostics/                       ← standalone SQL scripts for ad-hoc inspection
-    ├── README.md
-    ├── bloat_and_vacuum.sql
-    ├── cache_and_io.sql
-    ├── column_breakdown.sql
-    ├── connections_and_locks.sql
-    ├── index_sizes.sql
-    ├── replication_and_wal.sql
-    ├── schema_introspection.sql
-    ├── slow_queries.sql
-    ├── table_overview.sql
-    ├── uptime_checks_distribution.sql
-    └── vector_sizes.sql
+└── diagnostics/                       ← standalone SQL scripts with appropriate documentation in them
 ```
 
 > **Note:** The legacy `scripts/backfill_documents_industry.sql` file has been removed. Metadata backfilling is now handled automatically by `backfill_document_metadata()` — a `SECURITY DEFINER` function defined in `01_vector_infrastructure.sql` and called by `store_embeddings.js` after every ingestion run. See [Post-Ingestion Maintenance](#post-ingestion-maintenance) for details.
@@ -808,21 +796,19 @@ The central `callFunction(functionName, params, rpcParams)` method handles the r
 - `findRecent(limit, filters)` — wraps `find_recent_documents`
 - `truncate()` — wraps `truncate_documents`
 
-### `ce_cases` Repository (`repositories/ce_cases_repository.js`)
+### `ce_cases` Repository (`repositories/ce_cases.repository.js`)
 
-Stateless functions (not a class) that take a Supabase client as their first argument:
+A class-based repository (`CeCasesRepository`). A single instance is exported from `database/index.js` as `ceCasesRepository`. The Supabase client is resolved internally per-call (lazy singleton or offline stub) — callers do not pass a client.
 
-- `searchKeyword(supabase, keyword, limit)` — wraps `search_ce_cases_keyword` via RPC
-- `searchHybrid(supabase, queryEmbedding, keyword, limit, vectorWeight)` — wraps `search_ce_cases_hybrid` via RPC
+- `searchKeyword(keyword, limit)` — wraps `search_ce_cases_keyword` via RPC
+- `searchHybrid(queryEmbedding, keyword, limit, vectorWeight)` — wraps `search_ce_cases_hybrid` via RPC
 
-Both functions throw on error (no silent returns) and return an empty array if `data` is null.
+Both methods throw on error and return an empty array if `data` is null.
 
 ### Usage Example
 
 ```js
-import { documentsRepository } from '#database/index.js';
-import { searchKeyword, searchHybrid } from '#database/repositories/ce_cases_repository.js';
-import { getSupabaseClient } from '#database/client.js';
+import { documentsRepository, ceCasesRepository } from '#database/index.js';
 
 // Vector similarity search
 const results = await documentsRepository.matchDocuments(embedding, 10);
@@ -840,11 +826,10 @@ const hybrid = await documentsRepository.searchHybrid(
 );
 
 // CE Cases keyword search
-const supabase = getSupabaseClient();
-const cases = await searchKeyword(supabase, 'plastic recycling', 20);
+const cases = await ceCasesRepository.searchKeyword('plastic recycling', 20);
 
 // CE Cases hybrid
-const hybridCases = await searchHybrid(supabase, embedding, 'plastic recycling', 20, 0.7);
+const hybridCases = await ceCasesRepository.searchHybrid(embedding, 'plastic recycling', 20, 0.7);
 
 // Document statistics
 const stats = await documentsRepository.getStatistics();
