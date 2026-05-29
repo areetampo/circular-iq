@@ -1,6 +1,5 @@
 /**
- * @module scroll-behavior-test
- * @description Manual checks for scroll restoration and ScrollToTop behaviour across routes.
+ * Manual checks for scroll restoration and ScrollToTop behaviour across routes.
  * Test script to verify UI-123 scroll behavior implementation
  *
  * This script can be run in the browser console to test:

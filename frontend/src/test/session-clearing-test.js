@@ -1,6 +1,5 @@
 /**
- * @module session-clearing-test
- * @description Manual/integration checks for clearing session storage on sign-out.
+ * Manual/integration checks for clearing session storage on sign-out.
  * Test utility to verify session_evaluation_state clearing on auth events
  * This can be used in browser console to test the functionality
  */
@@ -11,6 +10,8 @@ import { getSession, getSessionId, saveSession } from '@/utils/session';
 
 /**
  * Create test session data (inputs and results)
+ *
+ * @returns {{ inputs: Object, results: Object, timestamp: string }} Synthetic evaluation session payload saved to local storage.
  */
 export function createTestSessionData() {
   const testSession = {
@@ -50,6 +51,8 @@ export function createTestSessionData() {
 
 /**
  * Check current session state
+ *
+ * @returns {{sessionId: string, session: Object|null, hasInputs: boolean, hasResults: boolean}} Current storage snapshot.
  */
 export function checkCurrentSessionState() {
   const currentSession = getSession();
@@ -75,6 +78,8 @@ export function checkCurrentSessionState() {
 
 /**
  * Test session clearing manually
+ *
+ * @returns {{testPassed: boolean, beforeState: Object, afterCreationState: Object, finalState: Object}} Manual clearing test report.
  */
 export function testManualSessionClearing() {
   logger.log('\n=== TESTING MANUAL SESSION CLEARING ===');
@@ -122,6 +127,8 @@ export function testManualSessionClearing() {
 
 /**
  * Prepare for auth testing (creates test session data)
+ *
+ * @returns {{testData: Object, sessionState: Object, readyForAuthTest: boolean}} Prepared session data and readiness flag.
  */
 export function prepareForAuthTest() {
   logger.log('\n=== PREPARING FOR AUTH TEST ===');
@@ -150,6 +157,8 @@ export function prepareForAuthTest() {
 
 /**
  * Verify session was cleared after auth event
+ *
+ * @returns {{cleared: boolean, sessionState: Object}} Auth-clearing verification result.
  */
 export function verifySessionClearedAfterAuth() {
   logger.log('\n=== VERIFYING SESSION CLEARED AFTER AUTH ===');

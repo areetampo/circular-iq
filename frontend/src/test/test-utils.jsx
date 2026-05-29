@@ -1,7 +1,4 @@
-/**
- * @module test-utils
- * @description Shared React Testing Library wrappers (router, auth, dialog, drawer, React Query).
- */
+/** Shared React Testing Library wrappers (router, auth, dialog, drawer, React Query). */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
@@ -15,7 +12,7 @@ import { DrawerProvider } from '@/contexts/DrawerContext';
 /**
  * React Query client with retries disabled for deterministic tests.
  *
- * @returns {import('@tanstack/react-query').QueryClient}
+ * @returns {QueryClient} Test query client with retry disabled.
  */
 export function createTestQueryClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -24,10 +21,6 @@ export function createTestQueryClient() {
 /**
  * Wraps children with app providers used in integration tests.
  *
- * @param {Object} props
- * @param {import('react').ReactNode} props.children
- * @param {string[]} [props.initialEntries=['/']] - React Router memory history entries.
- * @returns {import('react').ReactElement}
  */
 export function Providers({ children, initialEntries = ['/'] }) {
   const qc = createTestQueryClient();
@@ -55,9 +48,8 @@ Providers.propTypes = {
  * Renders UI wrapped in {@link Providers} for integration tests.
  *
  * @param {import('react').ReactElement} ui - Component tree to render.
- * @param {Object} [options] - Passed through to `@testing-library/react` `render`.
- * @param {Object} [options.wrapperProps] - Props forwarded to `Providers`.
- * @returns {import('@testing-library/react').RenderResult}
+ * @param {import('@testing-library/react').RenderOptions & { wrapperProps?: { initialEntries?: string[]|string } }} [options] - Render options plus provider configuration.
+ * @returns {import('@testing-library/react').RenderResult} Testing Library render result with app providers installed.
  */
 export function renderWithProviders(ui, options = {}) {
   const { wrapperProps, ...renderOptions } = options;

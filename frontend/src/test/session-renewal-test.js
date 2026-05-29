@@ -1,6 +1,5 @@
 /**
- * @module session-renewal-test
- * @description Manual/integration checks for session renewal and token refresh behaviour.
+ * Manual/integration checks for session renewal and token refresh behaviour.
  * Test utility to verify session_id renewal on login
  * This can be used in browser console to test the functionality
  */
@@ -11,6 +10,8 @@ import { getSessionId } from '@/utils/session';
 /**
  * Test session ID renewal functionality
  * Call this in browser console before and after login to verify renewal
+ *
+ * @returns {{currentSessionId: string, message: string}} Captured pre-login session id and next-step message.
  */
 export function testSessionIdRenewal() {
   const currentSessionId = getSessionId();
@@ -27,6 +28,8 @@ export function testSessionIdRenewal() {
 
 /**
  * Compare session IDs before and after login
+ *
+ * @returns {{oldSessionId: string|undefined, newSessionId: string, renewed: boolean, message: string}} Renewal comparison report.
  */
 export function compareSessionIds() {
   const newSessionId = getSessionId();
@@ -49,6 +52,8 @@ export function compareSessionIds() {
 
 /**
  * Force renew session ID manually (for testing)
+ *
+ * @returns {{oldSessionId: string, newSessionId: string, renewed: boolean}} Manual renewal comparison.
  */
 export function forceRenewSessionId() {
   const oldSessionId = getSessionId();
