@@ -142,8 +142,8 @@ process.on('SIGTERM', () => {
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  logger.error('💥 Uncaught Exception:', err);
+process.on('uncaughtException', (error) => {
+  logger.error('💥 Uncaught Exception:', error);
   clearGlobalTimeout();
   process.exit(1);
 });
