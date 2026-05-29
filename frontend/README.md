@@ -80,6 +80,7 @@ frontend/
 | Path                           | Component          | Auth | Description                             |
 | ------------------------------ | ------------------ | ---- | --------------------------------------- |
 | `/`                            | LandingPage        | No   | Assessment input form                   |
+| `/auth`                        | AuthPage           | No   | Login and signup page                   |
 | `/results`                     | ResultsPage        | No   | Interactive results display             |
 | `/solutions`                   | SolutionsPage      | No   | Case study search and discovery         |
 | `/global-activity`             | GlobalActivityPage | No   | Global activity analytics               |
@@ -1225,6 +1226,6 @@ For issues or questions:
 
 ## License & Support
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
-**Last Updated:** 21 May 2026
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
+**Last Updated:** 30 May 2026
