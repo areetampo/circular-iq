@@ -1,6 +1,5 @@
 /**
- * @module ComparisonSkeleton
- * @description Full-page skeleton while two assessments load for comparison.
+ * Full-page loading placeholders for the two-assessment comparison route.
  */
 
 import { Skeleton } from '@heroui/react';
@@ -8,8 +7,7 @@ import { Skeleton } from '@heroui/react';
 import AssessmentColumnSkeleton from './AssessmentColumnSkeleton';
 
 /**
- * Full-page skeleton while two assessments load for comparison.
- * @returns {import('react').ReactElement}
+ * Renders the comparison-page loading layout while both assessments fetch.
  */
 export default function ComparisonSkeleton() {
   return (

@@ -1,13 +1,13 @@
 /**
- * @module AssessmentColumnSkeleton
- * @description Loading skeleton for a single comparison column while data fetches.
+ * Loading placeholders matching the vertical rhythm of an assessment comparison column.
  */
 
 import { Skeleton } from '@heroui/react';
 
 /**
- * Loading skeleton for a single comparison column while data fetches.
- * @returns {import('react').ReactElement}
+ * Renders a single assessment column placeholder used while comparison data is loading.
+ *
+ * @returns {import('react').ReactElement} Placeholder column matching a loaded assessment comparison panel.
  */
 export default function AssessmentColumnSkeleton() {
   return (

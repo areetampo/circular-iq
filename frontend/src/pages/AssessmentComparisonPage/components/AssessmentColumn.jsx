@@ -1,6 +1,5 @@
 /**
- * @module AssessmentColumn
- * @description Side-by-side assessment column showing scores and metadata for comparison.
+ * Assessment results column used inside public comparison and read-only assessment views.
  */
 
 import { NotebookPen } from 'lucide-react';
@@ -32,19 +31,7 @@ import {
 } from '@/pages/ResultsPage/components';
 
 /**
- * Full results column (scores, audit cards, cases) for comparison or read-only view.
- *
- * @param {Object} props
- * @param {Object} props.assessment - Saved assessment record (metadata + ids).
- * @param {Object} props.scoringResult - Normalised scoring/audit payload for child cards.
- * @param {number} props.overallScore - Overall circularity score (0–100).
- * @param {Array<string>} props.strengths - Integrity strengths from audit.
- * @param {Array<string>} props.gaps - Integrity gaps from audit.
- * @param {Array<Object>} props.casesSummaries - Matched CE case summaries for accordions.
- * @param {string} [props.topFactor] - Highest-weight factor key.
- * @param {string} [props.focusFactor] - Factor flagged for improvement.
- * @param {number} [props.resolvedBusinessViabilityScore] - Derived viability score for category analysis.
- * @returns {import('react').ReactElement}
+ * Renders one assessment's result cards, radar data, audit evidence, and recommendation sections.
  */
 export default function AssessmentColumn({
   assessment,
@@ -65,7 +52,6 @@ export default function AssessmentColumn({
     geographic_focus: 'Primary market or region you aim to serve',
   };
 
-  // Compute market average for radar chart
   const computeMarketAvg = (res) => {
     if (!res?.similar_cases || res.similar_cases.length === 0) return 65;
     return (
@@ -74,7 +60,7 @@ export default function AssessmentColumn({
     );
   };
 
-  // Build radar data and configs internally
+  // Keep radar values local because comparison columns do not receive the ResultsPage resolver props.
   const radarData = validKeys
     .filter((key) => key in (scoringResult?.sub_scores || {}))
     .map((key) => ({
@@ -216,10 +202,10 @@ AssessmentColumn.propTypes = {
   gaps: PropTypes.array.isRequired,
   /** Array of similar case summaries for comparison */
   casesSummaries: PropTypes.array.isRequired,
-  /** Top performing factors array */
+  /** Top scoring sub-score entry as [factorKey, score], or null when no sub-scores exist */
   topFactor: PropTypes.array,
-  /** Focus factors array */
+  /** Lowest scoring sub-score entry as [factorKey, score], or null when no sub-scores exist */
   focusFactor: PropTypes.array,
-  /** Resolved business viability score */
+  /** Business viability score after applying the shared ResultsPage weighting formula */
   resolvedBusinessViabilityScore: PropTypes.number.isRequired,
 };

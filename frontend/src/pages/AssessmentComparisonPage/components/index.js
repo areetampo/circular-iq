@@ -1,8 +1,4 @@
-/**
- * @module AssessmentComparisonPage.components
- * @description Central export point for AssessmentComparisonPage components.
- * Re-exports AssessmentColumn, ChangeIndicator, and ComparisonSkeleton.
- */
+/** Barrel re-exports for AssessmentComparisonPage components. */
 
 export { default as AssessmentColumn } from './AssessmentColumn';
 export { default as ChangeIndicator } from './ChangeIndicator';

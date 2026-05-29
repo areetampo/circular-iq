@@ -1,6 +1,5 @@
 /**
- * @module AssessmentComparisonPage
- * @description Side-by-side comparison of two saved assessments by public ID.
+ * Page-level comparison view for two saved assessments resolved from query-string public IDs.
  */
 
 import { Tooltip, toast } from '@heroui/react';
@@ -25,12 +24,7 @@ import { AssessmentColumn, ChangeIndicator, ComparisonSkeleton } from './compone
 import { computeAssessmentData } from './utils/assessmentUtils';
 
 /**
- * Comparison header title with external share link.
- * @param {Object} props
- * @param {{ title: string }} props.assessment
- * @param {string} props.publicId
- * @param {boolean} [props.isRightAligned]
- * @returns {import('react').ReactElement}
+ * Renders an assessment title with a share-page link, optionally aligned for the right column.
  */
 function AssessmentTitleWithLink({ assessment, publicId, isRightAligned = false }) {
   return (
@@ -78,8 +72,9 @@ AssessmentTitleWithLink.propTypes = {
 };
 
 /**
- * Fetches two assessments and renders dual `AssessmentColumn` layouts.
- * @returns {import('react').ReactElement}
+ * Fetches two public assessments from `id1` and `id2` query params and renders their scores side by side.
+ *
+ * @returns {import('react').ReactElement} Comparison page, loading state, or error/warning details based on query IDs and fetch state.
  */
 export default function AssessmentComparisonPage() {
   const navigate = useNavigate();
@@ -89,7 +84,7 @@ export default function AssessmentComparisonPage() {
 
   const [searchParams] = useSearchParams();
 
-  // Support query params (/assessments/compare/?id1=...&id2=...)
+  // IDs come from the compare flow URL so links can be shared or refreshed without local state.
   const publicId1 = searchParams.get('id1');
   const publicId2 = searchParams.get('id2');
 
@@ -178,7 +173,7 @@ export default function AssessmentComparisonPage() {
     );
   }
 
-  // Reconstruct full scoring results
+  // Saved assessments store flattened fields; downstream results cards expect the full scoring shape.
   const scoringResult1 = reconstructScoringResult(assessment1);
   const scoringResult2 = reconstructScoringResult(assessment2);
 
@@ -187,7 +182,6 @@ export default function AssessmentComparisonPage() {
 
   const overallDelta = (scoringResult2?.overall_score || 0) - (scoringResult1?.overall_score || 0);
 
-  // Score color helper
   const scoreColor = (score) => {
     if (score >= 75) return '--color-success';
     if (score >= 50) return '--color-warning';
@@ -249,7 +243,7 @@ export default function AssessmentComparisonPage() {
                     timeout: 4000,
                   });
                 } catch (error) {
-                  logger.warn('Comparison PDF download failed:', error);
+                  logger.warn('[COMPARISON:PDF_EXPORT_FAILED]', error);
                   toast.danger('PDF download functionality is currently unavailable', {
                     timeout: 4000,
                   });
@@ -265,7 +259,7 @@ export default function AssessmentComparisonPage() {
                     timeout: 4000,
                   });
                 } catch (error) {
-                  logger.warn('Comparison CSV download failed:', error);
+                  logger.warn('[COMPARISON:CSV_EXPORT_FAILED]', error);
                   toast.danger('CSV download functionality is currently unavailable', {
                     timeout: 4000,
                   });
