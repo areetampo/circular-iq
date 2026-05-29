@@ -1,8 +1,3 @@
-/**
- * @module RadarChart
- * @description Chart wrapper — Radar Chart.
- */
-
 import PropTypes from 'prop-types';
 import {
   Legend,
@@ -19,34 +14,14 @@ import { resolveCSSVar } from '@/utils/chartHelpers';
 
 const FONT_FAMILY = 'JetBrains Mono, monospace';
 
-// Two distinct warm palette colors — green for "Your Idea", bronze for "Market Average"
+// Resolve series tokens at render time so theme variables are available.
 const getSeriesColors = () => [
   resolveCSSVar('var(--color-success)', '#34a83a'),
   resolveCSSVar('var(--color-accent)', '#b8916a'),
 ];
 
 /**
- * RadarChart component for displaying multi-dimensional data in a radial format
- * Uses Recharts library with responsive design and theming support
- *
- * @param {Object} props - Component props
- * @param {Array} [props.data] - Array of data objects to display
- * @param {Array} [props.radarConfigs] - Configuration for each radar series
- * @param {string} props.radarConfigs[].dataKey - Key in data object for radar values
- * @param {string} props.radarConfigs[].name - Display name for the radar series
- * @param {number} [props.height=400] - Height of the chart in pixels (default: 400)
- * @param {boolean} [props.showLegend=true] - Whether to show legend (default: true)
- * @param {string} [props.className] - Additional CSS classes (optional)
- * @param {Array} [props.colors] - Array of colors for radar series (optional)
- * @param {Object} [props.margin] - Additional margin overrides (optional)
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- *
- * @example
- * <RadarChart
- *   data={[{ metric: 'Speed', value: 80 }, { metric: 'Quality', value: 90 }]}
- *   radarConfigs={[{ dataKey: 'value', name: 'Performance' }]}
- *   height={400}
- * />
+ * Renders a responsive radar comparison chart with themed series colors and an empty state.
  */
 function RadarChartComponent({
   data,
@@ -188,7 +163,7 @@ RadarChartComponent.propTypes = {
   className: PropTypes.string,
   colors: PropTypes.arrayOf(PropTypes.string),
   margin: PropTypes.object,
-  // These props are kept for interface compat but unused in Recharts:
+  // Kept for interface compatibility with other chart components.
   showTooltip: PropTypes.bool,
   isLoading: PropTypes.bool,
   responsive: PropTypes.bool,

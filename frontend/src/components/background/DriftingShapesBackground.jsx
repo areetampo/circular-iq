@@ -1,35 +1,18 @@
 /**
- * @module DriftingShapesBackground
- * @description Animated floating shapes background used on marketing and auth layouts.
- * Moving Grid Background Component
- *
- * Renders a subtle, animated grid of thin lines that slowly translates diagonally.
- * Designed as a professional, unobtrusive background for beige-themed site.
- *
- * CONFIGURATION (change these values in config object below):
- *   - cellSize: number (px) – spacing between grid lines (default 60)
- *   - lineWidth: number (px) – thickness of lines (default 0.6)
- *   - strokeStyle: string – colour of lines (default 'var(--color-bg-grid)')
- *   - globalAlpha: number – transparency of lines (default 0.18)
- *   - speedX: number – horizontal translation speed (px per frame, default 0.08)
- *   - speedY: number – vertical translation speed (px per frame, default 0.08)
- *     (positive moves towards bottom-right; negative moves towards top-left)
- *
- * The grid repeats seamlessly by using modulo arithmetic on the translation offset.
- * On window resize, canvas dimensions are updated and the offset is preserved.
- *
- * Usage:
- *   import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
- *   Add <DriftingShapesBackground /> inside your .app-bg container before content.
+ * Animated canvas grid background used behind full-page layouts.
+ * `MovingGrid.config` controls visual density, opacity, rotation, and drift speed.
  */
 import { useEffect, useRef } from 'react';
 
+/**
+ * Owns the canvas drawing context, resize listener, and animation frame loop for the drifting grid.
+ */
 class MovingGrid {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
 
-    // ========== CONFIGURATION – ADJUST THESE FOR DIFFERENT LOOKS ==========
+    // Visual tuning values for grid density, segment gaps, opacity, and drift direction.
     this.config = {
       cellSize: 70, // grid spacing
       lineWidth: 0.8,
@@ -40,7 +23,6 @@ class MovingGrid {
       segmentGap: 4,
       rotation: 45,
     };
-    // =====================================================================
 
     this.offsetX = 0; // current translation offset
     this.offsetY = 0;
@@ -58,21 +40,20 @@ class MovingGrid {
   resize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-    // No need to recreate grid – we draw based on offsets each frame
+    // The grid is derived from canvas dimensions and offsets on each frame.
   }
 
   drawGrid() {
     const { width, height } = this.canvas;
     const { cellSize, lineWidth, strokeStyle, globalAlpha, segmentGap, rotation } = this.config;
 
-    // Resolve CSS variable for canvas context
+    // Canvas contexts need concrete color values rather than unresolved CSS variables.
     const resolvedStrokeStyle = strokeStyle.startsWith('var(')
       ? (() => {
           const varName = strokeStyle.slice(4, -1).trim();
-          // Try to get from :root first (accessible via getComputedStyle)
           let value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 
-          // If value is another CSS variable reference, resolve it recursively
+          // Theme tokens may point to another CSS variable, so resolve one nested level.
           if (value.startsWith('var(')) {
             const nestedVarName = value.slice(4, -1).trim();
             const nestedValue = getComputedStyle(document.documentElement)
@@ -81,9 +62,8 @@ class MovingGrid {
             value = nestedValue || '#d4c5b0';
           }
 
-          // If not found, it might be a @theme variable, use fallback
           if (!value) {
-            // Map common @theme variables to their fallback values
+            // Tailwind theme variables may not appear in computed styles during early canvas setup.
             const themeFallbacks = {
               '--color-bg-grid': '#d4c5b0',
               '--theme-bg-grid': '#d4c5b0',
@@ -110,22 +90,20 @@ class MovingGrid {
     const startX = (this.offsetX % cellSize) - halfSize;
     const startY = (this.offsetY % cellSize) - halfSize;
 
-    // Draw Vertical Segments
+    // Leave a gap around intersections so the grid reads as drifting line segments.
     for (let x = startX; x < halfSize; x += cellSize) {
       for (let y = -halfSize; y < halfSize; y += cellSize) {
         this.ctx.beginPath();
-        // Start just after the intersection, end just before the next one
         this.ctx.moveTo(x, y + segmentGap);
         this.ctx.lineTo(x, y + cellSize - segmentGap);
         this.ctx.stroke();
       }
     }
 
-    // Draw Horizontal Segments
+    // Use the same gap treatment horizontally to keep intersections visually open.
     for (let y = startY; y < halfSize; y += cellSize) {
       for (let x = -halfSize; x < halfSize; x += cellSize) {
         this.ctx.beginPath();
-        // Start just after the intersection, end just before the next one
         this.ctx.moveTo(x + segmentGap, y);
         this.ctx.lineTo(x + cellSize - segmentGap, y);
         this.ctx.stroke();
@@ -136,11 +114,11 @@ class MovingGrid {
   }
 
   updateOffset() {
-    // Move the grid diagonally (bottom-right → top-left)
+    // Negative speeds drift the rotated grid toward the top-left.
     this.offsetX += this.config.speedX;
     this.offsetY += this.config.speedY;
 
-    // Keep offsets within one cell size to avoid large numbers (no functional difference)
+    // Keep offsets bounded to one cell so long-running sessions avoid unnecessary numeric growth.
     if (Math.abs(this.offsetX) > this.config.cellSize) {
       this.offsetX = this.offsetX % this.config.cellSize;
     }
@@ -165,10 +143,9 @@ class MovingGrid {
 }
 
 /**
- * Animated floating shapes background used on marketing and auth layouts.
+ * Renders a full-viewport animated grid canvas and forwards extra attributes to the canvas element.
  *
- * @param {Object} props
- * @returns {import('react').ReactElement}
+ * @param {Object} props - Canvas attributes such as ARIA metadata or data attributes passed through to the element.
  */
 export default function DriftingShapesBackground({ ...props }) {
   const canvasRef = useRef(null);

@@ -1,8 +1,4 @@
-/**
- * @module charts
- * @description Central export point for chart components.
- * Re-exports BarChart, LineChart, PieChart, and RadarChart components.
- */
+/** Barrel re-exports for chart components. */
 
 export { default as BarChart } from './BarChart';
 export { default as LineChart } from './LineChart';

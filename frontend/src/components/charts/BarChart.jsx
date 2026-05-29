@@ -1,8 +1,3 @@
-/**
- * @module BarChart
- * @description Chart wrapper — Bar Chart.
- */
-
 import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 import {
@@ -30,46 +25,7 @@ const TICK_STYLE = {
 };
 
 /**
- * BarChart component for displaying categorical data with customizable bars
- * Uses Recharts library with responsive design and theming support
- *
- * @param {Object} props - Component props
- * @param {Array} props.data - Array of data objects to display
- * @param {Array} props.barConfigs - Configuration for each bar series
- * @param {string} props.barConfigs[].dataKey - Key in data object for bar values
- * @param {string} [props.barConfigs[].name] - Display name for the bar (optional)
- * @param {string} [props.barConfigs[].fill] - Color for the bar (optional)
- * @param {string} [props.barConfigs[].color] - Alternative color prop (optional)
- * @param {string} [props.barConfigs[].stack] - Stack ID for grouped bars (optional)
- * @param {number} [props.height=300] - Height of the chart in pixels
- * @param {string} [props.xAxisKey='name'] - Data key for x-axis values
- * @param {string} [props.xAxisLabel] - Label for x-axis (optional)
- * @param {string} [props.yAxisLabel] - Label for y-axis (optional)
- * @param {boolean} [props.showLegend=true] - Whether to show legend
- * @param {boolean} [props.isLoading=false] - Whether to show loading state
- * @param {string} [props.className] - Additional CSS classes (optional)
- * @param {Array} [props.colors] - Array of colors for bars (optional) (applies per series, not per bar)
- * @param {Array} [props.barColors] - Array of colors for each individual bar (same order as data). If provided, overrides fill for each bar. (optional)
- * @param {number} [props.tickAngle=0] - Angle for x-axis tick labels
- * @param {string} [props.tickAnchor='end'] - Anchor for rotated ticks
- * @param {Object} [props.margin] - Additional margin overrides (optional)
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered BarChart
- *
- * @example
- * Basic usage
- * <BarChart data={salesData} barConfigs={[{ dataKey: 'sales', name: 'Sales', fill: '#8884d8' }]} height={400} />
- *
- * @example
- * With multiple series
- * <BarChart data={companyData} barConfigs={[
- *   { dataKey: 'revenue', name: 'Revenue', fill: '#82ca9d' },
- *   { dataKey: 'profit', name: 'Profit', fill: '#8884d8' }
- * ]} showLegend={true} />
- *
- * @example
- * With custom styling
- * <BarChart data={performanceData} colors={['#ff7c7c', '#3b82f6']} tickAngle={45} tickAnchor='middle' />
+ * Renders a responsive bar chart with design-system tooltips, empty-state handling, and a loading skeleton.
  */
 export default function BarChart({
   data = [],
@@ -113,7 +69,7 @@ export default function BarChart({
     );
   }
 
-  // Build config for ChartContainer
+  // ChartContainer uses this metadata to label tooltip and legend entries.
   const config = Object.fromEntries(
     barConfigs.map((cfg, i) => [
       cfg.dataKey,
@@ -126,10 +82,10 @@ export default function BarChart({
 
   const shouldShowLegend = showLegend && barConfigs.length > 1;
 
-  // Formatter for integer-only y-axis ticks
+  // Hide fractional ticks because assessment counts and scores are shown as whole values.
   const intFormatter = (v) => (Number.isInteger(v) ? v : '');
 
-  // Determine if we should use per‑bar colors for the first series (others are ignored for simplicity)
+  // Per-bar colors only apply when each datum has a matching color entry.
   const useBarColors = barColors && barColors.length === data.length;
 
   return (
@@ -183,9 +139,8 @@ export default function BarChart({
             content={(props) => {
               const { active, payload, label } = props;
               if (active && payload && payload.length) {
-                // Get the bar color from the data point (if available)
                 const barColor = payload[0]?.payload?.barColor;
-                // Override the payload's color with the bar's specific color
+                // Tooltip markers should match per-bar colors when a data point provides one.
                 const coloredPayload = payload.map((p) => ({
                   ...p,
                   color: barColor || p.color,

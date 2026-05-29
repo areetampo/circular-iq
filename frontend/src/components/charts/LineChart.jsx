@@ -1,8 +1,3 @@
-/**
- * @module LineChart
- * @description Chart wrapper — Line Chart.
- */
-
 import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 import {
@@ -29,36 +24,7 @@ const TICK_STYLE = {
 };
 
 /**
- * LineChart displays time series or continuous numeric trends.
- * It uses Recharts for responsive charts and supports sparkline and full-detail modes.
- *
- * @param {Object} props - Component props
- * @param {'default'|'sparkline'} [props.variant='default'] - Chart variant.
- * @param {Array<Object>} props.data - Data array for the chart.
- * @param {Array<Object>} props.lines - Line series configuration.
- * @param {string} [props.lines[].dataKey] - Data key used to read values from each data row.
- * @param {string} [props.lines[].id] - Optional fallback key for the line series.
- * @param {string} [props.lines[].name] - Display label for the series.
- * @param {string} [props.lines[].color] - Override color for the series.
- * @param {string} [props.lines[].stroke] - Line stroke color.
- * @param {boolean} [props.lines[].connectNulls=false] - Connect points across null values.
- * @param {number} [props.height=300] - Chart height in pixels.
- * @param {string} [props.xAxisKey='label'] - X-axis key in the data objects.
- * @param {string} [props.xAxisLabel] - Optional label for the x-axis.
- * @param {Array} [props.ticks] - Explicit x-axis tick values.
- * @param {number} [props.tickAngle] - Angle for x-axis tick labels.
- * @param {string} [props.tickAnchor] - Text anchor for rotated ticks.
- * @param {boolean} [props.showLegend=true] - Show legend when multiple series exist.
- * @param {string} [props.ariaLabel] - Accessibility label for the chart container.
- * @param {boolean} [props.isLoading=false] - Display skeleton state while loading.
- * @param {string} [props.className] - Additional wrapper class names.
- * @param {Array<string>} [props.colors] - Fallback palette for line colors.
- * @param {Object} [props.yAxisRight] - Right Y-axis configuration.
- * @param {Object} [props.margin] - Custom chart margins.
- * @param {Function} [props.tooltipLabelFormatter] - Formatter for tooltip label text.
- * @param {boolean} [props.hideTooltipIndicator=false] - Hide tooltip indicator markers.
- * @param {Object.<string, any>} [props.props] - Additional props spread onto the wrapper.
- * @returns {JSX.Element}
+ * Renders a responsive line chart, with a sparkline variant that hides axes and legend.
  */
 export default function LineChart({
   variant = 'default',
@@ -135,7 +101,7 @@ export default function LineChart({
     >
       <ResponsiveContainer width="100%" height={height}>
         <RechartsLineChart data={data} margin={computedMargin}>
-          {/* Hide grid for sparkline */}
+          {/* Sparklines stay visually compact by omitting chart scaffolding. */}
           {!isSparkline && (
             <CartesianGrid
               vertical={false}

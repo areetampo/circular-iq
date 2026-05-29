@@ -1,8 +1,3 @@
-/**
- * @module PieChart
- * @description Chart wrapper — Pie Chart.
- */
-
 import { Skeleton } from '@heroui/react';
 import PropTypes from 'prop-types';
 import {
@@ -18,7 +13,7 @@ import { ChartContainer, ChartLegendContent, ChartTooltipContent } from '@/compo
 import { resolveCSSVar } from '@/utils/chartHelpers';
 import { cn } from '@/utils/cn';
 
-// Warm palette fallback — factory function to resolve at render time
+// Resolve palette tokens at render time so theme variables are available.
 const getWarmFallbackColors = () => [
   resolveCSSVar('var(--chart-1)', '#b8916a'), // bronze/tan
   resolveCSSVar('var(--chart-2)', '#4a7c59'), // forest green
@@ -32,38 +27,8 @@ const getWarmFallbackColors = () => [
   resolveCSSVar('var(--chart-6)', '#9a8f82'), // tan
 ];
 
-// Note: Use getter function directly instead of Proxy export
-// Example: getWarmFallbackColors() instead of WARM_FALLBACK_COLORS
-
 /**
- * PieChart component for displaying proportional data in a circular format
- * Uses Recharts library with responsive design and theming support
- *
- * @param {Object} props - Component props
- * @param {Array} [props.data] - Array of data objects to display
- * @param {string} [props.dataKey='value'] - Key in data object for segment values
- * @param {string} [props.nameKey='name'] - Key in data object for segment names
- * @param {number} [props.height=300] - Height of the chart in pixels
- * @param {boolean} [props.showLegend=true] - Whether to show legend
- * @param {boolean} [props.isLoading=false] - Whether to show loading state
- * @param {string} [props.className] - Additional CSS classes (optional)
- * @param {Array} [props.colors] - Array of colors for segments (optional)
- * @param {number} [props.innerRadius=0] - Inner radius for donut chart
- * @param {Object} [props.margin] - Additional margin overrides (optional)
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered PieChart
- *
- * @example
- * Basic usage
- * <PieChart data={salesData} dataKey="sales" nameKey="category" height={400} />
- *
- * @example
- * Donut chart
- * <PieChart data={performanceData} innerRadius={60} height={300} />
- *
- * @example
- * Custom colors
- * <PieChart data={marketData} colors={['#ff6b6b', '#4ecdc4', '#45b7d1']} />
+ * Renders a responsive pie or donut chart with CSS-variable palette fallbacks and loading/empty states.
  */
 export default function PieChart({
   data = [],
@@ -77,7 +42,12 @@ export default function PieChart({
   innerRadius = 0,
   tooltipContent,
   margin,
-  // outerRadius, label, labelLine, paddingAngle, cornerRadius kept for API compat but managed internally
+  // Keep Recharts-only props out of the DOM-spread props to avoid React validation warnings.
+  outerRadius,
+  label,
+  labelLine,
+  paddingAngle,
+  cornerRadius,
   ...props
 }) {
   if (isLoading) {
@@ -107,7 +77,7 @@ export default function PieChart({
 
   const palette = colors?.length ? colors : getWarmFallbackColors();
 
-  // Config for ChartContainer and tooltip
+  // ChartContainer uses this metadata to label tooltip and legend entries.
   const config = Object.fromEntries(
     data.map((item, i) => [
       item[nameKey] || `item-${i}`,
@@ -115,7 +85,7 @@ export default function PieChart({
     ]),
   );
 
-  // Legend payload for custom renderer
+  // The custom legend expects an explicit payload because colors are assigned per slice.
   const legendPayload = data.map((item, i) => ({
     value: item[nameKey] || `Item ${i + 1}`,
     color: palette[i % palette.length],
@@ -166,11 +136,11 @@ PieChart.propTypes = {
   className: PropTypes.string,
   colors: PropTypes.arrayOf(PropTypes.string),
   innerRadius: PropTypes.number,
+  margin: PropTypes.object,
   tooltipContent: PropTypes.elementType,
   outerRadius: PropTypes.number,
   paddingAngle: PropTypes.number,
   cornerRadius: PropTypes.number,
   label: PropTypes.bool,
   labelLine: PropTypes.bool,
-  margin: PropTypes.object,
 };
