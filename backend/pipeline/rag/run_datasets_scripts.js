@@ -1,14 +1,6 @@
 /**
- * @module run_datasets_scripts
- * @description Orchestrator for dataset extract/scrape scripts in datasets/scripts/.
- *
- * Usage:
- *   node pipeline/rag/run_datasets_scripts.js            # default: extract then scrape
- *   node pipeline/rag/run_datasets_scripts.js --extract
- *   node pipeline/rag/run_datasets_scripts.js --scrape
- *   node pipeline/rag/run_datasets_scripts.js --all
- *
- * Only one flag may be provided. Exits on the first script failure.
+ * Runs dataset extract/scrape scripts in `datasets/scripts/`; default runs extract then scrape.
+ * CLI: exactly one of `--extract`, `--scrape`, `--all` (exits on first script failure).
  */
 
 import { execSync } from 'child_process';
@@ -20,14 +12,15 @@ import { assertDirExists, DATASETS_SCRIPTS_DIR } from '#utils/datasetsUtils.js';
 import { logger } from '#utils/logger.js';
 
 /**
- * Lists sorted `.js` filenames in `datasets/scripts/`.
- * @returns {string[]} Script basenames.
+ * Lists dataset script basenames in deterministic execution order.
+ *
+ * @returns {string[]} Sorted `.js` filenames from `datasets/scripts/`.
  */
 function collectFiles() {
   try {
     assertDirExists(DATASETS_SCRIPTS_DIR, 'datasets/scripts directory');
-  } catch (err) {
-    logger.error({ err }, 'Dataset scripts directory missing');
+  } catch (error) {
+    logger.error({ error }, 'Dataset scripts directory missing');
     process.exit(1);
   }
 
@@ -37,19 +30,25 @@ function collectFiles() {
     .sort((a, b) => a.localeCompare(b));
 }
 
+/**
+ * Executes one dataset script with inherited stdio; exits the process on non-zero status.
+ *
+ * @param {string} file - Script basename under `datasets/scripts/`.
+ */
 function runScript(file) {
   const fullPath = path.join(DATASETS_SCRIPTS_DIR, file);
   logger.info({ file }, 'Running dataset script');
   try {
     execSync(`node "${fullPath}"`, { stdio: 'inherit' });
-  } catch (err) {
-    logger.error({ err, file }, 'Failure executing dataset script');
-    process.exit(err.status || 1);
+  } catch (error) {
+    logger.error({ error, file }, 'Failure executing dataset script');
+    process.exit(error.status || 1);
   }
 }
 
 /**
- * Ensures at most one of `--extract`, `--scrape`, or `--all` is present.
+ * Resolves the active dataset-script mode from mutually exclusive CLI flags.
+ *
  * @param {string[]} flags - CLI arguments after the script name.
  * @returns {string|null} Active flag or `null` for default mode.
  */
@@ -63,7 +62,7 @@ function validateFlags(flags) {
   return active[0] || null;
 }
 
-/** CLI entry: runs extract/scrape dataset scripts according to flags. */
+/** CLI entry that runs the selected dataset scripts and exits on the first script failure. */
 function main() {
   const args = process.argv.slice(2);
   const flag = validateFlags(args);
@@ -89,7 +88,6 @@ function main() {
     ordered = [...extractFiles, ...scrapeFiles, ...otherFiles];
     logger.info({ count: ordered.length, mode: 'all' }, 'Running all scripts');
   } else {
-    // default: extract then scrape
     ordered = [...extractFiles, ...scrapeFiles, ...otherFiles];
     logger.info({ count: ordered.length, mode: 'default' }, 'Running default scripts');
   }

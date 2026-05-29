@@ -1,31 +1,7 @@
 /**
- * @module generate_chunks
- * @description Semantic chunking pipeline step — splits merged CSV rows into RAG-ready chunks.
- *
- * Splits CSV rows into semantic chunks while preserving:
- * - Business problem + solution pairs
- * - Metadata for traceability
- * - Context for RAG retrieval
- *
- * INPUT: combined_input.csv (merged from all datasets/processed/*.csv files)
- * - Creates semantic chunks from problem/solution pairs
- * - Handles various CSV formats and column naming variations
- *
- * OUTPUT: Writes chunks.json to backend/datasets/out/
- * NEXT STEP: Run generate_embeddings.js to generate embeddings, then store_embeddings.js to store in Supabase
- *
- * NOTE: This script only processes CSV files locally.
- *       Embedding generation happens in generate_embeddings.js
- *       Supabase storage happens in store_embeddings.js using SUPABASE_SERVICE_ROLE_KEY
- *       (Service role is required because RLS policies protect the documents table)
- *
- * --archives flag -> takes input from archives/combined_input.csv and writes output to archives/chunks.json folder instead of normal out/ folder
- *
- * --final flag -> takes combined_input_final.csv as input instead of combined_input.csv
- *
- * NOTE: combined_input_final.csv only present in out/ and if --archives flag is there it simply takes combined_input.csv from archives/ hence, no both flags cannot be used together
- *
- * --enrich-scores flag -> calls OpenAI to enrich each record with estimated scores for the 8 factors (this will be slow and consume tokens, use with caution)
+ * Pipeline step: `combined_input*.csv` → `chunks.json` (semantic splits for RAG).
+ * Flags: `--archives`, `--final` (mutually exclusive), `--enrich-scores` (OpenAI factor estimates).
+ * Next: `generate_embeddings.js`, then `store_embeddings.js`.
  */
 
 import '#server/bootstrap.js';
@@ -108,7 +84,7 @@ const outputPath = useArchive
     ? OUT_TEST_CHUNKS_JSON
     : OUT_CHUNKS_JSON;
 
-// ensure output folder is ready (writeJson will also handle this later)
+// Fail early if the selected output directory is not writable.
 const outDir = path.dirname(outputPath);
 await ensureDir(outDir);
 
@@ -117,13 +93,13 @@ const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 // ===== Helper functions =====
 
 /**
- * Load and parse a generic CSV dataset
- * @param {string} csvFilePath - Path to an input CSV file (e.g. datasets/combined_input.csv)
- * @returns {Array} Array of parsed records
+ * Parses a combined-input CSV into row objects keyed by header names.
+ *
+ * @param {string} csvFilePath - Path to the selected combined input CSV.
+ * @returns {Array<Record<string, string>>} Parsed records from the CSV header columns.
+ * @throws {Error} If the file cannot be read or parsed.
  */
 export function loadDataset(csvFilePath) {
-  // already checked if csvFilePath exists in main function using assertFileExists
-
   const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
   const records = parse(fileContent, {
     columns: true,
@@ -138,14 +114,15 @@ export function loadDataset(csvFilePath) {
 }
 
 /**
- * Call OpenAI to estimate the 8 factor scores for a given record.
- * @param {string} problemText
- * @param {string} solutionText
- * @param {Object} additionalFields -  Optional fields from the record (materials, category, circular_strategy, impact, etc.)
- * @returns {Promise<Object|null>} Scores object or null on failure
+ * Calls OpenAI to estimate the eight factor scores for one record.
+ *
+ * @param {string} problemText - Business problem text sent to the scoring prompt.
+ * @param {string} solutionText - Circular solution text sent to the scoring prompt.
+ * @param {{ materials?: string, category?: string, circular_strategy?: string, impact?: string, metadataHighlights?: string }} additionalFields - Optional record fields included as context for score estimation.
+ * @returns {Promise<Record<string, number>|null>} Eight-factor score object, or null when enrichment fails.
  */
 async function enrichScores(problemText, solutionText, additionalFields = {}) {
-  // Build context string from any additional fields that exist
+  // Only include populated fields so sparse rows do not add empty prompt noise.
   const contextParts = [];
   if (additionalFields.materials) contextParts.push(`Materials: ${additionalFields.materials}`);
   if (additionalFields.category) contextParts.push(`Category: ${additionalFields.category}`);
@@ -186,7 +163,7 @@ Return ONLY a JSON object with keys exactly as above and values between 0 and 10
     });
 
     const scores = JSON.parse(response.choices[0].message.content);
-    // Validate that all expected keys exist and are numbers
+    // Reject malformed model output so callers can fall back to null scores.
     const expected = [
       'public_participation',
       'infrastructure',
@@ -203,22 +180,21 @@ Return ONLY a JSON object with keys exactly as above and values between 0 and 10
       }
     }
     return scores;
-  } catch (err) {
-    logger.warn({ err }, 'Failed to enrich scores');
+  } catch (error) {
+    logger.warn({ error }, 'Failed to enrich scores');
     return null;
   }
 }
 
 /**
- * Process dataset into semantic chunks
- * Preserves problem/solution pairs as foundational units
- * @param {Array} records - Parsed CSV records
- * @returns {Promise<Array>} Array of chunk objects with metadata
+ * Converts dataset records into primary problem/solution chunks plus optional secondary context.
+ * Duplicate primary content reuses the first primary chunk ID, and duplicate secondary content is skipped.
+ *
+ * @param {Array<Record<string, string|number|null|undefined>>} records - Parsed CSV records keyed by source column name.
+ * @returns {Promise<Array<{ id: string, source_row: number, chunk_index: number, content: string, word_count: number, metadata: Record<string, unknown> }>>} Generated chunk objects with source row metadata and optional enriched scores.
  */
 export async function createChunks(records) {
   const chunks = [];
-  // Dedup guard: tracks content hashes for secondary chunks to prevent identical
-  // chunks (e.g. from near-duplicate CSV rows) from causing unique constraint violations
   const seenPrimaryHashes = new Map(); // contentHash → primaryChunkId
   const seenSecondaryHashes = new Set(); // content → (for dedup)
 
@@ -273,11 +249,10 @@ export async function createChunks(records) {
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
 
-    // Extract dataset key from ID (first part before underscore)
     const id = record['ID'] || '';
     const datasetKey = id.split('_')[0] || 'unknown';
 
-    // Extract key fields - adjust column names based on actual CSV structure
+    // Source CSVs use several casing conventions for the same canonical fields.
     const problemText = sanitizeText(
       record['problem'] || record['Problem'] || record['Business Problem'] || '',
     );
@@ -301,13 +276,13 @@ export async function createChunks(records) {
       record['impact'] || record['Impact'] || record['outcomes'] || record['Outcomes'] || '',
     );
 
-    // Validate minimum content - be strict about quality
+    // Problem and solution are the minimum viable semantic pair for retrieval.
     if (!problemText || !solutionText) {
       logger.warn({ recordIndex: i }, 'Skipping record: missing problem or solution');
       continue;
     }
 
-    // Enforce minimum length to filter out truncated/malformed records
+    // These thresholds filter truncated rows that pass presence checks but are unusable.
     const MIN_PROBLEM_LENGTH = 20;
     const MIN_SOLUTION_LENGTH = 20;
 
@@ -327,22 +302,20 @@ export async function createChunks(records) {
       continue;
     }
 
-    // Check for low-quality content (all caps, repetitive, etc)
+    // Mostly-uppercase problem text is usually scraped navigation or malformed source data.
     const allCaps = (problemText.match(/[A-Z]/g) || []).length;
     if (allCaps / problemText.length > 0.8) {
       logger.warn({ recordIndex: i }, 'Skipping record: problem appears to be mostly uppercase');
       continue;
     }
 
-    // Progress for large non-enrich datasets (enrich has its own counter)
+    // Enrichment mode logs progress during precomputation instead.
     if (!ENRICH_SCORES && records.length > 500 && (i + 1) % 500 === 0) {
       logger.info({ current: i + 1, total: records.length }, 'Chunking progress');
     }
 
-    // Use pre-enriched scores from the concurrent batch above (null if not enriching)
     const scores = precomputedScores[i];
 
-    // Extract metadata for classification
     const metadata = extractMetadata(
       problemText,
       solutionText,
@@ -351,11 +324,10 @@ export async function createChunks(records) {
       circularStrategy,
     );
 
-    // Parse metadata_json and get a formatted summary
     const metadataJson = record['metadata_json'] || '';
     const metadataSummary = formatMetadataFromJson(metadataJson, datasetKey);
 
-    // Build a complete fields object (same for primary and secondary)
+    // Store full source fields on every chunk so field-level embeddings can be generated later.
     const fieldsObj = {
       problem: problemText,
       solution: solutionText,
@@ -366,7 +338,7 @@ export async function createChunks(records) {
       metadata_json: metadataJson,
     };
 
-    // Copy any extra columns from the original record into fieldsObj (avoid overwriting existing keys)
+    // Preserve extra source columns without overwriting canonical fields.
     const EXCLUDED_FIELDS = new Set([
       'problem',
       'Problem',
@@ -404,20 +376,18 @@ export async function createChunks(records) {
           fieldsObj[key] = normalized;
         }
       } catch {
-        // ignore
+        // Skip values that cannot be normalized; the canonical fields remain available.
       }
     }
 
-    // Create primary chunk: Problem + Solution (always together)
+    // Keep problem and solution together so retrieval returns a complete case.
     const primaryContent = `Problem: ${problemText}\n\nSolution: ${solutionText}`;
     const primaryContentHash = createHash('sha1').update(primaryContent).digest('hex');
     let primaryChunkId;
 
     if (seenPrimaryHashes.has(primaryContentHash)) {
-      // Duplicate primary chunk – reuse existing ID
       primaryChunkId = seenPrimaryHashes.get(primaryContentHash);
     } else {
-      // Create new primary chunk
       const primaryChunk = {
         id: `row_${i}_chunk_0`,
         source_row: i,
@@ -448,7 +418,7 @@ export async function createChunks(records) {
       seenPrimaryHashes.set(primaryContentHash, primaryChunkId);
     }
 
-    // Create secondary chunks if additional context exists
+    // Secondary chunks add searchable context only when the row contains it.
     const secondaryParts = [];
     if (materials) secondaryParts.push(`Materials: ${materials}`);
     if (circularStrategy) secondaryParts.push(`Circular Strategy: ${circularStrategy}`);
@@ -525,18 +495,19 @@ export async function createChunks(records) {
 }
 
 /**
- * Save chunks to JSON file
- * @param {Array} chunks - Array of chunk objects
- * @param {string} outputPath - Output file path
+ * Writes chunk objects to JSON and logs aggregate chunk statistics.
+ *
+ * @param {Array<{ id: string, content: string, word_count: number, metadata: Record<string, unknown> }>} chunks - Chunk objects ready for JSON serialization.
+ * @param {string} outputPath - Destination path for the chunks JSON file.
+ * @throws {Error} If the chunks file cannot be written.
  */
 export async function saveChunksToFile(chunks, outputPath) {
   try {
     await writeJson(outputPath, chunks);
-  } catch (err) {
-    throw new Error(`Failed to write chunks file: ${err.message}`);
+  } catch (error) {
+    throw new Error(`Failed to write chunks file: ${error.message}`);
   }
 
-  // Log statistics
   const stats = {
     total_chunks: chunks.length,
     total_words: chunks.reduce((sum, c) => sum + c.word_count, 0),
@@ -553,9 +524,8 @@ export async function saveChunksToFile(chunks, outputPath) {
 }
 
 /**
- * Main execution block.
- * Loads dataset, creates chunks, and saves to file.
- * Only runs when this file is executed directly (not when imported).
+ * CLI entry that loads the selected dataset, creates chunks, and saves them to disk.
+ * Only runs when this file is executed directly.
  */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   logger.info(
@@ -577,12 +547,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       await saveChunksToFile(chunks, outputPath);
       logger.info('Chunking complete');
       process.exit(0);
-    } catch (err) {
-      logger.error({ err }, 'Fatal error during chunking');
+    } catch (error) {
+      logger.error({ error }, 'Fatal error during chunking');
       process.exit(1);
     }
-  })().catch((err) => {
-    logger.error({ err }, 'Unhandled rejection');
+  })().catch((error) => {
+    logger.error({ error }, 'Unhandled rejection');
     process.exit(1);
   });
 }

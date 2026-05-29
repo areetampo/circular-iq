@@ -1,24 +1,6 @@
 /**
- * @module embed_ce_cases
- * @description Script to generate and manage OpenAI embeddings for circular economy cases.
- * Supports multiple operation modes for generating embeddings, caching them locally,
- * and restoring them to Supabase. Provides flexible control over which rows are
- * processed and where embeddings are stored.
- *
- * Usage:
- *   node backend/pipeline/rag/embed_ce_cases.js [flags]
- *
- * Flags:
- *   (default)           - Generate embeddings for ALL rows, overwrite cache + Supabase
- *   --gen-cache-all     - Generate ALL embeddings to cache only (no Supabase writes)
- *   --gen-cache-missing - Generate ONLY missing embeddings to cache (preserve existing)
- *   --restore-supabase-all   - Overwrite ALL Supabase embeddings from cache (no OpenAI)
- *   --restore-supabase-missing - Write ONLY missing embeddings to Supabase from cache
- *
- * Modes:
- *   - Default mode: Calls OpenAI for all rows, overwrites both cache and Supabase
- *   - Cache-only modes: Generate embeddings without touching Supabase
- *   - Restore modes: Use cached embeddings to update Supabase without OpenAI calls
+ * Embeds `ce_cases` rows via OpenAI with optional local cache and Supabase restore modes.
+ * Flags: default (cache+DB), `--gen-cache-all`, `--gen-cache-missing`, `--restore-supabase-all`, `--restore-supabase-missing`.
  */
 
 import fs from 'fs/promises';
@@ -43,40 +25,12 @@ import { logger } from '#utils/logger.js';
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 const supabase = getSupabaseClient();
 
-/** === FLAGS ===
- *
- * No flags (default):
- *   - Generate embeddings for ALL rows (call OpenAI)
- *   - Overwrite ALL embeddings in local cache
- *   - Overwrite ALL embeddings in Supabase
- *
- * --gen-cache-all
- *   - Generate embeddings for ALL rows (call OpenAI)
- *   - Overwrite ALL embeddings in local cache
- *   - Do NOT touch Supabase
- *
- * --gen-cache-missing
- *   - Generate embeddings ONLY for rows missing in local cache
- *   - Append missing embeddings to local cache (preserve existing)
- *   - Do NOT touch Supabase
- *
- * --restore-supabase-all
- *   - Overwrite ALL embeddings in Supabase using local cache (no OpenAI)
- *   - For every id present in the cache file, update Supabase
- *   - Rows in Supabase but not in cache remain unchanged
- *
- * --restore-supabase-missing
- *   - Write ONLY missing embeddings to Supabase (where embedding IS NULL)
- *   - Uses local cache as source (no OpenAI)
- */
-
 const args = process.argv.slice(2);
 const GEN_CACHE_ALL = args.includes('--gen-cache-all');
 const GEN_CACHE_MISSING = args.includes('--gen-cache-missing');
 const RESTORE_SUPABASE_ALL = args.includes('--restore-supabase-all');
 const RESTORE_SUPABASE_MISSING = args.includes('--restore-supabase-missing');
 
-// Validate that at most one flag is provided
 const flagsProvided = [
   GEN_CACHE_ALL,
   GEN_CACHE_MISSING,
@@ -88,7 +42,6 @@ if (flagsProvided > 1) {
   process.exit(1);
 }
 
-// Determine mode
 const DEFAULT_MODE = !(
   GEN_CACHE_ALL ||
   GEN_CACHE_MISSING ||
@@ -126,8 +79,8 @@ if (DEFAULT_MODE) {
  * NOTE: metadata_json may arrive as a parsed object (from Supabase select)
  * or as a raw JSON string (if row came from CSV). Both cases are handled.
  *
- * @param {Object} row - Database row with problem, solution, and metadata_json fields
- * @returns {string} Text to embed, or '[No text]' if no content available
+ * @param {{ problem?: string, solution?: string, metadata_json?: Record<string, unknown>|string|null }} row - Database row with problem, solution, and metadata fields used as embedding context.
+ * @returns {string} Text to embed, or `[No text]` if no content is available.
  */
 function getTextToEmbed(row) {
   const parts = [];
@@ -154,10 +107,10 @@ function getTextToEmbed(row) {
 }
 
 /**
- * Load embeddings cache from local JSON file.
+ * Loads embeddings cache from local JSON file.
  * Returns an empty Map if the file doesn't exist or can't be parsed.
  *
- * @returns {Promise<Map<string, Array<number>>>} Map of ID to embedding vector
+ * @returns {Promise<Map<string, Array<number>>>} CE case ID to embedding vector map.
  */
 async function loadCache() {
   try {
@@ -181,10 +134,10 @@ async function loadCache() {
 }
 
 /**
- * Save embeddings cache to local JSON file.
+ * Saves embeddings cache to local JSON file.
  *
- * @param {Map<string, Array<number>>} cache - Map of ID to embedding vector
- * @returns {Promise<void>}
+ * @param {Map<string, Array<number>>} cache - CE case ID to embedding vector map.
+ * @throws {Error} If the cache file cannot be written.
  */
 async function saveCache(cache) {
   const obj = Object.fromEntries(cache);
@@ -192,10 +145,11 @@ async function saveCache(cache) {
 }
 
 /**
- * Generate OpenAI embedding for a text string with retry logic.
+ * Generates an OpenAI embedding for CE case text with retry logic.
  *
- * @param {string} text - Text to embed
- * @returns {Promise<Array<number>>} Embedding vector (1536 dimensions for text-embedding-3-small)
+ * @param {string} text - CE case text sent to OpenAI embeddings API.
+ * @returns {Promise<Array<number>>} Embedding vector from the configured embedding model.
+ * @throws {Error} If embedding generation fails after retries.
  */
 async function getEmbedding(text) {
   return retryWithBackoff(async () => {
@@ -209,12 +163,11 @@ async function getEmbedding(text) {
 }
 
 /**
- * Update a single row's embedding in Supabase.
+ * Updates a single row's embedding in Supabase.
  *
- * @param {string} id - Row ID
- * @param {Array<number>} embeddingVector - Embedding vector to store
- * @returns {Promise<void>}
- * @throws {Error} If update fails
+ * @param {string} id - CE case row ID to update.
+ * @param {Array<number>} embeddingVector - Embedding vector to store in the `embedding` column.
+ * @throws {Error} If Supabase rejects the update.
  */
 async function updateEmbedding(id, embeddingVector) {
   const { error } = await supabase
@@ -225,11 +178,12 @@ async function updateEmbedding(id, embeddingVector) {
 }
 
 /**
- * Fetch all rows from ce_cases table including metadata_json.
+ * Fetches all rows from `ce_cases` needed for embedding text construction.
  * Paginates in chunks of 1000 to avoid Supabase's default limit.
  * Without pagination, large tables return a silent partial result.
  *
- * @returns {Promise<Array<Object>>} Array of all rows with id, problem, solution, metadata_json
+ * @returns {Promise<Array<{ id: string, problem?: string|null, solution?: string|null, metadata_json?: Record<string, unknown>|string|null }>>} CE case rows selected for embedding.
+ * @throws {Error} If a Supabase page query fails.
  */
 async function fetchAllRows() {
   const PAGE_SIZE = 1000;
@@ -256,10 +210,11 @@ async function fetchAllRows() {
 }
 
 /**
- * Fetch only rows with NULL embedding from ce_cases table.
+ * Fetches only rows with NULL embeddings from `ce_cases`.
  * Paginated in chunks of 1000 for the same reason as fetchAllRows.
  *
- * @returns {Promise<Array<Object>>} Array of rows with id field only
+ * @returns {Promise<Array<{ id: string }>>} CE case IDs missing embeddings, used for cache restoration.
+ * @throws {Error} If a Supabase page query fails.
  */
 async function fetchRowsWithNullEmbedding() {
   const PAGE_SIZE = 1000;
@@ -286,11 +241,11 @@ async function fetchRowsWithNullEmbedding() {
 }
 
 /**
- * Log progress statistics including done/total, percentage, elapsed time, and ETA.
+ * Logs progress statistics including done/total, percentage, elapsed time, and ETA.
  *
- * @param {number} done - Number of items completed
- * @param {number} total - Total number of items
- * @param {number} startTime - Start timestamp in milliseconds
+ * @param {number} done - Completed item count used to compute percent and ETA.
+ * @param {number} total - Total item count for the active mode.
+ * @param {number} startTime - Start timestamp in Unix milliseconds.
  */
 function logProgress(done, total, startTime) {
   const pct = ((done / total) * 100).toFixed(1);
@@ -304,11 +259,11 @@ function logProgress(done, total, startTime) {
 }
 
 /**
- * Main execution function that routes to the appropriate operation mode.
+ * Routes CE case embedding work to the selected cache or Supabase operation mode.
  * Handles all five operation modes: default, gen-cache-all, gen-cache-missing,
  * restore-supabase-all, and restore-supabase-missing.
  *
- * @returns {Promise<void>}
+ * @throws {Error} If Supabase reads/writes or embedding generation fail after logging context.
  */
 async function main() {
   let cache = await loadCache();
@@ -531,4 +486,4 @@ async function main() {
   logger.info({ count }, 'Supabase rows with NULL embedding (should be 0)');
 }
 
-main().catch((err) => logger.error({ err }, 'Main failed'));
+main().catch((error) => logger.error({ error }, 'Main failed'));

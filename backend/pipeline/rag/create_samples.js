@@ -1,12 +1,5 @@
 /**
- * @module create_samples
- * @description Extracts a configurable sample of rows from combined_input.csv for testing.
- *
- * Extracts a specific number of rows from the combined input CSV file
- * based on a per-dataset configuration.
- *
- * INPUT: combined_input.csv
- * OUTPUT: combined_input_sample.csv
+ * Samples rows from `combined_input.csv` per dataset limits (`DATASET_LIMITS`, `--all`).
  */
 
 import fs from 'fs';
@@ -49,8 +42,7 @@ const OUTPUT_FILE = archives
     : OUT_COMBINED_INPUT_FINAL_CSV;
 
 /**
- * Define how many top rows to keep for each dataset.
- * If a dataset key is not listed here, it will use the DEFAULT_ROWS.
+ * Per-dataset row caps for sample generation; missing dataset keys fall back to `DEFAULT_ROWS`.
  */
 const DATASET_LIMITS = {
   [DATASET_KEYS.c2c]: 5,
@@ -88,29 +80,22 @@ const DATASET_LIMITS = {
 };
 
 /**
- * Global switch to control sampling behavior.
- * If true, ignore limits and take every row from every dataset.
- * If false, apply the limits defined in DATASET_LIMITS.
+ * Global switch for bypassing per-dataset row caps.
+ *
  * @type {boolean}
  */
 const TAKE_ALL = process.argv.includes('--all');
 
-/**
- * Default number of rows to extract for datasets not explicitly listed in DATASET_LIMITS.
- * Set to 0 to skip any dataset not explicitly listed.
- * @type {number}
- */
+/** Default rows for dataset prefixes not listed above; `0` skips unknown prefixes. */
 const DEFAULT_ROWS = 0;
 // ==========================
 
 /**
- * Sample records from the dataset based on custom limits per dataset prefix.
- * Extracts rows based on the DATASET_LIMITS configuration, respecting the TAKE_ALL flag.
+ * Samples records by dataset prefix while preserving input order.
  *
- * @param {Array<Object>} records - Parsed CSV records with ID field
- * @returns {Object} Object containing sampledRecords array and datasetCounters object
- * @returns {Array<Object>} returns.sampledRecords - Array of sampled records
- * @returns {Object.<string, number>} returns.datasetCounters - Count of records sampled per dataset prefix
+ * @param {Array<Record<string, string>>} records - Parsed CSV records with an `ID` field like `c2c_00001`.
+ * @returns {{ sampledRecords: Array<Record<string, string>>, datasetCounters: Record<string, number> }} Sampled rows plus per-dataset inclusion counts.
+ * @throws {TypeError} If a record is missing the required `ID` field.
  */
 function sampleRecordsByDataset(records) {
   const datasetCounters = {};
@@ -119,17 +104,13 @@ function sampleRecordsByDataset(records) {
   for (const record of records) {
     const id = record.ID;
 
-    // Extract prefix (e.g., 'c2c' from 'c2c_00001')
-    // or, 'abc_xyz' from 'abc_xyz_00001'
+    // Prefixes can contain underscores, so only the trailing numeric suffix is removed.
     const prefix = id.split('_').slice(0, -1).join('_');
 
-    // Initialize counter for new prefixes
     if (!datasetCounters[prefix]) {
       datasetCounters[prefix] = 0;
     }
 
-    // Logic: If TAKE_ALL is true, bypass limit check.
-    // Otherwise, check if current count is under the specific limit.
     const limit = DATASET_LIMITS[prefix] !== undefined ? DATASET_LIMITS[prefix] : DEFAULT_ROWS;
 
     if (TAKE_ALL || datasetCounters[prefix] < limit) {
@@ -172,7 +153,7 @@ function sampleRecordsByDataset(records) {
       { datasetCounters, outputFile: OUTPUT_FILE, rowCount: sampledRecords.length },
       'Sample extraction complete',
     );
-  } catch (err) {
-    logger.error({ err }, 'Error during sample extraction');
+  } catch (error) {
+    logger.error({ error }, 'Error during sample extraction');
   }
 })();

@@ -1,6 +1,5 @@
 /**
- * @module generate_test_inputs
- * @description Generates synthetic circular-economy assessment inputs via OpenAI for load testing.
+ * Generates synthetic circular-economy assessment inputs via OpenAI for load testing.
  * Appends JSON cases to DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON with concurrency control.
  */
 
@@ -17,9 +16,9 @@ import {
 import { logger } from '#utils/logger.js';
 
 const OUTPUT_FILE = DATASETS_TEST_INPUTS_GENERATED_INPUTS_JSON;
-const TOTAL = 1000; // includes prexisting in OUTPUT_FILE
-const CONCURRENCY = 5; // generate 5 in parallel (respects OpenAI rate limits)
-const DELAY_MS = 1000; // between batches
+const TOTAL = 1000; // Includes existing items already present in OUTPUT_FILE.
+const CONCURRENCY = 5; // Keeps OpenAI requests batched below the intended rate.
+const DELAY_MS = 1000; // Pause between request batches.
 
 const openai = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
@@ -54,9 +53,10 @@ Make each case distinct: vary industries (construction, electronics, textiles, f
 
 /**
  * Calls OpenAI to produce one validated synthetic assessment input object.
+ *
  * @param {number} index - 1-based case index (included in the user prompt for variety).
- * @returns {Promise<Object>} Parsed assessment payload matching `SYSTEM_PROMPT` schema.
- * @throws {Error} When required fields are missing or too short.
+ * @returns {Promise<{ businessProblem: string, businessSolution: string, businessContext: Record<string, unknown>, evaluationParameters: Record<string, number> }>} Parsed assessment payload matching `SYSTEM_PROMPT` schema.
+ * @throws {Error} When OpenAI returns invalid JSON or required fields are missing or too short.
  */
 async function generateOne(index) {
   const userPrompt = `Generate a unique circular economy business case #${index}. Make it different from any typical example – be creative but realistic.`;
@@ -71,7 +71,7 @@ async function generateOne(index) {
   });
   const raw = response.choices[0].message.content;
   const parsed = JSON.parse(raw);
-  // Validate required fields and lengths
+  // Enforce prompt guarantees locally so bad cases are retried by the batch loop.
   if (!parsed.businessProblem || parsed.businessProblem.length < 200) {
     throw new Error(`Problem too short for index ${index}`);
   }
@@ -82,17 +82,16 @@ async function generateOne(index) {
 }
 
 /**
- * CLI entry: generates up to `TOTAL` cases with resume support and batched concurrency.
- * @returns {Promise<void>}
+ * CLI entry that generates up to `TOTAL` cases with resume support and batched concurrency.
+ *
+ * @throws {Error} If the existing output cannot be read or incremental writes fail.
  */
 async function main() {
   logger.info({ count: TOTAL }, 'Generating high quality inputs');
   const inputs = [];
   let start = 0;
 
-  // Check for existing partial file (resume)
   if (fs.existsSync(OUTPUT_FILE)) {
-    // Use prepareWrite to unlock file for reading
     await prepareWrite(OUTPUT_FILE);
 
     const existing = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf8'));
@@ -103,11 +102,10 @@ async function main() {
       'Skipping existing items, resuming generation beyond checkpoint',
     );
 
-    // Lock file back to read-only
     try {
       await fs.promises.chmod(OUTPUT_FILE, 0o444);
     } catch {
-      // ignore errors on platforms that don't support chmod
+      // Some platforms ignore POSIX-style read-only permissions.
     }
   }
 
@@ -116,8 +114,8 @@ async function main() {
     for (let j = 0; j < CONCURRENCY && i + j < TOTAL; j++) {
       const idx = i + j + 1;
       batch.push(
-        generateOne(idx).catch((err) => {
-          logger.error({ index: idx, err }, 'Failed at index');
+        generateOne(idx).catch((error) => {
+          logger.error({ index: idx, error }, 'Failed at index');
           return null;
         }),
       );
@@ -126,7 +124,6 @@ async function main() {
     for (const res of results) {
       if (res) inputs.push(res);
     }
-    // Save incrementally using datasetsUtils writeJson (handles locking)
     await writeJson(OUTPUT_FILE, inputs);
     logger.info(
       {

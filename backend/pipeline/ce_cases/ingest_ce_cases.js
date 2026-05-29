@@ -1,6 +1,5 @@
 /**
- * @module ingest_ce_cases
- * @description Batch-ingests combined CE case CSV rows into the ce_cases Supabase table.
+ * Batch-ingests combined CE case CSV rows into the ce_cases Supabase table.
  * Reads DATASETS_FOR_SEARCH combined input and upserts in configurable batch sizes.
  */
 
@@ -16,14 +15,14 @@ const CSV_FILE = DATASETS_FOR_SEARCH_COMBINED_INPUT_CSV;
 const BATCH_SIZE = 100;
 
 /**
- * Streams the combined CE cases CSV and upserts rows into `ce_cases` in batches.
- * @returns {Promise<void>}
- * @throws {Error} When the CSV is missing or a batch upsert fails.
+ * Streams the combined CE cases CSV and upserts normalized rows into `ce_cases` in batches.
+ * Invalid `metadata_json` values are logged and stored as empty metadata.
+ *
+ * @throws {Error} When the CSV is missing, parsing fails, or a batch upsert fails.
  */
 async function ingestCSV() {
   assertFileExists(CSV_FILE, 'Combined input CSV file');
 
-  // ── Step 1: Collect all rows via async iterator ───────────────────────────
   // csv-parse's async iterator is cleaner than wrapping stream events in a
   // Promise — no race condition possible, errors propagate naturally via
   // try/catch rather than requiring explicit reject handlers.
@@ -31,10 +30,10 @@ async function ingestCSV() {
 
   const parser = fs.createReadStream(CSV_FILE).pipe(
     parse({
-      columns: true, // use first row as column names
+      columns: true, // Use first row as column names.
       skip_empty_lines: true,
-      trim: true, // strip whitespace from values
-      bom: true, // strips the UTF-8 BOM if present, harmless if absent
+      trim: true, // Match downstream field checks that assume trimmed CSV values.
+      bom: true, // Some exported CSVs include a UTF-8 BOM before the first header.
     }),
   );
 
@@ -43,8 +42,8 @@ async function ingestCSV() {
     if (row.metadata_json) {
       try {
         metadata = JSON.parse(row.metadata_json);
-      } catch (err) {
-        logger.warn({ id: row.ID, err }, 'Failed to parse metadata_json');
+      } catch (error) {
+        logger.warn({ id: row.ID, error }, 'Failed to parse metadata_json');
       }
     }
 
@@ -63,7 +62,6 @@ async function ingestCSV() {
 
   logger.info({ count: rows.length }, 'Read rows from CSV. Starting upsert...');
 
-  // ── Step 2: Batch upsert sequentially ─────────────────────────────────────
   const supabase = getSupabaseClient();
   let inserted = 0;
 
@@ -86,4 +84,4 @@ async function ingestCSV() {
   logger.info({ inserted }, 'Ingestion complete');
 }
 
-ingestCSV().catch((err) => logger.error({ err }, 'Ingestion failed'));
+ingestCSV().catch((error) => logger.error({ error }, 'Ingestion failed'));

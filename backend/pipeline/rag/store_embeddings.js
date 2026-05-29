@@ -1,33 +1,6 @@
 /**
- * @module store_embeddings
- * @description Persists embedded chunks to Aiven PostgreSQL or Supabase documents table.
- *
- * Stores pre-generated embeddings from embedded_chunks.jsonl into the configured database (Aiven PostgreSQL or Supabase).
- * Reads from backend/datasets/processed/embedded_chunks.jsonl by default,
- * or from backend/datasets/archives/embedded_chunks.jsonl when run with `--archives`.
- *
- * Usage:
- * node store_embeddings.js                                # Normal mode: read OUT_EMBEDDED_CHUNKS_JSONL, store in Aiven PostgreSQL documents table
- *
- * node store_embeddings.js --dry-run                      # Dry-run: read OUT_EMBEDDED_CHUNKS_JSONL, write to OUT_STORED_DOCUMENTS_JSONL
- *
- * node store_embeddings.js --archives                     # Archive mode: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, store in Supabase documents table
- *
- * node store_embeddings.js --archives --dry-run           # Dry-run with archives: read ARCHIVES_EMBEDDED_CHUNKS_JSONL, write to ARCHIVES_STORED_DOCUMENTS_JSONL
- *
- * node store_embeddings.js --resume                       # Resume interrupted Aiven storage
- *
- * node store_embeddings.js --archives --resume            # Resume interrupted Supabase storage
- *
- * node store_embeddings.js --dry-run --resume             # Resume dry-run (append to JSONL)
- *
- * node store_embeddings.js --archives --dry-run --resume  # Resume dry-run with archives (append to JSONL)
- *
- * In dry-run mode, documents are written to a local JSONL file instead of the database.
- * The output file is maintained as read-only for durability, but is temporarily unlocked
- * during batch writes to allow appending new documents.
- *
- * Uses centralized embedding configuration from backend/utils/embedding.js
+ * Pipeline step: `embedded_chunks.jsonl` → `documents` table (Aiven) or Supabase when `--archives`.
+ * Flags: `--dry-run` (JSONL only), `--resume`, `--archives`. Target chosen via `USE_SUPABASE_DOCUMENTS_TABLE`.
  */
 
 import '#server/bootstrap.js';
@@ -97,11 +70,11 @@ const storageDest = DRY_RUN
     : aivenDest;
 
 /**
- * Create an adapter function for inserting documents, which either writes to a JSONL file in dry-run mode or inserts into the database in normal mode.
- * In dry-run mode, the output file is prepared (cleared if not resuming) and documents are appended in batches.
- * In normal mode, documents are inserted in batches using a single multi-row INSERT query with ON CONFLICT to avoid duplicates in resume mode.
- * @returns {Promise<function(Array): Promise<number>>} A function that takes an array of document objects and returns the count of stored documents
- * @throws {Error} If file writing fails in dry-run mode or if database insertion fails in normal mode
+ * Creates a storage adapter for dry-run JSONL writes or database COPY insertion.
+ * Dry-run mode prepares the output file immediately; normal mode defers duplicate checks and COPY work to the returned adapter.
+ *
+ * @returns {Promise<(docs: Array<{ content: string, embedding: number[], industry?: string|null, category?: string|null, source?: string|null, metadata: { chunk_id: string, field_name: string, [key: string]: unknown } }>) => Promise<number>>} Insert adapter that stores document rows and returns the number persisted.
+ * @throws {Error} If dry-run output preparation fails before the adapter is returned.
  */
 export async function createInsertAdapter() {
   const escapeCsv = (v) =>
@@ -113,8 +86,8 @@ export async function createInsertAdapter() {
     await prepareWrite(dryRunOutputPath, { clear: !RESUME });
 
     /**
-     * @param {Array} docs
-     * @returns {Promise<number>} count of stored documents
+     * @param {Array<{ content: string, embedding: number[], metadata: Record<string, unknown> }>} docs - Embedded document rows that would be inserted during a non-dry run.
+     * @returns {Promise<number>} Number of rows appended to the dry-run JSONL output.
      */
     return async (docs) => {
       await writeJsonl(dryRunOutputPath, docs, { append: true });
@@ -123,8 +96,9 @@ export async function createInsertAdapter() {
   }
 
   /**
-   * @param {Array} docs
-   * @returns {Promise<number>} count of stored documents
+   * @param {Array<{ content: string, embedding: number[], industry?: string|null, category?: string|null, source?: string|null, metadata: { chunk_id: string, field_name: string, [key: string]: unknown } }>} docs - Embedded document rows to insert after duplicate filtering.
+   * @returns {Promise<number>} Number of rows copied into `documents`; duplicate `(chunk_id, field_name)` pairs are excluded.
+   * @throws {Error} If duplicate lookup, COPY streaming, or connection handling fails.
    *
    * Strategy:
    * 1. Query the DB for any (chunk_id, field_name) pairs from this batch that already exist
@@ -136,11 +110,9 @@ export async function createInsertAdapter() {
     const client = await pgPool.connect();
 
     try {
-      // ── Step 1: check which identifiers already exist in the DB ──────────────
-      // Build array of [chunk_id, field_name] pairs for this batch
+      // Use the unique index to avoid COPY conflicts during resumed or repeated runs.
       const pairs = docs.map((d) => [d.metadata.chunk_id, d.metadata.field_name]);
 
-      // Query uses the unique index idx_unique_chunk_field for fast lookups
       const { rows: existingRows } = await client.query(
         `SELECT chunk_id, field_name
           FROM documents
@@ -166,7 +138,6 @@ export async function createInsertAdapter() {
         return 0;
       }
 
-      // ── Step 2: COPY the clean set directly into documents ───────────────────
       logger.info({ count: docsToInsert.length }, 'COPY new docs into documents');
 
       const stream = client.query(
@@ -216,9 +187,9 @@ export async function createInsertAdapter() {
 
       logger.info({ inserted: docsToInsert.length, total: docs.length, skipped }, 'Docs inserted');
       return docsToInsert.length;
-    } catch (err) {
-      logger.error({ err }, 'insertAdapter error');
-      throw err;
+    } catch (error) {
+      logger.error({ error }, 'insertAdapter error');
+      throw error;
     } finally {
       client.release();
     }
@@ -226,11 +197,11 @@ export async function createInsertAdapter() {
 }
 
 /**
- * Asynchronously stream embedded chunks from a JSONL file, yielding one chunk object at a time.
- * @async
- * @param {string} filePath - Path to the embedded_chunks.jsonl file
- * @returns {AsyncGenerator<Object>} Yields parsed chunk objects one by one
- * @throws {Error} If the file cannot be read or if any line contains invalid JSON
+ * Streams embedded chunks from JSONL one parsed object at a time.
+ *
+ * @param {string} filePath - Path to the selected `embedded_chunks.jsonl` file.
+ * @returns {AsyncGenerator<{ id: string, content: string, embeddings?: Record<string, number[]>, metadata?: Record<string, unknown>, [key: string]: unknown }>} Parsed embedded chunk objects yielded one line at a time.
+ * @throws {Error} If the file cannot be read or any non-empty line contains invalid JSON.
  */
 export async function* streamEmbeddedChunks(filePath) {
   const fileStream = fs.createReadStream(filePath, { encoding: 'utf8' });
@@ -249,8 +220,8 @@ export async function* streamEmbeddedChunks(filePath) {
       if (line % 1000 === 0) {
         logger.info({ loaded: line }, 'Embedded chunks loaded');
       }
-    } catch (err) {
-      throw new Error(`Invalid JSON at line ${line + 1}: ${err.message}`);
+    } catch (error) {
+      throw new Error(`Invalid JSON at line ${line + 1}: ${error.message}`);
     }
   }
 
@@ -258,12 +229,11 @@ export async function* streamEmbeddedChunks(filePath) {
 }
 
 /**
- * Verify that the embedding dimension of the database column matches the expected dimension
- * @async
- * @param {Object} pgPool - PostgreSQL connection pool
- * @param {number} expectedDim - Expected embedding dimension from the model configuration
- * @returns {Promise<void>}
- * @throws {Error} If dimension mismatch or query fails
+ * Verifies that the database vector column matches the configured embedding dimension.
+ *
+ * @param {{ query: (sql: string, values?: unknown[]) => Promise<{ rows: Array<Record<string, unknown>> }> }} pgPool - PostgreSQL connection pool.
+ * @param {number} expectedDim - Embedding dimension produced by the configured model.
+ * @throws {Error} If the embedding column is missing, the dimension differs, or the query fails.
  */
 async function verifyEmbeddingDimension(pgPool, expectedDim) {
   logger.info('Verifying embedding dimension in database');
@@ -283,7 +253,7 @@ async function verifyEmbeddingDimension(pgPool, expectedDim) {
 
   const typmod = rows[0].atttypmod;
 
-  // pgvector stores dimension directly in atttypmod
+  // pgvector exposes the configured vector dimension through atttypmod.
   const dbDim = typmod;
 
   if (dbDim !== expectedDim) {
@@ -296,26 +266,26 @@ async function verifyEmbeddingDimension(pgPool, expectedDim) {
 }
 
 /**
- * Process a batch of embedded chunks, prepare documents for insertion, and insert them using the provided insertDocuments function.
- * @async
- * @param {Array} batch - Array of chunk objects to process
- * @param {number} batchNum - Current batch number for logging
- * @param {Set} existingIdentifiers - Set of identifiers already in DB (from resume)
- * @param {Set} seenInRun - Set of identifiers already processed in this run
- * @param {function} insertDocuments - The insert adapter
- * @returns {Promise<{inserted: number, batchNum: number}>} Object with inserted count and batch number
- * @throws {Error} If insertion fails
+ * Converts embedded chunks into document rows, deduplicates identifiers, and persists the batch.
+ *
+ * @param {Array<{ id: string, content: string, source_row?: number, chunk_index?: number, word_count?: number, embeddings?: Record<string, number[]>, metadata?: Record<string, unknown> }>} batch - Embedded chunk objects from the current worker batch.
+ * @param {number} batchNum - One-based batch number used in progress and error logs.
+ * @param {Set<string>} existingIdentifiers - Previously stored `chunk_id:field_name` identifiers loaded during resume mode.
+ * @param {Set<string>} seenInRun - Identifiers already prepared by earlier batches in this process.
+ * @param {(docs: Array<{ content: string, embedding: number[], industry?: string|null, category?: string|null, source?: string|null, metadata: { chunk_id: string, field_name: string, [key: string]: unknown } }>) => Promise<number>} insertDocuments - Adapter that writes prepared docs and returns the persisted count.
+ * @returns {Promise<{ inserted: number, batchNum: number }>} Insert count paired with the original batch number for concurrent result aggregation.
+ * @throws {Error} If the insert adapter rejects.
  */
 async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, insertDocuments) {
   const documentsToInsert = [];
 
   for (const chunk of batch) {
-    // Extract structured columns (no defaults - assume upstream normalization)
+    // Upstream chunking normalizes these fields, so missing values stay null rather than invented.
     const industryVal = chunk.metadata?.industry ?? null;
     const categoryVal = chunk.metadata?.category ?? null;
     const sourceVal = chunk.metadata?.source ?? null;
 
-    // Build metadata object for JSONB
+    // Keep source fields together in metadata so vector rows can be traced back to chunks.
     const baseMeta = {
       chunk_id: chunk.id,
       source_row: chunk.source_row,
@@ -331,10 +301,9 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
       scores: (chunk.metadata && chunk.metadata.scores) || null,
     };
 
-    // Doc-level document
+    // The full chunk text is indexed separately from individual metadata fields.
     if (chunk.embeddings && chunk.embeddings.doc && isValidEmbedding(chunk.embeddings.doc)) {
       const identifier = `${chunk.id}:doc`;
-      // Check both cross-run (existingIdentifiers) and intra-run (seenInRun)
       if ((!RESUME || !existingIdentifiers.has(identifier)) && !seenInRun.has(identifier)) {
         seenInRun.add(identifier);
         documentsToInsert.push({
@@ -350,7 +319,7 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
       }
     }
 
-    // Field-level documents
+    // Field embeddings let targeted queries match source metadata that is not in the main text.
     const fieldEmb = (chunk.embeddings && chunk.embeddings.fields) || {};
     for (const [fname, vec] of Object.entries(fieldEmb)) {
       if (!vec || !isValidEmbedding(vec)) continue;
@@ -380,16 +349,10 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
     return { inserted: 0, batchNum };
   }
 
-  // --- Log initial identifiers (including potential duplicates) before any intra‑batch deduplication ---
   const initialIdentifiers = documentsToInsert.map(
     (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
   );
-  // logger.info(
-  //   `Batch ${batchNum} initial identifiers (including possible duplicates):`,
-  //   JSON.stringify(initialIdentifiers),
-  // );
-
-  // --- Intra‑batch (for this batch only) duplicate removal ---
+  // Remove duplicate identifiers within the batch before COPY sees a unique-key conflict.
   const duplicateIds = initialIdentifiers.filter(
     (id, index) => initialIdentifiers.indexOf(id) !== index,
   );
@@ -414,16 +377,6 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
     logger.warn({ batchNum, removed: removedCount }, 'Removed duplicate documents from batch');
   }
 
-  // --- Final identifiers after deduplication ---
-  // const finalIdentifiers = documentsToInsert.map(
-  //   (d) => `${d.metadata.chunk_id}:${d.metadata.field_name}`,
-  // );
-  // logger.info(
-  //   { batchNum, identifiers: finalIdentifiers },
-  //   'Batch final identifiers (after dedup)',
-  // );
-
-  // --- Explicitly show which identifiers were removed (if any) ---
   if (duplicateIds.length > 0) {
     logger.info({ batchNum, removed: duplicateIds }, 'Batch removed identifiers');
   }
@@ -433,11 +386,8 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
     return { inserted: 0, batchNum };
   }
 
-  // --- Proceed to insert ---
   try {
     const inserted = await insertDocuments(documentsToInsert);
-    // logged in insert adapter for more accurate count after intra-batch deduplication
-    // logger.info({ batchNum, inserted, total: documentsToInsert.length }, '✓ Batch inserted documents');
     return { inserted, batchNum };
   } catch (error) {
     logger.error(
@@ -452,16 +402,17 @@ async function processBatch(batch, batchNum, existingIdentifiers, seenInRun, ins
       },
       'Batch failed',
     );
-    throw error; // rethrow to be caught by main error handler
+    throw error;
   }
 }
 
 /**
- * Store embedded chunks in Supabase documents table
- * @async
- * @param {AsyncGenerator<Object>} chunkStream - Async generator yielding chunk objects with embedding vectors
- * @returns {Promise<number>} Number of documents successfully stored
- * @throws {Error} If storage fails after retries
+ * Stores embedded chunks as searchable document rows in the configured destination.
+ * Non-resume database runs truncate `documents`; resume runs preserve existing identifiers.
+ *
+ * @param {AsyncGenerator<{ id: string, content: string, embeddings?: Record<string, number[]>, metadata?: Record<string, unknown> }>} chunkStream - Async generator yielding chunk objects with embedding vectors.
+ * @returns {Promise<number>} Number of new document rows persisted after duplicate filtering.
+ * @throws {Error} If truncation, resume lookup, streaming, or batch insertion fails.
  */
 export async function storeDocuments(chunkStream) {
   logger.info({ resume: RESUME, destination: storageDest }, 'Storing documents');
@@ -476,9 +427,9 @@ export async function storeDocuments(chunkStream) {
       await client.query('TRUNCATE TABLE documents');
 
       logger.info('Documents table cleared');
-    } catch (err) {
-      logger.error({ err }, 'Documents table clear failed');
-      throw err;
+    } catch (error) {
+      logger.error({ error }, 'Documents table clear failed');
+      throw error;
     } finally {
       client.release();
     }
@@ -496,7 +447,6 @@ export async function storeDocuments(chunkStream) {
   if (RESUME) {
     logger.info('Resume mode: checking already stored documents');
     if (DRY_RUN) {
-      // Read existing JSONL file
       if (fs.existsSync(dryRunOutputPath)) {
         const fileStream = fs.createReadStream(dryRunOutputPath, { encoding: 'utf8' });
         const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
@@ -511,7 +461,7 @@ export async function storeDocuments(chunkStream) {
               existingIdentifiers.add(`${chunkId}:${fieldName}`);
             }
           } catch {
-            // ignore malformed lines
+            // Resume should continue past partial dry-run lines left by interrupted writes.
           }
         }
       }
@@ -533,7 +483,6 @@ export async function storeDocuments(chunkStream) {
     logger.info({ count: existingIdentifiers.size }, 'Found already stored documents');
   }
 
-  // Track identifiers we've already processed in this run to avoid duplicates within the same run
   const seenInRun = new Set();
   // Stream-level dedup: guard against duplicate chunk entries in the JSONL file itself.
   // This can happen on --resume runs when zero-item chunks were written multiple times.
@@ -549,7 +498,6 @@ export async function storeDocuments(chunkStream) {
   const queue = [];
 
   for await (const chunk of chunkStream) {
-    // Skip duplicate chunk entries (same chunk_id appearing more than once in the JSONL)
     if (seenChunkIds.has(chunk.id)) {
       logger.warn({ chunkId: chunk.id }, 'Skipping duplicate chunk in JSONL stream');
       continue;
@@ -564,7 +512,6 @@ export async function storeDocuments(chunkStream) {
     const batchCopy = batch;
     batch = [];
 
-    // Pass both sets to processBatch
     const job = processBatch(batchCopy, batchNum, existingIdentifiers, seenInRun, insertDocuments);
     queue.push(job);
 
@@ -601,14 +548,14 @@ export async function storeDocuments(chunkStream) {
 }
 
 /**
- * Validate stored embeddings with test query
- * @async
- * @returns {Promise<void>}
+ * Runs post-load database maintenance and a smoke-test vector search.
+ * VACUUM, metadata backfill, count, and search failures are logged but do not stop the pipeline.
+ *
+ * @throws {Error} If a database connection cannot be acquired for VACUUM.
  */
 async function validateStorage() {
   logger.info('Validating and optimizing storage');
 
-  // 1. VACUUM and Count Check
   const client = await pgPool.connect();
   try {
     logger.info('Running VACUUM ANALYZE');
@@ -619,7 +566,6 @@ async function validateStorage() {
     client.release();
   }
 
-  // 2. Backfill metadata (source + industry) from embedded JSON
   try {
     logger.info('Running metadata backfill');
     await pgPool.query('SELECT backfill_document_metadata()');
@@ -628,7 +574,6 @@ async function validateStorage() {
     logger.warn({ backfillErr }, 'Metadata backfill failed (non-critical)');
   }
 
-  // 3. Count Check
   try {
     const { rows } = await pgPool.query('SELECT COUNT(*) AS count FROM documents');
     const count = parseInt(rows[0].count, 10);
@@ -637,12 +582,11 @@ async function validateStorage() {
     logger.error({ countErr }, 'Failed to count documents');
   }
 
-  // 4. Test vector search function with a dummy embedding
   try {
-    // Ensure the search path includes the extensions schema
+    // halfvec operators live in the extensions schema on this database.
     await pgPool.query('SET search_path TO public, extensions');
 
-    const testEmbedding = Array(EMBEDDING_DIMENSION).fill(0.1); // Dummy embedding
+    const testEmbedding = Array(EMBEDDING_DIMENSION).fill(0.1); // Fixed smoke-test vector.
     const searchSql = `
       SELECT id, content, embedding <=> $1::extensions.halfvec AS distance
       FROM documents
@@ -669,8 +613,8 @@ async function validateStorage() {
 }
 
 /**
- * Main execution pipeline
- * @async
+ * CLI entry for storing embedded chunks and validating the target database when enabled.
+ * Exits with status 1 when any required storage step fails.
  */
 export async function main() {
   try {
@@ -688,25 +632,21 @@ export async function main() {
       'Embedding storage pipeline started',
     );
 
-    // Verify embedding dimension in database matches expected dimension from model configuration (skip in dry-run)
     if (!DRY_RUN) {
       await verifyEmbeddingDimension(pgPool, EMBEDDING_DIMENSION);
     }
 
-    // Store documents
     const storedCount = await storeDocuments(streamEmbeddedChunks(embeddedChunksPath));
 
-    // Validate storage (skip in dry-run)
     if (!DRY_RUN) {
       await validateStorage();
     } else {
       logger.info({ archive: useArchive }, 'Dry-run mode: skipped validation');
     }
 
-    // Success summary
     logger.info({ storedCount, destination: storageDest }, 'Embedding storage complete');
-  } catch (err) {
-    logger.error({ err }, 'STORAGE FAILED');
+  } catch (error) {
+    logger.error({ error }, 'STORAGE FAILED');
     process.exit(1);
   }
 }
@@ -714,8 +654,8 @@ export async function main() {
 // Self-executing module
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main()
-    .catch((err) => {
-      logger.error({ err }, 'Fatal error in embedding storage pipeline');
+    .catch((error) => {
+      logger.error({ error }, 'Fatal error in embedding storage pipeline');
       process.exit(1);
     })
     .finally(async () => {

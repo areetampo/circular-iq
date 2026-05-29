@@ -1,6 +1,5 @@
 /**
- * @module run_and_save_test_assessments
- * @description End-to-end test runner — scores generated inputs against the live API and saves assessments.
+ * End-to-end test runner — scores generated inputs against the live API and saves assessments.
  * Uses test Supabase credentials and checkpoint files for resumable batch runs.
  */
 
@@ -33,7 +32,6 @@ const TEST_USER_PASSWORD = BACKEND_CONFIG.testCredentials.password;
 const RATE_LIMIT_PER_MINUTE = 10;
 const DELAY_MS = (60 * 1000) / RATE_LIMIT_PER_MINUTE; // 6000 ms
 
-// --- CLI flag parsing ---
 const args = process.argv.slice(2);
 
 /**
@@ -61,6 +59,7 @@ const totalOverride =
 /**
  * Signs in the configured test user and returns a Supabase access token.
  * @returns {Promise<string>} Bearer token for API calls.
+ * @throws {Error} If Supabase rejects the configured test credentials.
  */
 async function getAuthToken() {
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -74,9 +73,11 @@ async function getAuthToken() {
 
 /**
  * POSTs one assessment payload to `/api/score`.
+ *
  * @param {string} token - Supabase JWT.
- * @param {Object} payload - Assessment inputs.
- * @returns {Promise<Object>} Scoring API JSON response.
+ * @param {{ businessProblem: string, businessSolution: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> }} payload - Assessment inputs accepted by `/api/score`.
+ * @returns {Promise<Record<string, unknown>>} Parsed scoring result object used as `result_json` when saving the assessment.
+ * @throws {Error} If the request fails, the response body is invalid JSON, or the score API returns a non-2xx response.
  */
 async function callScoreAPI(token, payload) {
   const res = await fetch(`${API_URL}/api/score`, {
@@ -88,17 +89,19 @@ async function callScoreAPI(token, payload) {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(`Score API error (${res.status}): ${err.message || err.error}`);
+    const error = await res.json();
+    throw new Error(`Score API error (${res.status}): ${error.message || error.error}`);
   }
   return res.json();
 }
 
 /**
  * POSTs a scored assessment to `/api/assessments`.
+ *
  * @param {string} token - Supabase JWT.
- * @param {Object} savePayload - Save payload including `name` and `result`.
- * @returns {Promise<Object>} Save API JSON response.
+ * @param {{ name: string, result_json: Record<string, unknown>, [key: string]: unknown }} savePayload - Save payload including the assessment name and score result.
+ * @returns {Promise<Record<string, unknown>>} Parsed saved-assessment response from the API.
+ * @throws {Error} If the request fails, the response body is invalid JSON, or the save API returns a non-2xx response.
  */
 async function callSaveAPI(token, savePayload) {
   const res = await fetch(`${API_URL}/api/assessments`, {
@@ -110,34 +113,33 @@ async function callSaveAPI(token, savePayload) {
     body: JSON.stringify(savePayload),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(`Save API error (${res.status}): ${err.message || err.error}`);
+    const error = await res.json();
+    throw new Error(`Save API error (${res.status}): ${error.message || error.error}`);
   }
   return res.json();
 }
 
 /**
  * Reads the resumable batch index from the checkpoint file.
- * @returns {Promise<{ lastIndex: number }>}
+ *
+ * @returns {Promise<{ lastIndex: number }>} Last completed input index; returns `{ lastIndex: 0 }` when the checkpoint is missing or unreadable.
  */
 async function loadCheckpoint() {
   if (fs.existsSync(CHECKPOINT_FILE)) {
-    // Use prepareWrite to unlock file for reading
     try {
       await prepareWrite(CHECKPOINT_FILE);
 
       const data = JSON.parse(fs.readFileSync(CHECKPOINT_FILE, 'utf8'));
 
-      // Lock file back to read-only
       try {
         await fs.promises.chmod(CHECKPOINT_FILE, 0o444);
       } catch {
-        // ignore errors on platforms that don't support chmod
+        // Some platforms ignore POSIX-style read-only permissions.
       }
 
       return data;
-    } catch (err) {
-      logger.error({ err }, 'Failed to load checkpoint');
+    } catch (error) {
+      logger.error({ error }, 'Failed to load checkpoint');
       return { lastIndex: 0 };
     }
   }
@@ -146,87 +148,82 @@ async function loadCheckpoint() {
 
 /**
  * Persists the last successfully processed input index.
+ *
  * @param {number} index - Zero-based index to resume from next run.
- * @returns {Promise<void>}
+ * @throws {Error} If the checkpoint file cannot be written.
  */
 async function saveCheckpoint(index) {
   await writeJson(CHECKPOINT_FILE, { lastIndex: index });
 }
 
 /**
- * Loads or fetches Pokémon names used as random assessment titles.
- * @returns {Promise<string[]>} Name list (empty array when PokéAPI fetch fails).
+ * Loads cached Pokemon names or fetches them for random assessment titles.
+ *
+ * @returns {Promise<string[]>} Name list, or an empty array when PokeAPI fetch fails.
+ * @throws {Error} If the cached names file cannot be read or parsed.
  */
 async function getPokemonList() {
-  // Check if the file exists
   if (fs.existsSync(POKEMON_NAMES_FILE)) {
     logger.info('Found cached pokemon_names.json, loading...');
-    // Use prepareWrite to unlock file for reading
     await prepareWrite(POKEMON_NAMES_FILE);
 
     const data = fs.readFileSync(POKEMON_NAMES_FILE, 'utf8');
     const pokemon = JSON.parse(data);
 
-    // Lock file back to read-only (writeJson will do this, but we need to lock now)
     try {
       await fs.promises.chmod(POKEMON_NAMES_FILE, 0o444);
     } catch {
-      // ignore errors on platforms that don't support chmod
+      // Some platforms ignore POSIX-style read-only permissions.
     }
 
     return pokemon;
   }
 
-  // If not, call the API
   logger.info('File not found. Fetching from PokéAPI...');
   try {
-    // Using the standard PokéAPI for names:
     const pokeRes = await fetch('https://pokeapi.co/api/v2/pokemon?limit=2000');
     const pokeData = await pokeRes.json();
 
-    // Clean names (split at first hyphen)
+    // Drop form suffixes so generated assessment titles use base Pokemon names.
     const names = pokeData.results.map((p) => p.name.split('-')[0]);
 
-    // Save the file using datasetsUtils writeJson (handles locking)
     await writeJson(POKEMON_NAMES_FILE, names);
     logger.info('Successfully created pokemon_names.json');
 
     return names;
-  } catch (err) {
-    logger.error({ err }, 'Failed to fetch Pokemon names');
+  } catch (error) {
+    logger.error({ error }, 'Failed to fetch Pokemon names');
     return [];
   }
 }
 
 /**
- * CLI entry: scores generated inputs via live APIs with rate limiting and checkpoint resume.
- * @returns {Promise<void>}
+ * CLI entry that scores generated inputs via live APIs with rate limiting and checkpoint resume.
+ *
+ * @throws {Error} If setup, scoring, saving, checkpointing, or input parsing fails.
  */
 async function main() {
   const pokemonNames = await getPokemonList();
 
-  // Use assertFileExists for better error handling
   try {
     assertFileExists(INPUT_FILE, 'Input file');
-  } catch (err) {
+  } catch (error) {
     logger.error(
-      { INPUT_FILE, err },
+      { INPUT_FILE, error },
       'Input file not found, run pipeline/rag/generate_test_inputs.js first.',
     );
     process.exit(1);
   }
 
-  // Use prepareWrite to unlock input file for reading
   await prepareWrite(INPUT_FILE);
 
   const inputs = JSON.parse(fs.readFileSync(INPUT_FILE, 'utf8'));
   logger.info({ total: inputs.length }, 'Loaded inputs');
 
-  // Lock input file back to read-only
   try {
     await fs.promises.chmod(INPUT_FILE, 0o444);
   } catch {
-    // ignore errors on platforms that don't support chmod
+    // Some platforms ignore POSIX-style read-only permissions.
   }
 
   const token = await getAuthToken();
@@ -234,7 +231,6 @@ async function main() {
 
   const checkpoint = await loadCheckpoint();
 
-  // If --checkpoint= flag provided, override and persist it before starting
   if (checkpointOverride !== null) {
     logger.info({ checkpointOverride }, 'Overriding checkpoint via --checkpoint= flag');
     checkpoint.lastIndex = checkpointOverride;
@@ -243,7 +239,6 @@ async function main() {
 
   const start = checkpoint.lastIndex;
 
-  // Determine the end index: honour --total= if provided
   const end =
     totalOverride !== null ? Math.min(start + totalOverride, inputs.length) : inputs.length;
 
@@ -264,10 +259,10 @@ async function main() {
     let scoringResult;
     try {
       scoringResult = await callScoreAPI(token, scorePayload);
-    } catch (err) {
-      logger.error({ index: i, err }, 'Scoring failed');
+    } catch (error) {
+      logger.error({ index: i, error }, 'Scoring failed');
       saveCheckpoint(i);
-      throw err;
+      throw error;
     }
 
     const savePayload = {
@@ -284,10 +279,10 @@ async function main() {
     logger.info({ currentlySaving: i + 1, totalToSave: end }, 'Saving...');
     try {
       await callSaveAPI(token, savePayload);
-    } catch (err) {
-      logger.error({ index: i, err }, 'Save failed');
+    } catch (error) {
+      logger.error({ index: i, error }, 'Save failed');
       saveCheckpoint(i);
-      throw err;
+      throw error;
     }
 
     saveCheckpoint(i + 1);
@@ -298,15 +293,15 @@ async function main() {
   }
 
   logger.info('All assessments completed!');
-  // Clean up checkpoint file by unlocking and removing it
+  // A fully completed run should not resume from a stale checkpoint next time.
   if (fs.existsSync(CHECKPOINT_FILE)) {
     try {
       fs.chmodSync(CHECKPOINT_FILE, 0o644);
       fs.unlinkSync(CHECKPOINT_FILE);
     } catch {
-      // ignore errors
+      // Leave the checkpoint in place if cleanup fails; the logged completion is still authoritative.
     }
   }
 }
 
-main().catch((err) => logger.error({ err }, 'Fatal error'));
+main().catch((error) => logger.error({ error }, 'Fatal error'));

@@ -1,24 +1,6 @@
 /**
- * @module generate_embeddings
- * @description OpenAI embedding generation step — reads chunks.json and writes embedded_chunks.
- *
- * Processes chunks and generates embeddings using OpenAI.
- * Reads pre-generated chunks from generate_chunks.js output.
- * Stores embeddedChunks in backend/datasets/out/ for later storage in Supabase.
- *
- * Usage: node generate_embeddings.js [options]
- * Options:
- *   --archives           Use archives paths
- *   --dry-run            Generate fake embeddings locally
- *   --skip-fields        Only embed chunk content, not individual fields
- *   --resume             Resume from existing progress file
- *
- * Important: If using --archives or --skip-fields, use the same flags when resuming.
- * Do not delete or modify the output file between runs – it’s your checkpoint.
- *
- * Defaults: datasets/out~archives/chunks.json → datasets/out~archives/embedded_chunks.json
- *
- * Uses centralized embedding configuration from backend/utils/embedding.js
+ * Pipeline step: `chunks.json` → `embedded_chunks.jsonl` via OpenAI (or `--dry-run` fakes).
+ * Flags: `--archives`, `--dry-run`, `--skip-fields`, `--resume` (keep flags consistent across resumes).
  */
 
 import '#server/bootstrap.js';
@@ -103,10 +85,11 @@ if (!DRY_RUN) {
 // ----- I/O helpers -----
 
 /**
- * Load pre-generated chunks from generate_chunks.js output
- * @param {string} chunksFilePath - Path to chunks.json
- * @returns {Array} Array of chunk objects
- * @throws {Error} If file not found or invalid JSON
+ * Loads pre-generated chunks from `generate_chunks.js` output.
+ *
+ * @param {string} chunksFilePath - Path to the selected chunks JSON file.
+ * @returns {Array<{ id: string, content: string, metadata?: Record<string, unknown>, [key: string]: unknown }>} Parsed chunk objects loaded from the selected chunks JSON file.
+ * @throws {Error} If the file is missing, unreadable, invalid JSON, or not a JSON array.
  */
 export function loadChunks(chunksFilePath) {
   if (!fs.existsSync(chunksFilePath)) {
@@ -131,10 +114,12 @@ export function loadChunks(chunksFilePath) {
 // ================= CORE LOGIC =================
 
 /**
- * Generate embeddings for chunks using OpenAI with retry logic
- * @param {Array} chunks - Array of chunk objects
- * @returns {Promise<Array>} Chunks with embedded vectors
- * @throws {Error} If embedding generation fails after retries
+ * Generates document and field embeddings, writing completed chunks incrementally to JSONL.
+ * Resume mode appends to the output file and skips embeddings already present there.
+ *
+ * @param {Array<{ id: string, content: string, metadata?: Record<string, unknown>, [key: string]: unknown }>} chunks - Chunk objects whose text fields need embedding vectors.
+ * @param {{ progressPath?: string|null, resume?: boolean }} [opts={}] - Output JSONL path and whether to append while reusing existing embeddings.
+ * @throws {Error} If output streaming fails or an OpenAI batch fails after retries.
  */
 export async function generateEmbeddings(chunks, opts = {}) {
   const { progressPath = null, resume = false } = opts;
@@ -190,8 +175,8 @@ export async function generateEmbeddings(chunks, opts = {}) {
           }
         }
         existingEmbeddings.set(chunkId, existing);
-      } catch (err) {
-        logger.warn({ lineNumber: lineCount, err }, 'Skipping malformed line');
+      } catch (error) {
+        logger.warn({ lineNumber: lineCount, error }, 'Skipping malformed line');
       }
     }
     logger.info({ count: existingEmbeddings.size }, 'Loaded embeddings from previous run');
@@ -405,8 +390,8 @@ export async function generateEmbeddings(chunks, opts = {}) {
 // ================= MAIN EXECUTION PIPELINE =================
 
 /**
- * Main execution pipeline
- * @async
+ * CLI entry for loading chunks and writing embedded chunk JSONL output.
+ * Exits with status 1 when loading or embedding fails.
  */
 export async function main() {
   try {
@@ -420,30 +405,27 @@ export async function main() {
       'Starting embedding generation pipeline',
     );
 
-    // Step 1: Load chunks
     const chunks = loadChunks(chunksPath);
 
-    // Step 2: Generate embeddings with full error handling
     await generateEmbeddings(chunks, {
       progressPath: outputPath,
       resume: RESUME,
     });
 
-    // Success summary
     logger.info(
       { outputPath: path.relative(process.cwd(), outputPath) },
       'Embedding generation complete',
     );
-  } catch (err) {
-    logger.error({ err }, 'Embedding generation failed');
+  } catch (error) {
+    logger.error({ error }, 'Embedding generation failed');
     process.exit(1);
   }
 }
 
 // Self-executing module
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((err) => {
-    logger.error({ err }, 'Fatal error');
+  main().catch((error) => {
+    logger.error({ error }, 'Fatal error');
     process.exit(1);
   });
 }
