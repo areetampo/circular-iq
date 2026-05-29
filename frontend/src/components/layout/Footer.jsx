@@ -1,9 +1,7 @@
-/**
- * @module Footer
- * @description Layout — Footer.
- */
+/** Site footer with brand summary, route links, and external contact icons. */
 
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { motion } from 'framer-motion';
 import { Citrus, Copyright } from 'lucide-react';
@@ -28,22 +26,26 @@ const socialLinks = [
     icon: faGithub,
     url: 'https://github.com/areetampo/circular-economy',
   },
+  {
+    name: 'Email',
+    icon: faEnvelope,
+    url: 'mailto:areebrawl@gmail.com',
+  },
 ];
 
 /**
- * Layout — Footer.
- * @returns {import('react').ReactElement}
+ * Renders the global site footer with internal navigation and external contact links.
  */
 export default function Footer() {
   return (
     <footer className="relative mt-auto border-t-2 border-(--color-border-ui)">
-      {/* Subtle gradient overlay */}
+      {/* Overlay fades the footer into the page background without adding another section wrapper. */}
       <div className="absolute inset-0 bg-linear-to-b from-transparent via-(--color-bg) to-(--color-bg) opacity-90" />
 
       <div className="relative z-10">
         <div className="mx-auto max-w-7xl px-8 py-6">
           <div className="grid grid-cols-1 gap-8 xs_sm:grid-cols-2 md:grid-cols-3">
-            {/* Brand Section */}
+            {/* Brand block carries the footer value prop and contact links. */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -66,25 +68,27 @@ export default function Footer() {
               </p>
 
               <div className="-mt-1 flex flex-col items-start gap-2">
-                {socialLinks.map((social) => (
-                  <a
-                    key={social.name}
-                    href={social.url}
-                    className="text-(--color-text-muted) transition-colors duration-200 hover:text-(--color-accent)"
-                    aria-label={social.name}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <FontAwesomeIcon icon={faGithub} size="xl" />
-                  </a>
-                ))}
+                <div className="flex items-center gap-2">
+                  {socialLinks.map((social) => (
+                    <a
+                      key={social.name}
+                      href={social.url}
+                      className="text-(--color-text-muted) transition-colors duration-200 hover:text-(--color-accent)"
+                      aria-label={social.name}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <FontAwesomeIcon icon={social.icon} size="xl" />
+                    </a>
+                  ))}
+                </div>
                 <p className="max-w-xs text-xs/relaxed text-(--color-text-secondary) italic">
                   ~ Made by Areeb and Mahit <Citrus className="mb-0.5 ml-0.75 inline" size={12} /> ~
                 </p>
               </div>
             </motion.div>
 
-            {/* Navigation Links */}
+            {/* Navigation links use CSS columns, so each link must avoid column breaks. */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -100,7 +104,6 @@ export default function Footer() {
                     key={link.name}
                     to={link.href}
                     className={cn(
-                      // 'break-inside-avoid' is critical to prevent a link from being split between two columns
                       'block break-inside-avoid text-sm text-(--color-text-muted)',
                       'transition-all duration-200 ease-in-out',
                       'hover:translate-x-1 hover:font-medium hover:text-(--color-dark-brown)',
@@ -112,7 +115,7 @@ export default function Footer() {
               </nav>
             </motion.div>
 
-            {/* Platform Info */}
+            {/* Platform stats reinforce what the evaluator is built on. */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -134,7 +137,7 @@ export default function Footer() {
             </motion.div>
           </div>
 
-          {/* Bottom Bar */}
+          {/* Copyright bar stays centered across responsive footer layouts. */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}

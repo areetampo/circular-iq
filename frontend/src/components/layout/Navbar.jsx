@@ -1,7 +1,4 @@
-/**
- * @module Navbar
- * @description Layout — Navbar.
- */
+/** Primary site navigation with auth popovers and session-aware secondary links. */
 
 import { Avatar, Popover, Tooltip } from '@heroui/react';
 import { Menu } from 'lucide-react';
@@ -15,7 +12,7 @@ import { formatTimestamp, getUserInitials } from '@/lib/formatting';
 import { cn } from '@/utils/cn';
 import { getSession } from '@/utils/session';
 
-// Navigation items
+/** Primary route links shown directly in the desktop header and mobile menu. */
 const navItemsPrimary = [
   { id: 'assessments', name: 'My Assessments', path: '/assessments' },
   { id: 'solutions', name: 'Solutions', path: '/solutions' },
@@ -23,6 +20,7 @@ const navItemsPrimary = [
   { id: 'guide', name: 'Guide', path: '/guide' },
 ];
 
+/** Secondary route links shown inside the desktop and mobile popovers. */
 const navItemsSecondary = [
   {
     id: 'share',
@@ -52,8 +50,9 @@ const navItemsSecondary = [
 
 /**
  * Tooltip copy for the "Recover Calculation" nav item based on session state.
- * @param {Object|null} sessionData - Persisted evaluation session payload.
- * @returns {string}
+ *
+ * @param {Object|null|undefined} sessionData - Stored session payload returned by `getSession()`.
+ * @returns {string} Tooltip copy describing whether a previous calculation is available.
  */
 const getTooltipTextForUnsavedResults = (sessionData) => {
   const hasResults = Boolean(sessionData?.results);
@@ -70,16 +69,8 @@ const getTooltipTextForUnsavedResults = (sessionData) => {
   return 'View the results of your last calculation';
 };
 
-// --- Shared sub-components ---
-
 /**
- * Single primary or secondary nav link (or disabled placeholder).
- * @param {Object} props
- * @param {{ id: string, name: string, path: string }} props.item
- * @param {boolean} props.isActive
- * @param {boolean} props.isDisabled
- * @param {() => void} [props.onClose] - Called after navigation (closes mobile menu).
- * @returns {import('react').ReactElement}
+ * Renders a primary or secondary nav link, or a disabled placeholder when navigation is unavailable.
  */
 function NavLinkItem({ item, isActive, isDisabled, onClose }) {
   const linkClass = cn(
@@ -118,12 +109,7 @@ NavLinkItem.propTypes = {
 };
 
 /**
- * Renders secondary nav links with session-aware disable/tooltip for unsaved results.
- * @param {Object} props
- * @param {boolean} props.isAuthenticated
- * @param {(path: string) => boolean} props.isActivePath
- * @param {() => void} [props.onClose]
- * @returns {import('react').ReactElement}
+ * Renders secondary nav links with session-aware disable and tooltip state for unsaved results.
  */
 function SecondaryNavItems({ isAuthenticated, isActivePath, onClose }) {
   return navItemsSecondary.map((item) => {
@@ -174,13 +160,7 @@ SecondaryNavItems.propTypes = {
 };
 
 /**
- * Avatar and username block at the top of the profile popover.
- * @param {Object} props
- * @param {Object|null} props.profile
- * @param {Object|null} props.user
- * @param {(name: string) => string} props.getUserInitials
- * @param {() => string} props.getUsername
- * @returns {import('react').ReactElement}
+ * Renders the authenticated user's avatar and username at the top of the profile popover.
  */
 function ProfileHeader({ profile, user, getUserInitials, getUsername }) {
   return (
@@ -211,13 +191,7 @@ ProfileHeader.propTypes = {
 };
 
 /**
- * Sign-in link or sign-out button at the bottom of the nav popover.
- * @param {Object} props
- * @param {boolean} props.isAuthenticated
- * @param {() => void} props.onSignOut
- * @param {() => void} props.onClose
- * @param {import('react-router-dom').Location} props.location
- * @returns {import('react').ReactElement}
+ * Renders the sign-in link or sign-out button at the bottom of the nav popover.
  */
 function AuthAction({ isAuthenticated, onSignOut, onClose, location }) {
   return (
@@ -260,11 +234,8 @@ AuthAction.propTypes = {
   }).isRequired,
 };
 
-// --- Main component ---
-
 /**
- * Layout — Navbar.
- * @returns {import('react').ReactElement}
+ * Renders the sticky site header with desktop and mobile auth/navigation popovers.
  */
 export default function Navbar() {
   const navigate = useNavigate();
@@ -279,7 +250,7 @@ export default function Navbar() {
       await signOut?.();
       navigate('/auth', { state: { from: location } });
     } catch (error) {
-      logger.error('Sign out error:', error);
+      logger.error('[NAVBAR:SIGN_OUT_FAILED]', error);
     }
   };
 
@@ -303,13 +274,13 @@ export default function Navbar() {
   return (
     <nav className="sticky top-3 z-50 h-13 px-8">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between rounded-full border border-(--color-border-strong) bg-(--color-bg-alpha-60) px-6 shadow-sm backdrop-blur-3xl">
-        {/* Left -> Logo + Site Name */}
+        {/* Brand identity remains visible across all breakpoints. */}
         <div className="flex items-center gap-1">
           <SiteLogo />
           <SiteName className="font-display text-lg text-(--color-text-primary)" />
         </div>
 
-        {/* Middle -> desktop primary navigation items */}
+        {/* Desktop primary links stay outside the popover for faster route switching. */}
         <div className="hidden items-center gap-4 md:flex">
           {navItemsPrimary.map((item) => {
             const isActive = isActivePath(item.path);
@@ -332,7 +303,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Right -> sign in (for unauthenticated user) + hamburger menus */}
+        {/* Auth action and popover triggers live on the right side of the header. */}
         <div className="flex items-center gap-0">
           {!isAuthenticated && (
             <Button variant="ghost" size="sm" as={Link} to="/auth" state={{ from: location }}>
@@ -340,7 +311,7 @@ export default function Navbar() {
             </Button>
           )}
 
-          {/* Desktop Popover */}
+          {/* Desktop popover carries secondary navigation and authenticated profile actions. */}
           <Popover isOpen={isDesktopPopoverOpen} onOpenChange={setIsDesktopPopoverOpen}>
             <Popover.Trigger>
               {isAuthenticated ? (
@@ -391,7 +362,7 @@ export default function Navbar() {
             </Popover.Content>
           </Popover>
 
-          {/* Mobile Popover */}
+          {/* Mobile popover combines primary, secondary, and auth actions. */}
           <Popover
             isOpen={isMobilePopoverOpen}
             onOpenChange={setIsMobilePopoverOpen}
@@ -417,7 +388,7 @@ export default function Navbar() {
               <div className="flex flex-col">
                 {isAuthenticated && <ProfileHeader {...sharedProfileProps} />}
 
-                {/* Mobile primary nav items */}
+                {/* Primary links move into the popover on mobile. */}
                 <div className={cn(isAuthenticated ? '' : 'pt-1')}>
                   {navItemsPrimary.map((item) => {
                     const isActive = isActivePath(item.path);

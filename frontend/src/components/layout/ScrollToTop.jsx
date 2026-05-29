@@ -1,7 +1,4 @@
-/**
- * @module ScrollToTop
- * @description Route-change scroll manager: top on new results, restore on back, TTL memory.
- */
+/** Route-change scroll manager for result pages, back navigation, and short-lived scroll memory. */
 
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -9,47 +6,22 @@ import { useLocation } from 'react-router-dom';
 import { FRONTEND_CONFIG } from '@/config/frontend.config';
 
 /**
- * ScrollToTop Component
- *
- * Enhanced scroll behavior per UI-123:
- * - New results always start at top when navigating from landing page
- * - Preserves scroll position for previously visited routes during back/forward navigation
- * - Scroll position memory resets after 3 minutes of inactivity
- * - First-time visits to routes start at top, subsequent visits respect previous position
- *
- * This component should be placed high in the component tree,
- * typically in AppProvider or AppRoutes wrapper.
+ * Preserves route scroll positions for back/forward navigation and resets new result pages to top.
+ * Scroll memory expires after three minutes and result pages get extra enforcement for async layout shifts.
  */
 export default function ScrollToTop() {
-  // logger.info('ScrollToTop: === COMPONENT RENDER ===');
   const { pathname, state } = useLocation();
+
   const isPopStateRef = useRef(false);
   const previousPathnameRef = useRef(null);
   const lastResultIdRef = useRef(null);
-  const scrollMemoryRef = useRef(new Map()); // pathname -> { scrollY, timestamp }
+
+  // pathname -> { scrollY, timestamp }
+  const scrollMemoryRef = useRef(new Map());
+
   const cleanupTimeoutRef = useRef(null);
 
-  // Add a render counter to track component updates
-  const renderCountRef = useRef(0);
-  renderCountRef.current += 1;
-  // logger.info(`ScrollToTop: Render #${renderCountRef.current}`);
-  // logger.info('ScrollToTop: Current pathname:', pathname);
-  // logger.info('ScrollToTop: Current state:', state);
-  // logger.info('ScrollToTop: State keys:', state ? Object.keys(state) : 'no state');
-  // logger.info('ScrollToTop: Has result in state:', !!state?.result);
-  // logger.info(
-  //   'ScrollToTop: Result sample:',
-  //   state?.result
-  //     ? {
-  //         hasOverallScore: !!state.result.overall_score,
-  //         hasProcessingInfo: !!state.result.processing_info,
-  //         score: state.result.overall_score,
-  //         keys: Object.keys(state.result),
-  //       }
-  //     : 'no result',
-  // );
-
-  // Track popstate events (back/forward button presses)
+  // Browser back/forward navigation should restore route-specific scroll memory.
   useEffect(() => {
     const handlePopState = () => {
       isPopStateRef.current = true;
@@ -62,29 +34,23 @@ export default function ScrollToTop() {
     };
   }, []);
 
-  // Generate a unique identifier for results to detect new vs existing
+  /**
+   * Builds a stable identifier for result payloads so new results can force top-scroll behavior.
+   *
+   * @param {Object|null|undefined} result - Location state result payload or nested result wrapper.
+   * @returns {string|null} Request/public ID when available, otherwise a content-derived fallback key.
+   */
   const getResultId = (result) => {
-    // logger.info('ScrollToTop: getResultId called with result:', result);
+    if (!result) return null;
 
-    if (!result) {
-      // logger.info('ScrollToTop: No result provided');
-      return null;
-    }
-
-    // Handle the case where result might be nested (result.result)
     const actualResult = result?.result || result;
-    // logger.info('ScrollToTop: Using actualResult:', actualResult);
 
-    // For /results page, use request_id from processing_info
+    // Request IDs are the most reliable way to distinguish calculations.
     if (actualResult?.processing_info?.request_id) {
-      // logger.info(
-      //   'ScrollToTop: Using processing_info.request_id:',
-      //   actualResult.processing_info.request_id,
-      // );
       return actualResult.processing_info.request_id;
     }
 
-    // For saved assessments (/assessments/id), try other possible unique identifiers
+    // Saved or shared assessments may only expose public or assessment IDs.
     const possibleIds = [
       actualResult?.id,
       actualResult?.public_id,
@@ -93,53 +59,51 @@ export default function ScrollToTop() {
     ];
 
     for (const id of possibleIds) {
-      if (id) {
-        // logger.info('ScrollToTop: Using fallback ID:', id);
-        return id;
-      }
+      if (id) return id;
     }
 
-    // Enhanced fallback: generate a stable hash from result content
+    // Last fallback uses score and text snippets to distinguish anonymous calculations.
     const score = actualResult?.overall_score || 0;
+
     const problemHash = actualResult?.business_problem
       ? actualResult.business_problem.slice(0, 100).replace(/\s+/g, '').trim()
       : '';
+
     const solutionHash = actualResult?.business_solution
       ? actualResult.business_solution.slice(0, 100).replace(/\s+/g, '').trim()
       : '';
+
     const categoryScores = actualResult?.category_scores
       ? JSON.stringify(actualResult.category_scores)
       : '';
+
     const confidence = actualResult?.confidence_level || 0;
 
-    // Create a stable hash from the actual result content
-    const contentHash = `${score}_${confidence}_${problemHash}_${solutionHash}_${categoryScores}`;
-    // logger.info('ScrollToTop: Using stable content hash ID:', contentHash);
-    return contentHash;
+    return `${score}_${confidence}_${problemHash}_${solutionHash}_${categoryScores}`;
   };
 
-  // Track scroll position changes and store them in memory
+  // Track scroll position changes and store them in memory.
   useEffect(() => {
     const handleScroll = () => {
       const currentPath = window.location.pathname;
       const scrollY = window.scrollY;
 
-      // Only store scroll position if user has scrolled down significantly
+      // Tiny scroll offsets are usually layout noise and should not override useful memory.
       if (scrollY > 50) {
         scrollMemoryRef.current.set(currentPath, {
           scrollY,
           timestamp: Date.now(),
         });
 
-        // Clear any existing cleanup timeout
         if (cleanupTimeoutRef.current) {
           clearTimeout(cleanupTimeoutRef.current);
         }
 
-        // Set cleanup timeout to expire scroll memory after 3 minutes
+        // Cleanup is delayed until scrolling occurs so idle pages do no extra work.
         cleanupTimeoutRef.current = setTimeout(
           () => {
             const now = Date.now();
+
             for (const [path, memory] of scrollMemoryRef.current.entries()) {
               if (now - memory.timestamp >= 3 * 60 * 1000) {
                 scrollMemoryRef.current.delete(path);
@@ -151,271 +115,186 @@ export default function ScrollToTop() {
       }
     };
 
-    // Throttle scroll events to avoid excessive updates
+    // Throttle scroll writes during continuous scrolling.
     let scrollTimeout;
+
     const throttledHandleScroll = () => {
       if (scrollTimeout) return;
+
       scrollTimeout = setTimeout(() => {
         handleScroll();
         scrollTimeout = null;
       }, 100);
     };
 
-    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    window.addEventListener('scroll', throttledHandleScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener('scroll', throttledHandleScroll);
-      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
     };
   }, []);
 
-  // Simple direct approach: force scroll to top on results page when coming from landing page
+  // Main route-change scroll logic.
   useEffect(() => {
-    // logger.info('ScrollToTop: === ROUTE CHANGE DETECTED ===', {
-    //   pathname,
-    //   previousPathname: previousPathnameRef.current,
-    //   state,
-    //   isInitialLoad: previousPathnameRef.current === null,
-    //   timestamp: new Date().toISOString(),
-    // });
-
-    // Skip scroll on initial load
+    // Initial load lets the browser keep its current position.
     if (previousPathnameRef.current === null) {
-      // logger.info('ScrollToTop: Initial load, setting previous pathname');
       previousPathnameRef.current = pathname;
       return;
     }
 
-    // If the pathname changed
+    // Ignore state-only updates that do not change the path.
     if (pathname !== previousPathnameRef.current) {
-      // logger.info(
-      //   'ScrollToTop: Pathname changed from',
-      //   previousPathnameRef.current,
-      //   'to',
-      //   pathname,
-      // );
-      // logger.info('ScrollToTop: Location state details:', {
-      //   hasState: !!state,
-      //   hasResult: !!state?.result,
-      //   resultKeys: state?.result ? Object.keys(state.result) : [],
-      //   isRestored: state?.isRestored,
-      // });
-
-      // SIMPLIFIED LOGIC: Force scroll to top for all results and assessments page navigation
       const isAssessmentRoute = pathname.startsWith('/assessments/');
       const hasResultData = state?.result;
       const isNotRestored = !state?.isRestored;
 
+      // New result and assessment navigations should begin at the top, regardless of prior memory.
       if (
         (pathname.startsWith('/results') || isAssessmentRoute) &&
         (hasResultData || isAssessmentRoute) &&
         isNotRestored
       ) {
-        // logger.info('ScrollToTop: SIMPLIFIED - Forcing scroll to top for results/assessments', {
-        //   hasResultData,
-        //   isAssessmentRoute,
-        // });
-
-        // Multiple attempts to scroll to top
         const scrollToTopMultiple = () => {
-          // logger.info('ScrollToTop: Attempting scroll to top - current position:', window.scrollY);
           window.scrollTo(0, 0);
 
-          // Check if scroll worked
           setTimeout(() => {
-            // logger.info('ScrollToTop: After scroll attempt - position:', window.scrollY);
             if (window.scrollY > 10) {
-              // logger.warn('ScrollToTop: Scroll failed, trying again');
               window.scrollTo(0, 0);
-              setTimeout(() => {
-                // logger.info('ScrollToTop: Second attempt - position:', window.scrollY);
-              }, 100);
             }
           }, 100);
         };
 
-        // Immediate attempt
+        // Repeat after async rendering/content shifts that can push the page back down.
         scrollToTopMultiple();
-
-        // Delayed attempts
         setTimeout(scrollToTopMultiple, 300);
         setTimeout(scrollToTopMultiple, 1000);
       } else {
-        // Use original logic for other cases
         const scrollAction = getScrollAction(pathname, state, previousPathnameRef.current);
 
-        // logger.info('ScrollToTop: === SCROLL DECISION ===', {
-        //   action: scrollAction.action,
-        //   scrollY: scrollAction.scrollY,
-        //   pathname,
-        //   hasResult: !!state?.result,
-        //   resultId: state?.result ? getResultId(state.result) : 'no-result',
-        // });
-
-        // Execute the determined scroll action
         window.requestAnimationFrame(() => {
-          // logger.info('ScrollToTop: === EXECUTING SCROLL ACTION ===', scrollAction.action);
           switch (scrollAction.action) {
             case 'scrollToTop':
-              // logger.info(
-              //   'ScrollToTop: EXECUTING scroll to top - current position:',
-              //   window.scrollY,
-              // );
-
-              // Immediate scroll
               window.scrollTo(0, 0);
-              // logger.info('ScrollToTop: After immediate scrollTo(0,0) - position:', window.scrollY);
 
-              // Delayed scroll to handle async content loading
+              // Handle delayed layout/content shifts after a normal scroll-to-top action.
               setTimeout(() => {
-                // logger.info('ScrollToTop: Delayed scroll check - position:', window.scrollY);
                 if (window.scrollY > 10) {
-                  // logger.warn('ScrollToTop: Page moved down, scrolling to top again');
                   window.scrollTo(0, 0);
-                  setTimeout(() => {
-                    // logger.info('ScrollToTop: Final scroll check - position:', window.scrollY);
-                  }, 100);
                 }
               }, 300);
 
               break;
+
             case 'restorePosition':
-              // logger.info(
-              //   'ScrollToTop: EXECUTING restore position to:',
-              //   scrollAction.scrollY,
-              //   '- current:',
-              //   window.scrollY,
-              // );
               window.scrollTo(0, scrollAction.scrollY);
-              // logger.info('ScrollToTop: After restore - position:', window.scrollY);
               break;
+
             case 'noScroll':
-              // logger.info('ScrollToTop: EXECUTING no scroll - current position:', window.scrollY);
+            default:
               break;
           }
         });
       }
 
-      // Reset the popstate flag after handling
       isPopStateRef.current = false;
       previousPathnameRef.current = pathname;
-      // logger.info('ScrollToTop: Updated previous pathname to:', pathname);
-    } else {
-      // logger.info('ScrollToTop: Pathname did not change, skipping scroll logic');
     }
   }, [pathname, state]);
 
-  // Determine scroll action based on route, navigation type, and scroll memory
-  const getScrollAction = (currentPath, locationState, previousPath) => {
-    // logger.info('ScrollToTop: getScrollAction called', {
-    //   currentPath,
-    //   previousPath,
-    //   hasResult: !!locationState?.result,
-    //   isRestored: locationState?.isRestored,
-    //   isPopState: isPopStateRef.current,
-    //   lastResultId: lastResultIdRef.current,
-    // });
-
-    // Don't scroll on popstate (back/forward button navigation) - restore position if available
+  /**
+   * Chooses the scroll action for a route based on navigation type, result identity, and memory.
+   *
+   * @param {string} currentPath - Current `location.pathname`.
+   * @param {Object|null|undefined} locationState - Current React Router location state.
+   * @returns {{ action: 'scrollToTop'|'restorePosition'|'noScroll', scrollY?: number }}
+   *   Scroll directive for the route-change effect.
+   */
+  const getScrollAction = (currentPath, locationState) => {
+    // Back/forward navigation restores recent scroll memory when available.
     if (isPopStateRef.current) {
-      // logger.info('ScrollToTop: Detected popstate navigation');
       const scrollMemory = scrollMemoryRef.current.get(currentPath);
+
       if (scrollMemory && Date.now() - scrollMemory.timestamp < 3 * 60 * 1000) {
-        // logger.info('ScrollToTop: Restoring scroll position from memory (popstate)', scrollMemory);
-        return { action: 'restorePosition', scrollY: scrollMemory.scrollY };
+        return {
+          action: 'restorePosition',
+          scrollY: scrollMemory.scrollY,
+        };
       }
-      // logger.info('ScrollToTop: No scroll position memory available (popstate)');
+
       return { action: 'noScroll' };
     }
 
-    // For results and assessments page, scroll to top for new evaluations only
+    // Results and assessment routes have special handling for new calculations and direct access.
     if (currentPath.startsWith('/results') || currentPath.startsWith('/assessments/')) {
-      // logger.info('ScrollToTop: Processing results/assessments page navigation');
       const result = locationState?.result;
       const resultId = getResultId(result);
       const isRestored = locationState?.isRestored;
 
-      // logger.info('ScrollToTop: Results page details', {
-      //   hasResult: !!result,
-      //   resultId,
-      //   isRestored,
-      //   lastResultId: lastResultIdRef.current,
-      // });
-
-      // Special handling for assessment routes that don't have navigation state
       const isAssessmentDetailRoute =
         currentPath.startsWith('/assessments/') &&
         !currentPath.includes('/share') &&
         !currentPath.includes('/compare') &&
-        currentPath.split('/').length === 3; // /assessments/:id format
+        currentPath.split('/').length === 3;
 
       const isAssessmentShareRoute =
         currentPath.startsWith('/assessments/share/') || currentPath === '/assessments/share';
+
       const isAssessmentCompareRoute = currentPath.startsWith('/assessments/compare');
 
-      // Force scroll to top for assessment routes when not restored from navigation
+      // Direct assessment route access has no result payload, so start from the top.
       if (
         (isAssessmentDetailRoute || isAssessmentShareRoute || isAssessmentCompareRoute) &&
         !isRestored &&
         !result
       ) {
-        // logger.info('ScrollToTop: ASSESSMENT ROUTE - No navigation state, forcing scroll to top', {
-        //   isAssessmentDetailRoute,
-        //   isAssessmentShareRoute,
-        //   isAssessmentCompareRoute,
-        // });
         return { action: 'scrollToTop' };
       }
 
-      // If we have a result and it's different from the last one, scroll to top
+      // New result payloads should reset once, then become eligible for restoration.
       if (result && resultId) {
         const isNewResult = resultId !== lastResultIdRef.current;
-        // logger.info('ScrollToTop: Results page evaluation', {
-        //   resultId,
-        //   lastResultId: lastResultIdRef.current,
-        //   isNewResult,
-        //   isRestored,
-        // });
 
         if (isNewResult && !isRestored) {
           lastResultIdRef.current = resultId;
-          // logger.info('ScrollToTop: NEW RESULT DETECTED - Scrolling to top');
+
           return { action: 'scrollToTop' };
-        } else {
-          // logger.info('ScrollToTop: Not a new result or is restored - checking scroll memory');
         }
-      } else {
-        // logger.info('ScrollToTop: No result or resultId available - checking scroll memory');
       }
 
-      // For results page without new result data, check if we have scroll memory
+      // Existing result routes restore recent scroll memory when available.
       const scrollMemory = scrollMemoryRef.current.get(currentPath);
+
       if (scrollMemory && Date.now() - scrollMemory.timestamp < 3 * 60 * 1000) {
-        // logger.info('ScrollToTop: Restoring scroll position for existing results', scrollMemory);
-        return { action: 'restorePosition', scrollY: scrollMemory.scrollY };
+        return {
+          action: 'restorePosition',
+          scrollY: scrollMemory.scrollY,
+        };
       }
 
-      // logger.info('ScrollToTop: No scroll memory for results page - not scrolling');
       return { action: 'noScroll' };
     }
 
-    // For other pages, check if we have scroll memory and it's not expired
-    // logger.info('ScrollToTop: Processing non-results page navigation');
+    // Other routes restore recent memory or start at top by default.
     const scrollMemory = scrollMemoryRef.current.get(currentPath);
+
     if (scrollMemory && Date.now() - scrollMemory.timestamp < 3 * 60 * 1000) {
-      // logger.info('ScrollToTop: Restoring scroll position for visited page', scrollMemory);
-      return { action: 'restorePosition', scrollY: scrollMemory.scrollY };
+      return {
+        action: 'restorePosition',
+        scrollY: scrollMemory.scrollY,
+      };
     }
 
-    // First visit to this route or memory expired, scroll to top
-    // logger.info('ScrollToTop: First visit or expired memory, scrolling to top');
     return { action: 'scrollToTop' };
   };
 
-  // Add immediate scroll check for results and assessments page with different approach
+  // Additional fallback scroll enforcement for results/assessment pages.
   useEffect(() => {
-    // logger.info('ScrollToTop: DIRECT CHECK - pathname:', pathname, 'has result:', !!state?.result);
-
     const isAssessmentRoute = pathname.startsWith('/assessments/');
     const hasResultData = state?.result;
     const isNotRestored = !state?.isRestored;
@@ -425,58 +304,44 @@ export default function ScrollToTop() {
       (hasResultData || isAssessmentRoute) &&
       isNotRestored
     ) {
-      // logger.info(
-      //   'ScrollToTop: DIRECT CHECK - Results/Assessments page detected, using multiple methods',
-      //   { hasResultData, isAssessmentRoute },
-      // );
-
-      // Method 1: Direct DOM manipulation
       const scrollDirect = () => {
-        // logger.info('ScrollToTop: Direct scroll - before:', window.scrollY);
-
-        // Try multiple scroll methods
         window.scrollTo(0, 0);
+
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
 
-        // Also try scrollIntoView on body
         if (document.body) {
-          document.body.scrollIntoView({ behavior: 'instant', block: 'start' });
+          document.body.scrollIntoView({
+            behavior: 'instant',
+            block: 'start',
+          });
         }
 
-        // Try setting CSS scroll-behavior
         document.documentElement.style.scrollBehavior = 'auto';
         document.body.style.scrollBehavior = 'auto';
-
-        // logger.info('ScrollToTop: Direct scroll - after:', window.scrollY);
       };
 
-      // Execute immediately and multiple times
       scrollDirect();
 
-      // Use setInterval for persistent attempts
       let attempts = 0;
+
       const intervalId = setInterval(() => {
         attempts++;
-        // logger.info(`ScrollToTop: Interval attempt ${attempts} - position:`, window.scrollY);
 
         if (window.scrollY > 10) {
           scrollDirect();
         }
 
         if (attempts >= 20) {
-          // Stop after 20 attempts (2 seconds)
           clearInterval(intervalId);
-          // logger.warn('ScrollToTop: Stopping interval attempts after max retries');
         }
       }, 100);
 
-      // Clear interval on cleanup
       return () => clearInterval(intervalId);
     }
   }, [pathname, state]);
 
-  // This component doesn't render anything normally, but add debug button for testing
+  // Hidden dev-only manual tester for route scroll behavior.
   if (!FRONTEND_CONFIG.isProd) {
     return (
       <div
@@ -493,23 +358,23 @@ export default function ScrollToTop() {
           display: 'none',
         }}
         onClick={() => {
-          // logger.info('ScrollToTop: TEST BUTTON CLICKED');
-          // logger.info('ScrollToTop: Current scroll position before:', window.scrollY);
           window.scrollTo(0, 0);
-          // logger.info('ScrollToTop: Current scroll position after:', window.scrollY);
 
-          // Test navigation to results page with mock data
           setTimeout(() => {
-            // logger.info('ScrollToTop: Testing navigation to /results with mock result');
             const mockResult = {
               overall_score: 75,
               business_problem: 'Test problem',
               business_solution: 'Test solution',
               confidence_level: 85,
             };
-            // Use React Router navigation instead of window.location
+
             window.history.pushState({ result: mockResult }, '', '/results');
-            window.dispatchEvent(new PopStateEvent('popstate', { state: { result: mockResult } }));
+
+            window.dispatchEvent(
+              new PopStateEvent('popstate', {
+                state: { result: mockResult },
+              }),
+            );
           }, 1000);
         }}
       >

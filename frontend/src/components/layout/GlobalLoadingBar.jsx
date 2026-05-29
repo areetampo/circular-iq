@@ -5,31 +5,12 @@ import { useLocation } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 
 /**
- * @module GlobalLoadingBar
- * @description Global loading bar component that displays a subtle top progress bar during route changes.
- * Shows a gradient progress bar at the top of the viewport when navigating between pages or on initial load.
- * Uses a shimmer animation effect and automatically hides when loading is complete.
- *
- * Behavior:
- * - Triggers on route changes (detected via useLocation hook)
- * - Shows progress from 10% to 100% over 500ms
- * - Fades out after 300ms delay then unmounts
- * - Includes animated shimmer effect for visual polish
- *
- * Colors: Uses --color-loading-bar* tokens (defined in index.css) — a warm toasted-walnut
- * tone that sits clearly darker than the creamy beige background without harsh contrast.
- *
- * @param {Object} props - Component props
- * @param {string} [props.className] - Additional CSS classes
- * @returns {JSX.Element|null} Rendered loading bar or null when not active
- *
- * @example
- * // Placed in AppProvider or root layout
- * <GlobalLoadingBar />
+ * Renders a top-of-viewport progress bar during route changes detected by `useLocation`.
+ * It animates from an in-progress width to complete over 500ms, then fades out.
  */
 export default function GlobalLoadingBar({ className, ...props }) {
   const location = useLocation();
-  // Three phases: 'idle' | 'loading' | 'done'
+  // Three phases control mount, progress width, and fade-out timing.
   const [phase, setPhase] = useState('idle');
 
   useEffect(() => {
@@ -38,7 +19,7 @@ export default function GlobalLoadingBar({ className, ...props }) {
     const completeTimer = setTimeout(() => {
       setPhase('done');
 
-      // After the fade-out transition finishes, unmount
+      // Wait for the CSS fade-out before removing the progress bar.
       const unmountTimer = setTimeout(() => setPhase('idle'), 400);
       return () => clearTimeout(unmountTimer);
     }, 500);
@@ -65,29 +46,28 @@ export default function GlobalLoadingBar({ className, ...props }) {
         aria-valuemin={0}
         aria-valuemax={100}
         className={cn(
-          // Pinned to the very top edge of the viewport, above everything
+          // Pin to the top edge above sticky navigation and dialogs.
           'fixed top-0 left-0 z-99999',
-          // Height — 3px is clean and unobtrusive
+          // Keep the bar slim enough to avoid shifting page content.
           'h-0.75',
-          // No shadow, no border — nothing that could produce a white line artefact
+          // Avoid border/shadow artifacts against the viewport edge.
           'border-none shadow-none outline-none',
-          // Width animates smoothly; opacity fades on done
+          // Width animates during loading and opacity handles completion.
           'transition-[width,opacity] duration-500 ease-out',
-          // Solid warm-brown colour, slightly darker than beige — no gradient needed
           'bg-(--color-accent)',
           phase === 'done' ? 'opacity-0' : 'opacity-100',
           className,
         )}
         style={{
-          // Nudge to 85% while loading, sweep to 100% on complete before fade
+          // Hold below full width until the route-change timeout completes.
           width: phase === 'loading' ? '85%' : '100%',
-          // Override any margin/padding that could push it down from the top
+          // Override inherited spacing that could push the fixed bar off the viewport edge.
           margin: 0,
           padding: 0,
           top: 0,
         }}
       >
-        {/* Subtle shimmer sweep — purely decorative */}
+        {/* Shimmer sweep is decorative and hidden from assistive tech. */}
         <div
           aria-hidden="true"
           style={{
