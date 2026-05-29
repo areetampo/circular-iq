@@ -1,6 +1,5 @@
 /**
- * @module SharePage
- * @description Public share entry: validate an assessment public ID and open the read-only results view.
+ * Public share entry for validating an assessment ID and routing to owner or read-only views.
  */
 
 import { FieldError, Input, Label, TextField } from '@heroui/react';
@@ -14,8 +13,7 @@ import { clearShareFormState, loadShareFormState, saveShareFormState } from '@/l
 import { isValidUUID } from '@/lib/validation';
 
 /**
- * Form to look up and navigate to a shared assessment by public UUID.
- * @returns {import('react').ReactElement}
+ * Form that validates a public UUID, preserves typed state, and navigates by ownership.
  */
 export default function SharePage() {
   const navigate = useNavigate();
@@ -92,8 +90,6 @@ export default function SharePage() {
     setValidationMessage('Checking assessment availability...');
 
     try {
-      // logger.log('Starting validation for:', id);
-
       // Use the validate function from the hook
       await validate();
 
@@ -126,11 +122,11 @@ export default function SharePage() {
       } else {
         navigate(`/assessments/share/${id}`);
       }
-    } catch (err) {
-      logger.error(err);
+    } catch (error) {
+      logger.error('[SHARE_PAGE:VALIDATION_FAILED]', error);
       setValidating(false);
       setValidationMessage(null);
-      setError(err.message || 'Invalid ID');
+      setError(error.message || 'Invalid ID');
     }
   };
 
