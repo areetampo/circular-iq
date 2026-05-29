@@ -1,6 +1,5 @@
 /**
- * @module FilterBar
- * @description Search, sort, and industry filter controls for the saved assessments list.
+ * Search, sort, and industry filter controls for the saved assessments list.
  */
 
 import { ListBox, SearchField, Select, Tooltip } from '@heroui/react';
@@ -13,21 +12,7 @@ import { Button } from '@/components/common';
 import IndustryFilterChip from './IndustryFilterChip';
 
 /**
- * Search, sort, and industry filter controls for the saved assessments list.
- *
- * @param {Object} props
- * @param {string} props.sortBy
- * @param {Function} props.setSortBy
- * @param {Function} props.setPage
- * @param {string} props.searchTerm
- * @param {Function} props.setSearchTerm
- * @param {Array<string>} props.industryOptions
- * @param {Set<string>|Array<string>} props.selectedIndustries
- * @param {Function} props.handleToggleIndustry
- * @param {Function} props.formatIndustryLabel
- * @param {Set<string>} props.selectedIds
- * @param {string} props.compareUrl
- * @returns {import('react').ReactElement}
+ * Renders search, sorting, industry filters, and compare/share navigation actions.
  */
 export default function FilterBar({
   sortBy,
@@ -97,7 +82,7 @@ export default function FilterBar({
           </Select>
         </div>
 
-        {/* 'to share page', 'to compare page', 'compare selected assessments' buttons */}
+        {/* Saved-list shortcuts and compare action depend on the current two-item selection. */}
         <div className="flex items-center justify-center gap-2">
           <Button
             variant="ghost"

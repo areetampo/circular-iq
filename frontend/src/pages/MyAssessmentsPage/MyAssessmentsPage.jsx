@@ -1,6 +1,5 @@
 /**
- * @module MyAssessmentsPage
- * @description Authenticated saved-assessments hub: filters, stats, list, and compare selection.
+ * Authenticated saved-assessments hub: filters, stats, list, and compare selection.
  */
 
 import { Input, Label, ListBox, Pagination, Select, Skeleton, toast } from '@heroui/react';
@@ -9,7 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
   Eraser,
-  Home,
+  LogIn,
   MoveLeft,
   Plus,
   RotateCw,
@@ -36,8 +35,7 @@ import { parseSortBy } from '@/utils/sortUtils';
 import { AssessmentList, AssessmentListSkeleton, FilterBar, StatsGrid } from './components';
 
 /**
- * Loads user assessments with pagination, filtering, and comparison mode.
- * @returns {import('react').ReactElement}
+ * Renders the authenticated assessments hub with URL-backed filters, stats, pagination, and compare selection.
  */
 export default function MyAssessmentsPage() {
   const { isAuthenticated, authLoading } = useAuth();
@@ -45,7 +43,8 @@ export default function MyAssessmentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionId = useMemo(() => getSessionId(), []);
-  const [selectedIds, setSelectedIds] = useState(new Map()); // Store id -> public_id mapping
+  // Keep internal ids for row selection while retaining public ids for the comparison URL.
+  const [selectedIds, setSelectedIds] = useState(new Map());
   const [sortBy, setSortBy] = useState('created_at_desc');
   const [selectedIndustries, setSelectedIndustries] = useState(['all']);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,42 +61,31 @@ export default function MyAssessmentsPage() {
   });
   const { openDeleteAssessmentDialog, openRenameAssessmentDialog } = useGlobalDialog();
 
-  // Available page size options
   const pageSizeOptions = useMemo(() => [5, 10, 20, 50, 100], []);
 
-  // Persist list filters in URL so users can share filtered lists
+  // Persist list filters in URL so users can share or revisit filtered lists.
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    // logger.info('INIT URL READING DEBUG: Reading URL parameters');
-
     const industries = searchParams.get('industry');
-    // logger.info('INIT URL READING DEBUG: industries from URL:', industries);
     if (industries) setSelectedIndustries(industries.split(',').filter(Boolean));
 
     const p = Number(searchParams.get('page') || 1);
-    // logger.info('INIT URL READING DEBUG: page from URL:', p);
     if (!Number.isNaN(p) && p > 0) setPage(p);
 
     const ps = Number(searchParams.get('pageSize') || 10);
-    // logger.info('INIT URL READING DEBUG: pageSize from URL:', ps);
     if (!Number.isNaN(ps) && ps > 0 && pageSizeOptions.includes(ps)) setPageSize(ps);
     else if (!Number.isNaN(ps) && ps > 0) setPageSize(10); // Default to 10 for invalid sizes
 
     const s = searchParams.get('search');
-    // logger.info('INIT URL READING DEBUG: search from URL:', s);
     if (s) setSearchTerm(s);
 
     const sb = searchParams.get('sortBy');
-    // logger.info('INIT URL READING DEBUG: sortBy from URL:', sb);
     if (sb) setSortBy(sb);
-
-    // Mark as initialized after reading URL parameters
-    // logger.info('INIT URL READING DEBUG: Setting isInitialized to true');
 
     setIsInitialized(true);
 
-    // Initialize previous filter values with current values to prevent false positives
+    // Seed previous values from the URL so initial hydration does not reset pagination.
     setPreviousFilterValues({
       debouncedSearchTerm: s || '',
       selectedIndustryKey: industries
@@ -107,21 +95,9 @@ export default function MyAssessmentsPage() {
     });
   }, []);
 
-  // sync params when debounced values change (only after initialization)
   useEffect(() => {
-    // Don't sync URL parameters during initialization to prevent overriding initial values
-    if (!isInitialized) {
-      // logger.info('URL SYNC DEBUG: Skipping - not initialized');
-      return;
-    }
-
-    // logger.info('URL SYNC DEBUG: Syncing URL params', {
-    //   selectedIndustries,
-    //   page,
-    //   pageSize,
-    //   searchTerm,
-    //   sortBy,
-    // });
+    // Avoid rewriting URL params until the initial values have been read.
+    if (!isInitialized) return;
 
     const params = new URLSearchParams(searchParams);
 
@@ -151,11 +127,10 @@ export default function MyAssessmentsPage() {
     if (sortBy && sortBy !== 'created_at_desc') params.set('sortBy', sortBy);
     else params.delete('sortBy');
 
-    // logger.info('URL SYNC DEBUG: Setting URL params:', params.toString());
     setSearchParams(params, { replace: true });
   }, [selectedIndustries, page, pageSize, searchTerm, sortBy, isInitialized]);
 
-  // Debounce search and sort to prevent constant reloading
+  // Debounce query-shaping inputs to avoid firing a request on every keystroke.
   const debouncedSearchTerm = useDebounce(searchTerm, 350);
   const debouncedSortBy = useDebounce(sortBy, 300);
 
@@ -191,7 +166,7 @@ export default function MyAssessmentsPage() {
           actions={[
             {
               label: 'Sign In',
-              icon: Home,
+              icon: LogIn,
               variant: 'teal',
               as: Link,
               to: '/auth?view=login',
@@ -208,7 +183,6 @@ export default function MyAssessmentsPage() {
     total,
     isLoading: isAssessmentsLoading,
     error: isAssessmentsError,
-    refetch,
     removeAssessmentAsync,
     isDeleting,
   } = useAssessments({
@@ -223,7 +197,7 @@ export default function MyAssessmentsPage() {
 
   const prefetchAssessment = usePrefetchAssessment();
 
-  // Fetch aggregate stats for all assessments (independent of pagination)
+  // Stats are aggregate account-wide values, independent of the paginated list query.
   const {
     averageScore,
     totalAssessments: stats_totalAssessments,
@@ -234,7 +208,6 @@ export default function MyAssessmentsPage() {
     error: isAssessmentStatsError,
   } = useAssessmentStats();
 
-  // Transform data to match StatsGrid expectations
   const highestScore = maxScore;
   const lowestScore = minScore;
   const topIndustries = assessmentsByIndustry
@@ -244,30 +217,15 @@ export default function MyAssessmentsPage() {
     : [];
 
   useEffect(() => {
-    // logger.info('PAGE RESET DEBUG:', {
-    //   isInitialized,
-    //   page,
-    //   debouncedSearchTerm,
-    //   selectedIndustryKey,
-    //   debouncedSortBy,
-    //   previousFilterValues,
-    // });
+    if (!isInitialized) return;
 
-    if (!isInitialized) {
-      // logger.info('PAGE RESET DEBUG: Skipping - not initialized');
-      return;
-    }
-
-    // Check if filters actually changed from previous values
+    // Reset pagination only after a real filter change, not after URL hydration.
     const filtersChanged =
       previousFilterValues.debouncedSearchTerm !== debouncedSearchTerm ||
       previousFilterValues.selectedIndustryKey !== selectedIndustryKey ||
       previousFilterValues.debouncedSortBy !== debouncedSortBy;
 
-    // logger.info('PAGE RESET DEBUG: Filters changed?', filtersChanged);
-
     if (filtersChanged && page > 1) {
-      // logger.info('PAGE RESET DEBUG: Resetting page from', page, 'to 1');
       setPage(1);
       // Update previous values after reset
       setPreviousFilterValues({
@@ -276,7 +234,6 @@ export default function MyAssessmentsPage() {
         debouncedSortBy,
       });
     } else {
-      // logger.info('PAGE RESET DEBUG: Not resetting - filters unchanged or page is', page);
       // Still update previous values to track current state
       setPreviousFilterValues({
         debouncedSearchTerm,
@@ -286,12 +243,12 @@ export default function MyAssessmentsPage() {
     }
   }, [debouncedSearchTerm, selectedIndustryKey, debouncedSortBy, isInitialized]);
 
-  // Refetch assessment stats when component mounts or when user navigates back
+  // Returning from results can change saved counts, so refresh stats on mount.
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['assessmentStats'] });
+    queryClient.invalidateQueries({ queryKey: ['assessment-stats'] });
   }, [queryClient]);
 
-  // Prefetch assessments when sort changes to warm the cache and make sort feel snappy
+  // Warm the sorted first page so sort changes feel immediate.
   useEffect(() => {
     if (!debouncedSortBy) return;
     const { field, order } = parseSortBy(debouncedSortBy);
@@ -395,7 +352,7 @@ export default function MyAssessmentsPage() {
     });
   }, []);
 
-  // Memoized compare URL for Link component
+  // The compare route needs public ids, while selection state is keyed by internal ids.
   const compareUrl = useMemo(() => {
     if (selectedIds.size !== 2) return null;
 
@@ -407,7 +364,7 @@ export default function MyAssessmentsPage() {
 
   const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
 
-  // Helper function to generate page numbers with ellipses
+  // Keep pagination compact by preserving ends and a one-page window around the current page.
   const getPageNumbers = useCallback(() => {
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -442,7 +399,7 @@ export default function MyAssessmentsPage() {
     return pages;
   }, [page, totalPages]);
 
-  // Prefetch adjacent pages for better UX
+  // Adjacent pages are the most likely next navigation targets.
   useEffect(() => {
     if (totalPages > 1) {
       // Prefetch next page if it exists
@@ -533,17 +490,17 @@ export default function MyAssessmentsPage() {
           return next;
         });
 
-        // Invalidate stats query to update the top two cards
+        // The list mutation changes aggregate cards outside the paginated query.
         queryClient.invalidateQueries({ queryKey: ['assessment-stats'] });
 
         toast.success('Assessment deleted successfully', { timeout: 3000 });
 
         return result;
-      } catch (err) {
-        logger.error('[DELETE_ERROR]', { id, error: err.message });
-        const errorMsg = err?.message || 'Please try again.';
+      } catch (error) {
+        logger.error('[MY_ASSESSMENTS:DELETE_ERROR]', { id, error: error.message });
+        const errorMsg = error?.message || 'Please try again.';
         toast.danger(`Delete failed: ${errorMsg}`, { timeout: 4000 });
-        throw err;
+        throw error;
       }
     },
     [removeAssessmentAsync, queryClient],
@@ -553,10 +510,8 @@ export default function MyAssessmentsPage() {
     (id) => {
       const assessment = assessments.find((a) => a.id === id);
 
-      // Create a handler specific to this assessment that captures the id
+      // Capture the id so the dialog can validate and submit after the user enters a name.
       const handleRenameForThisAssessment = async (newTitle) => {
-        logger.log('handleRenameForThisAssessment called:', { id, newTitle });
-
         if (!id) {
           toast.danger('No assessment selected for rename', { timeout: 3500 });
           throw new Error('No assessment selected for rename');
@@ -564,11 +519,9 @@ export default function MyAssessmentsPage() {
 
         setIsRenaming(true);
         try {
-          // Prevent duplicate names with proactive check like ResultsPage
+          // Match ResultsPage's proactive duplicate-name guard before updating.
           try {
-            logger.log('Checking for duplicates:', { newTitle, id });
             const existing = await getAssessments({ search: newTitle, pageSize: 100 });
-            logger.log('Existing assessments found:', existing?.assessments?.length || 0);
 
             const dup = Array.isArray(existing?.assessments)
               ? existing.assessments.find(
@@ -579,19 +532,15 @@ export default function MyAssessmentsPage() {
                 )
               : null;
 
-            logger.log('Duplicate found:', dup ? { id: dup.id, title: dup.title } : null);
-
             if (dup) {
-              logger.log('Throwing duplicate error');
               throw new Error('Name already exists');
             }
           } catch (checkErr) {
             if (checkErr.message === 'Name already exists') {
-              logger.log('Re-throwing duplicate error');
               throw checkErr;
             }
-            // If duplicate check fails, log warning but continue with rename
-            logger.warn('Duplicate name check failed, continuing with rename:', checkErr?.message);
+            // A failed duplicate check should not block the actual rename request.
+            logger.warn('[MY_ASSESSMENTS:RENAME_DUPLICATE_CHECK_FAILED]', checkErr);
           }
 
           const detailCacheKey = ['assessment', id];
@@ -616,8 +565,8 @@ export default function MyAssessmentsPage() {
           const result = await updateAssessment(id, { title: newTitle });
           toast.success('Assessment renamed successfully', { timeout: 3000 });
           return result;
-        } catch (err) {
-          // Revert optimistic updates on any error
+        } catch (error) {
+          // Roll optimistic cache edits back to the exact previous query data.
           const previousAssessments = queryClient.getQueriesData({ queryKey: ['assessments'] });
           const detailCacheKey = ['assessment', id];
           const previousAssessment = queryClient.getQueryData(detailCacheKey);
@@ -627,17 +576,17 @@ export default function MyAssessmentsPage() {
           });
           queryClient.setQueryData(detailCacheKey, previousAssessment);
 
-          // Only show toast for non-duplicate errors
+          // Duplicate-name feedback is handled by the rename dialog itself.
           const isDuplicateError =
-            err.message === 'Name already exists' ||
-            err.message === 'name already exists' ||
-            err.message.includes('name already exists');
+            error.message === 'Name already exists' ||
+            error.message === 'name already exists' ||
+            error.message.includes('name already exists');
 
           if (!isDuplicateError) {
-            const errorMsg = err?.message || 'Please try again.';
+            const errorMsg = error?.message || 'Please try again.';
             toast.danger(`Rename failed: ${errorMsg}`, { timeout: 4000 });
           }
-          throw err;
+          throw error;
         } finally {
           setIsRenaming(false);
         }
@@ -681,38 +630,27 @@ export default function MyAssessmentsPage() {
       try {
         await updateAssessment(id, { is_public: newValue });
 
-        logger.log('Toggling public status for assessment:', id, 'to:', newValue);
-
-        // Refetch the assessments list to update the list view
         await queryClient.refetchQueries({ queryKey: ['assessments'] });
-        logger.log('Refetched assessments list');
 
-        // If this assessment has a public_id, refetch both the private and public assessment
-        // queries to update the results page if it's open
+        // Keep any open private or public result views in sync with visibility changes.
         if (assessment.public_id) {
-          // Refetch private assessment view
           await queryClient.refetchQueries({
             queryKey: ['assessment', assessment.id],
           });
-          logger.log('Refetched private assessment:', assessment.id);
 
-          // Refetch public assessment view
           await queryClient.refetchQueries({
             queryKey: ['publicAssessment', assessment.public_id],
           });
-          logger.log('Refetched public assessment:', assessment.public_id);
         }
 
-        // Also refetch stats to keep them in sync
-        await queryClient.refetchQueries({ queryKey: ['assessmentStats'] });
-        logger.log('Refetched assessment stats');
+        await queryClient.refetchQueries({ queryKey: ['assessment-stats'] });
 
         toast.success(newValue ? 'Assessment is now public' : 'Assessment is now private', {
           timeout: 3000,
         });
       } catch (error) {
-        logger.error('Error updating public status:', error);
-        toast.danger(`Failed to update sharing settings: ${error}`, { timeout: 4000 });
+        logger.error('[MY_ASSESSMENTS:TOGGLE_PUBLIC_FAILED]', error);
+        toast.danger(`Failed to update visibility settings: ${error}`, { timeout: 4000 });
       }
     },
     [assessments, queryClient],
@@ -726,9 +664,8 @@ export default function MyAssessmentsPage() {
       setPageJumpValue(null);
       setIsJumpInputFocused(false);
     } else {
-      // Don't show toast for invalid range, just silently handle it
       if (pageNumber && pageNumber > totalPages) {
-        // If user entered a page beyond total, jump to last page
+        // Clamp oversized page jumps to the last available page.
         prefetchAssessmentsPage(totalPages);
         setPage(totalPages);
         setPageJumpValue(null);
@@ -741,10 +678,9 @@ export default function MyAssessmentsPage() {
     }
   }, [pageJumpValue, totalPages, prefetchAssessmentsPage]);
 
-  // Use debounced page jump value for automatic fetching
   const debouncedPageJumpValue = useDebounce(pageJumpValue, 500);
 
-  // Auto-jump when debounced value changes
+  // While the jump input is focused, valid debounced input navigates without pressing Enter.
   useEffect(() => {
     if (debouncedPageJumpValue && isJumpInputFocused) {
       const pageNumber = Number(debouncedPageJumpValue);
@@ -755,7 +691,7 @@ export default function MyAssessmentsPage() {
     }
   }, [debouncedPageJumpValue, isJumpInputFocused, totalPages, prefetchAssessmentsPage]);
 
-  // Prefetch adjacent pages for better UX
+  // Repeat adjacent prefetch after jump-input declarations so both navigation paths stay warm.
   useEffect(() => {
     if (totalPages > 1) {
       // Prefetch next page if it exists
@@ -769,7 +705,13 @@ export default function MyAssessmentsPage() {
     }
   }, [page, totalPages, prefetchAssessmentsPage]);
 
-  // ------- Helper: Render the assessment list area (with early returns) --------
+  const effectiveTotalAssessments = isAssessmentStatsError
+    ? assessments.length > 0
+      ? total // use total from assessments query if available
+      : 0
+    : stats_totalAssessments;
+
+  // Keep list-state branches isolated from the page chrome below.
   const renderAssessmentListContent = () => {
     if (isAssessmentsLoading) {
       return <AssessmentListSkeleton />;
@@ -780,23 +722,13 @@ export default function MyAssessmentsPage() {
         <DetailsDisplay
           variant="error"
           title="Error Loading Assessments"
-          description={
-            isAssessmentsError.message ||
-            'An error occurred while loading your assessments. Please try again.'
-          }
+          description="An error occurred while loading your assessments. Please try again."
           actions={[
             {
               label: 'Retry',
               icon: RotateCw,
               variant: 'teal',
-              onPress: refetch,
-            },
-            {
-              label: 'Back to Home',
-              icon: Home,
-              variant: 'ghost',
-              as: Link,
-              to: '/',
+              onPress: () => queryClient.resetQueries({ queryKey: ['assessments'] }),
             },
           ]}
           showDefaultActions={false}
@@ -804,8 +736,8 @@ export default function MyAssessmentsPage() {
       );
     }
 
-    // No assessments at all (stats_totalAssessments === 0)
-    if (stats_totalAssessments === 0) {
+    // No assessments at all
+    if (effectiveTotalAssessments === 0 && !isAssessmentsLoading && !isAssessmentsError) {
       return (
         <DetailsDisplay
           variant="neutral"
@@ -1054,60 +986,19 @@ export default function MyAssessmentsPage() {
   };
 
   // ---------- Main render with early returns for stats loading/error ----------
-  // Case 1: Stats are still loading
+  // Stats are still loading
   if (isAssessmentStatsLoading) {
     return <div className="space-y-6">{renderInitialLoadPageSkeleton()}</div>;
   }
 
-  // Case 2: Stats failed to load
-  if (isAssessmentStatsError) {
-    return (
-      <div className="space-y-6">
-        <DetailsDisplay
-          variant="error"
-          title="Error Loading Assessments"
-          description={
-            isAssessmentStatsError?.message ||
-            'An error occurred while loading your assessments. Please try again.'
-          }
-          actions={[
-            {
-              label: 'Retry',
-              icon: RotateCw,
-              variant: 'teal',
-              onPress: refetch,
-            },
-            {
-              label: 'Back to Home',
-              icon: Home,
-              variant: 'ghost',
-              as: Link,
-              to: '/',
-            },
-          ]}
-          showDefaultActions={false}
-        />
-      </div>
-    );
-  }
-
-  // Case 3: Stats loaded successfully – render normal content
+  // Stats loaded successfully – render normal content
   return (
     <div className="mx-auto mt-6 max-w-4xl space-y-6">
-      {/* Section heading */}
-      {/* {stats_totalAssessments > 0 && (
-        <div className="flex items-center justify-between">
-          <h2 className="pl-2 font-display text-xl font-semibold text-(--color-text-primary)">
-            My Assessments
-          </h2>
-        </div>
-      )} */}
-
       {/* Stats grid — only if totalAssessments > 0 */}
-      {stats_totalAssessments > 0 && (
+      {effectiveTotalAssessments > 0 && (
         <StatsGrid
           averageScore={averageScore}
-          totalAssessments={stats_totalAssessments}
+          totalAssessments={effectiveTotalAssessments}
           highestScore={highestScore}
           lowestScore={lowestScore}
           topIndustries={topIndustries}
@@ -1115,7 +1006,7 @@ export default function MyAssessmentsPage() {
       )}
 
       {/* Filter bar */}
-      {stats_totalAssessments > 0 && (
+      {effectiveTotalAssessments > 0 && (
         <FilterBar
           sortBy={sortBy}
           setSortBy={setSortBy}

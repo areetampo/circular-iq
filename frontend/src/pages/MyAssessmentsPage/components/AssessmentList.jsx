@@ -1,6 +1,5 @@
 /**
- * @module AssessmentList
- * @description Saved-assessment list UI for My Assessments: card rows with view, export,
+ * Saved-assessment list UI for My Assessments: card rows with view, export,
  * re-evaluate, rename, delete, and compare-selection controls. Includes loading skeletons.
  */
 
@@ -19,18 +18,7 @@ const scoreColor = (s) =>
   s >= 75 ? '--color-success' : s >= 50 ? '--color-warning' : '--color-error';
 
 /**
- * Single assessment row: metadata, score chip, actions, and compare/public toggles.
- *
- * @param {Object} props
- * @param {Object} props.assessment - Assessment record from the list API.
- * @param {boolean} props.isSelected - Whether this row is selected for comparison.
- * @param {Function} props.onToggleSelect - `(id: string) => void`
- * @param {Function} props.onView - `(id: string) => void`
- * @param {Function} props.onRename - `(assessment: Object) => void`
- * @param {Function} props.onDelete - `(id: string) => void`
- * @param {Function} props.onPrefetch - `(id: string) => void`
- * @param {Function} props.onTogglePublic - `(id: string) => Promise<void>`
- * @returns {JSX.Element}
+ * Renders one saved assessment row with metadata, export actions, compare selection, and visibility toggle.
  */
 const AssessmentListItem = React.memo(function AssessmentListItem({
   assessment,
@@ -52,7 +40,6 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
 
   const [togglingPublic, setTogglingPublic] = useState(null);
 
-  // Use centralized assessment handlers
   const {
     handleDownloadPDFWithErrorHandling,
     handleDownloadCSVWithErrorHandling,
@@ -70,27 +57,22 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
     }
   };
 
-  // Handle re-evaluate using centralized handler
   const handleReevaluateClick = () => {
     if (assessment) {
       handleReevaluateInternal(assessment);
     }
   };
 
-  // Handle PDF download using centralized handler
   const handlePDFDownload = () => {
     if (assessment) {
-      // For AssessmentListItem, we use the assessment itself as both assessment and result
-      // The handler will extract the necessary data
+      // Saved rows already contain the result fields expected by the export handler.
       handleDownloadPDFWithErrorHandling(assessment, assessment);
     }
   };
 
-  // Handle CSV download using centralized handler
   const handleCSVDownload = () => {
     if (assessment) {
-      // For AssessmentListItem, we use the assessment itself as both assessment and result
-      // The handler will extract the necessary data
+      // Saved rows already contain the result fields expected by the export handler.
       handleDownloadCSVWithErrorHandling(assessment, assessment);
     }
   };
@@ -100,7 +82,7 @@ const AssessmentListItem = React.memo(function AssessmentListItem({
     { icon: Pencil, label: 'Rename', onPress: () => onRename(assessment.id) },
     { icon: Trash2, label: 'Delete', onPress: () => onDelete(assessment.id) },
     { icon: RefreshCw, label: 'Re-evaluate', onPress: handleReevaluateClick },
-    // CopyButton for URL & ID
+    // Copy actions share the same row layout but render specialized copy buttons.
     {
       label: 'URL',
       value: assessmentPublicUrl,
@@ -335,7 +317,7 @@ AssessmentListItem.propTypes = {
   onTogglePublic: PropTypes.func.isRequired,
 };
 
-// Skeleton Components
+// Mirrors the loaded row layout closely enough to prevent large layout jumps on first load.
 const AssessmentCardSkeleton = () => (
   <div className="group relative cursor-pointer rounded-xl border-2 border-(--color-drawer-border) bg-(--color-bg-card-faint) p-4 transition-all duration-200">
     {/* Main content row */}
@@ -411,7 +393,7 @@ const AssessmentCardSkeleton = () => (
 /**
  * Full-page loading skeleton for the assessments list (header + three card placeholders).
  *
- * @returns {import('react').ReactElement}
+ * @returns {import('react').ReactElement} Skeleton list matching the saved-assessment card layout.
  */
 export const AssessmentListSkeleton = () => (
   <div className="mt-8 space-y-2">
@@ -432,12 +414,7 @@ export const AssessmentListSkeleton = () => (
 );
 
 /**
- * Maps `assessments` to {@link AssessmentListItem} rows; spreads list-level handlers via `props`.
- *
- * @param {Object} props
- * @param {Array<Object>} props.assessments
- * @param {Set<string>} props.selectedIds - Ids selected for comparison.
- * @returns {JSX.Element}
+ * Renders saved-assessment rows with shared list-level handlers and compare-selection state.
  */
 export const AssessmentList = ({ assessments, selectedIds, ...props }) => (
   <div className="space-y-0">

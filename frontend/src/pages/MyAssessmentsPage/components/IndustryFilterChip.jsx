@@ -1,13 +1,11 @@
-/**
- * @module IndustryFilterChip
- * @description Toggle chip for filtering assessments by industry on My Assessments.
- */
-
 import PropTypes from 'prop-types';
 import React from 'react';
 
 import { Chip } from '@/components/common';
 
+/**
+ * Renders one memoized industry filter chip for the My Assessments filter bar.
+ */
 const IndustryFilterChip = React.memo(function IndustryFilterChip({
   industry,
   isSelected,

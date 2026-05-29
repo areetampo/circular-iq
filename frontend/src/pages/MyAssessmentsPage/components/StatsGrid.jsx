@@ -1,6 +1,5 @@
 /**
- * @module StatsGrid
- * @description Summary statistics grid (counts, averages) above the assessments list.
+ * Summary statistics grid (counts, averages) above the assessments list.
  */
 
 import { Popover } from '@heroui/react';
@@ -26,7 +25,7 @@ const sizeMap = {
   '18px': 'text-lg',
 };
 
-// Reusable StatCard component
+// Local card helper keeps the five summary tiles visually consistent.
 const StatCard = ({ label, value, subtitle, color, fontSize = '28px' }) => (
   <Tilt3D className="flex h-full flex-col gap-1 rounded-2xl border-2 border-(--color-border-strong-alpha-80) bg-(--color-bg-card-light) p-5">
     <span className="text-[0.725rem] font-semibold tracking-[0.12em] text-(--color-text-muted) uppercase">
@@ -50,15 +49,7 @@ StatCard.propTypes = {
 };
 
 /**
- * Summary statistics grid (counts, averages) above the assessments list.
- *
- * @param {Object} props
- * @param {number|string} props.averageScore
- * @param {number} props.totalAssessments
- * @param {number} props.highestScore
- * @param {number} props.lowestScore
- * @param {Array<Object>|Array<string>} props.topIndustries
- * @returns {import('react').ReactElement}
+ * Renders account-level assessment stats and a compact top-industry summary.
  */
 export default function StatsGrid({
   averageScore,
@@ -67,7 +58,7 @@ export default function StatsGrid({
   lowestScore,
   topIndustries,
 }) {
-  // Handle case where industry might be an object
+  // Stats can arrive as either normalized strings or richer grouped objects.
   const getIndustryName = (industry) => {
     if (typeof industry === 'string') return industry;
     if (typeof industry === 'object' && industry !== null) {
@@ -88,7 +79,6 @@ export default function StatsGrid({
             industry: getIndustryName(item.industry),
           }))
           .sort((a, b) => {
-            // Extract count from different possible structures for comparison
             const getCount = (item) => {
               if (typeof item.count === 'number') {
                 return item.count;
@@ -101,12 +91,11 @@ export default function StatsGrid({
             const countA = getCount(a);
             const countB = getCount(b);
 
-            // Primary sort: by count (decreasing)
+            // Sort by volume first, then label for deterministic ties.
             if (countB !== countA) {
               return countB - countA;
             }
 
-            // Secondary sort: by industry name (alphabetical)
             const nameA = getIndustryName(a.industry) || '';
             const nameB = getIndustryName(b.industry) || '';
             return nameA.localeCompare(nameB);
@@ -127,23 +116,23 @@ export default function StatsGrid({
       {/* Stats Cards */}
       <StatCard
         label="Avg Score"
-        value={averageScore ? averageScore.toFixed(2) : '0.00'}
+        value={averageScore ? averageScore.toFixed(2) : '—'}
         subtitle="out of 100"
         color={scoreColor(averageScore)}
       />
 
-      <StatCard label="Total" value={totalAssessments} subtitle="assessments" />
+      <StatCard label="Total" value={totalAssessments ?? '—'} subtitle="assessments" />
 
       <StatCard
         label="Highest Score"
-        value={highestScore ? highestScore.toFixed(2) : '0.00'}
+        value={highestScore ? highestScore.toFixed(2) : '—'}
         subtitle="out of 100"
         color={scoreColor(highestScore)}
       />
 
       <StatCard
         label="Lowest Score"
-        value={lowestScore ? lowestScore.toFixed(2) : '0.00'}
+        value={lowestScore ? lowestScore.toFixed(2) : '—'}
         subtitle="out of 100"
         color={scoreColor(lowestScore)}
       />
@@ -175,16 +164,13 @@ export default function StatsGrid({
                       <span className="font-mono">{displayIndustries.length}</span>
                     </Popover.Heading>
                     {displayIndustries.map((item, index) => {
-                      // Handle different possible data structures
                       const industryName = item.industry || (typeof item === 'string' ? item : '');
                       let count = 0;
 
-                      // Extract count from different possible structures
                       if (typeof item === 'object' && item !== null) {
                         if (typeof item.count === 'number') {
                           count = item.count;
                         } else if (item.count && typeof item.count === 'object') {
-                          // Handle nested object structure like {count: {count: X, avg_score: Y}}
                           count = item.count.count || 0;
                         }
                       } else if (typeof item === 'number') {
