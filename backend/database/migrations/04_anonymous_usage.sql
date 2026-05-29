@@ -11,8 +11,8 @@
 --   to prevent race conditions under concurrent requests.
 -- • Records when a fingerprint last successfully used the API (last_used_at)
 --   and when it was last blocked (last_blocked_at) — these are intentionally
---   separate to enable correct cleanup behaviour (see below).
--- • Provides a cleanup function that removes rows inactive for 7+ days.
+--   separate to enable correct cleanup behaviour.
+-- • Provides a cleanup function that removes rows inactive beyond the rolling retention window.
 --
 -- DESIGN DECISIONS
 -- ────────────────
@@ -20,20 +20,18 @@
 --   abuse detection with privacy — no PII is stored.
 -- • last_used_at is NOT updated on blocked requests: persistent abusers
 --   keep their row stale so cleanup_old_anonymous_usage() can evict them
---   after 7 days of no legitimate use.
+--   once their retention window lapses.
 -- • last_blocked_at IS updated on blocked requests: lets the frontend show
 --   the user how long until their window resets.
 -- • FOR UPDATE row lock: guarantees atomicity — concurrent requests for the
 --   same fingerprint queue rather than race past the limit check.
--- • cleanup interval is 7 days (conservative; can be tightened without
---   changing function signature).
 --
 -- RETURN SHAPE (check_and_increment_anonymous_usage)
 -- ───────────────────────────────────────────────────
---   current_count   INTEGER    — usage count after this call
---   is_allowed      BOOLEAN    — false when count >= p_max_tries
---   last_used_at    TIMESTAMPTZ — last successful use timestamp
---   last_blocked_at TIMESTAMPTZ — last time limit was hit (NULL if never)
+--   current_count   — usage count after this call
+--   is_allowed      — false when count >= p_max_tries
+--   last_used_at    — last successful use timestamp
+--   last_blocked_at — last time limit was hit (NULL if never)
 --
 -- ACCESS CONTROL
 -- ──────────────
@@ -48,10 +46,6 @@
 -- ══════════════════════════════════════════════════════════════════════════════
 -- 0. CLEAN SLATE — Drop existing objects
 -- ══════════════════════════════════════════════════════════════════════════════
--- Drop table first — CASCADE removes dependent indexes and RLS policies.
--- Then drop every function in this migration regardless of signature so that
--- signature changes never leave orphaned overloads behind.
-
 DROP TABLE IF EXISTS anonymous_usage CASCADE;
 
 DO $$
@@ -94,7 +88,7 @@ CREATE TABLE IF NOT EXISTS anonymous_usage (
     first_used_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_used_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- NOTE: last_used_at is intentionally NOT updated on blocked requests.
-    -- Cleanup removes rows where last_used_at < NOW() - 7 days, so persistent
+    -- Cleanup removes rows stale past the retention threshold, so persistent
     -- abusers are evicted after their trial window expires without resetting
     -- the clock on every blocked attempt.
     last_blocked_at    TIMESTAMPTZ,                  -- NULL = never blocked
@@ -110,7 +104,7 @@ COMMENT ON COLUMN anonymous_usage.identifier_hash IS
 COMMENT ON COLUMN anonymous_usage.usage_count IS
     'Number of times this fingerprint has successfully called the scoring API.';
 COMMENT ON COLUMN anonymous_usage.last_used_at IS
-    'Timestamp of last successful (allowed) use. Intentionally not updated on blocked requests — drives the 7-day cleanup window.';
+    'Timestamp of last successful (allowed) use. Intentionally not updated on blocked requests — drives the cleanup eviction window.';
 COMMENT ON COLUMN anonymous_usage.last_blocked_at IS
     'Timestamp of most recent blocked attempt. NULL if never blocked. Returned to the frontend to compute days-until-reset.';
 COMMENT ON COLUMN anonymous_usage.last_ip_hash IS
@@ -124,7 +118,6 @@ COMMENT ON COLUMN anonymous_usage.user_agent_snippet IS
 -- ══════════════════════════════════════════════════════════════════════════════
 
 -- Accelerates cleanup queries (DELETE WHERE last_used_at < threshold)
--- and recent-activity lookups.
 CREATE INDEX IF NOT EXISTS idx_anonymous_usage_last_used
     ON anonymous_usage (last_used_at);
 
@@ -140,9 +133,7 @@ CREATE POLICY "anonymous_usage_service_role_full"
     ON anonymous_usage FOR ALL TO service_role
     USING (true) WITH CHECK (true);
 
--- anon: read-only — lets the frontend query remaining tries without a backend
--- round-trip. No row-level filter needed; the frontend only ever reads its
--- own fingerprint (which it constructed from its own IP + UA).
+-- anon: read-only — lets the frontend query remaining tries without a backend.
 CREATE POLICY "anonymous_usage_anon_read"
     ON anonymous_usage FOR SELECT TO anon
     USING (true);
@@ -158,12 +149,12 @@ COMMENT ON POLICY "anonymous_usage_anon_read" ON anonymous_usage IS
 -- ══════════════════════════════════════════════════════════════════════════════
 
 -- ── 4a. cleanup_old_anonymous_usage ──────────────────────────────────────────
--- Removes rows that have not been used legitimately for more than 7 days.
+-- Removes rows that have not been used legitimately beyond the configured window threshold.
 -- Because last_used_at is NOT updated on blocked attempts, persistent abusers
 -- are automatically evicted after their trial window passes.
 -- Called by a backend scheduled job (not pg_cron).
 
-CREATE OR REPLACE FUNCTION cleanup_old_anonymous_usage()
+CREATE OR REPLACE FUNCTION cleanup_old_anonymous_usage(p_retention_days INTEGER)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -171,21 +162,22 @@ SET search_path TO public
 AS $$
 BEGIN
     DELETE FROM anonymous_usage
-    WHERE last_used_at < NOW() - INTERVAL '7 days';
+    WHERE last_used_at < NOW() - (p_retention_days || ' days')::INTERVAL;
 END;
 $$;
 
 COMMENT ON FUNCTION cleanup_old_anonymous_usage IS
-    'Deletes anonymous_usage rows whose last_used_at is older than 7 days. '
+    'Deletes anonymous_usage rows whose last_used_at is older than the configured threshold parameter. '
     'Because last_used_at is not updated on blocked requests, persistent abusers '
     'are evicted once their trial window expires. Called by backend scheduled job.';
 
 
 -- ── 4b. check_and_increment_anonymous_usage ──────────────────────────────────
 -- Atomically checks the usage count for a fingerprint and either:
---   a) Inserts a new row and returns count=1 (first use), or
---   b) Increments the count and returns the new count (under limit), or
---   c) Updates last_blocked_at only and returns is_allowed=false (at/over limit).
+--   a) Resets/cleans up the row in-place if the window has passed since last legitimate use, or
+--   b) Inserts a new row and returns count=1 (first use), or
+--   c) Increments the count and returns the new count (under limit), or
+--   d) Updates last_blocked_at only and returns is_allowed=false (at/over limit).
 --
 -- Row-level locking (FOR UPDATE) prevents race conditions: concurrent requests
 -- for the same fingerprint queue at the SELECT rather than racing the limit check.
@@ -197,8 +189,9 @@ COMMENT ON FUNCTION cleanup_old_anonymous_usage IS
 --   last_blocked_at — timestamp of most recent block (NULL if never blocked)
 
 CREATE OR REPLACE FUNCTION check_and_increment_anonymous_usage(
-    p_identifier_hash    TEXT,
     p_max_tries          INTEGER,
+    p_cleanup_days       INTEGER,
+    p_identifier_hash    TEXT,
     p_ip_hash            TEXT    DEFAULT NULL,
     p_user_agent_snippet TEXT    DEFAULT NULL
 )
@@ -254,9 +247,30 @@ BEGIN
         RETURN;
     END IF;
 
+    -- ── Inline Reset: If window has passed, wipe usage count in-place ────────
+    -- This handles the case where a user returns after the window has expired,
+    -- bypassing the need for a separate cron job.
+    IF v_last_used_at < NOW() - (p_cleanup_days || ' days')::INTERVAL THEN
+        UPDATE anonymous_usage
+        SET
+            usage_count        = 1,
+            first_used_at      = NOW(),
+            last_used_at       = NOW(),
+            last_blocked_at    = NULL,
+            last_ip_hash       = COALESCE(p_ip_hash, last_ip_hash),
+            user_agent_snippet = COALESCE(LEFT(p_user_agent_snippet, 200), user_agent_snippet)
+        WHERE identifier_hash = p_identifier_hash;
+
+        RETURN QUERY
+        SELECT
+            1::INTEGER,
+            (1 <= p_max_tries)::BOOLEAN,
+            NOW()::TIMESTAMPTZ,
+            NULL::TIMESTAMPTZ;
+        RETURN;
+    END IF;
+
     -- ── At or over limit: update last_blocked_at only ─────────────────────────
-    -- last_used_at is intentionally left unchanged so the cleanup function
-    -- can evict this row after 7 days of no legitimate use.
     IF v_current_count >= p_max_tries THEN
         UPDATE anonymous_usage
         SET last_blocked_at = NOW()
@@ -267,7 +281,11 @@ BEGIN
         INTO v_last_used_at, v_last_blocked_at;
 
         RETURN QUERY
-        SELECT v_current_count, FALSE, v_last_used_at, v_last_blocked_at;
+        SELECT
+            v_current_count,
+            FALSE,
+            v_last_used_at,
+            v_last_blocked_at;
         RETURN;
     END IF;
 
@@ -300,24 +318,20 @@ COMMENT ON FUNCTION check_and_increment_anonymous_usage IS
     'Returns (current_count, is_allowed, last_used_at, last_blocked_at). '
     'Uses FOR UPDATE row-locking to prevent race conditions. '
     'Blocked attempts update only last_blocked_at — last_used_at is unchanged '
-    'so persistent abusers are evicted by cleanup after 7 days of no legitimate use.';
+    'so persistent abusers are evicted once their window expires.';
 
 
 -- ══════════════════════════════════════════════════════════════════════════════
 -- 5. GRANTS & PERMISSIONS
 -- ══════════════════════════════════════════════════════════════════════════════
--- Both functions are SECURITY DEFINER and must only be callable by the Express
--- backend via service_role. Revoke from public (which covers anon and
--- authenticated by inheritance) then re-grant to service_role explicitly.
-
-REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text)
+REVOKE EXECUTE ON FUNCTION cleanup_old_anonymous_usage(integer)
     FROM public, anon, authenticated;
-GRANT  EXECUTE ON FUNCTION check_and_increment_anonymous_usage(text, integer, text, text)
+GRANT  EXECUTE ON FUNCTION cleanup_old_anonymous_usage(integer)
     TO service_role;
 
-REVOKE EXECUTE ON FUNCTION cleanup_old_anonymous_usage()
+REVOKE EXECUTE ON FUNCTION check_and_increment_anonymous_usage(integer, integer, text, text, text)
     FROM public, anon, authenticated;
-GRANT  EXECUTE ON FUNCTION cleanup_old_anonymous_usage()
+GRANT  EXECUTE ON FUNCTION check_and_increment_anonymous_usage(integer, integer, text, text, text)
     TO service_role;
 
 
