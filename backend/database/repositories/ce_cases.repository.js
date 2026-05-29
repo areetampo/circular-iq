@@ -9,18 +9,19 @@
  *   - hybrid:   vector similarity + keyword scoring via search_ce_cases_hybrid()
  *
  * Both RPC functions are defined in 06_ce_cases.sql (public schema).
- *
- * @module ce_cases.repository
  */
 
 import { getSupabaseClient } from '#database/client.js';
 
+/**
+ * Encapsulates CE case keyword and hybrid RPC searches against Supabase.
+ */
 export class CeCasesRepository {
   /**
    * Returns the Supabase client.
-   * Resolved per-call so that test overrides via setDatabaseClientOverride() work correctly.
+   * Resolved per-call so the singleton Supabase client or offline stub is initialized lazily.
    *
-   * @returns {Object} Supabase client instance.
+   * @returns {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} Current Supabase client or offline stub used for CE case RPC calls.
    * @private
    */
   #client() {
@@ -34,7 +35,7 @@ export class CeCasesRepository {
    *
    * @param {string} keyword - Raw search string from user.
    * @param {number} [limit=20] - Max rows to return.
-   * @returns {Promise<Array>} Ranked rows with relevance score.
+   * @returns {Promise<Array<Record<string, unknown>>>} Rows ranked by the keyword RPC relevance score; returns an empty array when Supabase returns no data.
    * @throws {Error} If the RPC call fails.
    */
   async searchKeyword(keyword, limit = 20) {
@@ -81,8 +82,8 @@ export class CeCasesRepository {
    * @param {number[]} queryEmbedding - 1536-dim float array from OpenAI.
    * @param {string} keyword - Raw search string (same text that was embedded).
    * @param {number} [limit=20] - Max rows to return.
-   * @param {number} [vectorWeight=0.7] - Weight for vector score (0.0–1.0).
-   * @returns {Promise<Array>} Rows ranked by combined similarity score.
+   * @param {number} [vectorWeight=0.7] - Weight for vector score (0.0-1.0).
+   * @returns {Promise<Array<Record<string, unknown>>>} Rows ranked by hybrid vector/keyword score; returns an empty array when Supabase returns no data.
    * @throws {Error} If the RPC call fails.
    */
   async searchHybrid(queryEmbedding, keyword, limit = 20, vectorWeight = 0.7) {

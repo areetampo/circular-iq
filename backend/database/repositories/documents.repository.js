@@ -2,13 +2,11 @@
  * Documents Repository
  *
  * Database abstraction layer for document search and retrieval.
- * Supports both Supabase (RPC) and Aiven (raw Postgres) backends — which one
+ * Supports both Supabase (RPC) and Aiven (raw Postgres) backends; which one
  * is active is controlled by the USE_SUPABASE_DOCUMENTS_TABLE env flag.
  *
  * All vector operations use halfvec (half-precision) for efficient similarity
  * search. Queries support optional filters by industry, category, and source.
- *
- * @module documents.repository
  */
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
@@ -17,25 +15,25 @@ import { logger } from '#utils/logger.js';
 
 const func = BACKEND_CONFIG.scoring.db.functions;
 
+/**
+ * Encapsulates document search/statistics queries across Supabase and Aiven backends.
+ */
 export class DocumentsRepository {
   constructor() {
-    // Intentionally empty — clients are resolved per-call so that test
+    // Intentionally empty; clients are resolved per-call so that test
     // overrides via setDatabaseClientOverride() work correctly.
   }
 
   /**
-   * Executes a database function via Supabase RPC or raw Postgres SQL.
+   * Executes a configured database function through Supabase RPC or raw Postgres SQL.
+   * Array parameters are serialized as halfvec literals for Aiven because pg's default array
+   * representation is not accepted by the vector extension.
    *
-   * Supabase path: uses client.rpc(functionName, namedParams).
-   * Aiven path: builds SELECT * FROM fn($1, $2, ...) with explicit
-   * ::extensions.halfvec casts for any array (vector) parameters, because
-   * the pg driver serialises JS float arrays in a format Postgres halfvec rejects.
-   *
-   * @param {string} functionName - Database function name.
-   * @param {Array} [pgParams=[]] - Positional parameters for the Aiven SQL path.
-   * @param {Object} [rpcParams={}] - Named parameters for the Supabase RPC path.
-   * @returns {Promise<Array>} Result rows.
-   * @throws {Error} If the database call fails.
+   * @param {string} functionName - Database function name from backend config.
+   * @param {unknown[]} [pgParams=[]] - Positional parameters for the raw SQL path.
+   * @param {Record<string, unknown>} [rpcParams={}] - Named parameters for the Supabase RPC path.
+   * @returns {Promise<Array<Record<string, unknown>>>} Rows returned by the selected database function.
+   * @throws {Error} If Supabase RPC or the pg query returns an error.
    * @private
    */
   async #callFunction(functionName, pgParams = [], rpcParams = {}) {
@@ -48,7 +46,7 @@ export class DocumentsRepository {
       return data ?? [];
     }
 
-    // Aiven path — format vector arrays as "[x,y,z,...]" string literals
+    // Aiven path formats vector arrays as "[x,y,z,...]" string literals
     // and cast to extensions.halfvec. All other params pass through as-is.
     const queryParams = [];
     const placeholders = pgParams.map((param) => {
@@ -70,8 +68,8 @@ export class DocumentsRepository {
    * Finds documents most similar to the query embedding using cosine distance.
    *
    * @param {number[]} queryEmbedding - Query vector (1536 dims).
-   * @param {number} matchCount - Number of results to return.
-   * @returns {Promise<Array>} Matching documents sorted by similarity (descending).
+   * @param {number} matchCount - Maximum number of nearest documents to return.
+   * @returns {Promise<Array<Record<string, unknown>>>} Matching documents sorted by descending similarity.
    * @throws {Error} If the database call fails.
    */
   async matchDocuments(queryEmbedding, matchCount) {
@@ -112,7 +110,7 @@ export class DocumentsRepository {
 
   /**
    * Hybrid vector + full-text search with optional metadata filters.
-   * Final score = (vector_score × vectorWeight) + (keyword_score × (1 − vectorWeight)).
+   * Final score = (vector_score * vectorWeight) + (keyword_score * (1 - vectorWeight)).
    *
    * @param {number[]} queryEmbedding - Query vector (1536 dims).
    * @param {string|null} keywordFilter - Full-text keyword filter (null = no filter).
@@ -120,9 +118,9 @@ export class DocumentsRepository {
    * @param {string|null} categoryFilter - Category metadata filter.
    * @param {string|null} sourceFilter - Source metadata filter.
    * @param {number} matchCount - Maximum rows to return.
-   * @param {number} vectorWeight - Weight of vector score vs keyword score (0–1).
-   * @param {number} similarityThreshold - Minimum cosine similarity (0–1).
-   * @returns {Promise<Array>} Matching documents with similarity and metadata fields.
+   * @param {number} vectorWeight - Weight of vector score vs keyword score (0-1).
+   * @param {number} similarityThreshold - Minimum cosine similarity (0-1).
+   * @returns {Promise<Array<Record<string, unknown>>>} Matching documents with similarity, keyword score, and metadata fields.
    * @throws {Error} If the database call fails.
    */
   async searchHybrid(
@@ -179,7 +177,7 @@ export class DocumentsRepository {
   /**
    * Aggregate document corpus statistics (counts by category, source, etc.).
    *
-   * @returns {Promise<Array>} Statistics rows from get_document_statistics RPC.
+   * @returns {Promise<Array<Record<string, unknown>>>} Corpus statistics rows from `get_document_statistics`.
    * @throws {Error} If the database call fails.
    */
   async getStatistics() {
@@ -211,7 +209,7 @@ export class DocumentsRepository {
    * pg pool (Supabase pool on the Supabase path, the Aiven pool on the Aiven path)
    * so that raw SQL GROUP BY works correctly.
    *
-   * @param {string} columnExpr - A safe column name or metadata expression.
+   * @param {string} columnExpr - Caller-vetted column name or metadata expression.
    * @returns {Promise<Array<{value: string, count: number}>>} Grouped counts, sorted descending.
    * @throws {Error} If the database call fails.
    */
@@ -225,7 +223,7 @@ export class DocumentsRepository {
 
       if (dbType === 'supabase') {
         if (isSimpleColumn) {
-          // Supabase JS client has no GROUP BY — fetch all and aggregate in JS
+          // Supabase JS client has no GROUP BY, so fetch all and aggregate in JS.
           const { data, error } = await getDatabaseClient()
             .from('documents')
             .select(columnExpr)
@@ -251,7 +249,7 @@ export class DocumentsRepository {
           return result;
         }
 
-        // Metadata expression — bypass JS client, use pg pool directly
+        // Metadata expressions need raw SQL, so bypass the JS client and use the pg pool.
         const sql = `
           SELECT ${columnExpr} AS value, COUNT(*)::int AS count
           FROM documents
@@ -269,7 +267,7 @@ export class DocumentsRepository {
         return rows;
       }
 
-      // Aiven — raw SQL always works for both simple columns and expressions
+      // Aiven uses raw SQL for both simple columns and metadata expressions.
       const sql = `
         SELECT ${columnExpr} AS value, COUNT(*)::int AS count
         FROM documents
@@ -360,8 +358,8 @@ export class DocumentsRepository {
    * @param {number[]} queryEmbedding - Query vector (1536 dims).
    * @param {string} industryFilter - Industry value to match.
    * @param {number} [matchCount=10] - Maximum rows to return.
-   * @param {number} [similarityThreshold=0.7] - Minimum cosine similarity (0–1).
-   * @returns {Promise<Array>} Matching documents sorted by similarity.
+   * @param {number} [similarityThreshold=0.7] - Minimum cosine similarity (0-1).
+   * @returns {Promise<Array<Record<string, unknown>>>} Matching documents sorted by similarity.
    * @throws {Error} If the database call fails.
    */
   async searchByIndustry(
@@ -417,8 +415,8 @@ export class DocumentsRepository {
    * @param {number[]} queryEmbedding - Query vector (1536 dims).
    * @param {string} categoryFilter - Category value to match.
    * @param {number} [matchCount=10] - Maximum rows to return.
-   * @param {number} [similarityThreshold=0.7] - Minimum cosine similarity (0–1).
-   * @returns {Promise<Array>} Matching documents sorted by similarity.
+   * @param {number} [similarityThreshold=0.7] - Minimum cosine similarity (0-1).
+   * @returns {Promise<Array<Record<string, unknown>>>} Matching documents sorted by similarity.
    * @throws {Error} If the database call fails.
    */
   async searchByCategory(
@@ -472,11 +470,11 @@ export class DocumentsRepository {
    * Returns the most recently indexed documents, optionally filtered by metadata.
    *
    * @param {number} limit - Maximum rows to return.
-   * @param {Object} [filters={}] - Optional metadata filters.
+   * @param {Record<string, string|null|undefined>} [filters={}] - Optional metadata filters applied by the recent-documents RPC.
    * @param {string} [filters.industry] - Industry filter.
    * @param {string} [filters.category] - Category filter.
    * @param {string} [filters.source] - Source filter.
-   * @returns {Promise<Array>} Recent document rows.
+   * @returns {Promise<Array<Record<string, unknown>>>} Recent document rows sorted by the database function.
    * @throws {Error} If the database call fails.
    */
   async findRecent(limit, filters = {}) {
@@ -515,7 +513,7 @@ export class DocumentsRepository {
   /**
    * Truncates the documents table. Admin and pipeline use only.
    *
-   * @returns {Promise<*>} Result from truncate_documents RPC.
+   * @returns {Promise<Array<Record<string, unknown>>>} Database response rows from the truncate RPC, usually an empty array.
    * @throws {Error} If the database call fails.
    */
   async truncate() {
