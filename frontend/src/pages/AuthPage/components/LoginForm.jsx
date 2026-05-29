@@ -1,6 +1,5 @@
 /**
- * @module LoginForm
- * @description Username/password sign-in form backed by Supabase auth helpers.
+ * Username/password sign-in form backed by Supabase auth helpers.
  */
 
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
@@ -17,13 +16,7 @@ import { signInWithUsername } from '@/lib/auth';
 import { loginSchema } from '@/lib/validation';
 
 /**
- * A login form component that handles user authentication with username and password.
- * Exposes a `submit` method via ref to programmatically trigger form submission.
- *
- * @param {Object} props - Component props
- * @param {() => void} props.onSwitchToSignup - Callback function to switch to the signup form view
- * @param {React.ForwardedRef<{ submit: () => void }>} ref - Ref to expose the submit method
- * @returns {JSX.Element} Rendered login form
+ * Renders username/password sign-in and exposes `submit()` for the parent Enter-key handler.
  */
 const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +59,7 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
       const { data: authData, error } = await signInWithUsername(data.username, data.password);
 
       if (error) {
-        logger.error('[LoginForm] sign in error:', { status: error.status });
+        logger.error('[AUTH:SIGN_IN_FAILED]', error);
         setSubmitError('Incorrect username or password.');
         return;
       }
@@ -83,10 +76,19 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
       });
 
       reset();
+
       const returnTo = location.state?.from || '/';
+      logger.log(
+        '[LoginForm] returnTo:',
+        returnTo,
+        'full state:',
+        location.state,
+        'pendingSave:',
+        sessionStorage.getItem('pendingSaveAfterLogin'),
+      );
       navigate(returnTo, { replace: true });
-    } catch (err) {
-      logger.error('[LoginForm] unexpected error:', err);
+    } catch (error) {
+      logger.error('[AUTH:SIGN_IN_UNEXPECTED]', error);
       setSubmitError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -94,9 +96,9 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
   };
 
   return (
-    <div className="w-full md_lg:-mt-20">
+    <div className="w-full space-y-4">
       {/* Header */}
-      <div className="mb-7 text-center">
+      <div className="text-center">
         <p className="text-center font-sans text-[1.375rem] font-medium tracking-[-0.01em] text-(--color-text-primary)">
           Sign in
         </p>
@@ -178,7 +180,7 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
       </Form>
 
       {/* Toggle link */}
-      <p className="mt-2 text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
+      <p className="text-center font-sans text-[0.8125rem] text-(--color-text-muted)">
         Don&apos;t have an account?{' '}
         <Button
           size="sm"
@@ -190,45 +192,43 @@ const LoginForm = forwardRef(function LoginForm({ onSwitchToSignup }, ref) {
         </Button>
       </p>
 
-      <div className="relative mt-4 min-h-10">
-        {/* Error display */}
-        {submitError && <DetailsBadge variant="error" message={submitError} />}
+      {/* Error display */}
+      {submitError && <DetailsBadge variant="error" message={submitError} />}
 
-        {/* test login credentials */}
-        <div className="absolute inset-x-0 top-16 flex animate-in flex-col items-center justify-center gap-1 rounded-xl bg-(--color-info-soft-ui) px-3 py-2 text-sm font-medium text-(--color-info)">
-          <div className="flex items-center gap-1 uppercase">
-            <Minus size={16} strokeWidth={2.5} />
-            <span>Test login credentials</span>
-            <Minus size={16} strokeWidth={2.5} />
-          </div>
-          <div className="flex items-center justify-center gap-1.5">
-            <User size={12} strokeWidth={2.5} />
-            <span>Username: {FRONTEND_CONFIG.testCredentials.username}</span>
-            <CopyButton
-              variant="info-text"
-              size="sm"
-              copyValue={FRONTEND_CONFIG.testCredentials.username}
-              buttonCn="p-0 pl-1"
-            />
-          </div>
-          <div className="flex items-center justify-center gap-1.5">
-            <KeyRound size={12} strokeWidth={2.5} />
-            <span>Password: {FRONTEND_CONFIG.testCredentials.password}</span>
-            <CopyButton
-              variant="info-text"
-              size="sm"
-              copyValue={FRONTEND_CONFIG.testCredentials.password}
-              buttonCn="p-0 pl-1"
-            />
-          </div>
-          <Button
-            variant="info-soft"
-            onPress={handleFillTestCredentials}
-            className="py-0.5 tracking-wide shadow-sm transition-all duration-200 active:scale-95"
-          >
-            FILL
-          </Button>
+      {/* test login credentials */}
+      <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-(--color-info-soft-ui) px-3 py-2 text-sm font-medium text-(--color-info)">
+        <div className="flex items-center gap-1 uppercase">
+          <Minus size={16} strokeWidth={2.5} />
+          <span>Test login credentials</span>
+          <Minus size={16} strokeWidth={2.5} />
         </div>
+        <div className="flex items-center justify-center gap-1.5">
+          <User size={12} strokeWidth={2.5} />
+          <span>Username: {FRONTEND_CONFIG.testCredentials.username}</span>
+          <CopyButton
+            variant="info-text"
+            size="sm"
+            copyValue={FRONTEND_CONFIG.testCredentials.username}
+            buttonCn="p-0 pl-1"
+          />
+        </div>
+        <div className="flex items-center justify-center gap-1.5">
+          <KeyRound size={12} strokeWidth={2.5} />
+          <span>Password: {FRONTEND_CONFIG.testCredentials.password}</span>
+          <CopyButton
+            variant="info-text"
+            size="sm"
+            copyValue={FRONTEND_CONFIG.testCredentials.password}
+            buttonCn="p-0 pl-1"
+          />
+        </div>
+        <Button
+          variant="info-soft"
+          onPress={handleFillTestCredentials}
+          className="py-0.5 tracking-wide shadow-sm transition-all duration-200 active:scale-95"
+        >
+          FILL
+        </Button>
       </div>
     </div>
   );

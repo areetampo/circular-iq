@@ -1,6 +1,5 @@
 /**
- * @module SignupForm
- * @description Registration form for new users (username/password via Supabase).
+ * Registration form for new users (username/password via Supabase).
  */
 
 import { FieldError, Form, Input, Label, TextField, toast } from '@heroui/react';
@@ -28,12 +27,7 @@ import {
 import { cn } from '@/utils/cn';
 
 /**
- * Inline signup validation hint with pass/fail/neutral icon states.
- *
- * @param {boolean} isValid - Whether the rule currently passes.
- * @param {boolean} hasInput - Whether the user has typed in the field.
- * @param {import('react').ReactNode} children - Rule label text.
- * @returns {import('react').ReactElement}
+ * Renders one signup validation hint with neutral, passing, or failing visual state.
  */
 const ValidationRule = ({ isValid, hasInput, children }) => (
   <div
@@ -54,22 +48,16 @@ const ValidationRule = ({ isValid, hasInput, children }) => (
 );
 
 ValidationRule.propTypes = {
-  /** Whether the validation passed */
+  /** Whether the current input satisfies this rule */
   isValid: PropTypes.bool.isRequired,
-  /** Whether the field has input */
+  /** Whether to show neutral state before the user starts typing */
   hasInput: PropTypes.bool.isRequired,
-  /** The validation text */
+  /** Rule label displayed beside the status icon */
   children: PropTypes.node.isRequired,
 };
 
 /**
- * A signup form component that handles new user registration.
- * Exposes a `submit` method via ref to programmatically trigger form submission.
- *
- * @param {Object} props - Component props
- * @param {() => void} props.onSwitchToLogin - Callback function to switch back to the login form view
- * @param {React.ForwardedRef<{ submit: () => void }>} ref - Ref to expose the submit method
- * @returns {JSX.Element} Rendered signup form
+ * Renders account registration with inline credential rules and exposes `submit()` for Enter-key handling.
  */
 const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
   const [isLoading, setIsLoading] = useState(false);
@@ -107,9 +95,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
       );
 
       if (signupError) {
-        logger.error('[SignupForm] sign up error:', {
-          status: signupError.status,
-        });
+        logger.error('[AUTH:SIGN_UP_FAILED]', signupError);
 
         const msg = signupError.message ?? '';
         if (
@@ -131,14 +117,14 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
         throw new Error('Sign up succeeded but no user data was returned.');
       }
 
-      // Auto-login after successful signup
+      // New accounts should continue through the same return-to redirect flow as regular sign-in.
       const { data: loginData, error: loginError } = await signInWithUsername(
         data.username,
         data.password,
       );
 
       if (loginError) {
-        logger.error('[SignupForm] auto-login failed:', { status: loginError.status });
+        logger.error('[AUTH:SIGN_UP_AUTO_LOGIN_FAILED]', loginError);
         setSubmitError('Unable to create account. Please try again.');
         return;
       }
@@ -153,10 +139,19 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
       });
 
       reset();
+
       const returnTo = location.state?.from || '/';
+      logger.log(
+        '[SignupForm] returnTo:',
+        returnTo,
+        'full state:',
+        location.state,
+        'pendingSave:',
+        sessionStorage.getItem('pendingSaveAfterLogin'),
+      );
       navigate(returnTo, { replace: true });
-    } catch (err) {
-      logger.error('[SignupForm] Unexpected error during sign up:', err?.message ?? err);
+    } catch (error) {
+      logger.error('[AUTH:SIGN_UP_UNEXPECTED]', error);
       setSubmitError('Unable to create account. Please try again.');
     } finally {
       setIsLoading(false);
@@ -166,18 +161,18 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="mb-7 text-center">
+      <div className="mb-4 text-center">
         <p className="text-center font-sans text-[1.375rem] font-medium tracking-[-0.01em] text-(--color-text-primary)">
           Create Account
         </p>
-        <p className="mb-7 text-center font-sans text-[0.875rem] text-(--color-text-muted)">
+        <p className="text-center font-sans text-[0.875rem] text-(--color-text-muted)">
           Join to start evaluating circular economy ideas
         </p>
       </div>
 
-      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
+      <Form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Username */}
-        <div className="mb-5">
+        <div className="space-y-1">
           <Controller
             name="username"
             control={control}
@@ -202,7 +197,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
               </TextField>
             )}
           />
-          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
+          <div className="grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
             {[
               {
                 validate: () => validateUsernameLength(formData.username || ''),
@@ -229,7 +224,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
         </div>
 
         {/* Password */}
-        <div className="mb-5">
+        <div className="space-y-1">
           <Controller
             name="password"
             control={control}
@@ -261,7 +256,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
               </TextField>
             )}
           />
-          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
+          <div className="grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
             {[
               {
                 validate: () => validatePasswordLength(formData.password || ''),
@@ -284,7 +279,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
         </div>
 
         {/* Confirm Password */}
-        <div className="mb-5">
+        <div className="space-y-1">
           <Controller
             name="confirmPassword"
             control={control}
@@ -316,7 +311,7 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
               </TextField>
             )}
           />
-          <div className="mt-2 grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
+          <div className="grid grid-cols-[max-content_max-content] justify-start gap-x-4 gap-y-1 px-2 text-xs text-(--color-text-muted) opacity-75">
             {[
               {
                 validate: () =>
@@ -355,17 +350,12 @@ const SignupForm = forwardRef(function SignupForm({ onSwitchToLogin }, ref) {
       </p>
 
       {/* Error display */}
-      <div className="relative mt-4 min-h-10">
-        {submitError && (
-          <DetailsBadge variant="error" message={submitError} className="absolute inset-x-0" />
-        )}
-      </div>
+      {submitError && <DetailsBadge variant="error" message={submitError} className="mt-4" />}
     </div>
   );
 });
 
 SignupForm.propTypes = {
-  /** Callback function to switch back to the login form view */
   onSwitchToLogin: PropTypes.func.isRequired,
 };
 

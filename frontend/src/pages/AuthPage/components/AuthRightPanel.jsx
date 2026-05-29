@@ -1,6 +1,5 @@
 /**
- * @module AuthRightPanel
- * @description Right panel hosting login/signup tabs and forms.
+ * Right-side auth panel that swaps between login and signup forms.
  */
 
 import PropTypes from 'prop-types';
@@ -9,16 +8,12 @@ import { useEffect, useRef } from 'react';
 import { cn } from '@/utils/cn';
 
 import AuthBrandHeader from './AuthBrandHeader';
+import AuthNavButtons from './AuthNavButtons';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 
 /**
- * Right panel hosting login/signup tabs and forms.
- *
- * @param {Object} props
- * @param {string} props.view
- * @param {Function} props.setView
- * @returns {import('react').ReactElement}
+ * Renders the active auth form and routes Enter-key submits through the form ref.
  */
 export default function AuthRightPanel({ view, setView }) {
   const formRef = useRef(null);
@@ -55,11 +50,11 @@ export default function AuthRightPanel({ view, setView }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-8 md:px-12 lg:px-16">
-      <AuthBrandHeader className={cn('md_lg:hidden', view === 'login' && '-mt-36')} layout="row" />
+      <AuthBrandHeader className={cn('md_lg:hidden')} layout="row" />
       <div
         className={cn(
           'w-full max-w-105 md:max-w-md lg:max-w-105',
-          view === 'signup' && 'md_lg:mt-8',
+          view === 'signup' ? 'md_lg:mt-8' : 'md_lg:pb-4',
         )}
       >
         {view === 'login' ? (
@@ -68,6 +63,8 @@ export default function AuthRightPanel({ view, setView }) {
           <SignupForm ref={formRef} onSwitchToLogin={() => setView('login')} />
         )}
       </div>
+
+      <AuthNavButtons className="mt-4 md_lg:hidden" />
     </div>
   );
 }

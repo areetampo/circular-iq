@@ -1,6 +1,5 @@
 /**
- * @module AuthBrandHeader
- * @description Branded header (logo and product name) on authentication pages.
+ * Logo and product-name lockup used by the authentication panels.
  */
 
 import PropTypes from 'prop-types';
@@ -9,19 +8,14 @@ import { SiteFullName, SiteLogo, SiteName } from '@/components/common';
 import { cn } from '@/utils/cn';
 
 /**
- * Branded header (logo and product name) on authentication pages.
- *
- * @param {Object} props
- * @param {string} props.className
- * @param {string} props.layout
- * @returns {import('react').ReactElement}
+ * Renders the auth brand lockup in either stacked desktop or compact row layout.
  */
 export default function AuthBrandHeader({ className, layout = 'col' }) {
   return (
     <div
       className={cn(
         'flex flex-col items-center justify-center',
-        layout === 'row' ? '-mt-4 mb-6 flex-row gap-2 pr-4' : '',
+        layout === 'row' && '-mt-2 mb-4 flex-row gap-2 pr-4',
         className,
       )}
     >
@@ -32,7 +26,7 @@ export default function AuthBrandHeader({ className, layout = 'col' }) {
           layout === 'row' ? '-ml-1' : '-mt-1.5',
         )}
       />
-      <SiteFullName className="hidden text-center font-sans text-[1.28rem] font-medium text-(--color-text-secondary) md_lg:block" />
+      <SiteFullName className="hidden text-center font-sans text-[1.28rem] font-medium md_lg:block" />
     </div>
   );
 }

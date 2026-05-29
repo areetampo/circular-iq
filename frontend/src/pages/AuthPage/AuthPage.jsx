@@ -1,23 +1,23 @@
 /**
- * @module AuthPage
- * @description Sign-in and registration page with split brand and form panels.
+ * Sign-in and registration page with split brand and form panels.
  */
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 
 import DriftingShapesBackground from '@/components/background/DriftingShapesBackground';
 import { ShootingStars } from '@/components/ui/shooting-stars';
 import { StarsBackground } from '@/components/ui/stars-background';
 import { Vortex } from '@/components/ui/vortex';
+import { usePageTitle } from '@/hooks';
 
 import { AuthLeftPanel, AuthRightPanel } from './components';
 
 /**
- * Toggles between login and signup views.
- * @returns {import('react').ReactElement}
+ * Renders the auth page and keeps login/signup mode synchronized with the `view` query param.
  */
 export default function AuthPage() {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState('login');
 
@@ -27,20 +27,23 @@ export default function AuthPage() {
       setView(viewParam);
     } else {
       setView('login');
-      setSearchParams({ view: 'login' });
+      // Preserve router state so post-auth redirects survive invalid or missing view params.
+      setSearchParams({ view: 'login' }, { state: location.state, replace: true });
     }
   }, [searchParams]); // Re-run whenever URL params change
 
+  usePageTitle(view === 'signup' ? 'Sign Up' : 'Sign In');
+
   const handleViewChange = (newView) => {
     setView(newView);
-    setSearchParams({ view: newView });
+    setSearchParams({ view: newView }, { state: location.state, replace: true });
   };
 
   return (
     <Vortex
       backgroundColor="transparent"
       baseHue={22}
-      particleCount={300}
+      particleCount={150}
       baseSpeed={0.0}
       rangeSpeed={1.0}
       baseRadius={1.0}
