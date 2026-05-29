@@ -1,48 +1,33 @@
 /**
- * @module chunk
- * @description Chunking constants and utility functions for processing text data.
- * Used by pipeline/rag/generate_chunks.js to split documents into manageable chunks,
- * extract metadata, and format content for embedding and storage.
- *
- * Key functionality:
- * - Text chunking with configurable word/token limits
- * - Metadata extraction and formatting for classification
- * - Dataset-specific field extraction from JSON metadata
- * - Text sanitization and normalization
+ * Text chunking and dataset-aware metadata formatting helpers for the RAG pipeline.
+ * These helpers preserve searchable context while keeping generated chunks and metadata
+ * summaries short enough for embedding and prompt assembly.
  */
 
 // ===== Constants
-/** Target token count per chunk (aiming for ~300-500 tokens). @type {number} */
+/** Target token count per chunk, tuned for roughly 300-500 token retrieval passages. */
 const CHUNK_SIZE_TOKENS = 350;
-/** Maximum length for metadata field strings before truncation. @type {number} */
+/** Maximum characters retained from any single metadata field in chunk summaries. */
 const MAX_METADATA_FIELD_LENGTH = 500;
-/** Rough estimate of tokens per word for cost calculations. @type {number} */
+/** Heuristic conversion used to derive chunk word count when no tokenizer is available. */
 const TOKENS_PER_WORD = 1.3;
-/** Target word count per chunk, derived from token limit. @type {number} */
+/** Target word count per generated chunk, derived from `CHUNK_SIZE_TOKENS`. */
 const WORDS_PER_CHUNK = Math.floor(CHUNK_SIZE_TOKENS / TOKENS_PER_WORD);
 
-/** Max concurrent OpenAI API calls when --enrich-scores is active.
- * This many gpt-4o-mini requests fire in parallel, staying within RPM limits.
- * @type {number}
- */
+/** Max concurrent OpenAI calls when score enrichment is enabled; tuned to avoid RPM bursts. */
 const ENRICH_CONCURRENCY = 5;
 
 /**
- * Extracts classification metadata from case study text fields.
- * Uses keyword-based heuristics to determine industry, primary material,
- * and circular strategy from the provided text fields.
+ * Infers coarse retrieval metadata when processed rows lack normalized fields.
+ * Keyword matches intentionally fall back to conservative `general`, `mixed`, and `reduction`
+ * values so downstream filters always receive a complete shape.
  *
- * @param {string} problemText - Description of the business problem.
- * @param {string} solutionText - Description of the solution implemented.
- * @param {string} materials - Materials mentioned in the case study.
- * @param {string} category - Category classification from the dataset.
- * @param {string} circularStrategy - Circular strategy classification if available.
- * @returns {Object} Extracted metadata with industry, scale, r_strategy, primary_material, and geographic_focus.
- * @returns {string} returns.industry - Detected industry (textiles, packaging, construction, electronics, health, automotive, or general).
- * @returns {string} returns.scale - Scale of implementation (currently always null).
- * @returns {string} returns.r_strategy - Circular strategy (reuse, recycling, regeneration, or reduction).
- * @returns {string} returns.primary_material - Primary material (plastic, metal, textile, organic, paper, glass, or mixed).
- * @returns {string|null} returns.geographic_focus - Geographic focus (currently always null).
+ * @param {string} problemText - Business problem text used as fallback keyword evidence.
+ * @param {string} solutionText - Proposed circular solution text used as fallback keyword evidence.
+ * @param {string} materials - Dataset material field when available.
+ * @param {string} category - Dataset category used to infer industry.
+ * @param {string} circularStrategy - Dataset circular strategy used to infer R-strategy.
+ * @returns {{ industry: string, scale: null, r_strategy: string, primary_material: string, geographic_focus: null }} Complete metadata object used for generated RAG chunks.
  */
 function extractMetadata(problemText, solutionText, materials, category, circularStrategy) {
   // Industry: from category (simple mapping)
@@ -55,7 +40,7 @@ function extractMetadata(problemText, solutionText, materials, category, circula
   else if (catLower.includes('health')) industry = 'health';
   else if (catLower.includes('automotive')) industry = 'automotive';
 
-  // Primary material – from materials column if specific, else fallback to keywords
+  // Prefer the materials column when it is specific; otherwise infer from row text.
   let primary_material = 'mixed';
   const matSearchText =
     materials && materials !== 'Cradle‑to‑Cradle Certified Materials'
@@ -88,7 +73,7 @@ function extractMetadata(problemText, solutionText, materials, category, circula
   else if (matSearchText.includes('glass') || matSearchText.includes('ceramic'))
     primary_material = 'glass';
 
-  // Circular strategy – use circularStrategy column if present, else keyword
+  // Prefer the circular strategy column before falling back to keyword inference.
   let r_strategy = 'reduction';
   if (circularStrategy) {
     const stratLower = circularStrategy.toLowerCase();
@@ -104,7 +89,7 @@ function extractMetadata(problemText, solutionText, materials, category, circula
     else if (combined.includes('reduce')) r_strategy = 'reduction';
   }
 
-  // Scale and geographic focus – not reliably extractable; set to null
+  // Scale and geography are not reliably extractable from these rows.
   const scale = null;
   const geographic_focus = null;
 
@@ -112,10 +97,11 @@ function extractMetadata(problemText, solutionText, materials, category, circula
 }
 
 /**
- * Safely get a nested value from an object using dot notation.
- * @param {Object} obj - The object to traverse.
- * @param {string} path - Dot‑separated path.
- * @returns {any} The value, or undefined if not found.
+ * Resolves nested metadata values using dot notation without throwing on missing segments.
+ *
+ * @param {Record<string, unknown>} obj - Source object containing nested metadata fields.
+ * @param {string} path - Dot-separated metadata path such as `sections.results`.
+ * @returns {unknown} Resolved value, or `undefined` when any path segment is missing.
  */
 function getNestedValue(obj, path) {
   return path
@@ -127,12 +113,11 @@ function getNestedValue(obj, path) {
 }
 
 /**
- * Format a value for inclusion in metadata summary.
- * - Strings are truncated if too long.
- * - Arrays are joined with commas.
- * - Objects are stringified (shallow) if small.
- * @param {any} value - The value to format.
- * @returns {string} Formatted string.
+ * Formats arbitrary metadata into a compact single-field summary fragment.
+ * Strings, joined arrays, and JSON-stringified objects are truncated to the metadata cap.
+ *
+ * @param {unknown} value - Metadata value from a CSV row or parsed JSON field.
+ * @returns {string} Display-safe metadata fragment capped at `MAX_METADATA_FIELD_LENGTH`.
  */
 function formatMetadataValue(value) {
   if (value === null || value === undefined) return '';
@@ -164,10 +149,13 @@ function formatMetadataValue(value) {
 }
 
 /**
- * Extract and format useful information from metadata_json, dataset‑aware.
- * @param {string} metadataJson - The JSON string from CSV.
- * @param {string} datasetKey - Dataset prefix (e.g., 'c2c', 'cgr').
- * @returns {string} Formatted metadata string, or empty if none.
+ * Extracts dataset-specific metadata fields into a long retrieval summary.
+ * Known dataset keys select curated fields; unknown or empty mappings fall back to common
+ * company/certification/material/score fields when present.
+ *
+ * @param {string} metadataJson - JSON-encoded metadata from a processed dataset row.
+ * @param {string} datasetKey - Dataset prefix (e.g., `c2c`, `cgr`).
+ * @returns {string} `Metadata: ...` summary assembled from dataset-specific fields, or empty when parsing fails or no useful fields exist.
  */
 function formatMetadataFromJson(metadataJson, datasetKey) {
   if (!metadataJson) return '';
@@ -175,7 +163,7 @@ function formatMetadataFromJson(metadataJson, datasetKey) {
     const meta = JSON.parse(metadataJson);
     const parts = [];
 
-    // Use dataset‑specific field list if available
+    // Dataset-specific field lists keep retrieval metadata focused and predictable.
     const fieldsToExtract = {
       c2c: ['company', 'certifications', 'description', 'materials', 'score', 'certCount'],
       cgr: ['extracted_stats', 'original_snippet'],
@@ -297,16 +285,19 @@ function formatMetadataFromJson(metadataJson, datasetKey) {
 
     return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
   } catch {
-    // Silently fail - no logger import here
+    // Malformed metadata should not block chunk generation.
     return '';
   }
 }
 
 /**
- * Extract concise, dataset‑specific highlights from metadata_json.
- * @param {string} metadataJson - The JSON string from CSV.
- * @param {string} datasetKey - Dataset prefix (e.g., 'c2c', 'cgr').
- * @returns {string} A short summary string (empty if none).
+ * Extracts a short metadata summary for chunk text where only the most useful fields fit.
+ * This uses at most the first four curated fields, then appends important numeric indicators
+ * and certifications when available.
+ *
+ * @param {string} metadataJson - JSON-encoded metadata from a processed dataset row.
+ * @param {string} datasetKey - Dataset prefix (e.g., `c2c`, `cgr`).
+ * @returns {string} Compact `Metadata: ...` highlight string, or empty when parsing fails or nothing useful is present.
  */
 function getMetadataHighlights(metadataJson, datasetKey) {
   if (!metadataJson) return '';
@@ -314,7 +305,7 @@ function getMetadataHighlights(metadataJson, datasetKey) {
     const meta = JSON.parse(metadataJson);
     const parts = [];
 
-    // Use dataset‑specific fields if available (up to 4)
+    // Use at most four dataset-specific fields so highlights stay compact.
     const fieldsToExtract = {
       c2c: ['company', 'certifications', 'description', 'materials', 'score', 'certCount'],
       cgr: ['extracted_stats', 'original_snippet'],
@@ -456,7 +447,7 @@ function getMetadataHighlights(metadataJson, datasetKey) {
 
     return parts.length ? `Metadata: ${parts.join(' | ')}` : '';
   } catch {
-    // Silently fail – no highlights
+    // Malformed metadata should not block chunk generation.
     return '';
   }
 }
@@ -465,8 +456,8 @@ function getMetadataHighlights(metadataJson, datasetKey) {
  * Sanitizes and normalizes text by trimming whitespace, collapsing multiple spaces,
  * and converting curly quotes to straight quotes.
  *
- * @param {string} text - The text to sanitize.
- * @returns {string} The sanitized text.
+ * @param {string} text - Raw dataset text that may contain irregular whitespace or curly quotes.
+ * @returns {string} Normalized single-line text for chunk output.
  */
 function sanitizeText(text) {
   if (!text) return '';
@@ -480,8 +471,8 @@ function sanitizeText(text) {
 /**
  * Estimates the word count of a string by splitting on whitespace.
  *
- * @param {string} text - The text to count words in.
- * @returns {number} The estimated word count.
+ * @param {string} text - Sanitized or raw content to measure before chunking.
+ * @returns {number} Whitespace-delimited word count.
  */
 function countWords(text) {
   return text.trim().split(/\s+/).length;
@@ -491,9 +482,9 @@ function countWords(text) {
  * Splits long text into chunks of roughly equal word count by breaking at sentence boundaries.
  * Attempts to keep chunks close to the target word count while preserving sentence integrity.
  *
- * @param {string} text - The text to split into chunks.
+ * @param {string} text - Long content field from a processed dataset row.
  * @param {number} targetWords - Target word count per chunk.
- * @returns {Array<string>} Array of text chunks.
+ * @returns {Array<string>} Sentence-preserving chunks near the target word count.
  */
 function splitLongText(text, targetWords) {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];

@@ -1,14 +1,7 @@
 /**
- * @module logger
- * @description Centralized logging utility using Pino logger.
- * Provides structured logging with pretty-printing in development and
- * JSON output in production. Includes a custom logOperation method
- * for consistent API operation logging.
- *
- * Features:
- * - Development mode: Pretty-printed colored logs with timestamps
- * - Production mode: JSON logs for log aggregation services
- * - Custom logOperation method for standardized API operation tracking
+ * Shared Pino logger configured for pretty local output and structured JSON elsewhere.
+ * Server bootstrap also exposes this instance on `globalThis.logger` for lifecycle hooks
+ * that run before normal module imports are convenient.
  */
 
 import pino from 'pino';
@@ -17,13 +10,7 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 
 const isDev = BACKEND_CONFIG.nodeEnv === 'development';
 
-/**
- * Pino logger instance configured for the current environment.
- * In development, uses pino-pretty for human-readable output.
- * In production, outputs JSON for log aggregation.
- *
- * @type {import('pino').Logger}
- */
+/** Pino instance extended with the API operation helper used by route middleware. */
 export const logger = pino({
   level: 'info',
   transport: isDev
@@ -40,18 +27,13 @@ export const logger = pino({
 });
 
 /**
- * Log an API operation with standardized format.
- * Used throughout the codebase for consistent operation tracking.
+ * Logs a normalized API/subsystem operation record through the shared logger.
  *
- * @param {string} op - Operation name (e.g., 'POST', 'GET', 'database_query')
- * @param {string} path - API path or operation location
- * @param {number|string} stat - HTTP status code or operation status
- * @param {number} dur - Duration in milliseconds
- * @param {Object|null} details - Additional details to include in log (optional)
- *
- * @example
- * logger.logOperation('POST', '/api/score', 200, 150, { userId: '123' });
- * // Logs: { op: 'POST', path: '/api/score', stat: 200, dur: 150, details: { userId: '123' } }
+ * @param {string} op - HTTP verb or short operation label such as `GET` or `poll`.
+ * @param {string} path - Route path or subsystem key that identifies where the operation ran.
+ * @param {number|string} stat - HTTP status code or stable outcome label for non-HTTP work.
+ * @param {number} dur - Elapsed duration in milliseconds measured by the caller.
+ * @param {Record<string, unknown>|null} [details=null] - Optional structured context attached under `details`.
  */
 logger.logOperation = (op, path, stat, dur, details = null) => {
   const logData = { op, path, stat, dur };
@@ -61,5 +43,5 @@ logger.logOperation = (op, path, stat, dur, details = null) => {
   return logger.info(logData, 'API Op');
 };
 
-/** Available as bare `logger` in server lifecycle modules (no import). */
+/** Makes the configured logger available to startup/shutdown code that runs outside route modules. */
 globalThis.logger = logger;

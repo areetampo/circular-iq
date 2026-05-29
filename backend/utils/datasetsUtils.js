@@ -1,29 +1,7 @@
 /**
- * @module datasetsUtils
- * @description Centralized dataset processing utilities for the ingestion pipeline.
- *
- * This module provides all shared utilities, configurations, and helpers needed
- * by dataset extraction and scraping scripts to maintain consistency across the pipeline.
- *
- * PRIMARY EXPORTS:
- *   • DATASETS & DATASET_LOOKUP: Complete dataset registry with metadata
- *   • getDatasetRawDir, getDatasetProcessedCsvPath: Path helpers
- *   • getDatasetBackupFolderPath, getDatasetBackupCsvPath: Backup storage paths
- *   • writeCsv, writeJsonl, writeJson: Centralized file writing with locking
- *   • appendToArchive, readBackupCsv: Backup management
- *   • appendLogs, clearLogs: Backup logging
- *   • createBackupHelper: Batched backup flushing during long scrapes
- *   • cleanText, formatId: Text sanitization and ID formatting
- *   • CSV_COLUMNS, STRINGIFY_OPTIONS: Standard CSV configuration
- *   • getBrowserLaunchOptions, getViewportOptions, getUserAgentOptions: Puppeteer config
- *   • getExtraHttpHeaders, randomDelay: HTTP utilities
- *
- * KEY PRINCIPLES:
- *   ✓ DRY: All common logic centralized, no duplication across scripts
- *   ✓ File Locking: All writes unlock, modify, then re-lock (chmod 0o644 → 0o444)
- *   ✓ Backup Management: Incremental saves with recovery mode (--use-backup)
- *   ✓ Logging: Timestamped backups with dataset-specific log files
- *   ✓ Consistency: All CSV processing uses shared columns and stringify options
+ * Dataset registry, path helpers, CSV/JSON writers, scrape backups, and Puppeteer defaults.
+ * Writer helpers unlock read-only generated files before mutation and relock them after writes
+ * so accidental edits to generated artifacts are harder during manual review.
  */
 
 import fs from 'fs';
@@ -48,13 +26,13 @@ const BACKEND_ROOT = path.resolve(__dirname, '..');
 const DATASETS_DIR = path.join(BACKEND_ROOT, 'datasets');
 const DATASETS_RAW_DIR = path.join(DATASETS_DIR, 'raw');
 
-/** @constant {string} Absolute path to `backend/datasets/processed`. */
+/** Directory containing normalized processed CSVs consumed by merge and RAG pipeline steps. */
 export const DATASETS_PROCESSED_DIR = path.join(DATASETS_DIR, 'processed');
 
-/** @constant {string} Absolute path to `backend/datasets/manual_entries`. */
+/** Directory for hand-authored CSV rows that supplement scraped and extracted datasets. */
 export const DATASETS_MANUAL_ENTRIES_DIR = path.join(DATASETS_DIR, 'manual_entries');
 
-/** @constant {string} Absolute path to `backend/datasets/scripts`. */
+/** Directory containing scraper and extractor scripts referenced by the dataset registry. */
 export const DATASETS_SCRIPTS_DIR = path.join(DATASETS_DIR, 'scripts');
 
 //* archived output files stored at root of archives/
@@ -64,25 +42,25 @@ const DATASETS_SCRAPE_BACKUP_DIR = path.join(DATASETS_ARCHIVES_DIR, 'scrape_back
 //* subfolders are created within scrape_backup/ for specific datasets' backup,
 //* each containing a CSV file and a logs.txt file.
 
-/** @constant {string} Pipeline archive: merged raw dataset CSV before final normalisation. */
+/** Archived merged dataset CSV before final normalization, kept for reproducible pipeline runs. */
 export const ARCHIVES_COMBINED_INPUT_CSV = path.join(DATASETS_ARCHIVES_DIR, 'combined_input.csv');
 
-/** @constant {string} Pipeline archive: final merged input CSV ready for chunking. */
+/** Archived final merged CSV used as the canonical chunking input. */
 export const ARCHIVES_COMBINED_INPUT_FINAL_CSV = path.join(
   DATASETS_ARCHIVES_DIR,
   'combined_input_final.csv',
 );
 
-/** @constant {string} Pipeline archive: generated text chunks JSON. */
+/** Archived generated text chunks before embedding. */
 export const ARCHIVES_CHUNKS_JSON = path.join(DATASETS_ARCHIVES_DIR, 'chunks.json');
 
-/** @constant {string} Pipeline archive: chunks with embedding vectors (JSONL). */
+/** Archived JSONL chunks after embedding vectors are attached. */
 export const ARCHIVES_EMBEDDED_CHUNKS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'embedded_chunks.jsonl',
 );
 
-/** @constant {string} Pipeline archive: documents written during store step (dry-run). */
+/** Archived JSONL record of documents prepared or written by the store step. */
 export const ARCHIVES_STORED_DOCUMENTS_JSONL = path.join(
   DATASETS_ARCHIVES_DIR,
   'stored_documents.jsonl',
@@ -174,19 +152,10 @@ export const DATASETS_TEST_INPUTS_POKEMON_NAMES_JSON = path.join(
 const ID_DIGITS = 5;
 
 /**
- * Dataset registry
- * Each object represents a processed dataset and contains:
- *   key                unique short identifier (used for lookups/prefixes)
- *   name               human-readable title
- *   raw_folder         name of corresponding directory under `datasets/raw` or null
- *   processed_csv      filename of the processed CSV sitting in `datasets/processed`
- *   scrape_script      path to a scraping script under `datasets/scripts` (or null)
- *   extract_script     path to an extraction script under `datasets/scripts` (or null)
- *   source_url         main source/homepage URL for this dataset (or null if scraped)
- *   urls               object containing API/config URLs used by script (or null). Keys should be descriptive so scripts can reference them directly.
- *   raw_folder_contents object containing specific file references in raw folder (or null). This must enumerate **every** file actually present, with clear property names, allowing downstream scripts to access them by name rather than hardcoding filenames.
- *   prefix             auto-generated as key + '_'
- *   scrape_backup_folder name of the folder inside archives/scrape_backup/ (or null if no backup)
+ * Registry of every dataset processed by the scraping, extraction, merge, and RAG pipeline.
+ * Each entry maps a stable short key to raw input folders, processed CSV names, scripts, source
+ * URLs, known raw files, and optional scrape-backup storage. Consumers should use
+ * `DATASET_LOOKUP` and path helpers instead of hardcoding filenames.
  */
 const DATASETS = [
   {
@@ -782,7 +751,7 @@ const DATASETS = [
       foodTypes: 'https://api.refed.org/v2/solution_database/food_types', // Direct API endpoint
     },
     raw_folder_contents: null, // No raw files
-    // Optional: if you want to explicitly document the backup location
+    // This scraper supports resumable backup CSVs.
     scrape_backup_folder: 'refed_scrape_backup', // Backup CSV will be stored here
   },
   {
@@ -953,21 +922,17 @@ DATASETS.forEach((ds) => {
   ds.prefix = `${ds.key}_`;
 });
 
-// Exported keys object for use in scripts (avoids literal strings)
+/**
+ * Dataset key lookup object for scripts that need stable keys without repeating string literals.
+ */
 export const DATASET_KEYS = DATASETS.reduce((acc, ds) => {
   acc[ds.key] = ds.key;
   return acc;
 }, {});
 
 /**
- * Lookup table generated from DATASETS.
- *
- * Usage:
- *   const ds = DATASET_LOOKUP['epa'];
- *   logger.info(ds.processed_csv); // epa_tri_processed.csv
- *
- * The lookup makes it easy to convert a known dataset key into the full
- * metadata object without iterating over the array.
+ * Dataset metadata keyed by registry key for scripts that need paths, source URLs, or backup settings.
+ * Values are the same objects from `DATASETS`, including the generated `prefix` field.
  */
 export const DATASET_LOOKUP = DATASETS.reduce((acc, it) => {
   acc[it.key] = it;
@@ -975,8 +940,12 @@ export const DATASET_LOOKUP = DATASETS.reduce((acc, it) => {
 }, {});
 
 /**
- * Get the full path to a dataset's raw directory.
- * Usage: const rawDir = getDatasetRawDir('epa');
+ * Resolves and creates the raw input directory for a registered dataset.
+ * Datasets sourced only from APIs or scrape pages return `null` because no raw folder exists.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @returns {string|null} Absolute raw directory path, or `null` when the registry entry has no raw folder.
+ * @throws {Error} If the dataset key is unknown.
  */
 export function getDatasetRawDir(key) {
   const dataset = DATASET_LOOKUP[key];
@@ -995,9 +964,11 @@ export function getDatasetRawDir(key) {
 }
 
 /**
- * Get the full path to a dataset's processed CSV file.
- * Usage: const csvPath = getDatasetProcessedCsvPath('epa');
- * Returns null if the dataset doesn't have a processed CSV defined.
+ * Resolves the processed CSV output path for a registered dataset.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @returns {string|null} Absolute processed CSV path, or `null` when the registry entry has no processed CSV.
+ * @throws {Error} If the dataset key is unknown.
  */
 export function getDatasetProcessedCsvPath(key) {
   const dataset = DATASET_LOOKUP[key];
@@ -1007,12 +978,15 @@ export function getDatasetProcessedCsvPath(key) {
 }
 
 // =============================================================================
-// BACKUP FOLDER PATHS (new)
+// BACKUP FOLDER PATHS
 // =============================================================================
 
 /**
- * Get the full path to a dataset's backup folder (inside archives/scrape_backup/).
- * Uses dataset.scrape_backup_folder if defined, otherwise returns null.
+ * Resolves the scrape-backup folder for a dataset that supports resumable scraping.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @returns {string|null} Absolute backup folder path, or `null` when the dataset has no scrape backup.
+ * @throws {Error} If the dataset key is unknown.
  */
 export function getDatasetBackupFolderPath(key) {
   const dataset = DATASET_LOOKUP[key];
@@ -1022,8 +996,11 @@ export function getDatasetBackupFolderPath(key) {
 }
 
 /**
- * Get the full path to a dataset's backup CSV file.
- * The CSV filename is the folder name + '.csv'.
+ * Resolves the backup CSV path inside a dataset's scrape-backup folder.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @returns {string|null} Absolute backup CSV path named after the backup folder, or `null` when no backup is configured.
+ * @throws {Error} If the dataset key is unknown.
  */
 function getDatasetBackupCsvPath(key) {
   const folder = getDatasetBackupFolderPath(key);
@@ -1033,14 +1010,18 @@ function getDatasetBackupCsvPath(key) {
 }
 
 /**
- * Get the full path to a dataset's backup log file.
- * The log filename is the folder name - 'backup' + 'logs.txt'.
+ * Resolves the timestamped scrape log path inside a dataset's backup folder.
+ * The filename mirrors the backup CSV folder name with `backup` replaced by `logs`.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @returns {string|null} Absolute backup log file path, or `null` when no backup folder is configured.
+ * @throws {Error} If the dataset key is unknown.
  */
 export function getDatasetScrapeLogsPath(key) {
   const folder = getDatasetBackupFolderPath(key);
   if (!folder) return null;
   const folderName = path.basename(folder);
-  //remove backup from folder name and add logs.txt
+  // Keep the log filename paired with its backup CSV folder.
   return path.join(folder, `${folderName.replace('backup', 'logs')}.txt`);
 }
 
@@ -1049,8 +1030,11 @@ export function getDatasetScrapeLogsPath(key) {
 // =============================================================================
 
 /**
- * Ensure a directory exists, creating it recursively if necessary.
- * Returns the path (for convenience).
+ * Creates `dirPath` recursively when missing.
+ *
+ * @param {string} dirPath - Directory path required by a dataset script.
+ * @returns {Promise<string>} Directory path that was created or already existed, for call chaining.
+ * @throws {Error} If the directory cannot be created.
  */
 export async function ensureDir(dirPath) {
   await fs.promises.mkdir(dirPath, { recursive: true });
@@ -1058,9 +1042,11 @@ export async function ensureDir(dirPath) {
 }
 
 /**
- * Assert that a file exists. Throws an Error if the path is missing.
- * @param {string} filePath
- * @param {string} [description] - optional description of the file's purpose
+ * Validates that a required input file exists before a dataset script continues.
+ *
+ * @param {string} filePath - Required file path to validate before processing.
+ * @param {string} [description] - Human-readable label included in the thrown error message.
+ * @throws {Error} If `filePath` does not exist.
  */
 export function assertFileExists(filePath, description) {
   if (!fs.existsSync(filePath)) {
@@ -1069,9 +1055,11 @@ export function assertFileExists(filePath, description) {
 }
 
 /**
- * Assert that a directory exists. Throws an Error if the path is missing or not a directory.
- * @param {string} dirPath
- * @param {string} [description] - optional description of the directory's purpose
+ * Validates that a required input directory exists and is a directory.
+ *
+ * @param {string} dirPath - Required directory path to validate before processing.
+ * @param {string} [description] - Human-readable label included in the thrown error message.
+ * @throws {Error} If `dirPath` is missing or is not a directory.
  */
 export function assertDirExists(dirPath, description) {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
@@ -1096,7 +1084,7 @@ export function assertDirExists(dirPath, description) {
  *   verifyPathsExist(rawDir);
  *   later: verifyPathsExist([rawCsv, rawPdf]);
  *
- * @param {string|string[]} paths
+ * @param {string|string[]} paths - Required filesystem paths checked before expensive script work begins.
  */
 export function verifyPathsExist(paths) {
   if (!Array.isArray(paths)) {
@@ -1123,6 +1111,9 @@ export function verifyPathsExist(paths) {
  * Example:
  *   await ensureFile(outputPath);
  *   now write/append freely, file is guaranteed to exist
+ *
+ * @param {string} filePath - File path to create if missing.
+ * @returns {Promise<boolean>} Whether the file existed before the call.
  */
 async function ensureFile(filePath) {
   const dir = path.dirname(filePath);
@@ -1141,6 +1132,9 @@ async function ensureFile(filePath) {
  * Synchronous counterpart to `ensureFile` for scripts that prefer sync I/O.
  *
  * Mirrors the behaviour: create parent directory, touch empty file if missing.
+ *
+ * @param {string} filePath - File path to create if missing.
+ * @returns {boolean} Whether the file existed before the call.
  */
 function ensureFileSync(filePath) {
   const dir = path.dirname(filePath);
@@ -1164,6 +1158,12 @@ function ensureFileSync(filePath) {
  * Returns `true` if the file already existed prior to the call (note that
  * `{clear:true}` will still return `true` but will have emptied the file),
  * `false` if it was newly created.
+ *
+ * @param {string} filePath - Target file that should be writable.
+ * @param {{ clear?: boolean }} [opts] - Write preparation options.
+ * @param {boolean} [opts.clear=false] - When true, empties existing contents before returning.
+ * @returns {Promise<boolean>} Whether the file existed before preparation.
+ * @throws {Error} If the parent directory cannot be created or the placeholder file cannot be written.
  */
 export async function prepareWrite(filePath, opts = {}) {
   const { clear = false } = opts;
@@ -1176,7 +1176,7 @@ export async function prepareWrite(filePath, opts = {}) {
     try {
       fs.chmodSync(filePath, 0o644);
     } catch {
-      // ignore errors on platforms that don't support chmod
+      // Some filesystems used in CI do not support chmod.
     }
 
     // optionally wipe the existing contents if the caller requests a fresh start
@@ -1184,7 +1184,7 @@ export async function prepareWrite(filePath, opts = {}) {
       try {
         await fs.promises.writeFile(filePath, '');
       } catch {
-        // ignore
+        // A later write will surface any persistent filesystem problem.
       }
       existed = false;
     }
@@ -1197,36 +1197,40 @@ export async function prepareWrite(filePath, opts = {}) {
 }
 
 /**
- * Helper for writing CSV data in a consistent manner. Rows are passed in as an
- * array of objects and will be stringified using the shared
- * `STRINGIFY_OPTIONS` constant. The output file is prepared with
- * `prepareWrite` and marked read-only once the write completes.
+ * Checks whether processed CSV writes should append to existing output.
+ *
+ * @returns {boolean} `true` when the CLI was invoked with `--append-processed`.
  */
 export function hasAppendProcessedFlag() {
   return process.argv.includes('--append-processed');
 }
 
+/**
+ * Checks whether backup CSV writes should append to existing output.
+ *
+ * @returns {boolean} `true` when the CLI was invoked with `--append-backup`.
+ */
 export function hasAppendBackupFlag() {
   return process.argv.includes('--append-backup');
 }
 
 /**
- * Write rows to a CSV file, with optional append and deduplication.
+ * Writes processed dataset rows to a normalized CSV with generated dataset-prefixed IDs.
+ * Existing rows can be read for deduplication, new rows are assigned sequential IDs after the
+ * existing maximum, and the file is optionally relocked read-only after writing.
  *
- * @param {string} datasetKey - Dataset key (e.g. 'c2c') used for ID prefix.
- * @param {string} filePath - Full path to the CSV file.
- * @param {Array<Object>} rows - Array of row objects (each must contain the CSV_COLUMNS keys).
- * @param {Object} [options] - Configuration options.
- * @param {boolean} [options.append=false] - If true, append rows; otherwise overwrite.
- * @param {string[]} [options.dedupFields] - Fields used to build a content key for deduplication.
- *   Defaults to ['problem','solution','materials','circular_strategy','category','impact','source_url'].
- * @param {boolean} [options.strict=false] - If true, throw an error when the existing file cannot be read/parsed.
- * @param {boolean} [options.skipDedupe=false] - If true, skip deduplication entirely (faster, assumes unique rows).
- * @param {boolean} [options.validateColumns=false] - If true, check that the existing file contains all CSV_COLUMNS.
- * @param {boolean} [options.lock=true] - If true, set the file to read‑only (chmod 444) after writing.
- *
- * @returns {Promise<{writtenCount: number, duplicateCount: number, firstID: string|null, lastID: string|null}>}
- *   Metadata about the operation.
+ * @param {string} datasetKey - Dataset key or prefix used to build IDs such as `c2c_00001`.
+ * @param {string} filePath - Absolute or relative CSV path to create, overwrite, or append.
+ * @param {Array<Record<string, unknown>>} rows - Row objects containing values for `CSV_COLUMNS`.
+ * @param {{ append?: boolean, dedupFields?: string[], strict?: boolean, skipDedupe?: boolean, validateColumns?: boolean, lock?: boolean }|boolean} [options] - Write behavior; boolean is treated as legacy `append`.
+ * @param {boolean} [options.append=false] - When true, preserve existing rows and append non-duplicates.
+ * @param {string[]} [options.dedupFields] - Fields joined to detect duplicates across existing and incoming rows.
+ * @param {boolean} [options.strict=false] - When true, unreadable existing CSV content aborts the write.
+ * @param {boolean} [options.skipDedupe=false] - When true, skip content-key checks and assume incoming rows are unique.
+ * @param {boolean} [options.validateColumns=false] - When true, require existing CSV headers to include all `CSV_COLUMNS`.
+ * @param {boolean} [options.lock=true] - When true, chmod the written file to read-only after mutation.
+ * @returns {Promise<{writtenCount: number, duplicateCount: number, firstID: string|null, lastID: string|null}>} Counts and ID range for rows written in this call.
+ * @throws {Error} When strict mode rejects an unreadable existing CSV or filesystem writes fail.
  */
 export async function writeCsv(datasetKey, filePath, rows, options = {}) {
   // convenience: support legacy signature where last argument was boolean append
@@ -1271,7 +1275,7 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
       try {
         await fs.promises.chmod(filePath, 0o444);
       } catch {
-        // ignore errors on platforms that don't support chmod
+        // Some filesystems used in CI do not support chmod.
       }
     }
     return {
@@ -1334,12 +1338,12 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
         }
       });
     }
-  } catch (err) {
+  } catch (error) {
     if (strict) {
-      throw new Error(`Failed to read existing file for append: ${err.message}`);
+      throw new Error(`Failed to read existing file for append: ${error.message}`);
     }
     logger.warn(
-      { err },
+      { error },
       'Could not read existing file for append, proceeding without deduplication',
     );
     // Continue with empty state
@@ -1388,7 +1392,7 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
     try {
       await fs.promises.chmod(filePath, 0o444);
     } catch {
-      // ignore errors on platforms that don't support chmod
+      // Some filesystems used in CI do not support chmod.
     }
   }
 
@@ -1401,13 +1405,15 @@ export async function writeCsv(datasetKey, filePath, rows, options = {}) {
 }
 
 /**
- * Write or append newline-delimited JSON (JSONL) entries to a file.
+ * Writes serializable entries as newline-delimited JSON and relocks the file afterward.
+ * Empty item arrays are ignored so callers can flush optional batches without extra guards.
  *
- * @param {string} filePath
- * @param {Array<Object>} items
- * @param {Object} [opts]
- * @param {boolean} opts.append - if true, append lines; otherwise overwrite
- * @param {boolean} opts.clearOnFirst - if true, clear existing contents on first flush
+ * @param {string} filePath - JSONL output path to create, overwrite, or append.
+ * @param {Array<Record<string, unknown>>} items - Serializable entries written one per line.
+ * @param {{ append?: boolean, clearOnFirst?: boolean }} [opts] - JSONL write behavior.
+ * @param {boolean} [opts.append=true] - When true, append lines; otherwise overwrite the file.
+ * @param {boolean} [opts.clearOnFirst=false] - When true, clear existing contents before writing this batch.
+ * @throws {Error} If the target file cannot be prepared or written.
  */
 export async function writeJsonl(filePath, items, opts = {}) {
   const { append = true, clearOnFirst = false } = opts;
@@ -1415,12 +1421,12 @@ export async function writeJsonl(filePath, items, opts = {}) {
 
   await prepareWrite(filePath);
 
-  // If requested, clear the file on first use
+  // Clear-on-first lets batch pipelines reset a file before later append calls.
   if (clearOnFirst) {
     try {
       await fs.promises.writeFile(filePath, '');
     } catch {
-      /* ignore */
+      /* A subsequent append/write will surface persistent filesystem errors. */
     }
   }
 
@@ -1435,16 +1441,17 @@ export async function writeJsonl(filePath, items, opts = {}) {
   try {
     await fs.promises.chmod(filePath, 0o444);
   } catch {
-    // ignore
+    // Some filesystems used in CI do not support chmod.
   }
 }
 
 /**
- * Write a JSON array to a file (overwrites). Uses prepareWrite to ensure
- * directory exists and unlocks file before writing, then marks read-only.
+ * Writes a pretty-printed JSON document after ensuring the target path is writable.
+ * The file is relocked read-only after the overwrite.
  *
- * @param {string} filePath
- * @param {any} obj
+ * @param {string} filePath - JSON output path to overwrite.
+ * @param {unknown} obj - Serializable value written as a pretty-printed JSON document.
+ * @throws {Error} If the target file cannot be prepared or written.
  */
 export async function writeJson(filePath, obj) {
   await prepareWrite(filePath);
@@ -1453,7 +1460,7 @@ export async function writeJson(filePath, obj) {
   try {
     fs.chmodSync(filePath, 0o444);
   } catch {
-    // ignore
+    // Some filesystems used in CI do not support chmod.
   }
 }
 
@@ -1462,21 +1469,23 @@ export async function writeJson(filePath, obj) {
 // =============================================================================
 
 /**
- * Append rows to the dataset's backup CSV, creating or clearing as requested.
- * @param {string} key - dataset key
- * @param {Array<Object>} rows - rows ready for stringify
- * @param {Object} [opts]
- * @param {boolean} opts.clear - if true, delete existing contents first
+ * Appends scraper checkpoint rows to the dataset-specific backup CSV.
+ * If `opts.clear` is true, the existing backup is truncated and a header row is written.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @param {Array<Record<string, unknown>>} rows - Rows ready for CSV stringification.
+ * @param {{ clear?: boolean }} [opts] - Archive write options.
+ * @param {boolean} [opts.clear=false] - When true, delete existing contents before writing this batch.
  */
 async function appendToArchive(key, rows, opts = {}) {
   const { clear = false } = opts;
   const csvPath = getDatasetBackupCsvPath(key);
   if (!csvPath) return; // dataset has no backup folder defined
 
-  // prepare file – this will also unlock it and optionally clear existing contents
+  // Prepare also unlocks the backup file and optionally clears existing contents.
   const hadBefore = await prepareWrite(csvPath, { clear });
 
-  // if the file existed previously and we didn't clear it, omit header on append
+  // Appended backup batches omit headers after the first write.
   const options = hadBefore && !clear ? { ...STRINGIFY_OPTIONS, header: false } : STRINGIFY_OPTIONS;
   const csv = stringify(rows, options);
 
@@ -1486,16 +1495,17 @@ async function appendToArchive(key, rows, opts = {}) {
     await fs.promises.writeFile(csvPath, csv);
   }
 
-  // lock file after writing
+  // Relock generated backup artifacts after writing.
   await fs.promises.chmod(csvPath, 0o444).catch(() => {});
 }
 
 /**
- * Read backup CSV content for a dataset and parse rows.
- * Used in recovery mode to rebuild final CSV without re-scraping.
+ * Reads a dataset scrape-backup CSV for recovery-mode rebuilds.
+ * Missing, empty, or malformed backup files degrade to an empty array after logging.
  *
- * @param {string} key - dataset key
- * @returns {Promise<Array<Object>>} - array of parsed CSV rows (empty array if no backup exists)
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @returns {Promise<Array<Record<string, string>>>} Parsed backup rows, or an empty array when no usable backup exists.
+ * @throws {Error} If the dataset key is unknown.
  */
 export async function readBackupCsv(key) {
   const csvPath = getDatasetBackupCsvPath(key);
@@ -1565,41 +1575,41 @@ export async function readBackupCsv(key) {
 
     logger.info({ rowCount: rows.length, csvPath }, 'Read rows from backup');
     return rows;
-  } catch (err) {
-    logger.error({ err }, 'Error reading backup CSV');
+  } catch (error) {
+    logger.error({ error }, 'Error reading backup CSV');
     return [];
   }
 }
 
 // =============================================================================
-// BACKUP LOGGING (new)
+// BACKUP LOGGING
 // =============================================================================
 
 /**
- * Append a timestamped message to the dataset's backup log file.
- * The log file is never cleared; messages are appended chronologically.
- * Follows the same file locking pattern: ensure dir, make writable, append, make read-only.
+ * Appends a timestamped message to the dataset scrape log and relocks it read-only.
+ * Timestamps are formatted in Asia/Kolkata because the pipeline logs are reviewed in that timezone.
  *
- * @param {string} key - dataset key
- * @param {string} message - log message (without timestamp)
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @param {string} message - Log message body; the timestamp wrapper is added automatically.
+ * @throws {Error} If the dataset key is unknown or the log file cannot be written.
  */
 export async function appendLogs(key, message) {
   const logPath = getDatasetScrapeLogsPath(key);
   if (!logPath) return; // no backup folder defined
 
-  // Ensure directory exists
+  // Backup folders may be created lazily by the first scrape run.
   await ensureDir(path.dirname(logPath));
 
-  // Prepare file: unlock if exists, create if not (but never clear)
+  // Logs append across runs unless clearLogs explicitly resets them.
   let existed = fs.existsSync(logPath);
   if (existed) {
     try {
       fs.chmodSync(logPath, 0o644);
     } catch {
-      // ignore
+      // Some filesystems used in CI do not support chmod.
     }
   } else {
-    // create empty file
+    // Touch the log file before the first append.
     fs.writeFileSync(logPath, '');
   }
 
@@ -1625,18 +1635,20 @@ export async function appendLogs(key, message) {
 
   await fs.promises.appendFile(logPath, logLine, 'utf8');
 
-  // lock file
+  // Relock generated log artifacts after writing.
   try {
     await fs.promises.chmod(logPath, 0o444);
   } catch {
-    // ignore
+    // Some filesystems used in CI do not support chmod.
   }
 }
 
 /**
- * Clear the backup log file for a dataset.
- * If the file exists, it is truncated (emptied). If it doesn't exist, nothing happens.
- * @param {string} key - dataset key
+ * Clears a dataset scrape log only when the current CLI invocation includes `--clear-logs`.
+ * A confirmation entry is appended after truncation so the log records the reset event.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @throws {Error} If the dataset key is unknown or the log file cannot be reset.
  */
 export async function clearLogs(key) {
   if (!process.argv.includes('--clear-logs')) return;
@@ -1644,10 +1656,10 @@ export async function clearLogs(key) {
   const logPath = getDatasetScrapeLogsPath(key);
   if (!logPath) return;
 
-  // This one line does: ensureDir, chmod 644, and wipes the file!
+  // `prepareWrite` handles directory creation, unlock, and truncation together.
   await prepareWrite(logPath, { clear: true });
 
-  // Optional: Lock it back to read-only
+  // Keep generated logs read-only until the next explicit write.
   await fs.promises.chmod(logPath, 0o444).catch(() => {});
 
   const ds = DATASET_LOOKUP[key];
@@ -1662,11 +1674,15 @@ export async function clearLogs(key) {
 // =============================================================================
 
 /**
- * Helper to batch backup rows every `interval` calls and manage clearing.
- * @param {string} key dataset key
- * @param {number} interval number of calls/pages between writes
- * @param {boolean} clearOnFirst whether to clear file on first write
- * @param {number} MAX_PAGES_TO_FETCH fallback limit to force flush when reached
+ * Creates a buffered scrape-backup writer for long-running paginated scrapers.
+ * Rows are flushed on interval boundaries, when the page cap is reached, or when `flush` is
+ * called at the end of a scrape; each flush also writes human-readable backup logs.
+ *
+ * @param {string} key - Dataset key from `DATASET_LOOKUP`.
+ * @param {number} [interval=3] - Calls/pages between automatic backup writes.
+ * @param {boolean} [clearOnFirst=true] - When true, the first flush truncates the existing backup CSV.
+ * @param {number} [MAX_PAGES_TO_FETCH=1] - Page/call cap that forces a fallback flush.
+ * @returns {{ add: (rows: Array<Record<string, unknown>>) => Promise<void>, flush: () => Promise<void> }} Methods for queueing rows and writing any remaining buffer; method promises reject on backup CSV/log write failures.
  */
 export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_PAGES_TO_FETCH = 1) {
   let counter = 0;
@@ -1695,13 +1711,13 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
       buffer.push(...rows);
       counter++;
 
-      // Update overall first/last across the entire scrape
+      // Track first/last rows across the entire scrape for recovery logs.
       if (overallFirstRow === null) {
         overallFirstRow = rows[0];
       }
       overallLastRow = rows[rows.length - 1];
 
-      // Determine flush reason
+      // Flush on either configured cadence or the fallback page cap.
       const isIntervalFlush = counter % interval === 0;
       const isFallbackFlush = counter >= MAX_PAGES_TO_FETCH;
 
@@ -1713,7 +1729,7 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
         const rowsToWrite = buffer.length;
         totalRowsWritten += rowsToWrite;
 
-        // Per‑flush first/last rows (current buffer)
+        // Record first/last rows for the current buffered batch.
         const batchFirst = buffer[0];
         const batchLast = buffer[rowsToWrite - 1];
 
@@ -1734,7 +1750,7 @@ export function createBackupHelper(key, interval = 3, clearOnFirst = true, MAX_P
       const rowsToWrite = buffer.length;
       totalRowsWritten += rowsToWrite;
 
-      // Per‑flush first/last rows (remaining buffer)
+      // Record first/last rows for the final buffered batch.
       const batchFirst = buffer[0];
       const batchLast = buffer[rowsToWrite - 1];
 
@@ -1782,18 +1798,12 @@ export const CSV_COLUMNS = [
 ];
 
 /**
- * Sanitize text for CSV cells:
- *   • Remove all line breaks (CR/LF)
- *   • Convert "smart" quotes ("") and standard double quotes to single quotes (')
- *   • Collapse multiple single quotes to one
- *   • Compress all whitespace (tabs, spaces, etc.) to single spaces
- *   • Trim leading/trailing whitespace
+ * Normalizes free text before CSV stringification while preserving metadata JSON elsewhere.
+ * Newlines, double quotes, repeated quotes, and repeated whitespace are collapsed so generated
+ * CSV rows remain one-record-per-line and easier to diff.
  *
- * NOTE: This function is imported by all scripts from datasetsUtils.
- * Do NOT define cleanText locally in individual scripts.
- *
- * @param {any} str - any value; coerced to string if needed
- * @returns {string} cleaned string ready for CSV output
+ * @param {unknown} str - Value from a processed row cell; non-string and empty values become an empty string.
+ * @returns {string} Single-line cleaned text ready for CSV output.
  */
 export const cleanText = (str) => {
   if (typeof str !== 'string' || !str) return '';
@@ -1828,7 +1838,7 @@ export const STRINGIFY_OPTIONS = {
   record_delimiter: '\n',
   cast: {
     string: (value, context) => {
-      // Preserve JSON structure in metadata_json – do NOT clean it
+      // Preserve JSON structure in metadata_json; downstream parsers expect valid JSON.
       if (context.column === 'metadata_json') return value;
       return cleanText(value);
     },
@@ -1836,19 +1846,13 @@ export const STRINGIFY_OPTIONS = {
 };
 
 /**
- * Format ID with automatic overflow handling.
+ * Formats a sequential dataset ID with zero padding until the configured width overflows.
+ * The prefix passed by callers already includes the dataset key, and this helper appends the
+ * separator and numeric suffix used in processed CSV outputs.
  *
- * Pads the numeric suffix with leading zeros up to ID_DIGITS (5 by default),
- * then expands naturally when the maximum is exceeded (100000+ instead of 00000).
- *
- * Examples:
- *   formatId('epa_', 1)      => 'epa_00001'
- *   formatId('epa_', 99999)  => 'epa_99999'
- *   formatId('epa_', 100000) => 'epa_100000'  (natural expansion on overflow)
- *
- * @param {string} DATASET_KEY - dataset key with underscore suffix (e.g. 'cgr_')
- * @param {number} index - sequential numeric ID
- * @returns {string} formatted ID ready for CSV output
+ * @param {string} DATASET_KEY - Dataset key or prefix used in the ID, such as `cgr`.
+ * @param {number} index - One-based sequential numeric ID.
+ * @returns {string} Dataset-prefixed ID such as `cgr_00001` or `cgr_100000`.
  */
 function formatId(DATASET_KEY, index) {
   const baseLimit = Math.pow(10, ID_DIGITS) - 1;
@@ -1857,7 +1861,7 @@ function formatId(DATASET_KEY, index) {
     return `${DATASET_KEY}_${String(index).padStart(ID_DIGITS, '0')}`;
   }
 
-  // Overflow → expand digits naturally
+  // Once the fixed-width range is exhausted, expand digits naturally.
   return `${DATASET_KEY}_${String(index)}`;
 }
 
@@ -1872,6 +1876,8 @@ function formatId(DATASET_KEY, index) {
  * but in our repo scraping never runs in production.  Instead the default is
  * always headless; pass `--show` on the command line if you want a visible
  * browser window for troubleshooting.
+ *
+ * @returns {{headless: boolean|string, args: string[]}} Puppeteer launch options for scraper scripts.
  */
 export function getBrowserLaunchOptions() {
   // Most scraping runs happen locally during development.  By default we
@@ -1903,6 +1909,9 @@ export function getBrowserLaunchOptions() {
 /**
  * Get standard viewport settings for Puppeteer.
  * Ensures consistent element rendering across all scripts.
+ *
+ * @param {'xs'|'sm'|'md'|'lg'} [size='lg'] - Named viewport preset, falling back to `lg`.
+ * @returns {{width: number, height: number, deviceScaleFactor: number}} Puppeteer viewport dimensions.
  */
 export function getViewportOptions(size = 'lg') {
   const viewports = {
@@ -1911,7 +1920,7 @@ export function getViewportOptions(size = 'lg') {
     md: { width: 1280, height: 800 },
     lg: { width: 1920, height: 1080 },
   };
-  //give each a deviceScaleFactor = 1
+  // Keep deviceScaleFactor stable across presets for repeatable screenshots.
   Object.values(viewports).forEach((vp) => {
     vp.deviceScaleFactor = 1;
   });
@@ -1919,10 +1928,11 @@ export function getViewportOptions(size = 'lg') {
 }
 
 /**
- * Get standard user agent settings for Puppeteer.
- * Mimics a modern Chrome browser to avoid detection as a bot.
- * Returns a random user agent string from the USER_AGENTS list.
- * Useful for rotating user agents to avoid bot detection.
+ * Builds a randomized Chrome-like browser identity for Puppeteer scrapers.
+ * Rotating realistic desktop user agents helps avoid simplistic bot filters while keeping
+ * client-hints metadata stable enough for sites that inspect it.
+ *
+ * @returns {{userAgent: string, userAgentMetadata: {brands: Array<{brand: string, version: string}>, platform: string, platformVersion: string, architecture: string, model: string, mobile: boolean}}} User-Agent string plus matching client-hints metadata.
  */
 export function getUserAgentOptions() {
   /**
@@ -1959,6 +1969,8 @@ export function getUserAgentOptions() {
 /**
  * Get standard HTTP headers for Puppeteer requests.
  * Helps avoid blocking by websites that detect bots.
+ *
+ * @returns {{'accept-language': string}} Browser request headers shared by scraper scripts.
  */
 export function getExtraHttpHeaders() {
   return {
@@ -1971,12 +1983,10 @@ export function getExtraHttpHeaders() {
 // =============================================================================
 
 /**
- * Check if the script is running in backup recovery mode.
- * Usage: node script.js --use-backup
- * If true, the script should skip web fetching and build the final CSV from
- * the backup scrape content instead.
+ * Checks whether the current dataset script should rebuild output from scrape backups.
+ * Recovery mode skips web fetching and is enabled by passing `--use-backup` to the script.
  *
- * @returns {boolean} - true if --use-backup flag is present in process.argv
+ * @returns {boolean} `true` when `--use-backup` is present in `process.argv`.
  */
 export function isBackupRecoveryMode() {
   return process.argv.includes('--use-backup');
@@ -1984,9 +1994,9 @@ export function isBackupRecoveryMode() {
 
 /**
  * Generates a random delay between min and max (inclusive).
- * @param {number} min - The minimum delay in milliseconds.
- * @param {number} max - The maximum delay in milliseconds.
- * @returns {Promise<void>} A promise that resolves after the random delay.
+ * @param {number} min - Lower jitter bound in milliseconds, inclusive.
+ * @param {number} max - Upper jitter bound in milliseconds, inclusive.
+ * @returns {Promise<void>} Resolves after a random jitter delay in the configured millisecond range.
  */
 export const randomDelay = (min, max) =>
   new Promise((r) => setTimeout(r, Math.floor(Math.random() * (max - min + 1) + min)));

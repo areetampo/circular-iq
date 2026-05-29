@@ -1,21 +1,12 @@
 /**
- * @module formatting
- * @description Utility functions for formatting and converting values.
- * Provides safe number conversion and timestamp formatting with configurable options.
+ * Numeric coercion and locale-aware timestamp formatting shared by API responses and logs.
  */
 
 /**
- * Convert value to safe number, defaulting to 0 for invalid values.
- * Handles null, undefined, NaN, and non-numeric inputs gracefully.
+ * Converts arbitrary input to a finite number while collapsing invalid values to zero.
  *
- * @param {*} value - Value to convert (number, string, or any type)
- * @returns {number} Safe number value (0 for invalid inputs)
- *
- * @example
- * safeNumber(42) // Returns: 42
- * safeNumber('123') // Returns: 123
- * safeNumber(null) // Returns: 0
- * safeNumber('invalid') // Returns: 0
+ * @param {unknown} value - Candidate numeric value from API payloads, database rows, or formatting inputs.
+ * @returns {number} Finite numeric value; `NaN`, infinities, and non-numeric values become `0`.
  */
 export function safeNumber(value) {
   const num = Number(value);
@@ -23,61 +14,79 @@ export function safeNumber(value) {
 }
 
 /**
- * Formats a timestamp into a human-readable string using locale-specific formatting.
- * Supports flexible display options for date, time, and timezone components.
+ * Resolves the local timezone label used by timestamp formatting.
  *
- * @param {number|string|Date} timestamp - Timestamp to format (Unix timestamp, ISO string, or Date object)
- * @param {Object} [options={}] - Formatting options
- * @param {boolean} [options.showYear=true] - Include year in output
- * @param {boolean} [options.showMonth=true] - Include month in output
- * @param {boolean} [options.showDay=true] - Include day in output
- * @param {boolean} [options.showSeconds=false] - Include seconds in time
- * @param {boolean} [options.showMs=false] - Include milliseconds in time
- * @param {boolean} [options.use24Hour=false] - Use 24-hour format instead of 12-hour
- * @param {boolean} [options.showTimezone=true] - Include timezone in output
- * @param {'short'|'long'} [options.timezoneStyle='short'] - Timezone display style
- * @returns {string} Formatted timestamp string, or error message for invalid input
- *
- * @example
- * formatTimestamp(1704067200000) // Returns: '01 Jan 2024, 00:00'
- * formatTimestamp('2024-01-01T00:00:00Z', { showSeconds: true }) // Returns: '01 Jan 2024, 00:00:00'
- * formatTimestamp(null) // Returns: '[Unknown time]'
+ * @param {{ style?: 'minimal'|'full' }} [options] - Timezone label options.
+ * @param {'minimal'|'full'} [options.style='minimal'] - `minimal` uses the locale abbreviation when available; `full` returns the IANA id.
+ * @returns {string} Abbreviation such as `IST`, falling back to an IANA id such as `Asia/Calcutta`.
  */
-export function formatTimestamp(
-  timestamp,
-  {
+function getTimezoneLabel(options = {}) {
+  const { style = 'minimal' } = options;
+
+  const resolved = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (style === 'full') return resolved;
+
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZoneName: 'short' }).formatToParts(
+    new Date(),
+  );
+  return parts.find((p) => p.type === 'timeZoneName')?.value ?? resolved;
+}
+
+/**
+ * Formats a timestamp into ordered `day month year, time timezone` display text.
+ * Invalid or missing inputs intentionally return bracketed labels so API consumers can render
+ * the value without extra null checks.
+ *
+ * @param {number|string|Date} timestamp - Value accepted by `Date`; falsy values return `[Unknown time]`.
+ * @param {{ showYear?: boolean, showMonth?: boolean, showDay?: boolean, showSeconds?: boolean, showMs?: boolean, use24Hour?: boolean, showTimezone?: boolean, timezoneStyle?: 'minimal'|'full' }} [options] - Date/time visibility options.
+ * @param {boolean} [options.showYear=true] - Include the numeric year.
+ * @param {boolean} [options.showMonth=true] - Include the short month name.
+ * @param {boolean} [options.showDay=true] - Include the day of month.
+ * @param {boolean} [options.showSeconds=false] - Include seconds in the time portion.
+ * @param {boolean} [options.showMs=false] - Include millisecond precision.
+ * @param {boolean} [options.use24Hour=true] - Use 24-hour time instead of AM/PM.
+ * @param {boolean} [options.showTimezone=true] - Append the current timezone label.
+ * @param {'minimal'|'full'} [options.timezoneStyle='minimal'] - Label style forwarded to `getTimezoneLabel`.
+ * @returns {string} Display timestamp such as `24 May 2026, 13:05 IST`, or a bracketed fallback label.
+ */
+export function formatTimestamp(timestamp, options = {}) {
+  const {
     showYear = true,
     showMonth = true,
     showDay = true,
     showSeconds = false,
     showMs = false,
-    use24Hour = false,
+    use24Hour = true,
     showTimezone = true,
-    timezoneStyle = 'short', // 'short' | 'long'
-  } = {},
-) {
+    timezoneStyle = 'minimal',
+  } = options;
+
   if (!timestamp) return '[Unknown time]';
 
   const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return '[Invalid timestamp]';
 
-  if (isNaN(d.getTime())) {
-    return '[Invalid timestamp]';
-  }
+  const dateParts = [];
+  if (showDay) dateParts.push(d.toLocaleDateString('en-GB', { day: 'numeric' }));
+  if (showMonth) dateParts.push(d.toLocaleDateString('en-GB', { month: 'short' }));
+  if (showYear) dateParts.push(d.toLocaleDateString('en-GB', { year: 'numeric' }));
 
-  return d.toLocaleString('en-GB', {
-    year: showYear ? 'numeric' : undefined,
-    month: showMonth ? 'short' : undefined,
-    day: showDay ? 'numeric' : undefined,
+  const dateString = dateParts.join(' ');
 
+  const timeOptions = {
     hour: '2-digit',
     minute: '2-digit',
-
-    second: showSeconds || showMs ? '2-digit' : undefined,
-
-    fractionalSecondDigits: showMs ? 3 : undefined,
-
     hour12: !use24Hour,
+  };
+  if (showSeconds || showMs) timeOptions.second = '2-digit';
+  if (showMs) timeOptions.fractionalSecondDigits = 3;
 
-    timeZoneName: showTimezone ? timezoneStyle : undefined,
-  });
+  let timeString = d.toLocaleTimeString('en-GB', timeOptions);
+
+  if (showTimezone) {
+    const tzLabel = getTimezoneLabel({ style: timezoneStyle });
+    timeString += ` ${tzLabel}`;
+  }
+
+  return dateString ? `${dateString}, ${timeString}` : timeString;
 }

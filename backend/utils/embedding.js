@@ -1,81 +1,46 @@
 /**
- * @module embedding
- * @description Centralized embedding model parameters and utility functions used across
- * SQL migrations, pipeline scripts, scoring/search routes, and database vector operations.
- * Single source of truth — do not change EMBEDDING_DIMENSION without a DB migration.
+ * Shared embedding configuration, validation, token estimation, and retry helpers.
+ * `EMBEDDING_DIMENSION` must remain aligned with the database vector column width; changing
+ * it requires a migration and regenerated stored embeddings.
  */
 
 import { logger } from '#utils/logger.js';
 
-/**
- * OpenAI embedding model identifier
- * @type {string}
- */
+/** OpenAI embedding model used by search, scoring, and dataset ingestion. */
 const EMBEDDING_MODEL = 'text-embedding-3-small';
 
-/**
- * Vector dimension for text-embedding-3-small from OpenAI
- * DO NOT CHANGE without migration - this is baked into DB schema
- * @type {number}
- */
+/** Vector width persisted in Supabase `vector` columns; changing this requires a migration. */
 const EMBEDDING_DIMENSION = 1536;
 
-/**
- * Batch size for OpenAI embedding API calls
- * Higher = faster but higher memory/cost; OpenAI default is ~2000
- * @type {number}
- */
+/** Number of text inputs submitted per embedding API request by pipeline scripts. */
 const EMBEDDING_BATCH_SIZE = 20;
 
-/**
- * Delay between batches to respect rate limits (milliseconds)
- * @type {number}
- */
+/** Delay between embedding batches to reduce burst pressure on provider rate limits. */
 const EMBEDDING_BATCH_DELAY_MS = 500;
 
-/**
- * Timeout for OpenAI embedding requests (milliseconds)
- * @type {number}
- */
+/** Per-request timeout used when embedding generation calls the provider. */
 const EMBEDDING_REQUEST_TIMEOUT_MS = 30000;
 
-/**
- * Maximum retries for embedding API with exponential backoff
- * @type {number}
- */
+/** Default number of attempts made by `retryWithBackoff` before rethrowing the last error. */
 const EMBEDDING_MAX_RETRIES = 3;
 
-/**
- * Initial retry delay in milliseconds (doubles on each retry)
- * @type {number}
- */
+/** Initial retry delay in milliseconds; each subsequent retry doubles this value. */
 const EMBEDDING_RETRY_DELAY_MS = 1000;
 
-/**
- * Maximum length for a single chunk of text to embed (characters)
- * Leave room for metadata and processing overhead
- * @type {number}
- */
+/** Maximum character length accepted for a single embedding input. */
 const EMBEDDING_MAX_CHUNK_LENGTH = 8000;
 
-/**
- * Minimum length for text to embed (characters)
- * Skip very short content to save API calls
- * @type {number}
- */
+/** Minimum trimmed character length accepted for persisted/searchable embedding text. */
 const EMBEDDING_MIN_TEXT_LENGTH = 50;
 
-/**
- * Weight for vector similarity in hybrid search (0-1)
- * 0.8 = 80% vector, 20% keyword
- * @type {number}
- */
+/** Default hybrid-search vector weighting; the remaining score weight is keyword matching. */
 const VECTOR_SEARCH_VECTOR_WEIGHT = 0.8;
 
 /**
- * Validate embedding vector dimensions
- * @param {Array<number>} embedding - Vector to validate
- * @returns {boolean} True if dimensions match expected size
+ * Checks whether a candidate vector can be stored in the configured embedding column.
+ *
+ * @param {Array<number>} embedding - Candidate vector returned by an embedding model or test fixture.
+ * @returns {boolean} `true` when the vector has exactly `EMBEDDING_DIMENSION` numeric entries.
  */
 function isValidEmbedding(embedding) {
   return (
@@ -86,9 +51,10 @@ function isValidEmbedding(embedding) {
 }
 
 /**
- * Validate text length for embedding
- * @param {string} text - Text to validate
- * @returns {boolean} True if within acceptable range
+ * Checks whether text is inside the configured embedding length window.
+ *
+ * @param {string} text - Raw content that may be sent to the embedding model.
+ * @returns {boolean} `true` for strings whose trimmed length fits the min/max character bounds.
  */
 function isValidTextForEmbedding(text) {
   if (typeof text !== 'string') return false;
@@ -98,50 +64,36 @@ function isValidTextForEmbedding(text) {
   );
 }
 
-/**
- * Average tokens per word for estimation (OpenAI's text-embedding-3-small is ~1.3)
- * Used for cost estimation and chunking heuristics
- * @type {number}
- */
+/** Heuristic token multiplier used when a real tokenizer is not supplied. */
 const TOKENS_PER_WORD = 1.3;
 
-/**
- * Maximum safe tokens for embedding input
- * OpenAI's text-embedding-3-small has a max of 8191 tokens; we set a lower threshold to be safe
- * @type {number}
- */
+/** Conservative token ceiling kept below the embedding model cap. */
 const MAX_SAFE_TOKENS = 8000;
 
-/**
- * Pricing table for embedding models (USD per million tokens)
- * Source: OpenAI pricing as of 2024-06
- * Adjust as needed when using different models or if prices change
- * @type {Object<string, number>}
- */
+/** Provider pricing in USD per one million input tokens, keyed by embedding model id. */
 const PRICING_TABLE = {
   'text-embedding-3-small': 0.02,
   'text-embedding-3-large': 0.13,
   'text-embedding-ada-002': 0.1,
 };
 
-/**
- * Cost per million tokens for the selected embedding model
- * @type {number}
- */
+/** Cost per million tokens for the selected embedding model, with ada pricing as fallback. */
 const ratePerMillion = PRICING_TABLE[EMBEDDING_MODEL] || 0.1;
 
 /**
- * Estimate the cost of embedding a given number of tokens
- * @param {number} totalTokens - Total number of tokens to embed
- * @returns {number} Estimated cost in USD
+ * Estimates provider cost for a token count using the configured embedding model rate.
+ *
+ * @param {number} totalTokens - Total number of embedding input tokens.
+ * @returns {number} Estimated cost in USD for the supplied token count.
  */
 const estimatedCost = (totalTokens) => (totalTokens / 1_000_000) * ratePerMillion;
 
 /**
- * Estimate token count for a string.
- * @param {string} text - Text to estimate tokens for
- * @param {Object} tokenEncoder - Optional token encoder (from tiktoken)
- * @returns {number} Estimated token count
+ * Estimates token count for embedding batching and cost reporting.
+ *
+ * @param {string} text - Chunk content to measure before embedding.
+ * @param {{ encode: (text: string) => Array<unknown> }|null} [tokenEncoder=null] - Optional tokenizer; word-count estimation is used when absent.
+ * @returns {number} Exact encoded length when a tokenizer is supplied, otherwise a rounded-up heuristic estimate.
  */
 function estimateTokens(text, tokenEncoder = null) {
   if (!tokenEncoder) return Math.ceil(text.trim().split(/\s+/).length * TOKENS_PER_WORD);
@@ -149,9 +101,10 @@ function estimateTokens(text, tokenEncoder = null) {
 }
 
 /**
- * Generate deterministic pseudo-embedding for testing
- * @param {string} text - Text to generate fake embedding for
- * @returns {Array<number>} Fake embedding vector
+ * Generates deterministic pseudo-embeddings for tests and offline pipeline dry runs.
+ *
+ * @param {string} text - Stable input used to seed the pseudo-random vector.
+ * @returns {Array<number>} Deterministic vector with `EMBEDDING_DIMENSION` values in the 0-1 range.
  */
 function fakeEmbedding(text) {
   let h = 2166136261 >>> 0;
@@ -167,10 +120,14 @@ function fakeEmbedding(text) {
 }
 
 /**
- * Retry logic with exponential backoff
- * @param {Function} fn - Async function to retry
- * @param {number} maxRetries - Maximum number of retries
- * @returns {Promise} Result of the function
+ * Runs an async operation with exponential backoff between failed attempts.
+ * Each failed non-final attempt is logged with its one-based attempt number and delay.
+ *
+ * @template T
+ * @param {() => Promise<T>} fn - Async operation to retry until it resolves or attempts are exhausted.
+ * @param {number} [maxRetries=EMBEDDING_MAX_RETRIES] - Total attempts, including the initial call.
+ * @returns {Promise<T>} Fulfilled value from the first successful attempt.
+ * @throws {unknown} Last error thrown by `fn` after all retry attempts fail.
  */
 async function retryWithBackoff(fn, maxRetries = EMBEDDING_MAX_RETRIES) {
   let lastError;
