@@ -1,7 +1,4 @@
-/**
- * @module GapAnalysisCard.test
- * @description Tests for GapAnalysisCard rendering.
- */
+/** Tests for GapAnalysisCard rendering and null fallback behavior. */
 
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';

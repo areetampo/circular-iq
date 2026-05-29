@@ -1,7 +1,4 @@
-/**
- * @module GapAnalysisCard
- * @description Displays gap analysis vs similar cases (opportunities and underperformance).
- */
+/** Gap-analysis results card for benchmark comparisons, opportunities, and strengths. */
 
 import { BarChart3, MoveDown, MoveUp } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -10,12 +7,7 @@ import { Chip, SectionHeading } from '@/components/common';
 import BenchmarkTable from '@/components/results/BenchmarkTable';
 
 /**
- * Displays gap analysis vs similar cases (opportunities and underperformance).
- *
- * @param {Object} props
- * @param {Object} props.result
- * @param {string} props.variant
- * @returns {import('react').ReactElement}
+ * Renders gap-analysis benchmarks when similar-case data is available.
  */
 export default function GapAnalysisCard({ result, variant = 'default' }) {
   const gapAnalysis = result?.gap_analysis;

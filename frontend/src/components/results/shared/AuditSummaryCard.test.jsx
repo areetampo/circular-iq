@@ -1,7 +1,4 @@
-/**
- * @module AuditSummaryCard.test
- * @description Tests for AuditSummaryCard rendering.
- */
+/** Tests for AuditSummaryCard rendering and null fallback behavior. */
 
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';

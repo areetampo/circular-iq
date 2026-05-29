@@ -1,7 +1,4 @@
-/**
- * @module BenchmarkTable
- * @description Tabular comparison of user scores against similar circular-economy benchmark cases.
- */
+/** Benchmark comparison table for user scores against similar circular-economy cases. */
 
 import { Table } from '@heroui/react';
 import PropTypes from 'prop-types';
@@ -9,6 +6,9 @@ import PropTypes from 'prop-types';
 import { Chip } from '@/components/common';
 import { formatFactorName } from '@/lib/scoring';
 
+/**
+ * Maps backend benchmark status keys to user-facing chip labels and semantic colors.
+ */
 const statusConfig = {
   below_average: { label: 'Needs Work', color: 'danger' },
   average: { label: 'On Track', color: 'default' },
@@ -16,11 +16,7 @@ const statusConfig = {
 };
 
 /**
- * Tabular comparison of user scores against similar circular-economy benchmark cases.
- *
- * @param {Object} props
- * @param {Array<Object>} props.comparisons
- * @returns {import('react').ReactElement}
+ * Renders benchmark percentile rows for each compared scoring factor.
  */
 export default function BenchmarkTable({ comparisons = {} }) {
   const rows = Object.entries(comparisons || {}).map(([factor, data]) => {
