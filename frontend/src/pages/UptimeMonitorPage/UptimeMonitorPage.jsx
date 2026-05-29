@@ -1,6 +1,5 @@
 /**
- * @module UptimeMonitorPage
- * @description Operational dashboard for API/database health checks and uptime history.
+ * Operational dashboard for API/database health checks and uptime history.
  */
 
 import { Label, Switch, Tooltip } from '@heroui/react';
@@ -28,7 +27,8 @@ import { useUptimeMonitor } from './hooks/useUptimeMonitor';
 
 /**
  * Composes uptime charts, endpoint cards, and SSE-driven live updates.
- * @returns {import('react').ReactElement}
+ *
+ * @returns {import('react').ReactElement} Dashboard with live connection state, aggregate charts, heatmap, and endpoint cards.
  */
 export default function UptimeMonitorPage() {
   const {
@@ -54,14 +54,14 @@ export default function UptimeMonitorPage() {
   if (loadingInitial) return <UptimeMonitorSkeleton />;
 
   const totalChecks = Object.values(history).reduce((sum, checks) => sum + checks.length, 0);
-  const allChecks = ENDPOINTS.flatMap((e) => history[e.id] ?? []);
-  const overallUp = ENDPOINTS.every((e) => {
-    const last = (history[e.id] ?? []).slice(-1)[0];
+  const allChecks = ENDPOINTS.flatMap((ep) => history[ep.id] ?? []);
+  const overallUp = ENDPOINTS.every((ep) => {
+    const last = (history[ep.id] ?? []).slice(-1)[0];
     return !last || last.up;
   });
   const overallUptime = (() => {
-    const perEp = ENDPOINTS.map((e) => {
-      const c = history[e.id] ?? [];
+    const perEp = ENDPOINTS.map((ep) => {
+      const c = history[ep.id] ?? [];
       return c.length ? c.filter((x) => x.up).length / c.length : null;
     }).filter((v) => v !== null);
     if (!perEp.length) return null;

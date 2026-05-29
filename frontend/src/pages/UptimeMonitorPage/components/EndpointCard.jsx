@@ -1,6 +1,5 @@
 /**
- * @module EndpointCard
- * @description Per-endpoint uptime card: status, sparkline, latency, and recent check grid.
+ * Per-endpoint uptime card: status, sparkline, latency, and recent check grid.
  */
 
 import { Tooltip } from '@heroui/react';
@@ -26,13 +25,23 @@ import { fetchEndpointBuckets } from '../utils/uptimeHelpers';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** @param {Array<{ up: boolean }>} checks @returns {string|null} Uptime percentage fixed to 2 decimals. */
+/**
+ * Computes the percentage of successful checks in the provided window.
+ *
+ * @param {Array<{ up: boolean }>} checks - Windowed checks for one endpoint, oldest-first.
+ * @returns {string|null} Percentage fixed to two decimals, or null when the window is empty.
+ */
 function uptimePct(checks) {
   if (!checks || !checks.length) return null;
   return ((checks.filter((c) => c.up).length / checks.length) * 100).toFixed(2);
 }
 
-/** @param {Array<{ up: boolean, ts: number }>} checks @returns {string} Tailwind background class for the status dot. */
+/**
+ * Picks the endpoint status-dot colour from latest status and window uptime.
+ *
+ * @param {Array<{ up: boolean, ts: number }>} checks - Windowed checks for one endpoint.
+ * @returns {string} Tailwind background class for muted, success, warning, or error states.
+ */
 function dotBgClass(checks) {
   if (!checks || checks.length === 0) return 'bg-(--color-text-muted)';
   const latest = checks[checks.length - 1];
@@ -43,7 +52,12 @@ function dotBgClass(checks) {
   return 'bg-(--color-error)';
 }
 
-/** @param {string|null} pct @returns {string} Tailwind text colour class for uptime percentage. */
+/**
+ * Maps an uptime percentage to the text colour used by the endpoint headline.
+ *
+ * @param {string|null} pct - Percentage string returned by `uptimePct`, or null for no data.
+ * @returns {string} Tailwind text colour class for muted, success, warning, or error states.
+ */
 function uptimeTextClass(pct) {
   if (pct === null) return 'text-(--color-text-muted)';
   const n = Number(pct);
@@ -52,7 +66,12 @@ function uptimeTextClass(pct) {
   return 'text-(--color-error)';
 }
 
-/** @param {Array<{ up: boolean, ms: number|null }>} checks @returns {number|null} Mean response time of successful checks. */
+/**
+ * Calculates average response time across successful checks in the current window.
+ *
+ * @param {Array<{ up: boolean, ms: number|null }>} checks - Windowed checks for one endpoint.
+ * @returns {number|null} Rounded mean response time in milliseconds, or null when unavailable.
+ */
 function avgMs(checks) {
   if (!checks) return null;
   const up = checks.filter((c) => c.up && c.ms);
@@ -60,7 +79,12 @@ function avgMs(checks) {
   return Math.round(up.reduce((s, c) => s + c.ms, 0) / up.length);
 }
 
-/** @param {number|null|undefined} avg @returns {string} Tailwind text colour class for latency value. */
+/**
+ * Maps average latency to the text colour used by footer metrics.
+ *
+ * @param {number|null|undefined} avg - Average latency in milliseconds.
+ * @returns {string} Tailwind text colour class for muted, success, warning, or danger states.
+ */
 function getLatencyColor(avg) {
   if (avg === null || avg === undefined) return 'text-(--color-text-muted)';
   if (avg > 500) return 'text-(--color-danger)';
@@ -68,7 +92,12 @@ function getLatencyColor(avg) {
   return 'text-(--color-success)';
 }
 
-/** @param {Array<{ up: boolean, status?: string }>} checks @returns {string} Human-readable status label. */
+/**
+ * Derives the endpoint status label from latest availability and window uptime.
+ *
+ * @param {Array<{ up: boolean, status?: string }>} checks - Windowed checks for one endpoint.
+ * @returns {string} Human-readable status such as "pending", "operational", or the latest failure status.
+ */
 function statusLabel(checks) {
   if (!checks || !checks.length) return 'pending';
   const latest = checks[checks.length - 1];
@@ -79,7 +108,12 @@ function statusLabel(checks) {
   return 'down';
 }
 
-/** @param {Array<{ up: boolean }>} checks @returns {string} Tailwind text colour class for status label. */
+/**
+ * Maps endpoint status to the text colour used by the footer status label.
+ *
+ * @param {Array<{ up: boolean }>} checks - Windowed checks for one endpoint.
+ * @returns {string} Tailwind text colour class for muted, success, warning, or error states.
+ */
 function statusTextClass(checks) {
   if (!checks || !checks.length) return 'text-(--color-text-muted)';
   const latest = checks[checks.length - 1];
@@ -92,13 +126,6 @@ function statusTextClass(checks) {
 
 /**
  * Small labelled metric cell used in the endpoint card grid.
- * @param {Object} props
- * @param {string} props.label
- * @param {string} [props.labelClassName]
- * @param {import('react').ReactNode} props.value
- * @param {string} [props.valueClassName]
- * @param {string} [props.className]
- * @returns {import('react').ReactElement}
  */
 function MetricCard({
   label,
@@ -134,13 +161,6 @@ MetricCard.propTypes = {
 
 /**
  * Per-endpoint uptime card: status, sparkline, latency, and recent check grid.
- *
- * @param {Object} props
- * @param {{ id: string, label: string, path?: string }} props.endpoint
- * @param {Array<{ ts: number, up: boolean, ms: number|null, status: string, data?: Object }>} props.checks
- * @param {boolean} props.checking
- * @param {boolean} props.clockAligned
- * @returns {import('react').ReactElement}
  */
 export default function EndpointCard({
   endpoint,
@@ -190,7 +210,6 @@ export default function EndpointCard({
         showMonth: false,
         showDay: false,
         showSeconds: true,
-        use24Hour: true,
       };
       return {
         ...b,

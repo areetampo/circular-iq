@@ -1,6 +1,5 @@
 /**
- * @module UptimeOverTimeChart
- * @description Line chart of uptime percentage over time for one endpoint.
+ * Line chart of daily uptime percentage across all monitored endpoints.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -13,10 +12,7 @@ import { useUptimeMonitor } from '../hooks/useUptimeMonitor';
 import { fetchDailyStats } from '../utils/uptimeHelpers';
 
 /**
- * Line chart of uptime percentage over time for one endpoint.
- *
- * @param {Object} props
- * @returns {import('react').ReactElement}
+ * Daily uptime percentages across all endpoints; refetches when `pollCount` increments.
  */
 export default function UptimeOverTimeChart({ ...props }) {
   const { pollCount } = useUptimeMonitor();
@@ -31,7 +27,9 @@ export default function UptimeOverTimeChart({ ...props }) {
       .then((response) => {
         if (!cancelled) setData(response);
       })
-      .catch((err) => logger.warn('Failed to fetch daily stats', err))
+      .catch((error) =>
+        logger.warn('[UPTIME:DAILY_STATS_FETCH_FAILED]', { days: UPTIME_CHART_DAYS, error }),
+      )
       .finally(() => {
         if (!cancelled && !firstLoadDone.current) {
           firstLoadDone.current = true;

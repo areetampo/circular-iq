@@ -1,10 +1,4 @@
-/**
- * @module UptimeMonitorPage.components
- * @description Central export point for UptimeMonitorPage components.
- * Re-exports EndpointCard, EndpointLatencyBarChart, ExportMetricsButton, GlobalResponseTrendChart,
- * HealthDistributionChart, SectionLabel, StatSummaryCard, StatusHeatmap, UptimeMonitorSkeleton,
- * and UptimeOverTimeChart.
- */
+/** Barrel re-exports for UptimeMonitorPage components. */
 
 export { default as EndpointCard } from './EndpointCard';
 export { default as EndpointLatencyBarChart } from './EndpointLatencyBarChart';

@@ -1,6 +1,5 @@
 /**
- * @module StatSummaryCard
- * @description Summary stat tile (uptime %, latency) for the uptime monitor header.
+ * Summary stat tile (uptime %, latency) for the uptime monitor header.
  */
 
 import PropTypes from 'prop-types';
@@ -8,23 +7,7 @@ import PropTypes from 'prop-types';
 import { Tilt3D } from '@/components/common';
 
 /**
- * StatSummaryCard - A card component for displaying statistical information
- * Displays title, value, and optional subtext in a styled card with 3D tilt effect
- *
- * @param {Object} props - Component props
- * @param {string} props.title - Title text displayed at the top of the card
- * @param {string|number} props.value - Main value to display (shows '—' if null/undefined)
- * @param {string} [props.subtext] - Optional subtext displayed below the main value
- * @param {Object.<string, any>} props - Additional attributes to spread to the element
- * @returns {JSX.Element} Rendered StatSummaryCard
- *
- * @example
- * Basic usage
- * <StatSummaryCard title="Uptime" value="99.9%" subtext="Last 30 days" />
- *
- * @example
- * With missing value
- * <StatSummaryCard title="Response Time" value={null} />
+ * Tilt card for a single uptime summary metric; shows em dash when `value` is nullish.
  */
 export default function StatSummaryCard({ title, value, subtext, ...props }) {
   return (
@@ -45,10 +28,10 @@ export default function StatSummaryCard({ title, value, subtext, ...props }) {
 }
 
 StatSummaryCard.propTypes = {
-  /** Title text displayed at the top of the card */
+  /** Small uppercase metric title displayed at the top of the card. */
   title: PropTypes.string.isRequired,
-  /** Main value to display (shows '—' if null/undefined) */
+  /** Main metric value; nullish values render as an em dash. */
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  /** Optional subtext displayed below the main value */
+  /** Optional context line displayed below the main value. */
   subtext: PropTypes.string,
 };

@@ -1,7 +1,4 @@
-/**
- * @module GlobalResponseTrendChart
- * @description Hourly global average response-time trend chart (clock-aligned buckets).
- */
+/** Hourly global average response-time trend (clock-aligned buckets when enabled). */
 
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
@@ -15,11 +12,7 @@ import { useUptimeMonitor } from '../hooks/useUptimeMonitor';
 import { fetchGlobalTrend } from '../utils/uptimeHelpers';
 
 /**
- * Hourly global average response-time trend chart (clock-aligned buckets).
- *
- * @param {Object} props
- * @param {boolean} props.clockAligned
- * @returns {import('react').ReactElement}
+ * Fetches trend data on mount and when `pollCount` changes; refetches use `fetchGlobalTrend`.
  */
 export default function GlobalResponseTrendChart({ clockAligned = false, ...props }) {
   const { pollCount } = useUptimeMonitor();
@@ -41,7 +34,6 @@ export default function GlobalResponseTrendChart({ clockAligned = false, ...prop
                 showYear: false,
                 showMonth: false,
                 showDay: false,
-                use24Hour: true,
                 showTimezone: false,
               }),
             })),

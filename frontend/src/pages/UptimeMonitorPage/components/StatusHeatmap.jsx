@@ -1,6 +1,5 @@
 /**
- * @module StatusHeatmap
- * @description Bucketed multi-endpoint uptime heatmap over the selected window.
+ * Bucketed multi-endpoint uptime heatmap over the selected window.
  */
 
 import { Label, ListBox, Select, Tooltip } from '@heroui/react';
@@ -33,6 +32,10 @@ import { fetchHeatmapAggregated } from '../utils/uptimeHelpers';
  * Used when either constraint would be violated by the current bucket — e.g.
  * the user picks a window smaller than the active bucket, or the bar count
  * would exceed the limit. Falls back to the smallest preset as a last resort.
+ *
+ * @param {number} windowMinutes - Active heatmap window in minutes.
+ * @param {number} currentBucketMinutes - Current bucket size to preserve when it still fits.
+ * @returns {number} Bucket size in minutes from `HEATMAP_BUCKET_PRESETS_MINUTES`.
  */
 function bestBucketForWindow(windowMinutes, currentBucketMinutes) {
   const valid = HEATMAP_BUCKET_PRESETS_MINUTES.filter(
@@ -53,6 +56,19 @@ function getStatusColor(hasData, anyFailure, isWarning, isPartial) {
   return 'bg-(--color-success)';
 }
 
+/**
+ * Formats bucket details for the heatmap tooltip, including partial buckets and failures.
+ *
+ * @param {string|number|Date} startTime - Bucket start timestamp.
+ * @param {string|number|Date} endTime - Bucket end timestamp.
+ * @param {boolean} hasData - Whether any checks exist in this bucket.
+ * @param {boolean} anyFailure - Whether at least one endpoint failed in this bucket.
+ * @param {boolean} isWarning - Whether the bucket is healthy but above the latency warning threshold.
+ * @param {number|null} averageMs - Average response time for the bucket.
+ * @param {Array<{ endpoint_id?: string, ts?: string|number|Date }>|undefined} failureDetails - Per-failure endpoint and timestamp details.
+ * @param {boolean} isPartial - Whether the bucket is the current clock-aligned partial bucket.
+ * @returns {string} Multi-line tooltip text with time range, status, average latency, and failures.
+ */
 function getTooltipText(
   startTime,
   endTime,
@@ -63,20 +79,20 @@ function getTooltipText(
   failureDetails,
   isPartial,
 ) {
-  const startFormatted = formatTimestamp(startTime, { use24Hour: true, showTimezone: false });
-  const endFormatted = formatTimestamp(endTime, { use24Hour: true });
+  const startFormatted = formatTimestamp(startTime, { showTimezone: false });
+  const endFormatted = formatTimestamp(endTime, {});
   const timeRange = `${startFormatted} - ${endFormatted}`;
 
   if (isPartial) {
     if (!hasData) return `[${timeRange}]\nPARTIAL BUCKET — no data yet, collecting...`;
 
-    const avgStr = `Avg — ${averageMs != null ? `${averageMs.toFixed(0)} ms` : '[no avg yet]'}`;
+    const avgStr = `Avg — ${averageMs !== null ? `${averageMs.toFixed(0)} ms` : '[no avg yet]'}`;
 
     if (anyFailure) {
       const failures = (failureDetails || [])
         .map((f) => {
           if (f?.endpoint_id && f?.ts)
-            return `${f.endpoint_id.toUpperCase()} - ${formatTimestamp(f.ts, { showSeconds: true, use24Hour: true })}`;
+            return `${f.endpoint_id.toUpperCase()} - ${formatTimestamp(f.ts, { showSeconds: true })}`;
           return null;
         })
         .filter(Boolean);
@@ -91,13 +107,13 @@ function getTooltipText(
 
   if (!hasData) return `[${timeRange}]\nNO DATA`;
 
-  const avgStr = `Avg — ${averageMs != null ? `${averageMs.toFixed(0)} ms` : '[no data available]'}`;
+  const avgStr = `Avg — ${averageMs !== null ? `${averageMs.toFixed(0)} ms` : '[no data available]'}`;
 
   if (anyFailure) {
     const failures = (failureDetails || [])
       .map((f) => {
         if (f?.endpoint_id && f?.ts)
-          return `${f.endpoint_id.toUpperCase()} - ${formatTimestamp(f.ts, { showSeconds: true, use24Hour: true })}`;
+          return `${f.endpoint_id.toUpperCase()} - ${formatTimestamp(f.ts, { showSeconds: true })}`;
         return null;
       })
       .filter(Boolean);
@@ -117,13 +133,6 @@ function getTooltipText(
 
 /**
  * A compact HeroUI Select for choosing a preset duration value.
- *
- * @param {Object}   props
- * @param {string}   props.label            - Accessible label (shown above trigger).
- * @param {number[]} props.presets           - Array of preset values in minutes.
- * @param {number}   props.value             - Currently selected value (minutes).
- * @param {Function} props.onChange          - Called with the new value (number).
- * @param {number[]} [props.disabledPresets] - Preset values that should be disabled.
  */
 function PresetSelect({ label, presets, value, onChange, disabledPresets = [] }) {
   return (
@@ -176,9 +185,6 @@ PresetSelect.propTypes = {
 
 /**
  * Bucketed multi-endpoint uptime heatmap over the selected window.
- *
- * @param {Object}  props
- * @param {boolean} props.clockAligned
  */
 export default function StatusHeatmap({ clockAligned = false, ...props }) {
   const { pollCount } = useUptimeMonitor();
@@ -229,9 +235,9 @@ export default function StatusHeatmap({ clockAligned = false, ...props }) {
         if (!firstLoadDone.current) firstLoadDone.current = true;
         setLoading(false);
       })
-      .catch((err) => {
-        if (err.name === 'AbortError') return;
-        logger.warn('Failed to fetch heatmap', err);
+      .catch((error) => {
+        if (error.name === 'AbortError') return;
+        logger.error('[UPTIME_HEATMAP:FETCH_FAILED]', error);
         if (!firstLoadDone.current) firstLoadDone.current = true;
         setLoading(false);
       });

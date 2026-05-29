@@ -1,6 +1,5 @@
 /**
- * @module useUptimeMonitor
- * @description Central hook for the Uptime Monitor page.
+ * Central hook for the Uptime Monitor page.
  * Manages SSE connection to `/api/uptime/stream`, in-memory check history,
  * reactive HTTP fallback polling when SSE is unavailable, and countdown state
  * for the next expected poll cycle.
@@ -33,7 +32,7 @@ import { fetchHistory } from '../utils/uptimeHelpers';
  *   dbTotalChecks: number|null,
  *   pollCount: number,
  *   latestPollResults: Array<Object>|null
- * }}
+ * }} Uptime page state, SSE/fallback status, reconnect control, and latest poll payloads.
  */
 export function useUptimeMonitor() {
   const [dbTotalChecks, setDbTotalChecks] = useState(null);
@@ -86,8 +85,8 @@ export function useUptimeMonitor() {
         const remaining = Math.max(REFETCH_INTERVAL_MS / 1000 - secondsSinceLastCheck, 0);
         setNextUpdateSeconds(remaining);
       }
-    } catch (err) {
-      logger.error('Failed to load history', err);
+    } catch (error) {
+      logger.error('[UPTIME_MONITOR:HISTORY_LOAD_FAILED]', error);
       setIsUsingFallback(true);
     }
   }, []);
@@ -102,8 +101,8 @@ export function useUptimeMonitor() {
    * Opens (or replaces) the SSE connection to `/api/uptime/stream`.
    * Handles `poll-complete` events by merging results into in-memory history.
    *
-   * @param {Function} [onSuccess] - Called when the connection opens successfully.
-   * @param {Function} [onError]   - Called when the connection errors or closes.
+   * @param {() => void} [onSuccess] - Called when the connection opens successfully.
+   * @param {() => void} [onError] - Called when the connection errors or closes.
    */
   const connectSSE = useCallback((onSuccess, onError) => {
     if (eventSourceRef.current) {
@@ -142,8 +141,8 @@ export function useUptimeMonitor() {
       if (onSuccess) onSuccess();
     };
 
-    eventSource.onerror = (err) => {
-      logger.warn('SSE connection error', err);
+    eventSource.onerror = (error) => {
+      logger.error('[UPTIME_MONITOR:SSE_CONNECTION_ERROR]', error);
       eventSource.close();
       eventSourceRef.current = null;
       setIsUsingFallback(true);

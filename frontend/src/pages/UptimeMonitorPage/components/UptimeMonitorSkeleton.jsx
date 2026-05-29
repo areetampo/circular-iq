@@ -1,6 +1,5 @@
 /**
- * @module UptimeMonitorSkeleton
- * @description Full-page skeleton while uptime monitor initial history loads.
+ * Full-page skeleton while uptime monitor initial history loads.
  */
 
 import { Skeleton } from '@heroui/react';
@@ -11,8 +10,9 @@ import { cn } from '@/utils/cn';
 import { ENDPOINTS } from '../constants';
 
 /**
- * Full-page skeleton while uptime monitor initial history loads.
- * @returns {import('react').ReactElement}
+ * Renders a full uptime-monitor skeleton that mirrors the loaded dashboard layout.
+ *
+ * @returns {import('react').ReactElement} Skeleton dashboard layout matching the uptime monitor page.
  */
 export default function UptimeMonitorSkeleton() {
   return (

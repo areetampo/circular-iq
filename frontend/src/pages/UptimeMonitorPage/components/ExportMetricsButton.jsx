@@ -1,6 +1,5 @@
 /**
- * @module ExportMetricsButton
- * @description Exports uptime history and aggregates to a downloadable metrics file.
+ * Exports uptime history and aggregates to a downloadable metrics file.
  */
 
 import { Tooltip } from '@heroui/react';
@@ -20,8 +19,6 @@ import { fetchHistory } from '../utils/uptimeHelpers';
  *
  * Rows are sorted oldest-first within each endpoint, matching the order
  * returned by {@link fetchHistory}.
- *
- * @returns {Promise<void>}
  */
 async function exportToCsv() {
   const limit = FRONTEND_CONFIG.uptime.maxHistoryPerEndpoint;
@@ -58,10 +55,6 @@ async function exportToCsv() {
  * Button that fetches the full uptime check history for every endpoint and
  * downloads it as a CSV file. Disabled when there is no data to export.
  *
- * @param {Object}  props
- * @param {boolean} [props.hasNoData=true] - Disables the button and shows a tooltip explaining why.
- * @param {Object}  [props...]              - Additional props spread onto the underlying Button.
- * @returns {JSX.Element}
  */
 export default function ExportMetricsButton({ hasNoData = true, ...props }) {
   const [loading, setLoading] = useState(false);
@@ -71,8 +64,8 @@ export default function ExportMetricsButton({ hasNoData = true, ...props }) {
     setLoading(true);
     try {
       await exportToCsv();
-    } catch (err) {
-      logger.warn('Failed to export metrics', err);
+    } catch (error) {
+      logger.warn('[UPTIME:EXPORT_FAILED]', error);
     } finally {
       setLoading(false);
     }

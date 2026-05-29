@@ -1,6 +1,5 @@
 /**
- * @module EndpointLatencyBarChart
- * @description Bar chart of average latency per monitored endpoint.
+ * Bar chart of average latency per monitored endpoint.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -13,7 +12,12 @@ import { ENDPOINTS, LATENCY_CHART_HOURS } from '../constants';
 import { useUptimeMonitor } from '../hooks/useUptimeMonitor';
 import { fetchEndpointLatency } from '../utils/uptimeHelpers';
 
-/** @param {number} ms @returns {string} CSS colour variable for bar fill based on latency threshold. */
+/**
+ * Maps latency thresholds to the CSS colour variable used for endpoint bars.
+ *
+ * @param {number} ms - Average endpoint response time in milliseconds.
+ * @returns {string} CSS colour variable for success, warning, or error bar fill.
+ */
 function getLatencyColor(ms) {
   if (ms < 200) return 'var(--color-success)';
   if (ms < 500) return 'var(--color-warning)';
@@ -21,10 +25,7 @@ function getLatencyColor(ms) {
 }
 
 /**
- * Bar chart of average latency per monitored endpoint.
- *
- * @param {Object} props
- * @returns {import('react').ReactElement}
+ * Bar chart of mean latency per endpoint over `LATENCY_CHART_HOURS`; colours bars by threshold.
  */
 export default function EndpointLatencyBarChart({ ...props }) {
   const { pollCount } = useUptimeMonitor();

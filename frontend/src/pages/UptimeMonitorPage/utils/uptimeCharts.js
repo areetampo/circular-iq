@@ -1,6 +1,5 @@
 /**
- * @module uptimeCharts
- * @description Pure chart data transformers for the Uptime Monitor page.
+ * Pure chart data transformers for the Uptime Monitor page.
  * Derives pie-chart categories and recent line-chart points from in-memory
  * check history (no API calls).
  */
@@ -20,7 +19,7 @@ import { formatTimestamp } from '@/lib/formatting';
  * @param {Record<string, Array<{ up: boolean, ms: number|null }>>} history
  *   Endpoint id → normalised checks (oldest-first).
  * @param {Array<{ id: string, label: string }>} endpoints - Monitored endpoint definitions.
- * @returns {Array<{ label: string, count: number, endpoints: Array<{ name: string, ms: number|null }> }>}
+ * @returns {Array<{ label: string, count: number, endpoints: Array<{ name: string, ms: number|null }> }>} Distribution buckets with endpoint names and latest latency values.
  */
 export function getHealthDistribution(history, endpoints) {
   const categories = {
@@ -61,7 +60,7 @@ export function getHealthDistribution(history, endpoints) {
  *
  * @param {Array<{ ts: number, up: boolean, ms: number|null }>} checks - Endpoint checks.
  * @param {number} minutes - Lookback window in minutes.
- * @returns {Array<{ label: string, ms: number|null }>}
+ * @returns {Array<{ label: string, ms: number|null }>} Recent chart points with formatted time labels and nulls for down checks.
  */
 export function getRecentRawChecks(checks, minutes) {
   if (!checks || !checks.length) return [];
@@ -75,7 +74,6 @@ export function getRecentRawChecks(checks, minutes) {
         showMonth: false,
         showDay: false,
         showSeconds: true,
-        use24Hour: true,
       }),
       ms: c.up ? c.ms : null,
     }));

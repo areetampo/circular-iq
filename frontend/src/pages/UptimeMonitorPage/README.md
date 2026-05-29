@@ -6,7 +6,7 @@ A real-time health monitoring dashboard that continuously checks backend API hea
 
 ## Configuration
 
-### Backend (`frontend.config.js`)
+### Backend (`backend.config.js`)
 
 ```js
 uptime: {

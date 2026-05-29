@@ -1,6 +1,5 @@
 /**
- * @module HealthDistributionChart
- * @description Distribution of health-check outcomes across endpoints.
+ * Distribution of health-check outcomes across endpoints.
  */
 
 import { useMemo } from 'react';
@@ -13,10 +12,7 @@ import { useUptimeMonitor } from '../hooks/useUptimeMonitor';
 import { getHealthDistribution } from '../utils/uptimeCharts';
 
 /**
- * Distribution of health-check outcomes across endpoints.
- *
- * @param {Object} props
- * @returns {import('react').ReactElement}
+ * Pie chart of healthy/degraded/unhealthy/no-data counts from the latest poll or history fallback.
  */
 export default function HealthDistributionChart({ ...props }) {
   const { latestPollResults, history, loadingInitial } = useUptimeMonitor();

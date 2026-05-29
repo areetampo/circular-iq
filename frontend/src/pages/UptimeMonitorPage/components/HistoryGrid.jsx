@@ -1,8 +1,3 @@
-/**
- * @module HistoryGrid
- * @description Chronological dot grid of recent uptime checks for one endpoint.
- */
-
 import { Tooltip } from '@heroui/react';
 import PropTypes from 'prop-types';
 
@@ -13,11 +8,12 @@ import { REFETCH_INTERVAL_MS } from '../constants';
 
 /**
  * Maps bucket/check state to a Tailwind background class.
- * @param {boolean} hasData
- * @param {boolean} anyFailure
- * @param {boolean} isWarning
- * @param {boolean} isPartial
- * @returns {string}
+ *
+ * @param {boolean} hasData - Whether the bucket contains at least one check.
+ * @param {boolean} anyFailure - Whether any check in the bucket failed.
+ * @param {boolean} isWarning - Whether the bucket is healthy but above the latency warning threshold.
+ * @param {boolean} isPartial - Whether the bucket is a clock-aligned partial edge bucket.
+ * @returns {string} Tailwind background class for the status block.
  */
 function getStatusColor(hasData, anyFailure, isWarning, isPartial) {
   if (isPartial) return 'bg-(--color-clock-aligned-block)';
@@ -28,9 +24,7 @@ function getStatusColor(hasData, anyFailure, isWarning, isPartial) {
 }
 
 /**
- * HistoryGrid — colour-coded history bar.
- *
- * Two modes:
+ * Colour-coded dot grid of recent checks for one endpoint. Two modes:
  *
  *  RAW mode  — pass `checks` + `count`
  *    Used by EndpointCard recent section.
@@ -61,7 +55,6 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
         showMonth: false,
         showDay: false,
         showSeconds: true,
-        use24Hour: true,
       };
 
       // endTime from DB buckets is already the full "HH:MM – HH:MM" range string;
@@ -73,7 +66,7 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
       if (bucket.isPartial) {
         if (!bucket.hasData) return `${timeDisplay}\nPARTIAL BUCKET — collecting…`;
 
-        const avgStr = `Avg — ${bucket.averageMs != null ? `${bucket.averageMs} ms` : '[no avg yet]'}`;
+        const avgStr = `Avg — ${bucket.averageMs !== null ? `${bucket.averageMs} ms` : '[no avg yet]'}`;
 
         if (bucket.anyFailure) {
           const failureTs = (bucket.failureTimestamps || [])
@@ -92,7 +85,7 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
 
       if (!bucket.hasData) return `${timeDisplay}\nNO DATA`;
 
-      const avgStr = `Avg — ${bucket.averageMs != null ? `${bucket.averageMs} ms` : '[no data available]'}`;
+      const avgStr = `Avg — ${bucket.averageMs !== null ? `${bucket.averageMs} ms` : '[no data available]'}`;
 
       if (bucket.anyFailure) {
         // failureTimestamps may be absent when coming from DB aggregation (not per-check)
@@ -122,7 +115,6 @@ export default function HistoryGrid({ checks, count, buckets, ...props }) {
       showMonth: false,
       showDay: false,
       showSeconds: true,
-      use24Hour: true,
     };
 
     tooltipFormatter = (check, idx) => {
