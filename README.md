@@ -596,7 +596,6 @@ Global Activity includes manual refresh button with "updated N minutes ago" time
 │   ├── PIPELINE_RUNNING.md                         # How to run data processing pipeline
 │   ├── README.md
 │   ├── package.json
-│   ├── requirements-dev.txt
 │   │
 │   ├── config/                                     # Centralised config, env schema
 │   │
@@ -653,6 +652,7 @@ Global Activity includes manual refresh button with "updated N minutes ago" time
 │   │   ├── health.service.js                       # Health check endpoints and system monitoring
 │   │   ├── scoring.logic.js                        # Pure deterministic Layer 2 algorithms (no LLM, no side effects)
 │   │   ├── scoring.service.js                      # Full scoring pipeline orchestration
+│   │   ├── uptime.broadcaster.js                   # SSE client registry for uptime
 │   │   └── uptimePolling.service.js                # Uptime monitoring polling service
 │   │
 │   ├── tests/                                      # Backend test suite (api/, database/, services/)
@@ -904,7 +904,7 @@ Ensure CORS `ALLOWED_ORIGINS` includes your Vercel domain (`*.vercel.app`) and a
 
 The application includes a real-time uptime monitoring dashboard that tracks all backend health endpoints:
 
-- **Backend polling** — production-only; pings all health endpoints every 2 min (configurable via `env.UPTIME_CHECKS_POLL_INTERVAL_MS`), batch-inserts results into `uptime_checks`, then broadcasts a `poll-complete` SSE event to all connected clients
+- **Backend polling** — runs when `pollingEnabled` is enabled; pings all health endpoints every 2 min (configurable via `env.UPTIME_CHECKS_POLL_INTERVAL_MS`), batch-inserts results into `uptime_checks`, then broadcasts a `poll-complete` SSE event to all connected clients
 - **30-day retention** — configurable via `env.UPTIME_CHECKS_RETENTION_DAYS`; cleanup runs daily in production
 - **SSE streaming** — `/api/uptime/stream` delivers live updates instantly; frontend falls back to HTTP polling automatically if the connection drops
 - **Clock-aligned buckets** — toggleable UI feature that snaps all chart bucket boundaries to clean clock marks (whole hours, whole 15-min slots) instead of rolling from the current moment
@@ -967,6 +967,6 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 
 ## License
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
-**Last Updated:** 21 May 2026
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
+**Last Updated:** 30 May 2026
