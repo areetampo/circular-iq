@@ -1,31 +1,15 @@
 /**
- * @module env.schema
- * @description Zod schemas for validating environment variables.
- * Defines strict validation rules for all environment variables used by the backend,
- * with separate schemas for production (with defaults) and test environments (no defaults).
- *
- * The schemas handle:
- * - Type coercion (strings to numbers, booleans)
- * - URL validation
- * - Enum validation for specific values
- * - Default values for non-critical settings
- * - Cross-field validation (e.g., API_KEY required when API_AUTH_ENABLED is true)
+ * Zod schemas for backend env validation.
+ * `envSchema` adds defaults; `testEnvSchema` requires every value in `env/.env.test`.
+ * Both schemas require `API_KEY` only when API authentication is enabled.
  */
 
 import { z } from 'zod';
 
-/**
- * Helper schema to handle the "string true" vs "boolean true" mess in .env files.
- * Converts string "true" to boolean true, everything else to false.
- * @type {z.ZodSchema<boolean>}
- */
+/** Boolean env parser for feature flags where missing or non-`"true"` values should stay disabled. */
 const booleanSchema = z.preprocess((val) => val === 'true' || val === true, z.boolean());
 
-/**
- * Transforms comma-separated string "a,b,c" into array ["a", "b", "c"].
- * Trims whitespace and filters out empty strings.
- * @type {z.ZodSchema<Array<string>>}
- */
+/** Parses CORS origin lists from comma-separated env strings into trimmed URL arrays. */
 const commaSeparatedStringArraySchema = z
   .string()
   .default('')
@@ -38,11 +22,7 @@ const commaSeparatedStringArraySchema = z
       : [],
   );
 
-/**
- * Base schema with all required environment variables (no defaults).
- * Used as the foundation for both production and test schemas.
- * @type {z.ZodObject<any, any, any, any>}
- */
+/** Required backend env contract before runtime defaults or stricter test-env rules are applied. */
 const baseEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'staged', 'production'], {
     errorMap: () => ({ message: 'NODE_ENV must be development, test, staged, or production' }),
@@ -109,6 +89,10 @@ const baseEnvSchema = z.object({
     .number()
     .int()
     .positive('ANON_SCORING_LIMIT must be a positive integer'),
+  ANON_SCORING_USAGE_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .positive('ANON_SCORING_USAGE_RETENTION_DAYS must be a positive integer'),
 
   UPTIME_CHECKS_POLL_INTERVAL_MS: z.coerce
     .number()
@@ -144,11 +128,7 @@ const baseEnvSchema = z.object({
   STRICT_ENV: booleanSchema,
 });
 
-/**
- * Production/staging/development schema with defaults for non-critical settings.
- * Extends baseEnvSchema with sensible defaults for development convenience.
- * @type {z.ZodObject<any, any, any, any>}
- */
+/** Runtime env schema with local-development defaults for ports, pool sizes, uptime limits, and auth toggles. */
 export const envSchema = baseEnvSchema
   .extend({
     NODE_ENV: z
@@ -206,6 +186,11 @@ export const envSchema = baseEnvSchema
       .int()
       .positive('ANON_SCORING_LIMIT must be a positive integer')
       .default(20),
+    ANON_SCORING_USAGE_RETENTION_DAYS: z.coerce
+      .number()
+      .int()
+      .positive('ANON_SCORING_USAGE_RETENTION_DAYS must be a positive integer')
+      .default(7),
 
     UPTIME_CHECKS_POLL_INTERVAL_MS: z.coerce
       .number()
@@ -249,10 +234,9 @@ export const envSchema = baseEnvSchema
   })
   .refine(
     (data) => {
-      // If auth is OFF, we don't care what API_KEY is
       if (!data.API_AUTH_ENABLED) return true;
 
-      // If auth is ON, API_KEY MUST exist and be non-empty
+      // API clients need a shared secret only when the middleware is enabled.
       return !!data.API_KEY && data.API_KEY.trim().length > 0;
     },
     {
@@ -261,18 +245,12 @@ export const envSchema = baseEnvSchema
     },
   );
 
-/**
- * Test environment schema with no defaults.
- * Requires all environment variables to be explicitly set in .env.test.
- * Ensures tests run with known, controlled configuration.
- * @type {z.ZodObject<any, any, any, any>}
- */
+/** Test env schema without defaults so fixture drift fails before API tests run. */
 export const testEnvSchema = baseEnvSchema.refine(
   (data) => {
-    // If auth is OFF, we don't care what API_KEY is
     if (!data.API_AUTH_ENABLED) return true;
 
-    // If auth is ON, API_KEY MUST exist and be non-empty
+    // Tests exercise auth-on branches with the same shared-secret contract as runtime.
     return !!data.API_KEY && data.API_KEY.trim().length > 0;
   },
   {

@@ -1,23 +1,6 @@
 /**
- * @module backend.config
- * @description Central configuration loader and validator for the backend application.
- * Loads and validates environment variables via Zod schemas, freezes configuration
- * immutably to prevent runtime changes, and supports strict mode for CI/CD environments.
- *
- * Environment sources (in order of precedence):
- * 1. env/.env.{NODE_ENV} (loaded by loadEnv.js)
- * 2. env/.env.local (if exists, for development overrides)
- * 3. Process environment variables
- *
- * Exports BACKEND_CONFIG object with sections:
- * - nodeEnv: NODE_ENV string
- * - isProduction: Boolean flag
- * - app: Server settings (port, CORS, API keys, rate limits)
- * - database: PostgreSQL/Supabase connection details
- * - openai: OpenAI API configuration
- * - aiven: Optional Aiven PostgreSQL pool details
- * - uptime: Uptime monitoring configuration
- * - scoring: Scoring and database function configuration
+ * Validates env via Zod, builds frozen `BACKEND_CONFIG`, and exits on failure.
+ * `STRICT_ENV` rejects schema defaults so CI can prove every runtime key is explicitly supplied.
  */
 
 import '#config/loadEnv.js';
@@ -31,16 +14,6 @@ const logger = pino({
   name: 'backend.config',
   level: process.env.LOG_LEVEL || 'info',
 });
-
-/* ------------------------------ */
-/* Test-friendly defaults */
-/* ------------------------------ */
-// For tests, no defaults; must be in .env.test
-// Removed test defaults to enforce strict env loading
-
-/* ------------------------------ */
-/* Snapshot + Validation */
-/* ------------------------------ */
 
 const schema = (process.env.NODE_ENV || '').toLowerCase() === 'test' ? testEnvSchema : envSchema;
 const rawEnv = { ...process.env };
@@ -67,10 +40,6 @@ if (!parsed.success) {
 
 const env = Object.freeze({ ...parsed.data });
 
-/* ------------------------------ */
-/* Strict CI Enforcement */
-/* ------------------------------ */
-
 if (env.STRICT_ENV) {
   const missingExplicit = Object.entries(parsed.data)
     .filter(([key]) => !(key in rawEnv) || rawEnv[key] === undefined)
@@ -82,14 +51,12 @@ if (env.STRICT_ENV) {
   }
 }
 
-/* ------------------------------ */
-/* Deep Freeze */
-/* ------------------------------ */
-
 /**
- * Recursively freezes an object and all its nested properties to prevent runtime modifications.
- * @param {Object} obj - The object to deeply freeze.
- * @returns {Object} The frozen object (same reference, now immutable).
+ * Recursively freezes the validated config object so runtime modules cannot mutate shared settings.
+ *
+ * @template {Record<string, unknown>} T
+ * @param {T} obj - Configuration object or nested branch to recursively freeze.
+ * @returns {T} The same object reference after recursively freezing nested plain objects.
  */
 const deepFreeze = (obj) => {
   Object.getOwnPropertyNames(obj).forEach((prop) => {
@@ -100,17 +67,9 @@ const deepFreeze = (obj) => {
   return Object.freeze(obj);
 };
 
-/* ------------------------------ */
-/* Config Object */
-/* ------------------------------ */
-
 const isProduction = env.NODE_ENV === 'production';
 
-/**
- * List of database function names used in the application. This centralizes the function names, making it easier to manage and refactor database interactions. The actual function names in the database are expected to match these, but if we need to change them, we can do so here without affecting the rest of the codebase.
- * @type {string[]}
- * @private
- */
+/** Postgres RPC names exposed on `BACKEND_CONFIG.scoring.db.functions`. */
 const DB_FUNCTIONS = Object.freeze([
   'match_documents',
   'search_documents_by_industry',
@@ -127,28 +86,26 @@ const DB_FUNCTIONS = Object.freeze([
 ]);
 
 /**
- * Returns database configuration with table and function names.
- * This abstracts the actual table/function names from the rest of the code,
- * allowing for easier refactoring and potential multi-database support in the future.
- * The function names and table names are expected to be the same in both Supabase and Aiven setups,
- * but this layer of abstraction allows us to change them in one place if needed.
- * @returns {Object} Database configuration with tables and functions.
- * @private
+ * Builds table and RPC identifiers consumed by repositories.
+ *
+ * @returns {{
+ *   tables: { documents: string },
+ *   functions: Record<string, string>
+ * }} Table aliases and Postgres RPC names, with filtered hybrid search routed to full hybrid results.
  */
 const buildDatabaseConfig = () => ({
   tables: { documents: 'documents' },
   functions: {
     ...Object.fromEntries(DB_FUNCTIONS.map((n) => [n, n])),
-    // Ensure all hybrid searches use the full result set (including industry/category/source)
-    // even when callers originally used the filtered variant.
+    // Repositories expect metadata-rich rows even when using the legacy filtered RPC alias.
     search_documents_hybrid_filtered: 'search_documents_hybrid',
   },
 });
 
 /**
- * Parses and deduplicates allowed CORS origins from environment variables.
- * Combines explicitly allowed origins with the frontend app URL.
- * @returns {Array<string>} Deduplicated array of allowed origin URLs.
+ * Builds the CORS allowlist used by the Express app.
+ *
+ * @returns {string[]} Unique origins from `ALLOWED_ORIGINS` plus `APP_URL`.
  */
 const parseAllowedOrigins = () => {
   const origins = env.ALLOWED_ORIGINS ?? [];
@@ -157,6 +114,7 @@ const parseAllowedOrigins = () => {
   return [...new Set([...origins, ...frontend])];
 };
 
+/** Frozen backend settings consumed by routes, services, database clients, and startup logging. */
 export const BACKEND_CONFIG = deepFreeze({
   port: env.PORT,
   nodeEnv: env.NODE_ENV,
@@ -206,6 +164,7 @@ export const BACKEND_CONFIG = deepFreeze({
     db: buildDatabaseConfig(),
     useSupabaseDocuments: env.USE_SUPABASE_DOCUMENTS_TABLE,
     anonScoringLimit: env.ANON_SCORING_LIMIT,
+    anonScoringUsageRetentionDays: env.ANON_SCORING_USAGE_RETENTION_DAYS,
   },
 
   app: {
@@ -222,13 +181,14 @@ export const BACKEND_CONFIG = deepFreeze({
   },
 
   uptime: {
-    pollingEnabled: isProduction, // Only run polling and cleanup in production to avoid duplicate data during development
-    pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS, // 2 min
-    maxHistoryPerEndpoint: env.UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT, // 2min interval -> 30/hr * 24h * 28d = 20160 max checks per endpoint -> 30d = 21600 chosen as sufficient
-    queryWindowDaysLimit: env.UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT, // 28 days
-    retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS, // 30 days
-    cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START, // Set to true to truncate the entire table on server start
-    cleanupIntervalDurationMs: env.UPTIME_CHECKS_CLEANUP_INTERVAL_MS, // 24 hours
+    // Development and tests skip polling to avoid duplicate uptime rows from local server restarts.
+    pollingEnabled: isProduction,
+    pollIntervalMs: env.UPTIME_CHECKS_POLL_INTERVAL_MS,
+    maxHistoryPerEndpoint: env.UPTIME_CHECKS_MAX_HISTORY_PER_ENDPOINT,
+    queryWindowDaysLimit: env.UPTIME_CHECKS_QUERY_WINDOW_DAYS_LIMIT,
+    retentionDays: env.UPTIME_CHECKS_RETENTION_DAYS,
+    cleanupOnStart: env.UPTIME_CHECKS_CLEANUP_ON_START,
+    cleanupIntervalDurationMs: env.UPTIME_CHECKS_CLEANUP_INTERVAL_MS,
     endpoints: HEALTH_ENDPOINTS.map((endpoint) => endpoint.path),
   },
 });
