@@ -1,11 +1,9 @@
 /**
- * @module profile.routes
- * @description Express router for user profile endpoints.
- * Provides authenticated endpoints for fetching and managing user profile data.
- * All endpoints require valid Supabase authentication.
+ * Profile router mounted at `/api/profile`.
  *
- * Routes:
- *   GET /                           — Fetch authenticated user's profile data
+ * | Method | Path | Auth | Notes |
+ * |--------|------|------|-------|
+ * | GET | `/` | Bearer (required) | Reads the authenticated user's profile row |
  */
 
 import express from 'express';
@@ -13,18 +11,18 @@ import express from 'express';
 import { requireAuth } from '#middleware/auth.middleware.js';
 
 /**
- * Creates the profile router.
+ * Creates the authenticated profile lookup endpoint.
  *
- * @param {Object} serviceSupabase - Service-role Supabase client instance.
- * @returns {express.Router} Configured Express router with profile endpoints.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} serviceSupabase - Service-role Supabase client used to read the authenticated profile row.
+ * @returns {express.Router} Router mounted under `/api/profile`.
  */
 export default function createProfileRouter(serviceSupabase) {
   const router = express.Router();
 
   /**
    * GET /
-   * Returns the authenticated user's profile (`id`, `username`, `created_at`, `updated_at`).
-   * Requires Bearer token via `requireAuth`. 404 when profile row is missing.
+   * Requires Bearer auth and accepts no path or query parameters. Returns the authenticated user's
+   * `id`, `username`, `created_at`, and `updated_at`; a missing profile row maps to 404.
    */
   router.get('/', requireAuth(serviceSupabase), async (req, res) => {
     const startTime = Date.now();
@@ -55,8 +53,8 @@ export default function createProfileRouter(serviceSupabase) {
         created_at: data.created_at,
         updated_at: data.updated_at,
       });
-    } catch (err) {
-      logger.error({ err }, 'Failed to fetch profile');
+    } catch (error) {
+      logger.error({ error }, 'Failed to fetch profile');
       logger.logOperation('GET', '/profile', 500, Date.now() - startTime);
       res.status(500).json({
         error: 'Failed to fetch profile',

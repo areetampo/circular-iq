@@ -1,12 +1,10 @@
 /**
- * @module scoring.routes
- * @description Express router for scoring/assessment endpoints.
- * Provides endpoints for AI-powered circular economy business assessment and scoring.
- * Implements rate limiting (10 req/min per IP) and anonymous usage enforcement.
+ * Scoring router mounted at `/api/score`; endpoints are public with optional Bearer auth.
  *
- * Routes:
- *   POST /                          — Perform scoring audit (standard, non-streaming)
- *   POST /stream                    — Perform scoring audit with real-time SSE progress updates
+ * | Method | Path | Auth | Notes |
+ * |--------|------|------|-------|
+ * | POST | `/` | Optional Bearer | JSON scoring response, 10 requests/minute per IP |
+ * | POST | `/stream` | Optional Bearer | SSE scoring stages, 10 requests/minute per IP |
  */
 
 import express from 'express';
@@ -17,15 +15,16 @@ import { createSupabaseClient } from '#database/index.js';
 import { extractUserId } from '#services/auth.service.js';
 import { setOpenAIClient as setServiceOpenAIClient } from '#services/scoring.service.js';
 import { extractIPAddress } from '#utils/anonymousTracking.js';
+import { toClientError } from '#utils/errors.js';
 
-// Module-scoped OpenAI client to support tests that call `setOpenAIClient()`
+// Shared test hook for legacy router initialization that supplies Supabase separately.
 let sharedOpenAI = null;
 
 /**
- * Set the OpenAI client for this router module.
- * Used by tests to inject mock/test OpenAI instances.
+ * Sets the OpenAI client for this router module and the scoring service.
+ * Tests use this to inject mock OpenAI instances while preserving legacy router setup.
  *
- * @param {import('openai').OpenAI} client - OpenAI client instance.
+ * @param {import('openai').OpenAI} client - Client used by scoring routes and services for embeddings and audit generation.
  */
 export function setOpenAIClient(client) {
   sharedOpenAI = client;
@@ -33,17 +32,15 @@ export function setOpenAIClient(client) {
 }
 
 /**
- * Creates the scoring router.
+ * Creates scoring routes for JSON and SSE scoring flows.
  * Supports dual initialization patterns for backward compatibility with tests.
  *
- * @param {import('openai').OpenAI|Object} openai - OpenAI client or Supabase client.
- * @param {Object} [supabase] - Supabase client instance (optional if OpenAI was injected via setOpenAIClient).
- * @returns {express.Router} Configured Express router with scoring endpoints.
+ * @param {import('openai').OpenAI|import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} openai - OpenAI client, or legacy Supabase client when tests inject OpenAI via `setOpenAIClient`.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} [supabase] - Supabase client used for scoring persistence and anonymous usage checks.
+ * @returns {express.Router} Router mounted under `/api/score`.
  */
 export default function createScoringRouter(openai, supabase) {
-  // Support two call styles used across the codebase and tests:
-  // - createScoringRouter(openai, supabase)
-  // - createScoringRouter(supabase) where OpenAI was previously set via setOpenAIClient()
+  // Tests may pass only Supabase after injecting OpenAI through setOpenAIClient().
   const router = express.Router();
   router.use(express.json());
   const serviceSupabase = createSupabaseClient();
@@ -68,15 +65,15 @@ export default function createScoringRouter(openai, supabase) {
 
   /**
    * POST /
-   * Runs the full scoring pipeline (embeddings, similar cases, deterministic scores, LLM audit).
-   * Enforces anonymous usage limits and rate limiting (10 req/min per IP).
-   * Body: `{ businessProblem, businessSolution, evaluationParameters, businessContext? }`.
-   * Returns complete scoring result JSON on success; 403 when anonymous limit exceeded.
+   * Accepts no path or query parameters. Body requires `businessProblem`, `businessSolution`, and
+   * `evaluationParameters`; `businessContext` is optional. Requests are rate limited per IP, anonymous
+   * usage is checked before OpenAI work, input-length failures map to 400, anonymous blocks return
+   * their controller status, and unexpected scoring failures map to 500.
    */
   router.post('/', scoringRateLimiter, async (req, res) => {
     const start = Date.now();
     try {
-      // Enforce anonymous usage limits before heavy processing
+      // Anonymous usage is checked before OpenAI work so blocked requests stay cheap.
       const anonCheck = await scoringController.enforceAnonymousUsage(
         req,
         supabaseClient,
@@ -101,13 +98,12 @@ export default function createScoringRouter(openai, supabase) {
 
       logger.logOperation('POST', '/score', 200, Date.now() - start);
       res.json(response);
-    } catch (err) {
-      const status = err.status || (err.code === 'INPUT_TOO_LONG' ? 400 : 500);
+    } catch (error) {
+      const status = error.status || (error.code === 'INPUT_TOO_LONG' ? 400 : 500);
       logger.logOperation('POST', '/score', status, Date.now() - start);
-      logger.error({ err }, 'Failed to generate scoring audit');
+      logger.error({ error }, 'Failed to generate scoring audit');
       res.status(status).json({
-        error: err.message || 'Failed to generate scoring audit',
-        code: err.code || 'INTERNAL_ERROR',
+        ...toClientError(error, 'Failed to generate scoring audit'),
         timestamp: new Date().toISOString(),
       });
     }
@@ -115,21 +111,22 @@ export default function createScoringRouter(openai, supabase) {
 
   /**
    * POST /stream
-   * Same scoring pipeline as POST `/` but streams SSE progress events (`data: { stage, message, … }`).
-   * Sends heartbeat comments every 5s; closes on client disconnect.
-   * Final result is emitted as the last `complete` stage event before the stream ends.
+   * Accepts no path or query parameters and the same body as `POST /`. Streams SSE stage events,
+   * proxy-flushed heartbeat comments every 5 seconds, and stops writing after client disconnect.
+   * Anonymous usage failures return JSON before SSE headers are sent; later failures are sent as
+   * `stage: "error"` events when the stream is still open.
    */
   router.post('/stream', scoringRateLimiter, async (req, res) => {
     const start = Date.now();
     let isClosed = false;
 
-    // Handle client disconnect
+    // Stop heartbeat and stage writes after clients disconnect from the SSE stream.
     req.on('close', () => {
       isClosed = true;
     });
 
     try {
-      // Enforce anonymous usage limits before heavy processing
+      // Anonymous usage is checked before SSE setup so blocked requests receive normal JSON.
       const anonCheck = await scoringController.enforceAnonymousUsage(
         req,
         supabaseClient,
@@ -144,22 +141,22 @@ export default function createScoringRouter(openai, supabase) {
 
       const userId = await extractUserId(req, supabaseClient);
 
-      // Set SSE headers
+      // Disable proxy buffering so stage events are delivered as they are produced.
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('X-Accel-Buffering', 'no');
       res.flushHeaders();
 
-      // Define emitter function for streaming progress
+      // The scoring service calls this for each stage transition.
       const emit = (stage, message, data = {}) => {
         if (isClosed) return;
         try {
           res.write(`data: ${JSON.stringify({ stage, message, ...data })}\n\n`);
-          // Force flush through Render's nginx proxy — critical for SSE in production
+          // Render's nginx proxy needs explicit flushes for timely SSE delivery.
           if (typeof res.flush === 'function') res.flush();
-        } catch (err) {
-          logger.warn({ err }, 'Failed to write to SSE stream');
+        } catch (error) {
+          logger.warn({ error }, 'Failed to write to SSE stream');
           isClosed = true;
         }
       };
@@ -169,13 +166,12 @@ export default function createScoringRouter(openai, supabase) {
           try {
             res.write(': heartbeat\n\n');
             if (typeof res.flush === 'function') res.flush();
-          } catch (err) {
-            logger.error({ err }, 'Failed to send heartbeat to SSE stream');
+          } catch (error) {
+            logger.error({ error }, 'Failed to send heartbeat to SSE stream');
           }
         }
       }, 5000);
 
-      // Run the streaming scoring pipeline
       await scoringController.performScoringWithStream(
         req,
         openaiClient || sharedOpenAI,
@@ -190,19 +186,23 @@ export default function createScoringRouter(openai, supabase) {
       if (!isClosed) res.end();
 
       logger.logOperation('POST', '/score/stream', 200, Date.now() - start);
-    } catch (err) {
-      const status = err.status || (err.code === 'INPUT_TOO_LONG' ? 400 : 500);
+    } catch (error) {
+      const status = error.status || (error.code === 'INPUT_TOO_LONG' ? 400 : 500);
       logger.logOperation('POST', '/score/stream', status, Date.now() - start);
-      logger.error({ err }, 'Failed to generate scoring audit (stream)');
+      logger.error({ error }, 'Failed to generate scoring audit (stream)');
 
       if (!isClosed) {
-        // Send error event
+        // Once SSE headers are sent, failures must be delivered as stream events.
         try {
+          const { error: safeMessage, code: safeCode } = toClientError(
+            error,
+            'Failed to generate scoring audit',
+          );
           res.write(
             `data: ${JSON.stringify({
               stage: 'error',
-              message: err.message || 'Failed to generate scoring audit',
-              code: err.code || 'INTERNAL_ERROR',
+              message: safeMessage,
+              code: safeCode,
             })}\n\n`,
           );
         } catch (writeErr) {
