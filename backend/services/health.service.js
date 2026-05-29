@@ -1,8 +1,5 @@
 /**
- * @module health.service
- * @description Health monitoring service for backend dependencies.
- * Provides comprehensive health checks for database, OpenAI API, system resources,
- * and configuration integrity. Supports individual checks and aggregated system health.
+ * Dependency health probes (DB, Aiven, OpenAI, system, config) for `/health` routes.
  */
 
 import { performance } from 'perf_hooks';
@@ -11,8 +8,10 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 import { getDatabaseClient, getDatabaseType } from '#database/index.js';
 
 /**
- * Check database connectivity and health
- * @returns {Promise<Object>} Database health status
+ * Verify the backend database connection and return a health result.
+ * Supports Supabase and native PostgreSQL connections.
+ *
+ * @returns {Promise<{status:string,type:string,responseTime?:string,timestamp:string,error?:string}>} Database status with response time on success and error text on failure.
  */
 async function checkDatabase() {
   const startTime = performance.now();
@@ -22,14 +21,14 @@ async function checkDatabase() {
     const client = getDatabaseClient();
 
     if (dbType === 'supabase') {
-      // Test Supabase connection with a simple query
+      // A tiny indexed read verifies Supabase connectivity without pulling row data.
       const { error } = await client.from('documents').select('count').limit(1);
 
       if (error) {
         throw error;
       }
     } else {
-      // Test PostgreSQL connection
+      // Native PostgreSQL only needs a simple round trip.
       await client.query('SELECT 1');
     }
 
@@ -58,14 +57,16 @@ async function checkDatabase() {
 }
 
 /**
- * Check Aiven PostgreSQL connectivity and health
- * @returns {Promise<Object>} Aiven database health status
+ * Verify Aiven PostgreSQL connectivity if Aiven is configured.
+ * Returns disabled when the Aiven host/connection string is not present.
+ *
+ * @returns {Promise<{status:string,reason?:string,type?:string,responseTime?:string,timestamp:string,error?:string}>} Aiven status, disabled reason, or connectivity error details.
  */
 async function checkAivenDatabase() {
   const startTime = performance.now();
 
   try {
-    // Check if Aiven is configured (has host or connection string)
+    // Aiven checks are disabled unless either supported connection setting is present.
     const hasAivenConfig = BACKEND_CONFIG.aiven.host || BACKEND_CONFIG.aiven.connectionString;
     if (!hasAivenConfig) {
       const responseTime = Math.round(performance.now() - startTime);
@@ -78,7 +79,7 @@ async function checkAivenDatabase() {
       };
     }
 
-    // Get Aiven pool and run a simple query
+    // Import lazily so deployments without Aiven config do not initialize the pool.
     const { getAivenPgPool } = await import('#database/client.js');
     const pool = getAivenPgPool();
     await pool.query('SELECT 1');
@@ -108,8 +109,10 @@ async function checkAivenDatabase() {
 }
 
 /**
- * Check OpenAI API connectivity
- * @returns {Promise<Object>} OpenAI health status
+ * Verify OpenAI API accessibility using the configured key.
+ * If the key is not configured, reports disabled rather than unhealthy.
+ *
+ * @returns {Promise<{status:string,reason?:string,responseTime?:string,timestamp:string,error?:string}>} OpenAI API status, disabled reason, or request error details.
  */
 async function checkOpenAI() {
   const startTime = performance.now();
@@ -126,7 +129,7 @@ async function checkOpenAI() {
       };
     }
 
-    // Simple API test - list models
+    // Listing models is a lightweight authenticated request that validates the API key.
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -167,14 +170,15 @@ async function checkOpenAI() {
 }
 
 /**
- * Check system resources
- * @returns {Object} System resource status
+ * Collect current process and runtime resource metrics for health reporting.
+ *
+ * @returns {{uptime:string,memory:{used:string,total:string,external:string,rss:string},nodeVersion:string,platform:string,timestamp:string}} Runtime resource snapshot formatted for health responses.
  */
 function checkSystemResources() {
   const memUsage = process.memoryUsage();
   const uptime = process.uptime();
 
-  // Convert bytes to MB
+  // Health payloads use whole MB to keep responses compact and readable.
   const formatMemory = (bytes) => Math.round(bytes / 1024 / 1024);
 
   return {
@@ -192,13 +196,14 @@ function checkSystemResources() {
 }
 
 /**
- * Check configuration integrity
- * @returns {Object} Configuration health status
+ * Validate critical backend configuration and return warning details if any values are missing.
+ *
+ * @returns {{status:string,issues:string[],environment:string,apiAuthEnabled:boolean,timestamp:string}} Configuration status plus any missing critical settings.
  */
 function checkConfiguration() {
   const issues = [];
 
-  // Check critical configuration
+  // These settings are required before database-backed routes can work.
   if (!BACKEND_CONFIG.supabase.url) {
     issues.push('Supabase URL not configured');
   }
@@ -221,9 +226,10 @@ function checkConfiguration() {
 }
 
 /**
- * Get overall system health
- * @param {Object} options - Health check options
- * @returns {Promise<Object>} Comprehensive health status
+ * Get overall system health.
+ *
+ * @param {{ checks?: Array<'database'|'openai'|'system'|'config'> }} options - Selected health checks; defaults to all checks.
+ * @returns {Promise<{ status: 'healthy'|'degraded'|'unhealthy', timestamp: string, version: string, uptime: number, checks: Record<string, unknown>, responseTime: string }>} Aggregated health payload with selected checks and overall status.
  */
 async function getSystemHealth(options = {}) {
   const { checks = ['database', 'openai', 'system', 'config'] } = options;
@@ -261,7 +267,7 @@ async function getSystemHealth(options = {}) {
     );
   }
 
-  // Synchronous checks
+  // Synchronous checks can fill the response while async probes run in parallel.
   if (checks.includes('system')) {
     results.checks.system = checkSystemResources();
   }
@@ -274,7 +280,7 @@ async function getSystemHealth(options = {}) {
     }
   }
 
-  // Wait for async checks
+  // Async checks may update the aggregate status before responseTime is added.
   await Promise.all(promises);
 
   const totalTime = Math.round(performance.now() - startTime);
@@ -284,12 +290,13 @@ async function getSystemHealth(options = {}) {
 }
 
 /**
- * Get minimal health status for load balancers
- * @returns {Promise<Object>} Minimal health status
+ * Get minimal health status for load balancers.
+ *
+ * @returns {Promise<{ status: 'ok'|'error', timestamp: string }>} Minimal status payload for load balancers.
  */
 async function getMinimalHealth() {
   try {
-    // Only check critical database connectivity
+    // Load balancers only need the critical dependency signal.
     const dbHealth = await checkDatabase();
 
     return {

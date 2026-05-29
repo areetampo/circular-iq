@@ -1,30 +1,22 @@
 /**
- * @module auth.service
- * @description Centralized authentication service for request handling.
- * Provides functions to authenticate requests and extract user IDs from
- * authorization headers using Supabase auth. Supports both required and optional
- * authentication modes, allowing flexible endpoint access control.
+ * Optional/required Supabase Bearer auth helpers for routes that do not use `requireAuth`.
  */
 
 /**
  * Authenticate a request using the Authorization header.
  * Supports both required and optional authentication modes.
  *
- * @param {Object} req - Express request object.
- * @param {Object} req.headers - Request headers object.
- * @param {string} req.headers.authorization - Authorization header with format "Bearer <token>".
- * @param {Object} supabase - Supabase client instance.
- * @param {Object} [options={}] - Configuration options.
+ * @param {import('express').Request} req - Express request that may include `Authorization: Bearer <token>`.
+ * @param {{ auth: { getUser: (token: string) => Promise<{ data?: { user?: { id: string, email?: string, user_metadata?: Record<string, unknown> } } }> } }} supabase - Supabase client used to validate bearer tokens.
+ * @param {{ required?: boolean }} [options={}] - Authentication mode for this route.
  * @param {boolean} [options.required=true] - Whether authentication is required. If false, returns
  *                                           { user: null, isAuthenticated: false } on missing/invalid token.
- * @returns {Promise<Object>} Authentication result.
- * @returns {Object|null} returns.user - Authenticated user object or null.
- * @returns {string} returns.user.id - User's unique identifier.
- * @returns {string} returns.user.email - User's email address.
- * @returns {Object} returns.user.user_metadata - Additional user metadata from Supabase.
- * @returns {boolean} returns.isAuthenticated - Whether authentication succeeded.
- * @returns {string|null} returns.token - The Bearer token or null if not authenticated.
- * @throws {Error} If required=true and authentication fails.
+ * @returns {Promise<{
+ *   user: { id: string, email?: string, user_metadata: Record<string, unknown> }|null,
+ *   isAuthenticated: boolean,
+ *   token: string|null
+ * }>} Authenticated user/token state, or anonymous state when optional auth fails.
+ * @throws {Error} If `required` is true and the bearer token is missing, empty, or Supabase token validation throws.
  */
 export async function authenticateRequest(req, supabase, options = {}) {
   const startTime = Date.now();
@@ -32,7 +24,7 @@ export async function authenticateRequest(req, supabase, options = {}) {
   const { required = true } = options;
   const authHeader = req.headers.authorization || '';
 
-  // If no auth header and not required, return unauthenticated
+  // Optional-auth routes treat missing bearer headers as anonymous access.
   if (!authHeader.startsWith('Bearer ')) {
     if (!required) {
       return { user: null, isAuthenticated: false, token: null };
@@ -88,10 +80,8 @@ export async function authenticateRequest(req, supabase, options = {}) {
  * Extract user ID from authorization header (simplified version).
  * Returns null if no valid token is present, allowing graceful degradation for optional auth.
  *
- * @param {Object} req - Express request object.
- * @param {Object} req.headers - Request headers object.
- * @param {string} req.headers.authorization - Authorization header with format "Bearer <token>".
- * @param {Object} supabase - Supabase client instance.
+ * @param {import('express').Request} req - Express request that may include `Authorization: Bearer <token>`.
+ * @param {{ auth: { getUser: (token: string) => Promise<{ data?: { user?: { id: string, email?: string, user_metadata?: Record<string, unknown> } } }> } }} supabase - Supabase client used to validate bearer tokens.
  * @returns {Promise<string|null>} User ID if authenticated, null if anonymous or authentication fails.
  */
 export async function extractUserId(req, supabase) {

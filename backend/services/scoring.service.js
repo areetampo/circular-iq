@@ -1,6 +1,5 @@
 /**
- * @module scoring.service
- * @description OpenAI-based services for scoring, metadata extraction, and circular economy analysis.
+ * OpenAI-based services for scoring, metadata extraction, and circular economy analysis.
  * Provides LLM-powered functions for structured metadata extraction, reasoning generation,
  * gap analysis calculations, and similar case text cleaning. Uses gpt-4o-mini for all operations.
  * Supports dependency injection of OpenAI client for testing.
@@ -18,13 +17,13 @@ let openaiClient = new OpenAI({
  * Set the OpenAI client instance for this service module.
  * Used by tests to inject mock or test OpenAI clients.
  *
- * @param {import('openai').OpenAI} client - OpenAI client instance.
+ * @param {import('openai').OpenAI} client - Client used for metadata extraction, audit generation, and case cleanup calls.
  */
 export function setOpenAIClient(client) {
   openaiClient = client;
 }
 
-// Place this above the Promise.all in cleanSimilarCases
+// Shared before cleanup fan-out so every case uses the same artifact filters.
 const IMPACT_ARTIFACT_PATTERNS = [
   /^Score:\s*\d+\/\d+/i,
   /^\d+\s*certifications?$/i,
@@ -38,22 +37,14 @@ const IMPACT_ARTIFACT_PATTERNS = [
  *
  * @param {string} businessProblem - Description of the environmental/circular economy problem addressed.
  * @param {string} businessSolution - Description of how the business solves the identified problem.
- * @returns {Promise<Object>} Extracted metadata.
- * @returns {string} returns.industry - Business industry category (packaging, energy, waste_management, etc.).
- * @returns {string} returns.scale - Solution maturity level (prototype, pilot, regional, commercial, global).
- * @returns {string} returns.r_strategy - Primary circular economy R-strategy (Refuse, Reduce, Reuse, Repair, etc.).
- * @returns {string} returns.primary_material - Main material or waste stream being addressed.
- * @returns {string} returns.geographic_focus - Primary target region or market.
- * @returns {string} returns.short_description - One-sentence summary of the solution.
- * @throws {Error} If API call fails (error is logged, fallback metadata returned).
- *
- * @example
- * const meta = await extractMetadata(
- *   'Textile waste is a major environmental problem',
- *   'We create biodegradable fabrics from agricultural waste'
- * );
- * logger.info({meta_industry: meta.industry}); // 'textiles'
- * logger.info({meta_r_strategy: meta.r_strategy}); // 'Recycle'
+ * @returns {Promise<{
+ *   industry: string,
+ *   scale: string,
+ *   r_strategy: string,
+ *   primary_material: string,
+ *   geographic_focus: string,
+ *   short_description: string
+ * }>} Extracted metadata; returns a generic fallback object instead of throwing when extraction fails.
  */
 export async function extractMetadata(businessProblem, businessSolution) {
   const startTime = Date.now();
@@ -122,25 +113,18 @@ Be concise and precise. If uncertain, use "other" or infer from context.`;
  * Builds percentile distributions (p25, p50, p75) for each factor and classifies
  * user performance as below_average, average, or above_average.
  *
- * @param {Object} userScores - User's calculated scores.
+ * @param {{ overall_score: number, sub_scores: Record<string, number> }} userScores - User's calculated score bundle.
  * @param {number} userScores.overall_score - Aggregated overall score.
- * @param {Object} userScores.sub_scores - Per-factor scores (keys are factor names).
- * @param {number} userScores.sub_scores[key] - Score for a specific factor.
- * @param {Object[]} [similarCases=[]] - Top matching cases from database for comparison.
- * @param {Object} similarCases[].metadata - Case metadata object.
- * @param {Object} similarCases[].metadata.scores - Scores object with per-factor values.
- * @returns {Object} Gap analysis results.
- * @returns {boolean} returns.has_benchmarks - Whether benchmarks were successfully calculated.
- * @returns {Object} returns.comparisons - Per-factor comparison data (if has_benchmarks=true).
- * @returns {string[]} returns.opportunities - List of factors where user scores below average.
- * @returns {string[]} returns.strengths - List of factors where user scores above average.
- *
- * @example
- * const gaps = calculateGapAnalysis(
- *   { overall_score: 65, sub_scores: { innovation: 70, sustainability: 55 } },
- *   [{metadata: {scores: {innovation: 75, sustainability: 60}}}]
- * );
- * logger.info({gaps_opportunities: gaps.opportunities}); // ['sustainability'] if below benchmark
+ * @param {Record<string, number>} userScores.sub_scores - Per-factor scores keyed by factor name.
+ * @param {Array<{ metadata?: { scores?: Record<string, number> } }>} [similarCases=[]] - Top matching cases whose metadata may contain benchmark scores.
+ * @returns {{
+ *   has_benchmarks: boolean,
+ *   benchmarks?: Record<string, { p25: number, p50: number, p75: number, count: number }>,
+ *   comparisons?: Record<string, { userScore: number, p25: number, p50: number, p75: number, count: number, status: string }>,
+ *   opportunities: string[],
+ *   strengths: string[],
+ *   message?: string
+ * }} Benchmark availability plus per-factor comparisons, opportunities, and strengths.
  */
 export function calculateGapAnalysis(userScores, similarCases = []) {
   if (!similarCases.length) return { has_benchmarks: false };
@@ -198,15 +182,16 @@ export function calculateGapAnalysis(userScores, similarCases = []) {
 }
 
 /**
- * Generate AI-powered reasoning and audit analysis for a circular economy business idea
+ * Generate AI-powered reasoning and audit analysis for a circular economy business idea.
  *
- * @param {string} businessProblem - The environmental/circular economy problem addressed
- * @param {string} businessSolution - How the business solves the problem
- * @param {Object} scores - Calculated scores object with overall_score and sub_scores
- * @param {Array} similarDocs - Top matching documents from database with similarity scores
- * @param {Object|null} [context=null] - Optional business context metadata for the prompt
- * @param {Function|null} [emitter=null] - SSE progress callback `(stage, message, data?)` for streaming route
- * @returns {Promise<Object>} Complete audit analysis with evidence-based recommendations
+ * @param {string} businessProblem - User-provided problem statement that frames the audit prompt.
+ * @param {string} businessSolution - User-provided description of how the business solves the problem.
+ * @param {{ overall_score: number, confidence_level?: number|string, sub_scores: Record<string, number>, parameter_consistency?: Record<string, unknown> }} scores - Deterministic scoring output used to ground and calibrate the audit.
+ * @param {Array<{ id?: string, content?: string, similarity?: number, metadata?: Record<string, unknown> }>} similarDocs - Top matching documents from database with similarity scores and metadata fields.
+ * @param {Record<string, unknown>|null} [context=null] - Optional business context metadata for the prompt.
+ * @param {((stage: string, message: string, data?: Record<string, unknown>) => void)|null} [emitter=null] - SSE progress callback for the streaming route.
+ * @returns {Promise<Record<string, unknown>>} Complete audit analysis with evidence-based recommendations, calibrated confidence, source validation, and roadmap fields.
+ * @throws {Error} When required inputs are missing, scores are invalid, or the OpenAI chat completion fails/returns unusable JSON.
  */
 export async function generateReasoning(
   businessProblem,
@@ -218,7 +203,7 @@ export async function generateReasoning(
 ) {
   const startTime = Date.now();
 
-  // Validate inputs
+  // These errors are surfaced as scoring failures before any OpenAI request is made.
   if (!businessProblem || !businessSolution) {
     throw new Error('Business problem and solution are required');
   }
@@ -356,8 +341,9 @@ export async function generateReasoning(
 }
 
 /**
- * Build the system prompt for the AI auditor
- * @private
+ * Builds the fixed system prompt that constrains audit tone, evidence use, and JSON-only output.
+ *
+ * @returns {string} System message sent to the audit model.
  */
 function buildSystemPrompt() {
   return `You are a Senior Circular Economy Auditor with 15+ years of expertise in sustainability science, materials engineering, and business model innovation.
@@ -384,8 +370,10 @@ Your analysis should feel like a professional audit report - precise, evidence-b
 }
 
 /**
- * Build the user prompt with structured analysis requirements
- * @private
+ * Builds a compact gap-analysis summary for the audit prompt.
+ *
+ * @param {{ has_benchmarks?: boolean, opportunities?: string[], strengths?: string[] }|null|undefined} gapAnalysis - Benchmark comparison output from `calculateGapAnalysis`.
+ * @returns {string} Prompt block listing opportunities and strengths, or an empty string when no benchmark summary is available.
  */
 function buildGapContext(gapAnalysis) {
   if (!gapAnalysis || !gapAnalysis.has_benchmarks) return '';
@@ -408,11 +396,11 @@ function buildGapContext(gapAnalysis) {
  *
  * @param {string} businessProblem - User's problem statement.
  * @param {string} businessSolution - User's proposed solution.
- * @param {Object} scores - Normalised parameter scores keyed by parameter id.
- * @param {Array<Object>} similarDocs - Top vector-search matches from the knowledge base.
+ * @param {{ overall_score?: number, sub_scores?: Record<string, number>, [key: string]: unknown }} scores - Normalised score bundle keyed by parameter id plus aggregate scoring fields.
+ * @param {Array<Record<string, unknown>>} similarDocs - Top vector-search matches from the knowledge base.
  * @param {string} contextText - Serialized business-context fields.
  * @param {string} [gapContext=''] - Optional gap-analysis summary block.
- * @param {Object|null} [context=null] - Raw business context object for structured hints.
+ * @param {Record<string, unknown>|null} [context=null] - Raw business context object for structured hints.
  * @returns {string} Full user message sent to the audit model.
  */
 function buildUserPrompt(
@@ -440,8 +428,7 @@ function buildUserPrompt(
         const id = doc.id || 'N/A';
         const similarity = doc.similarity ? (doc.similarity * 100).toFixed(1) : 0;
 
-        // Prefer structured fields from metadata — these are the clean, full
-        // problem/solution texts, not the raw chunked content column
+        // Prefer structured metadata fields; they contain the clean full case text.
         const fields = doc.metadata?.fields || {};
         const problemText = fields.problem || doc.content || '';
         const solutionText = fields.solution || '';
@@ -573,8 +560,10 @@ CRITICAL: Be honest. If the user's scores are too high, say so with evidence. If
 }
 
 /**
- * Format database context for inclusion in prompts
- * @private
+ * Formats database matches for inclusion in the audit prompt.
+ *
+ * @param {Array<{ id?: string, similarity?: number, content?: string, metadata?: Record<string, unknown> }>|null|undefined} similarDocs - Top matching case documents from vector search.
+ * @returns {string} Prompt-ready case evidence block, or a general-principles fallback when no cases match.
  */
 function formatDatabaseContext(similarDocs) {
   if (!similarDocs || similarDocs.length === 0) {
@@ -597,45 +586,44 @@ Metadata: ${JSON.stringify(metadata)}`;
  * Calibrate the LLM's self-reported confidence using hard deterministic signals.
  *
  * Adjustments applied:
- *  - Integrity gap severity  → penalty per gap (-8 high / -4 medium / -1 low)
- *  - Parameter consistency   → penalty when internal score coherence is poor
- *  - Similar-docs evidence   → small bonus when well-supported, penalty when blind
- *  - Low overall score       → penalty (very weak solutions are harder to assess reliably)
- *  - LLM overconfidence clamp → pulls back when LLM is >25 pts above deterministic confidence_level
+ *  - Integrity gap severity: penalty per gap (-8 high / -4 medium / -1 low)
+ *  - Parameter consistency: penalty when internal score coherence is poor
+ *  - Similar-docs evidence: small bonus when well-supported, penalty when blind
+ *  - Low overall score: penalty (very weak solutions are harder to assess reliably)
+ *  - LLM overconfidence clamp: pulls back when LLM is >25 pts above deterministic confidence_level
  *
- * @param {number} llmScore          - Raw confidence_score from LLM (0-100)
- * @param {Array}  integrityGaps     - Already-enhanced integrity_gaps array
- * @param {Object} scores            - Full scores object from calculateScores()
- * @param {Array}  similarDocs       - Similar docs array (used for evidence count)
- * @returns {number} Calibrated confidence score (0-100)
+ * @param {number} llmScore - Raw confidence_score from LLM (0-100).
+ * @param {Array<{ severity?: 'high'|'medium'|'low'|string }>} integrityGaps - Already-enhanced integrity gaps used to penalize confidence.
+ * @param {{ overall_score?: number, confidence_level?: number, parameter_consistency?: { score?: number } }} scores - Full score object from `calculateScores`.
+ * @param {Array<Record<string, unknown>>} similarDocs - Similar docs array; only the evidence count is used.
+ * @returns {number} Calibrated confidence score clamped to 0-100.
  */
 function calibrateConfidenceScore(llmScore, integrityGaps, scores, similarDocs) {
   let adjustment = 0;
 
-  // 1. Integrity gap penalties — high-severity gaps meaningfully undermine confidence
+  // High-severity gaps meaningfully undermine confidence.
   for (const gap of integrityGaps || []) {
     if (gap.severity === 'high') adjustment -= 8;
     else if (gap.severity === 'medium') adjustment -= 4;
     else adjustment -= 1;
   }
 
-  // 2. Parameter consistency penalty — internally incoherent scores reduce assessability
+  // Internally incoherent scores reduce assessability.
   const consistencyScore = scores?.parameter_consistency?.score ?? 100;
   if (consistencyScore < 40) adjustment -= 15;
   else if (consistencyScore < 65) adjustment -= 8;
 
-  // 3. Evidence grounding — more matched docs = more grounded analysis
+  // More matched docs make the analysis better grounded.
   const docCount = (similarDocs || []).length;
   if (docCount >= 3) adjustment += 5;
   else if (docCount === 0) adjustment -= 5;
 
-  // 4. Very low overall score penalty — near-zero solutions have high assessment uncertainty
+  // Near-zero solutions have high assessment uncertainty.
   const overallScore = scores?.overall_score ?? 50;
   if (overallScore < 25) adjustment -= 10;
   else if (overallScore < 40) adjustment -= 5;
 
-  // 5. Overconfidence clamp — if LLM confidence far exceeds the deterministic
-  // confidence_level (computed from score variance/extremes), pull it back proportionally
+  // Pull back large gaps between LLM confidence and deterministic score confidence.
   const deterministicConfidence = scores?.confidence_level ?? llmScore;
   const overconfidence = llmScore - deterministicConfidence;
   if (overconfidence > 25) adjustment -= Math.round(overconfidence * 0.4);
@@ -644,15 +632,19 @@ function calibrateConfidenceScore(llmScore, integrityGaps, scores, similarDocs) 
 }
 
 /**
- * Enhance and validate the AI response
- * @private
+ * Normalizes audit JSON from the model and calibrates confidence against deterministic signals.
+ *
+ * @param {Record<string, unknown>} analysis - Parsed audit JSON returned by the model or mock fallback.
+ * @param {Array<{ id?: string } & Record<string, unknown>>} similarDocs - Similar case documents used to validate evidence IDs.
+ * @param {{ overall_score?: number, confidence_level?: number, sub_scores?: Record<string, number>, parameter_consistency?: { score?: number } }} scores - Deterministic score bundle used for confidence calibration and roadmap validation.
+ * @returns {Record<string, unknown>} Audit object with required arrays/fields present and confidence clamped to 0-100.
  */
 function enhanceAnalysis(analysis, similarDocs, scores) {
   // Build a Set of valid IDs from the actual similarDocs returned by the DB.
   // Used to cross-check every evidence_source_id the LLM emits.
   const validSourceIds = new Set((similarDocs || []).map((d) => d.id).filter(Boolean));
 
-  // Valid sub_score factor keys — used to validate improvement_roadmap target_factor values
+  // Roadmap target factors must come from the actual deterministic sub-score keys.
   const validFactors = new Set(Object.keys(scores?.sub_scores || {}));
 
   // Helper to sanitise evidence_source_id values.
@@ -707,8 +699,7 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
       return analysis.improvement_roadmap
         .slice(0, 3)
         .map((item, i) => {
-          // Validate target_factor against actual sub_score keys — rejects hallucinated
-          // factor names the LLM sometimes emits (e.g. "cost_efficiency", "scalability")
+          // Reject hallucinated factor names the model sometimes emits.
           const rawFactor = item.target_factor || null;
           const validatedFactor = rawFactor && validFactors.has(rawFactor) ? rawFactor : null;
           return {
@@ -752,8 +743,7 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
     },
   };
 
-  // Calibrate confidence_score now that integrity_gaps are finalised —
-  // must run after the enhanced object is built so gap severities are available
+  // Calibrate after normalization so gap severities are available.
   enhanced.confidence_score = calibrateConfidenceScore(
     enhanced.confidence_score,
     enhanced.integrity_gaps,
@@ -767,13 +757,13 @@ function enhanceAnalysis(analysis, similarDocs, scores) {
 /**
  * Clean and polish similar case text fields using LLM.
  * Fixes OCR artifacts, ends truncated sentences gracefully, and removes
- * pipeline noise — without adding or inventing information.
+ * pipeline noise without adding or inventing information.
  *
  * Runs in parallel for all cases (Promise.all) so total latency is
  * the latency of the slowest single case, not sum of all.
  *
- * @param {Array} cases - Array of formatted similar case objects
- * @returns {Promise<Array>} Cases with cleaned text fields
+ * @param {Array<{ summary?: string, problem?: string, solution?: string, impact?: string, circular_strategy?: string, [key: string]: unknown }>|null|undefined} cases - Similar case objects already formatted with display text fields.
+ * @returns {Promise<Array<Record<string, unknown>>|null|undefined>} Cases with cleaned text fields, preserving originals when cleaning fails; returns the original falsey value when none is supplied.
  */
 export async function cleanSimilarCases(cases) {
   if (!cases || cases.length === 0) return cases;
@@ -786,14 +776,13 @@ export async function cleanSimilarCases(cases) {
           ? ''
           : c.impact;
 
-        // Only include fields that have actual content — avoids LLM hallucinating
-        // content for empty fields and wastes fewer tokens
+        // Empty fields are omitted so the model cannot fill them with invented content.
         const rawLines = [
           c.summary ? `Summary: ${c.summary}` : null,
           c.problem ? `Problem: ${c.problem}` : null,
           c.solution ? `Solution: ${c.solution}` : null,
           impact ? `Impact: ${impact}` : null,
-          c.circular_strategy ? `Strategy: ${c.circular_strategy}` : null, // ADD THIS
+          c.circular_strategy ? `Strategy: ${c.circular_strategy}` : null,
         ]
           .filter(Boolean)
           .join('\n');
@@ -889,10 +878,11 @@ ${rawLines}`;
 }
 
 /**
- * Validate junk input before processing
- * @param {string} problem - Business problem input
- * @param {string} solution - Business solution input
- * @returns {Object|null} Error object if junk input detected, null otherwise
+ * Detects obvious junk inputs before the scoring pipeline spends tokens.
+ *
+ * @param {string} problem - Business problem text supplied by the user.
+ * @param {string} solution - Business solution text supplied by the user.
+ * @returns {{ is_junk: true, reason: string }|null} Junk classification and user-facing reason, or null when the input is acceptable.
  */
 export function validateInput(problem, solution) {
   const minLength = 50; // Reasonable minimum for detailed input

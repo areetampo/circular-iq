@@ -1,19 +1,26 @@
 /**
- * @module scoring.logic
- * @description Deterministic scoring logic for circular economy evaluation.
- * Computes scores using an 8-factor framework without LLM involvement in numeric calculations.
- * Provides functions for score calculation, tier classification, parameter consistency,
- * R-strategy alignment, integrity gap identification, and vector search result deduplication.
+ * Deterministic 8-factor scoring, tier labels, R-strategy alignment, and integrity-gap helpers (no LLM).
  */
 
 /**
- * Calculate circular economy business scores using the 8-factor framework
+ * Deterministic 8-factor weighted score with tier, consistency, and derived feasibility metrics.
+ * Clamps missing factors via `validateParameters` before weighting.
  *
- * @param {Object} parameters - User-provided scores for 8 factors (0-100 each)
- * @returns {Object} Overall score and breakdown of all sub-scores
+ * @param {Record<string, number|string|null|undefined>} parameters - User-provided scores for the 8 factor keys; values are coerced and clamped to 0-100.
+ * @returns {{
+ *   overall_score: number,
+ *   confidence_level: number,
+ *   sub_scores: Record<string, number>,
+ *   derived_metrics: { technical_feasibility: number, economic_viability: number, circularity_potential: number, risk_level: string },
+ *   weights: Record<string, number>,
+ *   score_breakdown: Record<string, unknown>,
+ *   weighted_score_card: Record<string, unknown>,
+ *   circular_economy_tier: Record<string, unknown>,
+ *   parameter_consistency: Record<string, unknown>
+ * }} Weighted score payload with score card, tier, consistency, and derived metrics.
  */
 export function calculateScores(parameters) {
-  // Define the 8 evaluation factors with their weights
+  // Weights mirror the 8-factor scoring rubric used by the frontend form.
   const weights = {
     public_participation: 0.15, // Access Value - Social
     infrastructure: 0.15, // Access Value - Operational
@@ -25,10 +32,10 @@ export function calculateScores(parameters) {
     tech_readiness: 0.1, // Processing Value - Implementation
   };
 
-  // Validate input parameters
+  // Missing or invalid factors are treated as 0 so the score shape is always complete.
   const validatedParams = validateParameters(parameters, weights);
 
-  // Calculate weighted overall score
+  // Weighted sum stays on a 0-100 scale because weights add to 1.
   const overall_score = Object.keys(weights).reduce((sum, key) => {
     return sum + validatedParams[key] * weights[key];
   }, 0);
@@ -85,7 +92,6 @@ export function calculateScores(parameters) {
     derived_metrics,
     weights: weights,
     score_breakdown: generateScoreBreakdown(validatedParams, weights),
-    // NEW FIELDS
     weighted_score_card: weightedScoreCard,
     circular_economy_tier: circularEconomyTier,
     parameter_consistency: parameterConsistency,
@@ -95,9 +101,9 @@ export function calculateScores(parameters) {
 /**
  * Generate a weighted score card showing each factor's contribution
  * to the overall score.
- * @param {Object} validatedParams - Clamped 0-100 sub_scores
- * @param {Object} weights - Factor weights
- * @returns {Object} Score card with per-factor contribution breakdown
+ * @param {Record<string, number>} validatedParams - Clamped 0-100 sub-scores keyed by factor id.
+ * @param {Record<string, number>} weights - Factor weights keyed by the same factor ids.
+ * @returns {{ factors: Record<string, { raw_score: number, weight: number, weight_percent: string, contribution: number, contribution_percent: string, classification: string, rank: number }>, total: number, top_contributor: string|null, bottom_contributor: string|null }} Ranked score card with each factor contribution and strongest/weakest contributor keys.
  */
 export function generateWeightedScoreCard(validatedParams, weights) {
   const factors = Object.keys(weights);
@@ -147,8 +153,9 @@ export function generateWeightedScoreCard(validatedParams, weights) {
 
 /**
  * Classify overall score into a named circular economy tier.
- * @param {number} overallScore - 0-100
- * @returns {Object} Tier classification with description and next milestone
+ *
+ * @param {number} overallScore - Rounded aggregate score on the 0-100 rubric.
+ * @returns {{ tier: string, range: string, badge_color: string, description: string, next_milestone: string, percentile_estimate: string }} Tier label, score band, UI color, interpretation, and next improvement milestone.
  */
 export function classifyCircularEconomyTier(overallScore) {
   if (overallScore >= 76) {
@@ -214,14 +221,14 @@ export function classifyCircularEconomyTier(overallScore) {
  * and penalises implausible combinations.
  * Returns 0-100 where 100 = perfectly consistent, 0 = highly contradictory.
  *
- * @param {Object} params - Validated sub_scores
- * @returns {Object} Consistency analysis
+ * @param {Record<string, number>} params - Validated 0-100 sub-scores keyed by factor id.
+ * @returns {{ score: number, rating: string, penalty_total: number, issues_found: number, issues: Array<{issue: string, penalty: number, factors: string[]}>, interpretation: string }} Consistency rating plus any contradictory factor combinations found.
  */
 export function calculateParameterConsistency(params) {
   const penalties = [];
   let totalPenalty = 0;
 
-  // Each rule: condition → penalty (0-25) + explanation
+  // Each rule pairs a contradictory score pattern with a fixed penalty.
   const rules = [
     {
       condition: params.market_price > 70 && params.tech_readiness < 40,
@@ -309,9 +316,9 @@ export function calculateParameterConsistency(params) {
  * Score how well the 8 factor scores align with the detected R-strategy.
  * Each strategy has a different ideal factor profile based on CE theory.
  *
- * @param {Object} params - Validated sub_scores
+ * @param {Record<string, number>} params - Validated 0-100 sub-scores keyed by factor id.
  * @param {string} rStrategy - Detected R-strategy from metadata (e.g. 'Recycle')
- * @returns {Object} Alignment analysis
+ * @returns {{ strategy: string, alignment_score: number|null, rating: string, message: string, critical_factors: string[], misaligned_factors: string[], well_aligned_factors?: string[], profile_used?: Record<string, number> }} R-strategy alignment score and factor-level diagnostics; unknown strategies return `null` score.
  */
 export function calculateRStrategyAlignment(params, rStrategy) {
   // Ideal factor importance weights per R-strategy
@@ -478,8 +485,11 @@ export function calculateRStrategyAlignment(params, rStrategy) {
 }
 
 /**
- * Validate and normalize input parameters
- * @private
+ * Normalizes user-provided parameter values to the complete 8-factor score shape.
+ *
+ * @param {Record<string, number|string|null|undefined>} parameters - Raw factor values from the request body.
+ * @param {Record<string, number>} weights - Canonical 8-factor weight map whose keys define required output fields.
+ * @returns {Record<string, number>} Complete factor map with non-numeric values coerced to 0 and all values clamped to 0-100.
  */
 function validateParameters(parameters, weights) {
   const validated = {};
@@ -487,12 +497,12 @@ function validateParameters(parameters, weights) {
   for (const key of Object.keys(weights)) {
     let value = parameters[key];
 
-    // Ensure value is a number
+    // Non-numeric values are treated as missing input.
     if (typeof value !== 'number') {
       value = 0;
     }
 
-    // Clamp to 0-100 range
+    // Scores outside the rubric range are clipped before weighting.
     value = Math.max(0, Math.min(100, value));
 
     validated[key] = value;
@@ -502,9 +512,11 @@ function validateParameters(parameters, weights) {
 }
 
 /**
- * Calculate confidence level based on score distribution
- * High variance or extreme scores = lower confidence
- * @private
+ * Calculates deterministic confidence from score distribution rather than LLM output.
+ * High variance, exact extremes, and very low means reduce confidence.
+ *
+ * @param {Record<string, number>} scores - Validated factor scores on the 0-100 rubric.
+ * @returns {number} Confidence score clamped to 30-90.
  */
 function calculateConfidenceLevel(scores) {
   const values = Object.values(scores);
@@ -537,8 +549,11 @@ function calculateConfidenceLevel(scores) {
 }
 
 /**
- * Generate detailed breakdown of score calculation
- * @private
+ * Builds grouped score breakdowns for access, embedded, and processing value categories.
+ *
+ * @param {Record<string, number>} scores - Validated factor scores on the 0-100 rubric.
+ * @param {Record<string, number>} weights - Factor weight map used to compute category averages.
+ * @returns {Record<string, { score: number, weight: string, description: string, factors: Array<{ name: string, score: number, weight: number }> }>} Category breakdowns for display.
  */
 function generateScoreBreakdown(scores, weights) {
   const categories = {
@@ -583,8 +598,10 @@ function generateScoreBreakdown(scores, weights) {
 }
 
 /**
- * Format factor name from snake_case to Title Case
- * @private
+ * Formats a factor id from snake_case to a display label.
+ *
+ * @param {string} factor - Factor key such as `market_price`.
+ * @returns {string} Title-cased label such as `Market Price`.
  */
 function formatFactorName(factor) {
   return factor
@@ -596,7 +613,11 @@ function formatFactorName(factor) {
 /**
  * Group multi-vector rows by source and compute aggregated similarity metrics.
  * Accepts rows which may be returned from `match_documents`, `search_documents_hybrid`,
- * or similar RPCs. Each row may include `metadata.field_name` === 'problem'|'solution'|'doc'
+ * or similar RPCs. Each row may include `metadata.field_name` as `problem`, `solution`, or `doc`.
+ *
+ * @param {Array<{ id?: string, similarity?: number, combined_score?: number, metadata?: Record<string, unknown> }>} [rows=[]] - Raw vector rows, possibly with multiple rows for one source case.
+ * @param {{ wProblem?: number, wSolution?: number, wDoc?: number }} [opts={}] - Weights used when combining available vector fields.
+ * @returns {Array<Record<string, unknown>>} Source-grouped rows sorted by descending combined similarity.
  */
 function aggregateMultiVectorResults(rows = [], opts = {}) {
   const map = new Map();
@@ -616,7 +637,7 @@ function aggregateMultiVectorResults(rows = [], opts = {}) {
       doc_similarities: [],
     };
 
-    // similarity may be `similarity` or `combined_score` depending on RPC used
+    // RPCs use either `similarity` or `combined_score`; normalize before grouping.
     const sim = typeof r.combined_score === 'number' ? r.combined_score : r.similarity || 0;
     const fieldName = (meta.field_name || fields.field_name || '').toLowerCase();
 
@@ -629,20 +650,20 @@ function aggregateMultiVectorResults(rows = [], opts = {}) {
     map.set(sourceId, entry);
   }
 
-  // Compute aggregated combined_similarity for each source
+  // Compute one combined similarity per source case.
   const result = [];
   for (const v of map.values()) {
-    // If both problem and solution vectors exist, combine them with configurable weights
+    // Problem, solution, and document vectors are averaged separately before weighting.
     const pAvg = average(v.problem_similarities);
     const sAvg = average(v.solution_similarities);
     const dAvg = average(v.doc_similarities);
 
-    // weights: give priority to problem/solution vectors, fallback to doc-level
+    // Defaults prioritize problem/solution vectors with a small document-level fallback.
     const wProblem = opts.wProblem ?? 0.45;
     const wSolution = opts.wSolution ?? 0.45;
     const wDoc = opts.wDoc ?? 0.1;
 
-    // If one type is missing, redistribute its weight proportionally
+    // Missing vector types donate their weight to the available vector types.
     let adjustedWProblem = wProblem;
     let adjustedWSolution = wSolution;
     let adjustedWDoc = wDoc;
@@ -661,13 +682,13 @@ function aggregateMultiVectorResults(rows = [], opts = {}) {
     adjustedWSolution /= sumAdj;
     adjustedWDoc /= sumAdj;
 
-    // Combined similarity is weighted average of available similarities
+    // Combined similarity is a weighted average of the available field similarities.
     const combined =
       (isNaN(pAvg) ? 0 : pAvg * adjustedWProblem) +
       (isNaN(sAvg) ? 0 : sAvg * adjustedWSolution) +
       (isNaN(dAvg) ? 0 : dAvg * adjustedWDoc);
 
-    // Normalize to 0..1 (some RPCs already return 0..1, others 0..1 rounded)
+    // Clamp because similarity RPCs can differ slightly in precision/rounding.
     const combinedNorm = Math.max(0, Math.min(1, combined));
 
     result.push({
@@ -679,7 +700,7 @@ function aggregateMultiVectorResults(rows = [], opts = {}) {
     });
   }
 
-  // Sort by combined_similarity desc
+  // Highest-similarity cases should appear first for callers.
   return result.sort((a, b) => b.combined_similarity - a.combined_similarity);
 }
 
@@ -687,12 +708,12 @@ function aggregateMultiVectorResults(rows = [], opts = {}) {
  * Deduplicates vector search rows by `source_id` and returns a compact case list for the frontend.
  * Delegates to `aggregateMultiVectorResults` for weighted problem/solution/doc similarity.
  *
- * @param {Array<Object>} [rows=[]] - Raw search rows (may include duplicate `source_id`).
- * @param {Object} [opts={}] - Weight options passed to `aggregateMultiVectorResults`.
+ * @param {Array<{ source_id?: string, metadata?: Record<string, unknown>, problem_similarity?: number, solution_similarity?: number, doc_similarity?: number, similarity?: number }>} [rows=[]] - Raw search rows, including possible duplicate `source_id` values.
+ * @param {{ wProblem?: number, wSolution?: number, wDoc?: number }} [opts={}] - Weight options passed to `aggregateMultiVectorResults`.
  * @param {number} [opts.wProblem=0.5] - Weight for problem-vector similarity.
  * @param {number} [opts.wSolution=0.4] - Weight for solution-vector similarity.
  * @param {number} [opts.wDoc=0.1] - Weight for document-vector similarity.
- * @returns {Array<{id: string, title: string|null, metadata: Object, similarity: number, problem: number|null, solution: number|null}>}
+ * @returns {Array<{id: string, title: string|null, metadata: Record<string, unknown>, similarity: number, problem: number|null, solution: number|null}>} Deduplicated cases sorted by combined similarity for frontend display.
  */
 export function dedupeResultsWeighted(rows = [], opts = {}) {
   const aggregated = aggregateMultiVectorResults(rows, opts);
@@ -708,7 +729,12 @@ export function dedupeResultsWeighted(rows = [], opts = {}) {
   }));
 }
 
-/** Helper: compute average of numeric array or NaN */
+/**
+ * Computes the average of numeric entries only.
+ *
+ * @param {unknown[]} [arr=[]] - Values that may include non-numeric entries.
+ * @returns {number} Mean of numeric values, or `NaN` when none are present.
+ */
 function average(arr = []) {
   const nums = (arr || []).filter((n) => typeof n === 'number');
   if (nums.length === 0) return NaN;
@@ -716,9 +742,10 @@ function average(arr = []) {
 }
 
 /**
- * Identify integrity gaps based on scoring inconsistencies
- * @param {Object} userScores - User's sub_scores
- * @returns {Array} Array of potential integrity issues
+ * Identify integrity gaps based on scoring inconsistencies.
+ *
+ * @param {Record<string, number>} userScores - User's validated sub-scores keyed by factor id.
+ * @returns {Array<{ issue: string, severity: 'low'|'medium'|'high', factors?: string[] }>} Integrity warning objects describing suspicious score patterns.
  */
 export function identifyIntegrityGaps(userScores) {
   const gaps = [];

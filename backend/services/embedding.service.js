@@ -1,16 +1,6 @@
 /**
- * @module embedding.service
- * @description Vector embedding service for text vectorization using OpenAI's embeddings API.
- * Generates dense vector representations of text for semantic search and similarity operations.
- * Used by scoring controller and knowledge base search to vectorize queries and documents.
- *
- * Model: text-embedding-3-small (1536 dimensions, high performance)
- * Provider: OpenAI Embeddings API
- * Cost: Efficient, optimized for volume
+ * OpenAI `text-embedding-3-small` wrapper for scoring and CE case hybrid search.
  */
-
-// Embedding-related business logic
-// currently used by scoring controller for generating embeddings and performing vector search
 
 import OpenAI from 'openai';
 
@@ -19,17 +9,12 @@ import { BACKEND_CONFIG } from '#config/backend.config.js';
 const client = new OpenAI({ apiKey: BACKEND_CONFIG.openai.apiKey });
 
 /**
- * Generate vector embedding for text using OpenAI's text-embedding-3-small model.
- * Text is trimmed before embedding. Empty strings throw an error to prevent wasted API calls.
+ * Embeds trimmed text via OpenAI `text-embedding-3-small` (1536 dims) for scoring and CE search.
+ * Logs duration through `globalThis.logger.logOperation`.
  *
- * @param {string} text - Text to embed (will be trimmed of leading/trailing whitespace).
- * @returns {Promise<number[]>} Embedding vector with 1536 dimensions.
- * @throws {Error} If text is empty after trimming or embedding API fails.
- *
- * @example
- * const embedding = await createEmbedding('Circular economy business model');
- * logger.info({embeddingLength: embedding.length}); // 1536
- * logger.info({embeddingType: typeof embedding[0]}); // 'number'
+ * @param {string} text - Source text sent to OpenAI after emptiness is checked with `trim()`.
+ * @returns {Promise<number[]>} 1536-dimensional vector.
+ * @throws {Error} When text is empty or the OpenAI API fails.
  */
 export async function createEmbedding(text) {
   const startTime = Date.now();
