@@ -1,22 +1,6 @@
 /**
- * @module scoring.controller
- * @description Controller for the scoring/assessment pipeline.
- * Handles /api/score — validates input, runs scoring pipeline,
- * calls LLM audit, vector search, enrichment layers, and logs results.
- *
- * Key functions:
- * - enforceAnonymousUsage: Enforces anonymous usage limits with IP-based tracking
- * - performScoring: Main scoring pipeline with vector search and AI analysis
- *
- * Pipeline steps:
- * 1. Input validation (junk detection, parameter validation)
- * 2. Deterministic score calculation
- * 3. Vector search for similar cases
- * 4. R-strategy alignment calculation
- * 5. Integrity gap identification
- * 6. AI-powered audit generation
- * 7. Gap analysis and benchmarking
- * 8. Response compilation and logging
+ * `/api/score` pipeline: anonymous limits, deterministic scores, vector search, LLM audit.
+ * `performScoringWithStream` mirrors `performScoring` with SSE progress via `emitter`.
  */
 
 import crypto from 'crypto';
@@ -38,19 +22,19 @@ import {
 } from '#services/scoring.service.js';
 import {
   ANON_SCORING_LIMIT,
+  ANON_SCORING_USAGE_RETENTION_DAYS,
   extractIPAddress,
   getIdentifierFromRequest,
 } from '#utils/anonymousTracking.js';
 import { VECTOR_SEARCH_VECTOR_WEIGHT } from '#utils/embedding.js';
 
 /**
- * Enforce anonymous usage limits
- * Verifies whether request is from authenticated user via Supabase
- * Returns null when allowed, otherwise returns blocking object
- * @param {Object} req - Express request object
- * @param {Object} supabase - Supabase client
- * @param {Object} serviceSupabase - Service-role Supabase client for tracking
- * @returns {Promise<Object|null>} Null if allowed, blocking object if denied
+ * Blocks anonymous scoring when usage exceeds `ANON_SCORING_LIMIT`; skips authenticated users and tests.
+ *
+ * @param {import('express').Request} req - Request whose bearer token, IP address, and user agent identify authenticated or anonymous usage.
+ * @param {{ auth: { getUser: (token: string) => Promise<{ data?: { user?: { id: string } }, error?: unknown }> } }} supabase - User-scoped client used to verify bearer tokens before applying anonymous limits.
+ * @param {{ rpc: (name: string, args?: Record<string, unknown>) => Promise<{ data?: Array<Record<string, unknown>>|Record<string, unknown>|null, error?: unknown }> }|null} serviceSupabase - Service-role client that atomically checks and increments `anonymous_usage`.
+ * @returns {Promise<null|{ blocked: true, status: number, body: Record<string, unknown> }>} `null` when authenticated, in tests, untracked, or under limit; blocked response metadata when the request must be rejected.
  */
 export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
   try {
@@ -149,18 +133,19 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // Race the database call against the timeout
     const rpcPromise = serviceSupabase.rpc('check_and_increment_anonymous_usage', {
-      p_identifier_hash: hash,
       p_max_tries: ANON_SCORING_LIMIT,
+      p_cleanup_days: ANON_SCORING_USAGE_RETENTION_DAYS,
+      p_identifier_hash: hash,
       p_ip_hash: ipHash,
       p_user_agent_snippet: uaSnippet,
     });
 
-    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]).catch((err) => {
-      if (err.message === 'Database RPC call timeout') {
-        logger.error({ err }, 'Database RPC call timed out');
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]).catch((error) => {
+      if (error.message === 'Database RPC call timeout') {
+        logger.error({ error }, 'Database RPC call timed out');
         return { data: null, error: { message: 'RPC_TIMEOUT', code: 'TIMEOUT' } };
       }
-      return { data: null, error: { message: err.message, code: 'RPC_ERROR' } };
+      return { data: null, error: { message: error.message, code: 'RPC_ERROR' } };
     });
 
     // 5. Handle database errors — FAIL CLOSED: block if tracking is unavailable
@@ -195,12 +180,27 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     const { current_count, is_allowed, last_used_at } = result;
 
-    logger.info({ currentCount: current_count, isAllowed: is_allowed }, 'Usage check result');
+    logger.info(
+      {
+        currentCount: current_count,
+        isAllowed: is_allowed,
+        lastUsedAt: last_used_at,
+        anonScoringLimit: ANON_SCORING_LIMIT,
+        anonScoringUsageRetentionDays: ANON_SCORING_USAGE_RETENTION_DAYS,
+      },
+      'Usage check result',
+    );
 
     // 7. Check if limit reached
     if (!is_allowed) {
       logger.info(
-        { currentCount: current_count, anonScoringLimit: ANON_SCORING_LIMIT },
+        {
+          currentCount: current_count,
+          isAllowed: is_allowed,
+          lastUsedAt: last_used_at,
+          anonScoringLimit: ANON_SCORING_LIMIT,
+          anonScoringUsageRetentionDays: ANON_SCORING_USAGE_RETENTION_DAYS,
+        },
         'Anonymous user anonScoringLimit reached',
       );
       return {
@@ -211,8 +211,10 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
           message: `You've used your ${ANON_SCORING_LIMIT} free evaluations. Create an account to continue assessing your circular economy initiatives!`,
           remaining: 0,
           currentCount: current_count,
-          anonScoringLimit: ANON_SCORING_LIMIT,
+          isAllowed: is_allowed,
           lastUsedAt: last_used_at,
+          anonScoringLimit: ANON_SCORING_LIMIT,
+          anonScoringUsageRetentionDays: ANON_SCORING_USAGE_RETENTION_DAYS,
           scoringRateLimiter: false,
         },
       };
@@ -220,12 +222,18 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 
     // 8. Allow request
     logger.info(
-      { currentCount: current_count, anonScoringLimit: ANON_SCORING_LIMIT },
+      {
+        currentCount: current_count,
+        isAllowed: is_allowed,
+        lastUsedAt: last_used_at,
+        anonScoringLimit: ANON_SCORING_LIMIT,
+        anonScoringUsageRetentionDays: ANON_SCORING_USAGE_RETENTION_DAYS,
+      },
       'Anonymous user allowed',
     );
     return null;
-  } catch (e) {
-    logger.error({ e }, 'Anonymous usage check failed');
+  } catch (error) {
+    logger.error({ error }, 'Anonymous usage check failed');
     // Fail-closed on unexpected exceptions related to tracking
     return {
       blocked: true,
@@ -240,13 +248,34 @@ export async function enforceAnonymousUsage(req, supabase, serviceSupabase) {
 }
 
 /**
- * Perform scoring audit with vector search and AI analysis
- * @param {Object} req - Express request object
- * @param {Object} openai - OpenAI client instance
- * @param {Object} supabase - Supabase client
- * @param {Object} serviceSupabase - Service-role Supabase client for logging
- * @param {string|null} userId - User ID if authenticated, null if anonymous
- * @returns {Promise<Object>} Complete scoring audit response
+ * Full scoring pipeline: validate inputs, embed, vector search, deterministic scores, LLM audit, gap analysis.
+ *
+ * @param {import('express').Request & { body: { businessProblem: string, businessSolution: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> } }} req - Scoring request body plus headers/IP used for logging.
+ * @param {import('openai').OpenAI} openai - OpenAI client used for audit generation and embedding calls.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - User-scoped Supabase client used by repository/search helpers.
+ * @param {{ from: (table: string) => { insert: (row: Record<string, unknown>) => Promise<{ error?: unknown }> } } }} serviceSupabase - Service-role client used for fire-and-forget scoring result logging.
+ * @param {string|null} userId - Authenticated user id, or null for anonymous scoring.
+ * @returns {Promise<{
+ *   businessProblem: string,
+ *   businessSolution: string,
+ *   evaluation_parameters: Record<string, number>,
+ *   business_context: Record<string, unknown>,
+ *   overall_score: number,
+ *   confidence_level: string|number,
+ *   sub_scores: Record<string, number>,
+ *   derived_metrics: Record<string, unknown>,
+ *   score_breakdown: Record<string, unknown>,
+ *   weighted_score_card: Record<string, unknown>,
+ *   circular_economy_tier: Record<string, unknown>,
+ *   parameter_consistency: Record<string, unknown>,
+ *   audit: Record<string, unknown>,
+ *   similar_cases: Array<Record<string, unknown>>,
+ *   metadata: Record<string, unknown>|null,
+ *   r_strategy_alignment: Record<string, unknown>,
+ *   gap_analysis: Record<string, unknown>,
+ *   processing_info: { request_id: string, processing_time_ms: number, timings: Record<string, number>, timestamp: string }
+ * }>} Final API payload returned to the scoring route after background persistence is queued.
+ * @throws {Error} On validation failures or scoring/audit errors outside the tolerated vector-search fallback.
  */
 export async function performScoring(req, openai, supabase, serviceSupabase, userId) {
   const startTime = Date.now();
@@ -507,8 +536,8 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
                 cm.primary_material === metadata.primary_material
               )
                 multiplier += 0.06;
-            } catch (e) {
-              logger.warn({ requestId, e }, 'Similar case metadata parsing warning');
+            } catch (error) {
+              logger.warn({ requestId, error }, 'Similar case metadata parsing warning');
             }
             return { ...c, similarity: (c.similarity || 0) * multiplier };
           });
@@ -870,8 +899,8 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
           logger.info({ requestId }, 'Result logged successfully to database');
         }
       })
-      .catch((err) => {
-        logger.error({ requestId, err }, 'Result logging critical failure');
+      .catch((error) => {
+        logger.error({ requestId, error }, 'Result logging critical failure');
       });
 
     // --- RETURN TO CONTROLLER ---
@@ -885,15 +914,35 @@ export async function performScoring(req, openai, supabase, serviceSupabase, use
 }
 
 /**
- * Perform scoring audit with real-time progress streaming
- * Same logic as performScoring but with emitter callbacks for SSE
- * @param {Object} req - Express request object
- * @param {Object} openai - OpenAI client instance
- * @param {Object} supabase - Supabase client
- * @param {Object} serviceSupabase - Service-role Supabase client for logging
- * @param {string|null} userId - User ID if authenticated, null if anonymous
- * @param {Function} emitter - Callback function for progress updates (stage, message, data)
- * @returns {Promise<Object>} Complete scoring audit response
+ * Same pipeline as `performScoring` with SSE progress via `emitter(stage, message, data?)`.
+ *
+ * @param {import('express').Request & { id?: string, body: { businessProblem: string, businessSolution: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> } }} req - Scoring request body plus optional request id used in progress events.
+ * @param {import('openai').OpenAI} openai - OpenAI client used for audit generation and embedding calls.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - User-scoped Supabase client used by repository/search helpers.
+ * @param {{ from: (table: string) => { insert: (row: Record<string, unknown>) => Promise<{ error?: unknown }> } }} serviceSupabase - Service-role client used for background scoring result logging.
+ * @param {string|null} userId - Authenticated user id, or null for anonymous scoring.
+ * @param {(stage: string, message: string, data?: Record<string, unknown>) => void} emitter - SSE progress callback invoked for validation, scoring, embedding, search, audit, gap analysis, and completion milestones.
+ * @returns {Promise<{
+ *   businessProblem: string,
+ *   businessSolution: string,
+ *   evaluation_parameters: Record<string, number>,
+ *   business_context: Record<string, unknown>,
+ *   overall_score: number,
+ *   confidence_level: string|number,
+ *   sub_scores: Record<string, number>,
+ *   derived_metrics: Record<string, unknown>,
+ *   score_breakdown: Record<string, unknown>,
+ *   weighted_score_card: Record<string, unknown>,
+ *   circular_economy_tier: Record<string, unknown>,
+ *   parameter_consistency: Record<string, unknown>,
+ *   audit: Record<string, unknown>,
+ *   similar_cases: Array<Record<string, unknown>>,
+ *   metadata: Record<string, unknown>|null,
+ *   r_strategy_alignment: Record<string, unknown>,
+ *   gap_analysis: Record<string, unknown>,
+ *   processing_info: { request_id: string, processing_time_ms: number, timings: Record<string, number>, timestamp: string }
+ * }>} Final API payload emitted through SSE and returned after background persistence is queued.
+ * @throws {Error} On validation failures or scoring/audit errors outside the tolerated vector-search fallback.
  */
 export async function performScoringWithStream(
   req,
@@ -1163,8 +1212,8 @@ export async function performScoringWithStream(
                 cm.primary_material === metadata.primary_material
               )
                 multiplier += 0.06;
-            } catch (e) {
-              logger.warn({ requestId, e }, 'Similar case metadata parsing warning');
+            } catch (error) {
+              logger.warn({ requestId, error }, 'Similar case metadata parsing warning');
             }
             return { ...c, similarity: (c.similarity || 0) * multiplier };
           });
@@ -1530,8 +1579,8 @@ export async function performScoringWithStream(
           logger.info({ requestId }, 'Result logged successfully to database');
         }
       })
-      .catch((err) => {
-        logger.error({ requestId, err }, 'Result logging critical failure');
+      .catch((error) => {
+        logger.error({ requestId, error }, 'Result logging critical failure');
       });
 
     // --- EMIT FINAL RESULT ---
