@@ -1,6 +1,5 @@
 /**
- * @module DashboardSectionHeading
- * @description Section title styling for grouped charts on the Global Activity page.
+ * Section title styling for grouped charts on the Global Activity page.
  */
 
 import PropTypes from 'prop-types';
@@ -8,10 +7,7 @@ import PropTypes from 'prop-types';
 import { Separator } from '@/components/common';
 
 /**
- * Dashboard section heading component with separator
- * @param {Object} props - Component props
- * @param {string} [props.label] - Main label text for the section
- * @param {number} [props.count] - Optional count to show on the right
+ * Renders an uppercase dashboard section label with an optional right-aligned count.
  */
 export default function DashboardSectionHeading({ label, count }) {
   return (
@@ -20,7 +16,7 @@ export default function DashboardSectionHeading({ label, count }) {
         <span className="pl-2 font-mono text-sm font-bold tracking-[0.14em] text-(--color-text-muted) uppercase">
           {label}
         </span>
-        {count != null && <span className="text-sm text-(--color-text-muted)">{count}</span>}
+        {count !== null && <span className="text-sm text-(--color-text-muted)">{count}</span>}
       </div>
       <Separator />
     </div>
@@ -28,8 +24,8 @@ export default function DashboardSectionHeading({ label, count }) {
 }
 
 DashboardSectionHeading.propTypes = {
-  /** Main label text for the section */
+  /** Section label displayed in uppercase */
   label: PropTypes.string.isRequired,
-  /** Optional count to show on the right */
+  /** Optional non-null count displayed on the right side of the heading */
   count: PropTypes.number,
 };

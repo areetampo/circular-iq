@@ -1,13 +1,13 @@
 /**
- * @module GlobalActivityPage
- * @description Route wrapper for the global activity / analytics dashboard.
+ * Route wrapper for the global activity analytics dashboard.
  */
 
 import { GlobalActivity, GlobalActivityHeader } from './components';
 
 /**
- * Mounts the `GlobalActivity` charts and KPI layout.
- * @returns {import('react').ReactElement}
+ * Renders the global activity dashboard shell with header copy and analytics content.
+ *
+ * @returns {import('react').ReactElement} Page layout containing the dashboard header and activity sections.
  */
 export default function GlobalActivityPage() {
   return (

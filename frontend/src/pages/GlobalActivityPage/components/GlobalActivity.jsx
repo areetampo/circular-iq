@@ -1,12 +1,14 @@
 /**
- * @module GlobalActivity
- * @description Composes Global Activity dashboard charts, KPIs, and distribution tables from analytics APIs.
+ * Composes global analytics charts, KPI cards, benchmark tables, and signed-in user metrics.
  */
 
 import { Table } from '@heroui/react';
+import { LogIn, ScrollText } from 'lucide-react';
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
+import { DetailsDisplay } from '@/components/common';
 import { useAssessmentStats, useGlobalStats } from '@/features/assessments/hooks';
 import { useAuth } from '@/hooks';
 import {
@@ -49,12 +51,11 @@ const getMaterialColors = () => [
 const formatIndustry = (s) => (s ?? '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 // ─── Main ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Composes Global Activity dashboard charts, KPIs, and distribution tables from analytics APIs.
- * @returns {import('react').ReactElement}
+ * Renders global assessment analytics and user-specific benchmark sections when authenticated.
  */
 export default function GlobalActivity() {
-  // Only fetch user data if the section is shown
   const { user } = useAuth();
   const {
     totalAssessments: userTotal,
@@ -71,7 +72,7 @@ export default function GlobalActivity() {
     isLoading: userStatsLoading,
   } = useAssessmentStats({ enabled: !!user });
 
-  // Transform user data for charts
+  // Normalize the user's industry stats into the same chart shape used by global distributions.
   const userIndustryData = useMemo(
     () =>
       transformIndustryDistribution(
@@ -148,7 +149,7 @@ export default function GlobalActivity() {
 
   const weeklyData = useMemo(() => transformWeeklyTrend(weeklyTrend), [weeklyTrend]);
 
-  // Compute 3-week rolling average and add to weeklyData
+  // Use a trailing three-week window to smooth sparse weekly volume data.
   const weeklyWithRolling = useMemo(() => {
     return weeklyData.map((d, i, arr) => {
       const window = arr.slice(Math.max(0, i - 2), i + 1);
@@ -157,7 +158,6 @@ export default function GlobalActivity() {
     });
   }, [weeklyData]);
 
-  // After weeklyData memo, add:
   const weekOverWeekGrowth = useMemo(() => {
     if (weeklyData.length < 2) return null;
     const last = weeklyData[weeklyData.length - 1]?.count ?? 0;
@@ -186,7 +186,7 @@ export default function GlobalActivity() {
   }, [strategyData]);
 
   const topPerformer = useMemo(() => {
-    const valid = industryTableRows.filter((r) => r.avgScore != null);
+    const valid = industryTableRows.filter((r) => r.avgScore !== null);
     if (!valid.length) return null;
     return [...valid].sort((a, b) => b.avgScore - a.avgScore)[0];
   }, [industryTableRows]);
@@ -203,7 +203,7 @@ export default function GlobalActivity() {
 
   const geoData = useMemo(() => transformGeoDistribution(geoDistribution, 8), [geoDistribution]);
 
-  // Transform for pie charts:
+  // Saved-assessment charts use counts from saved records rather than raw scoring sessions.
   const savedTierData = useMemo(
     () =>
       Object.entries(assessmentsByTier || {})
@@ -225,8 +225,8 @@ export default function GlobalActivity() {
     [assessmentsByRisk],
   );
 
-  const qualityRate = junkRate != null ? (100 - junkRate).toFixed(1) : null;
-  const junkCount = junkRate != null ? Math.round((junkRate / 100) * totalScoringCalls) : 0;
+  const qualityRate = junkRate !== null ? (100 - junkRate).toFixed(1) : null;
+  const junkCount = junkRate !== null ? Math.round((junkRate / 100) * totalScoringCalls) : 0;
 
   // ── Chart: PieChart or SingleValue fallback ──────────────────────────────────────────
   const renderPieOrSingle = (data, colors, emptyMsg) => {
@@ -244,8 +244,6 @@ export default function GlobalActivity() {
         showLegend={true}
         innerRadius={0}
         colors={colors}
-        label={false}
-        labelLine={false}
       />
     );
   };
@@ -267,7 +265,7 @@ export default function GlobalActivity() {
           />
           <StatCard
             title="Avg Score"
-            value={avgScore != null ? `${Number(avgScore).toFixed(1)}%` : null}
+            value={avgScore !== null ? `${Number(avgScore).toFixed(1)}%` : null}
             subtext="Across all assessments"
             loading={globalLoading}
           />
@@ -289,34 +287,34 @@ export default function GlobalActivity() {
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard
             title="Confidence"
-            value={avgConfidence != null ? `${Number(avgConfidence).toFixed(1)}%` : null}
+            value={avgConfidence !== null ? `${Number(avgConfidence).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Tech Feas."
-            value={avgTechFeas != null ? `${Number(avgTechFeas).toFixed(1)}%` : null}
+            value={avgTechFeas !== null ? `${Number(avgTechFeas).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Econ Viab."
-            value={avgEconViab != null ? `${Number(avgEconViab).toFixed(1)}%` : null}
+            value={avgEconViab !== null ? `${Number(avgEconViab).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Circularity"
-            value={avgCircPot != null ? `${Number(avgCircPot).toFixed(1)}%` : null}
+            value={avgCircPot !== null ? `${Number(avgCircPot).toFixed(1)}%` : null}
             loading={globalLoading}
           />
           <StatCard
             title="Param Consistency"
             value={
-              avgParamConsistency != null ? `${Number(avgParamConsistency).toFixed(1)}%` : null
+              avgParamConsistency !== null ? `${Number(avgParamConsistency).toFixed(1)}%` : null
             }
             loading={globalLoading}
           />
           <StatCard
             title="Strategy Alignment"
-            value={avgRAlignment != null ? `${Number(avgRAlignment).toFixed(1)}%` : null}
+            value={avgRAlignment !== null ? `${Number(avgRAlignment).toFixed(1)}%` : null}
             loading={globalLoading}
           />
         </div>
@@ -372,7 +370,7 @@ export default function GlobalActivity() {
 
           {/* Weekly trend — full width */}
           <ChartPanel
-            title={`Weekly Volume — last 12 weeks${weekOverWeekGrowth != null ? ` | ${weekOverWeekGrowth > 0 ? '+' : ''}${weekOverWeekGrowth}% WoW` : ''}`}
+            title={`Weekly Volume — last 12 weeks${weekOverWeekGrowth !== null ? ` | ${weekOverWeekGrowth > 0 ? '+' : ''}${weekOverWeekGrowth}% WoW` : ''}`}
             isLoading={globalLoading}
             className="mb-4"
           >
@@ -578,7 +576,7 @@ export default function GlobalActivity() {
                                   : 'text-(--color-text-muted)',
                             )}
                           >
-                            {row.avgScore != null ? `${Number(row.avgScore).toFixed(1)}%` : '—'}
+                            {row.avgScore !== null ? `${Number(row.avgScore).toFixed(1)}%` : '—'}
                           </Table.Cell>
                           <Table.Cell
                             className={cn(
@@ -645,7 +643,7 @@ export default function GlobalActivity() {
               />
               <StatCard
                 title="Score Range"
-                value={userMin != null && userMax != null ? `${userMin}% - ${userMax}%` : null}
+                value={userMin !== null && userMax !== null ? `${userMin}% - ${userMax}%` : null}
                 loading={userStatsLoading}
               />
             </div>
@@ -653,22 +651,22 @@ export default function GlobalActivity() {
             <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard
                 title="Confidence"
-                value={userConf != null ? `${Number(userConf).toFixed(1)}%` : null}
+                value={userConf !== null ? `${Number(userConf).toFixed(1)}%` : null}
                 loading={userStatsLoading}
               />
               <StatCard
                 title="Tech Feas."
-                value={userTechFeas != null ? `${Number(userTechFeas).toFixed(1)}%` : null}
+                value={userTechFeas !== null ? `${Number(userTechFeas).toFixed(1)}%` : null}
                 loading={userStatsLoading}
               />
               <StatCard
                 title="Econ Viab."
-                value={userEconViab != null ? `${Number(userEconViab).toFixed(1)}%` : null}
+                value={userEconViab !== null ? `${Number(userEconViab).toFixed(1)}%` : null}
                 loading={userStatsLoading}
               />
               <StatCard
                 title="Circularity"
-                value={userCircPot != null ? `${Number(userCircPot).toFixed(1)}%` : null}
+                value={userCircPot !== null ? `${Number(userCircPot).toFixed(1)}%` : null}
                 loading={userStatsLoading}
               />
             </div>
@@ -707,8 +705,6 @@ export default function GlobalActivity() {
                     showLegend={true}
                     innerRadius={0}
                     colors={getRiskColors()}
-                    label={false}
-                    labelLine={false}
                   />
                 ) : (
                   <EmptyChart />
@@ -717,24 +713,23 @@ export default function GlobalActivity() {
             </div>
           </>
         ) : (
-          <div className="space-y-8">
-            {/* Sample charts for non-logged-in users */}
-            <ChartPanel title="Your Assessments by Risk" isLoading={false}>
-              <PieChart
-                data={[
-                  { name: 'Low Risk', value: 42 },
-                  { name: 'Medium Risk', value: 38 },
-                  { name: 'High Risk', value: 20 },
-                ]}
-                dataKey="value"
-                nameKey="name"
-                height={250}
-                showLegend={true}
-                innerRadius={0}
-                colors={getRiskColors()}
-              />
-            </ChartPanel>
-          </div>
+          <DetailsDisplay
+            variant="info"
+            icon={ScrollText}
+            title="Unlock Personalized Benchmark Insights"
+            description="Sign in to compare your own organizational data against global industry benchmarks, track your metrics over time, and unlock unlimited circularity evaluations."
+            showDefaultActions={false}
+            actions={[
+              {
+                label: 'Sign In',
+                icon: LogIn,
+                variant: 'teal',
+                as: Link,
+                to: '/auth?view=login',
+                state: { from: location },
+              },
+            ]}
+          />
         )}
       </section>
     </div>

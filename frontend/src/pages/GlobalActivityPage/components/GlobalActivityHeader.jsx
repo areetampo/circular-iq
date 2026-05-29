@@ -1,6 +1,5 @@
 /**
- * @module GlobalActivityHeader
- * @description Page header and intro copy for the Global Activity dashboard.
+ * Global Activity dashboard header with refresh state and last-updated copy.
  */
 
 import { Globe, RotateCw } from 'lucide-react';
@@ -12,10 +11,7 @@ import { useRelativeTime } from '@/hooks';
 import { cn } from '@/utils/cn';
 
 /**
- * Global activity page header with refresh functionality
- * @param {Object} props - Component props
- * @param {string} [props.title] - Page title
- * @param {string} [props.description] - Page description
+ * Renders the dashboard title, description, refresh action, and relative update timestamp.
  */
 export default function GlobalActivityHeader({ title, description }) {
   // ── Global data ─────────────────────────────────────────────────────────────
@@ -26,17 +22,16 @@ export default function GlobalActivityHeader({ title, description }) {
     dataUpdatedAt,
   } = useGlobalStats();
 
-  // Convert ms timestamp to Date object for your useRelativeTime hook
+  // React Query stores update time in milliseconds; useRelativeTime expects a Date.
   const updatedAtDate = dataUpdatedAt ? new Date(dataUpdatedAt) : new Date();
   const relativeTime = useRelativeTime(updatedAtDate);
 
-  // Refresh handler – no local state needed at all
+  // Refetch delegates loading and update timestamps to React Query.
   const handleRefresh = async () => {
     await refetchGlobal();
-    // dataUpdatedAt will be updated automatically by React Query
   };
 
-  // Loading indicator: use React Query's flags only
+  // React Query exposes both first-load and background-refresh states for the button.
   const showUpdating = globalLoading || isFetching;
 
   return (
@@ -77,8 +72,8 @@ export default function GlobalActivityHeader({ title, description }) {
 }
 
 GlobalActivityHeader.propTypes = {
-  /** Page title */
+  /** Heading text displayed beside the globe icon */
   title: PropTypes.string.isRequired,
-  /** Page description */
+  /** Introductory copy displayed below the heading */
   description: PropTypes.string.isRequired,
 };

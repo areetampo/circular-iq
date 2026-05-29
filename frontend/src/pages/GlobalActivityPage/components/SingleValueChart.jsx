@@ -1,16 +1,11 @@
 /**
- * @module SingleValueChart
- * @description Compact single-metric chart tile (e.g. average score) for the activity dashboard.
+ * Compact single-metric fallback for chart panels with only one usable segment.
  */
 
 import PropTypes from 'prop-types';
 
 /**
- * Single value chart component for displaying a single metric
- * @param {Object} props - Component props
- * @param {string|number} [props.value] - Main numeric or text value to display (0-100)
- * @param {string} [props.label] - Label text displayed below the chart
- * @param {string} [props.sublabel] - Optional sublabel text displayed below label
+ * Renders one large value with label and optional explanatory sublabel.
  */
 export default function SingleValueChart({ value, label, sublabel }) {
   return (
@@ -25,10 +20,10 @@ export default function SingleValueChart({ value, label, sublabel }) {
 }
 
 SingleValueChart.propTypes = {
-  /** Numeric value to display (0-100) */
+  /** Primary value displayed in large type */
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  /** Label text displayed below the chart */
+  /** Label displayed below the primary value */
   label: PropTypes.string.isRequired,
-  /** Optional sublabel text displayed below label */
+  /** Optional secondary label displayed below the main label */
   sublabel: PropTypes.string,
 };

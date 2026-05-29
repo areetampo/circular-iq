@@ -1,8 +1,4 @@
-/**
- * @module GlobalActivityPage.components
- * @description Central export point for GlobalActivityPage components.
- * Re-exports GlobalActivity and GlobalActivityHeader.
- */
+/** Barrel re-exports for GlobalActivityPage components. */
 
 export { default as GlobalActivity } from './GlobalActivity';
 export { default as GlobalActivityHeader } from './GlobalActivityHeader';

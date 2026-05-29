@@ -1,15 +1,12 @@
 /**
- * @module EmptyChart
- * @description Placeholder UI when a dashboard chart has no usable data.
+ * Placeholder UI when a dashboard chart has no usable data.
  */
 
 import { BarChart3 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 /**
- * Empty chart component for displaying when no data is available
- * @param {Object} props - Component props
- * @param {string} [props.message] - Custom message to display instead of default
+ * Renders the no-data placeholder used inside dashboard chart panels.
  */
 export default function EmptyChart({ message }) {
   return (
@@ -23,6 +20,6 @@ export default function EmptyChart({ message }) {
 }
 
 EmptyChart.propTypes = {
-  /** Custom message to display */
+  /** Optional replacement for the default no-data message */
   message: PropTypes.string,
 };

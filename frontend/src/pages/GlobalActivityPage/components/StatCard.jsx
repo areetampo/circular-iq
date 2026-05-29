@@ -1,6 +1,5 @@
 /**
- * @module StatCard
- * @description KPI metric tile with optional loading skeleton for the Global Activity dashboard.
+ * KPI metric tile with optional loading skeleton for the Global Activity dashboard.
  */
 
 import { Skeleton } from '@heroui/react';
@@ -9,15 +8,10 @@ import PropTypes from 'prop-types';
 import { Tilt3D } from '@/components/common';
 
 /**
- * Stat card component for displaying metrics with loading states
- * @param {Object} props - Component props
- * @param {string} [props.title] - Label text displayed above the value
- * @param {string|number} [props.value] - Main numeric or text value to display
- * @param {string} [props.subtext] - Secondary text displayed below the value
- * @param {boolean} [props.loading] - Whether to show skeleton loading state
+ * Renders a dashboard metric tile or a matching skeleton while data is loading.
  */
 export default function StatCard({ title, value, subtext, loading }) {
-  // Format percentage values to 2 decimal places
+  // Keep percentage tiles visually consistent even when callers pass raw formatted strings.
   const formatValue = (val) => {
     if (typeof val === 'string' && val.includes('%')) {
       const numValue = parseFloat(val.replace('%', ''));
@@ -54,12 +48,12 @@ export default function StatCard({ title, value, subtext, loading }) {
 }
 
 StatCard.propTypes = {
-  /** Label text displayed above the value */
+  /** Label text displayed above the metric value */
   title: PropTypes.string.isRequired,
-  /** Main numeric or text value to display */
+  /** Main metric value; percentage strings are normalized to one decimal place */
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  /** Secondary text displayed below the value */
+  /** Supporting text displayed below the metric value */
   subtext: PropTypes.string,
-  /** Whether to show skeleton loading state */
+  /** Whether to show the skeleton tile instead of metric content */
   loading: PropTypes.bool,
 };
