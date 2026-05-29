@@ -1,9 +1,5 @@
 'use client';
-/**
- * @module vortex
- * @description Canvas-based vortex particle animation component.
- * Creates a procedural particle background with motion blur and glow effects.
- */
+/** Canvas particle vortex background with optional foreground children. */
 import { motion } from 'motion/react';
 import PropTypes from 'prop-types';
 import { useEffect, useRef } from 'react';
@@ -12,18 +8,7 @@ import { createNoise3D } from 'simplex-noise';
 import { cn } from '@/utils/cn';
 
 /**
- * Vortex renders a full-screen particle canvas background.
- * @param {Object} props
- * @param {number} [props.particleCount=700] - Number of particles to render.
- * @param {number} [props.rangeY=100] - Vertical spread of particles around center.
- * @param {number} [props.baseSpeed=0.0] - Base particle speed.
- * @param {number} [props.rangeSpeed=1.5] - Additional speed variation.
- * @param {number} [props.baseRadius=1] - Base particle radius.
- * @param {string} [props.backgroundColor='#000000'] - Background color for the canvas.
- * @param {string} [props.className] - CSS classes for the content wrapper.
- * @param {string} [props.containerClassName] - CSS classes for the container element.
- * @param {import('react').ReactNode} [props.children] - Foreground content rendered above the canvas.
- * @returns {JSX.Element}
+ * Renders an animated simplex-noise particle canvas behind optional children.
  */
 export const Vortex = (props) => {
   const canvasRef = useRef(null);
@@ -31,6 +16,7 @@ export const Vortex = (props) => {
   const animationFrameId = useRef();
   const particleCount = props.particleCount || 700;
   const particlePropCount = 9;
+  // Particle records are packed as x, y, vx, vy, life, ttl, speed, radius, and hue.
   const particlePropsLength = particleCount * particlePropCount;
   const rangeY = props.rangeY || 100;
   const baseTTL = 50;
@@ -185,7 +171,7 @@ export const Vortex = (props) => {
   };
 
   const resize = (canvas) => {
-    // Use the container's bounds instead of the entire browser window
+    // Use the container bounds instead of the entire browser window.
     const width = containerRef.current?.clientWidth || window.innerWidth;
     const height = containerRef.current?.clientHeight || window.innerHeight;
 

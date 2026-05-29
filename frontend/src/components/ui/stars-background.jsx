@@ -1,9 +1,6 @@
 'use client';
 
-/**
- * @module stars-background
- * @description Resize-aware twinkling starfield canvas background for hero sections.
- */
+/** Resize-aware twinkling starfield canvas for hero sections. */
 
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -11,16 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/utils/cn';
 
 /**
- * Full-bleed canvas starfield that regenerates on resize and twinkles per star config.
- *
- * @param {Object} props
- * @param {number} [props.starDensity=0.00015] - Stars per pixel² when the canvas is sized.
- * @param {boolean} [props.allStarsTwinkle=true] - When false, only a random subset twinkles.
- * @param {number} [props.twinkleProbability=0.7] - Chance a star twinkles when `allStarsTwinkle` is false.
- * @param {number} [props.minTwinkleSpeed=0.5] - Minimum twinkle cycle speed.
- * @param {number} [props.maxTwinkleSpeed=1] - Maximum twinkle cycle speed.
- * @param {string} [props.className] - Classes applied to the canvas element.
- * @returns {import('react').ReactElement}
+ * Renders a resize-aware canvas starfield with optional twinkle animation.
  */
 export const StarsBackground = ({
   starDensity = 0.00015,
@@ -33,6 +21,12 @@ export const StarsBackground = ({
   const [stars, setStars] = useState([]);
   const canvasRef = useRef(null);
 
+  /**
+   * Builds star descriptors for the current canvas dimensions.
+   * @param {number} width Canvas width in pixels.
+   * @param {number} height Canvas height in pixels.
+   * @returns {Array<{x: number, y: number, radius: number, opacity: number, twinkleSpeed: number | null}>} Star descriptors used by the animation loop.
+   */
   const generateStars = useCallback(
     (width, height) => {
       const area = width * height;

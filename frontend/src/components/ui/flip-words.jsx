@@ -1,9 +1,5 @@
 'use client';
-/**
- * @module flip-words
- * @description Animated word transition component.
- * Rotates through an array of words and applies motion effects to each word and letter.
- */
+/** Animated word rotator with per-letter motion effects (used in SiteHeroHeading). */
 import { AnimatePresence, motion } from 'motion/react';
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useState } from 'react';
@@ -11,12 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
 
 /**
- * Animated word rotator that transitions through each phrase with motion effects.
- * @param {Object} props
- * @param {string[]} props.words - Array of words or phrases to animate.
- * @param {number} [props.duration=3000] - Time in milliseconds between transitions.
- * @param {string} [props.className] - Optional wrapper CSS classes.
- * @returns {JSX.Element}
+ * Rotates through words with per-letter motion transitions.
  */
 export const FlipWords = ({ words, duration = 3000, className }) => {
   const [currentWord, setCurrentWord] = useState(words[0]);

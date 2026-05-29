@@ -1,20 +1,11 @@
 'use client';
-/**
- * @module text-generate-effect
- * @description Animated text reveal effect that progressively unblurs and fades words into view.
- */
+/** Animated text reveal that unblurs and fades each word into view. */
 import { motion, stagger, useAnimate } from 'motion/react';
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 
 /**
- * TextGenerateEffect animates words so each word is revealed with blur removal and fade-in.
- * @param {Object} props
- * @param {string} props.words - Text content to animate.
- * @param {string} [props.className] - Optional container CSS classes.
- * @param {boolean} [props.filter=true] - Whether to apply blur filter during animation.
- * @param {number} [props.duration=0.5] - Animation duration in seconds.
- * @returns {JSX.Element}
+ * Reveals text one word at a time with blur removal and fade-in motion.
  */
 export const TextGenerateEffect = ({ words, className, filter = true, duration = 0.5 }) => {
   const [scope, animate] = useAnimate();

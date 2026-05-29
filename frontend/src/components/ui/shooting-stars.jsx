@@ -1,9 +1,6 @@
 'use client';
 
-/**
- * @module shooting-stars
- * @description Canvas shooting-stars animation overlay for hero and landing sections.
- */
+/** Canvas shooting-stars overlay for hero and landing sections. */
 
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
@@ -12,7 +9,7 @@ import { cn } from '@/utils/cn';
 
 /**
  * Picks a random viewport edge and travel angle for a new shooting star.
- * @returns {{ x: number, y: number, angle: number }}
+ * @returns {{x: number, y: number, angle: number}} Start coordinates and travel angle.
  */
 const getRandomStartPoint = () => {
   const side = Math.floor(Math.random() * 4);
@@ -33,19 +30,7 @@ const getRandomStartPoint = () => {
 };
 
 /**
- * Periodic shooting-star trails across the viewport (canvas overlay).
- *
- * @param {Object} props
- * @param {number} [props.minSpeed=10] - Minimum star travel speed (px/frame).
- * @param {number} [props.maxSpeed=30] - Maximum star travel speed (px/frame).
- * @param {number} [props.minDelay=1200] - Minimum ms between new stars.
- * @param {number} [props.maxDelay=4200] - Maximum ms between new stars.
- * @param {string} [props.starColor='#9E00FF'] - Star head colour.
- * @param {string} [props.trailColor='#2EB9DF'] - Trail gradient colour.
- * @param {number} [props.starWidth=10] - Star stroke width in px.
- * @param {number} [props.starHeight=1] - Star stroke height in px.
- * @param {string} [props.className] - Wrapper classes for the canvas container.
- * @returns {import('react').ReactElement}
+ * Renders periodic shooting-star trails across the viewport.
  */
 export const ShootingStars = ({
   minSpeed = 10,

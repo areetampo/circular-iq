@@ -4,6 +4,11 @@ import * as ResizablePrimitive from 'react-resizable-panels';
 
 import { cn } from '@/utils/cn';
 
+/**
+ * Wraps `react-resizable-panels` group with the app's layout classes.
+ * @param {ResizablePrimitive.GroupProps & {className?: string}} props Props forwarded to the panel group.
+ * @returns {import('react').ReactElement} Configured resizable panel group.
+ */
 function ResizablePanelGroup({ className, ...props }: ResizablePrimitive.GroupProps) {
   return (
     <ResizablePrimitive.Group
@@ -14,10 +19,20 @@ function ResizablePanelGroup({ className, ...props }: ResizablePrimitive.GroupPr
   );
 }
 
+/**
+ * Re-exports the primitive panel with the shared data-slot marker used by styles/tests.
+ * @param {ResizablePrimitive.PanelProps} props Props forwarded to the panel primitive.
+ * @returns {import('react').ReactElement} Configured resizable panel.
+ */
 function ResizablePanel({ ...props }: ResizablePrimitive.PanelProps) {
   return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />;
 }
 
+/**
+ * Renders the resize separator, optionally with a visible drag handle.
+ * @param {ResizablePrimitive.SeparatorProps & {withHandle?: boolean}} props Separator props; `withHandle` renders the visible drag handle.
+ * @returns {import('react').ReactElement} Configured resizable separator.
+ */
 function ResizableHandle({
   withHandle,
   className,

@@ -1,19 +1,19 @@
-/**
- * @module chart
- * @description Shared chart UI primitives for the application.
- * Exposes chart container layout, tooltip rendering, legend helpers, and
- * context-based color configuration for Recharts components.
- */
+/** Shared Recharts primitives for container context, tooltip, legend, and CSS variable theming. */
 import PropTypes from 'prop-types';
 import * as React from 'react';
 import { Tooltip } from 'recharts';
 
-// ─── Context ────────────────────────────────────────────────────────────────
+import { cn } from '@/utils/cn';
+
+// Context shared by chart primitives that need series metadata.
 const ChartContext = React.createContext(null);
 
 /**
- * Reads chart configuration from the current chart context.
- * @returns {{config: Object<string, {label?: string, color?: string, theme?: string}>}}
+ * Reads the active chart series configuration from the nearest chart container.
+ *
+ * @returns {{config: Record<string, {label?: string, color?: string, theme?: string}>}}
+ *   Chart configuration supplied by `ChartContainer`.
+ * @throws {Error} When used outside `ChartContainer`.
  */
 function useChart() {
   const context = React.useContext(ChartContext);
@@ -21,19 +21,26 @@ function useChart() {
   return context;
 }
 
-// ─── ChartContainer ──────────────────────────────────────────────────────────
-// Wraps a Recharts chart. config maps series keys to labels/colors.
 /**
- * Chart container wrapper that injects theme variables and layout for Recharts charts.
- * @param {Object} props
- * @param {string} [props.id] - Optional ID to use for the chart container.
- * @param {string} [props.className] - Additional CSS class names.
- * @param {React.ReactNode} props.children - Chart children elements.
- * @param {Object} props.config - Series configuration mapping data keys to labels/colors.
- * @param {Object} [props.style] - Inline styles for the container.
- * @returns {JSX.Element}
+ * Provides chart configuration, loading state, and themed CSS variables.
  */
-function ChartContainer({ id, className, children, config, style, ...props }) {
+function ChartContainer({
+  id,
+  className,
+  children,
+  config,
+  style,
+
+  // Keep chart-only convenience props from leaking onto the DOM wrapper.
+  isLoading,
+  showTooltip,
+  showLegend,
+  colors,
+  dataKey,
+  nameKey,
+
+  ...props
+}) {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`;
 
@@ -41,7 +48,7 @@ function ChartContainer({ id, className, children, config, style, ...props }) {
     <ChartContext.Provider value={{ config }}>
       <div
         data-chart={chartId}
-        className={`w-full font-mono text-xs ${className || ''}`}
+        className={cn('w-full font-mono text-xs', className)}
         style={style}
         {...props}
       >
@@ -52,14 +59,8 @@ function ChartContainer({ id, className, children, config, style, ...props }) {
   );
 }
 
-// ─── ChartStyle ───────────────────────────────────────────────────────────────
-// Injects per-chart CSS variables for colors
 /**
- * Injects CSS custom properties for chart series colors directly into the chart wrapper.
- * @param {Object} props
- * @param {string} props.id - Chart container identifier.
- * @param {Object} props.config - Series configuration mapping data keys to label/color values.
- * @returns {JSX.Element|null}
+ * Injects Recharts theme variables scoped to a chart instance.
  */
 function ChartStyle({ id, config }) {
   const colorConfig = Object.entries(config).filter(([, v]) => v.color || v.theme);
@@ -75,23 +76,10 @@ ChartStyle.propTypes = {
   config: PropTypes.object.isRequired,
 };
 
-// ─── ChartTooltip ─────────────────────────────────────────────────────────────
 const ChartTooltip = Tooltip;
 
 /**
- * Custom tooltip content renderer for Recharts charts.
- * @param {Object} props
- * @param {boolean} props.active - Whether the tooltip is active.
- * @param {Array} props.payload - Tooltip payload data.
- * @param {string} props.label - Tooltip label value.
- * @param {string} [props.className] - Extra CSS classes.
- * @param {boolean} [props.hideLabel=false] - Hide the label section.
- * @param {boolean} [props.hideIndicator=false] - Hide the indicator dot/line.
- * @param {'dot'|'line'} [props.indicator='dot'] - Indicator shape.
- * @param {string} [props.nameKey] - Data key used for series names.
- * @param {Function} [props.labelFormatter] - Formatter for tooltip labels.
- * @param {Function} [props.formatter] - Formatter for tooltip values.
- * @returns {JSX.Element|null}
+ * Renders configured labels and colors for an active Recharts tooltip payload.
  */
 function ChartTooltipContent({
   active,
@@ -154,13 +142,8 @@ function ChartTooltipContent({
   );
 }
 
-// ─── ChartLegend ──────────────────────────────────────────────────────────────
 /**
- * Custom legend renderer for chart data payloads.
- * @param {Object} props
- * @param {Array} props.payload - Legend payload items.
- * @param {string} [props.className] - Extra CSS classes.
- * @returns {JSX.Element|null}
+ * Renders configured labels for a Recharts legend payload.
  */
 function ChartLegendContent({ payload, className }) {
   if (!payload?.length) return null;
@@ -188,6 +171,12 @@ ChartContainer.propTypes = {
   children: PropTypes.node.isRequired,
   config: PropTypes.object,
   style: PropTypes.object,
+  isLoading: PropTypes.bool,
+  showTooltip: PropTypes.bool,
+  showLegend: PropTypes.bool,
+  colors: PropTypes.array,
+  dataKey: PropTypes.string,
+  nameKey: PropTypes.string,
 };
 
 ChartTooltipContent.propTypes = {
