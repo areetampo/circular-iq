@@ -1,10 +1,3 @@
-/**
- * @module assessmentHandlers
- * @description Custom hook for creating assessment action handlers.
- * Provides handlers for PDF download, CSV download, and re-evaluation navigation.
- * Uses useExportState and useNavigate internally for complete independence.
- */
-
 import { toast } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,9 +7,9 @@ import { useExportState } from '@/hooks';
  * Normalizes business context values to match form option values.
  * Handles conversion between display values and form option values for consistency.
  *
- * @param {string} field - The business context field name
- * @param {string} value - The value to normalize
- * @returns {string} Normalized value matching form option format
+ * @param {string} field - Business context key such as `annual_volume_estimate`.
+ * @param {string|null|undefined} value - Saved display value or already-normalized form value.
+ * @returns {string|null|undefined} Form option value expected by the landing-page controls, or the original empty value.
  *
  * @private
  */
@@ -60,25 +53,32 @@ const ENABLE_CSV_DOWNLOAD = true;
 const ENABLE_REEVALUATE = true;
 
 /**
- * Custom hook for creating assessment action handlers for PDF download, CSV download, and re-evaluation
- * Uses useExportState and useNavigate internally for complete independence
- * @returns {Object} - Handler functions
+ * PDF/CSV download and re-evaluate navigation handlers; uses `useExportState` and `useNavigate`.
+ *
+ * @returns {{
+ *   handleDownloadPDF: (assessment: Record<string, unknown>, scoringResult: Record<string, unknown>) => Promise<void>,
+ *   handleDownloadCSV: (assessment: Record<string, unknown>, scoringResult: Record<string, unknown>) => Promise<void>,
+ *   handleReevaluate: (assessment: Record<string, unknown>) => Promise<void>,
+ *   handleDownloadPDFWithErrorHandling: (assessment: Record<string, unknown>, scoringResult: Record<string, unknown>) => Promise<void>,
+ *   handleDownloadCSVWithErrorHandling: (assessment: Record<string, unknown>, scoringResult: Record<string, unknown>) => Promise<void>,
+ *   isExporting: boolean,
+ *   isExportingPDF: boolean,
+ *   isExportingCSV: boolean
+ * }} Download/navigation handlers plus export loading flags for result views.
  */
 export default function useAssessmentHandlers() {
   // Get navigation and export functions from hooks
   const navigate = useNavigate();
   const { isExporting, isExportingPDF, isExportingCSV, executeExport } = useExportState();
+
   /**
-   * Handles PDF download for an assessment
-   * @param {Object} assessment - Assessment data
-   * @param {Object} scoringResult - Scoring result data
+   * Handles PDF download for an assessment.
+   *
+   * @param {Record<string, unknown>} assessment - Assessment data used by the PDF exporter.
+   * @param {Record<string, unknown>} scoringResult - Scoring result data; must be present before export starts.
+   * @throws {Error} If no scoring result is available to export.
    */
   const handleDownloadPDF = async (assessment, scoringResult) => {
-    logger.info('handleDownloadPDF');
-    logger.info('location', window.location.href);
-    logger.info('assessment', assessment);
-    logger.info('scoringResult', scoringResult);
-
     if (!ENABLE_PDF_DOWNLOAD) {
       toast.danger('PDF download functionality is currently unavailable', { timeout: 4000 });
       return;
@@ -96,16 +96,13 @@ export default function useAssessmentHandlers() {
   };
 
   /**
-   * Handles CSV download for an assessment
-   * @param {Object} assessment - Assessment data
-   * @param {Object} scoringResult - Scoring result data
+   * Handles CSV download for an assessment.
+   *
+   * @param {Record<string, unknown>} assessment - Assessment data used by the CSV exporter.
+   * @param {Record<string, unknown>} scoringResult - Scoring result data; must be present before export starts.
+   * @throws {Error} If no scoring result is available to export.
    */
   const handleDownloadCSV = async (assessment, scoringResult) => {
-    logger.info('handleDownloadCSV');
-    logger.info('location', window.location.href);
-    logger.info('assessment', assessment);
-    logger.info('scoringResult', scoringResult);
-
     if (!ENABLE_CSV_DOWNLOAD) {
       toast.danger('CSV download functionality is currently unavailable', { timeout: 4000 });
       return;
@@ -123,14 +120,11 @@ export default function useAssessmentHandlers() {
   };
 
   /**
-   * Handles re-evaluation navigation for an assessment
-   * @param {Object} assessment - Assessment data (contains all needed information)
+   * Handles re-evaluation navigation for an assessment.
+   *
+   * @param {Record<string, unknown>} assessment - Assessment data containing saved inputs, result aliases, and business context.
    */
   const handleReevaluate = async (assessment) => {
-    logger.info('handleReevaluate');
-    logger.info('location', window.location.href);
-    logger.info('assessment', assessment);
-
     if (!ENABLE_REEVALUATE) {
       toast.danger('Re-evaluation functionality is currently unavailable', { timeout: 3500 });
       return;
@@ -166,9 +160,6 @@ export default function useAssessmentHandlers() {
       has_existing_partnerships: rawBusinessContext.has_existing_partnerships,
     };
 
-    logger.info('Raw businessContext:', rawBusinessContext);
-    logger.info('Business context data for re-evaluate:', businessContextData);
-
     // Extract form data from assessment for re-evaluation
     const formData = {
       businessProblem: assessment.business_problem || assessment.businessProblem || '',
@@ -177,8 +168,6 @@ export default function useAssessmentHandlers() {
         assessment.evaluation_parameters || assessment.evaluationParameters || {},
       businessContext: businessContextData,
     };
-
-    logger.info('Final formData for re-evaluate:', formData);
 
     // Use navigate if available, otherwise use window.location
     if (navigate) {
@@ -195,15 +184,16 @@ export default function useAssessmentHandlers() {
   };
 
   /**
-   * Wrapper for PDF download with toast error handling
-   * @param {Object} assessment - Assessment data
-   * @param {Object} scoringResult - Scoring result data
+   * Wrapper for PDF download with toast error handling.
+   *
+   * @param {Record<string, unknown>} assessment - Assessment data passed to the PDF exporter.
+   * @param {Record<string, unknown>} scoringResult - Scoring result data used as the export availability guard.
    */
   const handleDownloadPDFWithErrorHandling = async (assessment, scoringResult) => {
     try {
       await handleDownloadPDF(assessment, scoringResult);
     } catch (error) {
-      logger.warn('PDF download failed:', error);
+      logger.warn('[EXPORT:PDF_DOWNLOAD_FAILED]', error);
       toast.danger('PDF download functionality is currently unavailable', { timeout: 4000 });
     }
   };
@@ -212,14 +202,14 @@ export default function useAssessmentHandlers() {
    * Wrapper for CSV download with toast error handling.
    * Catches errors and displays a user-friendly toast message.
    *
-   * @param {Object} assessment - Assessment data containing metadata and result
-   * @param {Object} scoringResult - Scoring result data from the API
+   * @param {Record<string, unknown>} assessment - Assessment data containing metadata and result fields for CSV export.
+   * @param {Record<string, unknown>} scoringResult - Scoring result data from the API used as the export availability guard.
    */
   const handleDownloadCSVWithErrorHandling = async (assessment, scoringResult) => {
     try {
       await handleDownloadCSV(assessment, scoringResult);
     } catch (error) {
-      logger.warn('CSV download failed:', error);
+      logger.warn('[EXPORT:CSV_DOWNLOAD_FAILED]', error);
       toast.danger('CSV download functionality is currently unavailable', { timeout: 4000 });
     }
   };

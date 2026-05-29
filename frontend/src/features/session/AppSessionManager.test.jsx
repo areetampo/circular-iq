@@ -1,7 +1,4 @@
-/**
- * @module AppSessionManager.test
- * @description Tests for session manager lifecycle.
- */
+/** Tests for session manager lifecycle. */
 
 import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter, Router } from 'react-router-dom';

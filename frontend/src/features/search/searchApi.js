@@ -1,22 +1,18 @@
-/**
- * @module searchApi
- * @description Client for the CE cases search API (`GET /api/search/ce-cases`).
- * Supports keyword and hybrid (embedding + keyword) search modes.
- */
-
 import { buildApiUrl } from '@/lib/apiClient';
 
 /**
  * Searches circular economy cases by query string.
  *
- * @param {Object} params
- * @param {string} params.q     - Search query (required, non-empty string).
- * @param {'keyword'|'hybrid'} params.mode - Search strategy.
- * @param {number} [params.limit=50] - Maximum results to return.
- * @returns {Promise<Object>} Parsed JSON response body from the API.
+ * @param {{ q: string, mode: 'keyword'|'hybrid', limit?: number }} searchParams - Query, mode, and result limit sent to the search endpoint.
+ * @param {string} searchParams.q     - Search query (required, non-empty string).
+ * @param {'keyword'|'hybrid'} searchParams.mode - Search strategy.
+ * @param {number} [searchParams.limit=50] - Maximum results to return.
+ * @returns {Promise<Record<string, unknown>>} Parsed JSON response body from the API.
  * @throws {Error} If `q` or `mode` is invalid, or the API returns a non-2xx status.
  */
-export async function searchCeCases({ q, mode, limit = 50 }) {
+export async function searchCeCases(searchParams) {
+  const { q, mode, limit = 50 } = searchParams;
+
   if (!q || typeof q !== 'string') {
     throw new Error('Search query is required');
   }

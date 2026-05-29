@@ -1,15 +1,11 @@
-/**
- * @module exportCSV
- * @description CSV export for single assessments and side-by-side comparisons.
- * Builds Excel-compatible UTF-8 CSV with escaped fields and structured sections
- * (scores, parameters, gap analysis, similar cases).
- */
+/** Excel-compatible UTF-8 CSV export for single assessments and side-by-side comparisons. */
 
 /**
- * Escapes special characters in CSV values for Excel compatibility
- * Handles commas, quotes, newlines, tabs, and special characters
- * @param {string|number|null|undefined} value - The value to escape
- * @returns {string} Escaped value safe for Excel
+ * Escapes special characters in CSV values for Excel-compatible output.
+ * Handles commas, quotes, newlines, carriage returns, tabs, and an existing UTF-8 BOM.
+ *
+ * @param {string|number|null|undefined} value - Cell value that may contain commas, quotes, or line breaks.
+ * @returns {string} CSV-safe cell text, wrapped in quotes only when required.
  */
 function escapeCSV(value) {
   if (value === null || value === undefined) {
@@ -37,10 +33,11 @@ function escapeCSV(value) {
 }
 
 /**
- * Triggers a CSV file download in the browser with UTF-8 BOM for Excel
- * @param {string} csvContent - CSV content string
- * @param {string} filename - Desired filename for download
- * @returns {Blob} Downloadable CSV Blob
+ * Triggers a browser CSV download with a UTF-8 BOM so Excel opens the file correctly.
+ *
+ * @param {string} csvContent - CSV rows joined with newlines.
+ * @param {string} filename - Download filename shown by the browser.
+ * @returns {Blob} CSV blob containing the BOM-prefixed content.
  */
 function downloadCSV(csvContent, filename) {
   // Add UTF-8 BOM for Excel compatibility
@@ -64,9 +61,10 @@ function downloadCSV(csvContent, filename) {
 }
 
 /**
- * Formats a date string to readable format
- * @param {string|Date} date - Date to format
- * @returns {string} Formatted date
+ * Formats a date for report headers and assessment metadata rows.
+ *
+ * @param {string|Date} date - Date-like value accepted by the `Date` constructor.
+ * @returns {string} Locale date label such as "May 24, 2026".
  */
 function formatDate(date) {
   if (!date) return '';
@@ -75,9 +73,10 @@ function formatDate(date) {
 }
 
 /**
- * Converts string to title case
- * @param {string} str - String to convert
- * @returns {string} Title case string
+ * Converts snake-case keys to title-case report labels.
+ *
+ * @param {string} str - Snake-case label such as `overall_score`.
+ * @returns {string} Display label with words capitalized and underscores replaced by spaces.
  */
 function toTitleCase(str) {
   if (!str) return '';
@@ -85,9 +84,11 @@ function toTitleCase(str) {
 }
 
 /**
- * Exports assessments to CSV as a comparison matrix
- * @param {Object|Array<Object>} assessments - Single assessment object or array of assessments
- * @returns {{ success: boolean, message: string, blob: Blob }}
+ * Exports one or more assessments to a sectioned CSV report.
+ *
+ * @param {Object|Array<Object>} assessments - Single assessment object or array of assessment records/result payloads.
+ * @returns {{ success: boolean, message: string, blob: Blob }} Download result containing the generated CSV blob.
+ * @throws {Error} If no assessment data is provided.
  */
 export function exportAssessmentCSV(assessments) {
   const assessmentArray = Array.isArray(assessments) ? assessments : [assessments];
@@ -336,7 +337,7 @@ export function exportAssessmentCSV(assessments) {
   csvLines.push('');
 
   // === R-STRATEGY ALIGNMENT SECTION ===
-  if (assessmentData.some((a) => a.rStrategyAlignment?.alignment_score != null)) {
+  if (assessmentData.some((a) => a.rStrategyAlignment?.alignment_score !== null)) {
     csvLines.push('R-STRATEGY ALIGNMENT');
     csvLines.push('');
     csvLines.push(['Assessment', 'Strategy', 'Alignment Score', 'Rating', 'Message'].join(','));
@@ -716,10 +717,12 @@ export function exportAssessmentCSV(assessments) {
 }
 
 /**
- * Exports a comparison between multiple assessments to CSV
- * Creates a professional matrix format with factors as rows and assessments as columns
- * @param {Object|Array<Object>} assessments - Single assessment object or array of assessments to compare
- * @returns {void}
+ * Exports assessment comparisons to a matrix-style CSV report.
+ * Supports both array input and the legacy two-argument call shape.
+ *
+ * @param {Object|Array<Object>} assessments - Single assessment object or array of assessments to compare.
+ * @returns {{ success: boolean, message: string, blob: Blob }} Download status and generated CSV Blob.
+ * @throws {Error} If no assessments are provided.
  */
 export function exportComparisonCSV(assessments) {
   // Handle both single object (backward compatibility) and array inputs

@@ -1,8 +1,4 @@
-/**
- * @module exportPDF
- * @description Programmatic PDF export for assessment and comparison reports via jsPDF.
- * Renders multi-page A4 layouts with score cards, charts-as-text, and audit sections.
- */
+/** jsPDF multi-page A4 export for assessment and comparison reports. */
 
 import jsPDF from 'jspdf';
 
@@ -31,9 +27,10 @@ const COLOR_DANGER = '#B5432A';
 const COLOR_HEADER_BG = '#1A1A1A';
 
 /**
- * Formats text for PDF display (no length limit)
- * @param {string} text - Text to format
- * @returns {string} Formatted text
+ * Decodes common HTML entities before text is rendered into the PDF.
+ *
+ * @param {string} text - Text copied from API/HTML sources that may contain escaped entities.
+ * @returns {string} Text with common HTML entities decoded for PDF rendering.
  */
 function formatTextForPDF(text) {
   if (!text) return '';
@@ -41,9 +38,10 @@ function formatTextForPDF(text) {
 }
 
 /**
- * Generates a date string
- * @param {string|Date} date - Date to format
- * @returns {string} Formatted date string
+ * Formats a date for PDF headers and report metadata.
+ *
+ * @param {string|Date} date - Date-like value accepted by the `Date` constructor.
+ * @returns {string} Long-form date label such as "May 24, 2026".
  */
 function formatDate(date) {
   if (!date) return 'N/A';
@@ -52,9 +50,10 @@ function formatDate(date) {
 }
 
 /**
- * Converts hex color to RGB object for jsPDF
- * @param {string} hex - Hex color string
- * @returns {Object} RGB object with r, g, b properties
+ * Converts a hex color to RGB channels for jsPDF color APIs.
+ *
+ * @param {string} hex - Six-digit hex color string such as `#2D6A4F`.
+ * @returns {{ r: number, g: number, b: number }} RGB channel values parsed from the hex string for jsPDF color APIs.
  */
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -64,12 +63,13 @@ function hexToRgb(hex) {
 }
 
 /**
- * Reliable page break checker with state management
- * @param {Object} pdf - jsPDF instance
- * @param {number} y - Current Y position
- * @param {number} neededHeight - Height needed for content
- * @param {Object} state - Page state object
- * @returns {number} New Y position
+ * Adds a new page when the next content block would cross the page threshold.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} y - Current vertical position in millimeters.
+ * @param {number} neededHeight - Height needed by the next content block.
+ * @param {{ currentPage: number, title: string, subtitle: string, totalPages: number }} state - Mutable page counter and report heading state.
+ * @returns {number} Original Y position, or the content start Y after a new page is added.
  */
 function checkPageBreak(pdf, y, neededHeight, state) {
   if (y + neededHeight > PAGE_THRESHOLD) {
@@ -83,8 +83,9 @@ function checkPageBreak(pdf, y, neededHeight, state) {
 }
 
 /**
- * Fill the entire page background with the background color
- * @param {Object} pdf - jsPDF instance
+ * Fills the current page with the report background color.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
  */
 function fillPageBackground(pdf) {
   const c = hexToRgb(COLOR_BG);
@@ -93,9 +94,10 @@ function fillPageBackground(pdf) {
 }
 
 /**
- * Gets tier color based on badge color field
- * @param {string} badgeColor - Badge color from tier data
- * @returns {string} Hex color
+ * Maps a circular-economy tier badge color to the report palette.
+ *
+ * @param {string} badgeColor - Badge color from tier data, such as `green`, `orange`, or `red`.
+ * @returns {string} Hex color used for tier labels and score boxes.
  */
 function getTierColor(badgeColor) {
   switch (badgeColor?.toLowerCase()) {
@@ -111,12 +113,13 @@ function getTierColor(badgeColor) {
 }
 
 /**
- * Draws header on current page
- * @param {Object} pdf - jsPDF instance
- * @param {string} title - Report title
- * @param {string} subtitle - Report subtitle
- * @param {number} overallScore - Overall score (for cover page)
- * @param {boolean} isCover - Whether this is a cover page
+ * Draws either the cover header or the compact interior-page header.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {string} title - Report title stored in page state.
+ * @param {string} subtitle - Assessment name/date string shown in the header.
+ * @param {number} overallScore - Optional score shown on assessment cover pages.
+ * @param {boolean} [isCover=false] - Whether to force the dark cover header without an overall score.
  */
 function drawHeader(pdf, title, subtitle, overallScore, isCover = false) {
   // Page 1: dark branded band
@@ -183,10 +186,11 @@ function drawHeader(pdf, title, subtitle, overallScore, isCover = false) {
 }
 
 /**
- * Draws footer on current page
- * @param {Object} pdf - jsPDF instance
- * @param {number} pageNum - Current page number
- * @param {number} totalPages - Total pages
+ * Draws the footer rule and page counter on the current page.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} pageNum - Current one-based page number.
+ * @param {number} totalPages - Total page count after report generation.
  */
 function drawFooter(pdf, pageNum, totalPages) {
   const rule = hexToRgb(COLOR_BORDER);
@@ -209,12 +213,13 @@ function drawFooter(pdf, pageNum, totalPages) {
 }
 
 /**
- * Draws section heading with accent bar
- * @param {Object} pdf - jsPDF instance
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {string} text - Section text
- * @returns {number} New Y position
+ * Draws a section heading with an accent mark and divider rule.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} x - Left X position in millimeters.
+ * @param {number} y - Top Y position in millimeters.
+ * @param {string} text - Heading text rendered in the report.
+ * @returns {number} Y position immediately after the heading block.
  */
 function drawSectionHeading(pdf, x, y, text) {
   // Small colored accent mark
@@ -239,16 +244,16 @@ function drawSectionHeading(pdf, x, y, text) {
 }
 
 /**
- * Draws a score box with rounded corners
- * @param {Object} pdf - jsPDF instance
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {number} width - Box width
- * @param {number} height - Box height
- * @param {string} value - Score value
- * @param {string} label - Score label
- * @param {string} color - Box color
- * @returns {number} New Y position
+ * Draws a rounded score summary card with a colored top stripe.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} x - Left X position in millimeters.
+ * @param {number} y - Top Y position in millimeters.
+ * @param {number} width - Card width in millimeters.
+ * @param {number} height - Card height in millimeters.
+ * @param {string} value - Score or tier text centered in the card.
+ * @param {string} label - Small uppercase label rendered below the value.
+ * @param {string} [color=COLOR_PRIMARY] - Hex color used for the stripe and value text.
  */
 function drawScoreBox(pdf, x, y, width, height, value, label, color = COLOR_PRIMARY) {
   const band = hexToRgb(COLOR_SURFACE);
@@ -275,13 +280,14 @@ function drawScoreBox(pdf, x, y, width, height, value, label, color = COLOR_PRIM
 }
 
 /**
- * Draws a horizontal score bar
- * @param {Object} pdf - jsPDF instance
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {number} score - Score value (0-100)
- * @param {number} maxWidth - Maximum bar width
- * @returns {number} New Y position
+ * Draws a horizontal 0-100 score bar with threshold-based fill color.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} x - Left X position in millimeters.
+ * @param {number} y - Top Y position in millimeters.
+ * @param {number} score - Score value from 0 to 100.
+ * @param {number} [maxWidth=80] - Maximum bar width in millimeters.
+ * @returns {number} Y position immediately after the bar.
  */
 function drawScoreBar(pdf, x, y, score, maxWidth = 80) {
   const barHeight = 3.5;
@@ -306,15 +312,16 @@ function drawScoreBar(pdf, x, y, score, maxWidth = 80) {
 }
 
 /**
- * Draws a table row with proper color handling
- * @param {Object} pdf - jsPDF instance
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {Array} cells - Cell data array
- * @param {Array} widths - Column widths array
- * @param {boolean} isHeader - Whether this is a header row
- * @param {boolean} hasBackground - Whether to draw background
- * @returns {number} New Y position
+ * Draws a fixed-width table row and wraps cell text inside each column.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} x - Left X position in millimeters.
+ * @param {number} y - Baseline Y position in millimeters.
+ * @param {Array<string|number>} cells - Cell values rendered left-to-right in the row.
+ * @param {number[]} widths - Column widths in millimeters aligned with `cells`.
+ * @param {boolean} [isHeader=false] - Whether to use header styling.
+ * @param {boolean} [hasBackground=false] - Whether to draw a surface background for the row.
+ * @returns {number} Y position immediately after the row.
  */
 function drawTableRow(pdf, x, y, cells, widths, isHeader = false, hasBackground = false) {
   const rowHeight = isHeader ? 11 : 9;
@@ -353,11 +360,12 @@ function drawTableRow(pdf, x, y, cells, widths, isHeader = false, hasBackground 
 }
 
 /**
- * Estimates the height a similar case card will need (in mm)
- * Used to decide whether to start a new page before rendering
- * @param {Object} pdf - jsPDF instance
- * @param {Object} caseItem - Similar case data
- * @returns {number} Estimated height in millimeters
+ * Estimates the height a similar-case card needs before rendering.
+ * Callers use this to avoid page breaks inside a card.
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {Record<string, unknown>} caseItem - Similar case fields rendered in the card.
+ * @returns {number} Estimated card height in millimeters.
  */
 function estimateCaseCardHeight(pdf, caseItem) {
   const textWidth = CONTENT_WIDTH - 14;
@@ -397,19 +405,18 @@ function estimateCaseCardHeight(pdf, caseItem) {
 }
 
 /**
- * Draws a similar case card with accent stripe and content
- * NOTE: No checkPageBreak calls inside this function — callers must ensure
- * enough space exists before calling, using estimateCaseCardHeight().
+ * Draws a similar-case card with an accent stripe and optional evidence fields.
+ * NOTE: No checkPageBreak calls inside this function; callers must ensure enough space exists first.
  * Mid-card page breaks corrupt the accent stripe calculation (negative totalHeight).
- * @param {Object} pdf - jsPDF instance
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {Object} caseItem - Similar case data
- * @returns {number} New Y position after drawing
+ *
+ * @param {jsPDF} pdf - Active PDF document.
+ * @param {number} x - Left X position in millimeters.
+ * @param {number} y - Top Y position in millimeters.
+ * @param {Record<string, unknown>} caseItem - Similar case fields rendered in the card.
+ * @returns {number} Y position immediately after the card and its trailing gap.
  */
 function drawSimilarCaseCard(pdf, x, y, caseItem) {
-  // NOTE: No checkPageBreak calls inside this function — callers must ensure
-  // enough space exists before calling, using estimateCaseCardHeight().
+  // Callers preflight card height so the accent stripe can be drawn after the final height is known.
   // Mid-card page breaks corrupt the accent stripe calculation (negative totalHeight).
   const cardX = x;
   const cardPadding = 4;
@@ -451,7 +458,7 @@ function drawSimilarCaseCard(pdf, x, y, caseItem) {
   }
   y += 3;
 
-  // Render a labelled text block — NO page break checks inside
+  // Render a labelled text block with no page break checks inside.
   const renderBlock = (label, text) => {
     if (!text) return;
     const tc2 = hexToRgb(COLOR_TEXT);
@@ -486,7 +493,7 @@ function drawSimilarCaseCard(pdf, x, y, caseItem) {
     y += 5;
   }
 
-  // Draw accent stripe now that we know the real height — always positive
+  // Draw accent stripe now that we know the real height; always positive.
   const totalHeight = y - startY;
   const acc = hexToRgb(COLOR_ACCENT);
   pdf.setFillColor(acc.r, acc.g, acc.b);
@@ -496,9 +503,11 @@ function drawSimilarCaseCard(pdf, x, y, caseItem) {
 }
 
 /**
- * Exports an assessment as a high-fidelity PDF report using programmatic jsPDF
- * @param {Object} assessment - Assessment data to export
- * @returns {Promise<void>}
+ * Exports one assessment as a multi-page PDF report using programmatic jsPDF drawing.
+ *
+ * @param {Record<string, unknown>} assessment - Assessment row or result payload to render into the report.
+ * @returns {Promise<{success: boolean, message: string}>} Download status after saving the PDF.
+ * @throws {Error} If assessment data is missing.
  */
 export async function exportAssessmentPDF(assessment) {
   if (!assessment) {
@@ -1109,7 +1118,7 @@ export async function exportAssessmentPDF(assessment) {
       const cardHeight = estimateCaseCardHeight(pdf, caseItem);
       const dividerSpace = index > 0 ? 10 : 0;
 
-      // Check if enough space for this card — if not, start a new page
+      // Check if enough space for this card; if not, start a new page.
       if (y + cardHeight + dividerSpace > PAGE_THRESHOLD) {
         pdf.addPage();
         state.currentPage++;
@@ -1628,9 +1637,11 @@ export async function exportAssessmentPDF(assessment) {
 }
 
 /**
- * Exports a comparison between multiple assessments to PDF
- * @param {Object|Array<Object>} assessments - Assessments to compare
- * @returns {Promise<void>}
+ * Exports multiple assessments as a comparison PDF with overview, factor, and per-assessment detail pages.
+ *
+ * @param {Record<string, unknown>|Array<Record<string, unknown>>} assessments - One or more assessment rows or result payloads to compare.
+ * @returns {Promise<{success: boolean, message: string}>} Download status after saving the comparison PDF.
+ * @throws {Error} If no assessments are provided.
  */
 export async function exportComparisonPDF(assessments) {
   // Handle both single object and array inputs

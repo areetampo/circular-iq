@@ -11,13 +11,7 @@ import {
 import { getSessionId } from '@/utils/session';
 
 /**
- * @module useSession
- * @description Session and evaluation-state hook for anonymous and authenticated users.
- * Tracks `sessionId`, persisted evaluation inputs/results, and restorable session detection.
- */
-
-/**
- * Loads anonymous session id and persisted evaluation state; exposes restore helpers.
+ * Loads anonymous session id and persisted evaluation state; depends on `useAuth` and React Query.
  *
  * @returns {{
  *   sessionId: string|null,
@@ -35,7 +29,7 @@ import { getSessionId } from '@/utils/session';
  *   saveSession: (sessionData: Object) => void,
  *   clearSession: () => void,
  *   hasValidAnonymousSession: (state: Object) => boolean
- * }}
+ * }} Anonymous/session persistence state, restore helpers, and storage mutation callbacks.
  */
 export default function useSession() {
   const { user } = useAuth();

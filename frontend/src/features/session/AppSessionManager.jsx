@@ -1,8 +1,3 @@
-/**
- * @module AppSessionManager
- * @description Feature module — App Session Manager.
- */
-
 import { toast } from '@heroui/react';
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -14,9 +9,10 @@ import { useAuth } from '@/hooks';
 import { getSession, getSessionId } from '@/utils/session';
 
 /**
- * Check if session inputs are at default values (empty/initial state)
- * @param {Object} inputs - Session inputs object
- * @returns {boolean} True if inputs are at default values
+ * Checks whether evaluation inputs still match the untouched form defaults.
+ *
+ * @param {{ businessProblem?: string, businessSolution?: string, evaluationParameters?: Record<string, number>, businessContext?: Record<string, unknown> }|null|undefined} inputs - Persisted evaluation form inputs to compare with defaults.
+ * @returns {boolean} `true` when no meaningful user input has been entered.
  */
 function isAtDefaultValues(inputs) {
   if (!inputs) return true;
@@ -33,8 +29,9 @@ function isAtDefaultValues(inputs) {
 }
 
 /**
- * Check if the results restore dialog is muted
- * @returns {boolean} True if dialog is muted and not expired
+ * Checks whether the results-restore dialog mute flag is still active and clears expired flags.
+ *
+ * @returns {boolean} `true` when localStorage contains an unexpired mute flag.
  */
 function isDialogMuted() {
   const isMuted = localStorage.getItem('results_restore_dialog_muted') === 'true';
@@ -44,9 +41,8 @@ function isDialogMuted() {
     return false;
   }
 
-  // Check if expiration time has passed
+  // Expired mute flags should not suppress future restore prompts.
   if (Date.now() > parseInt(expirationTime, 10)) {
-    // Clean up expired mute settings
     localStorage.removeItem('results_restore_dialog_muted');
     localStorage.removeItem('results_restore_dialog_muted_expiration');
     return false;
@@ -56,8 +52,7 @@ function isDialogMuted() {
 }
 
 /**
- * Global session manager that shows restore prompt ONLY on page load/refresh
- * NOT on SPA navigation
+ * On full page load only, prompts to restore evaluation session or shows landing toasts; uses `useGlobalDialog`.
  */
 export default function AppSessionManager() {
   const location = useLocation();
@@ -113,8 +108,8 @@ export default function AppSessionManager() {
     let sessionData = null;
     try {
       sessionData = getSession();
-    } catch (e) {
-      logger.error('Failed to read session:', e);
+    } catch (error) {
+      logger.error('[SESSION_MANAGER:READ_FAILED]', error);
       hasCheckedOnLoad.current = true;
       return;
     }
