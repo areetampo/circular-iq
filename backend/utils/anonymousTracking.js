@@ -1,37 +1,26 @@
 /**
- * @module anonymousTracking
- * @description Anonymous user tracking utilities for rate limiting and usage analytics.
- * Extracts and hashes identifying information from HTTP requests without storing
- * personal data. Uses SHA-256 hashing to create anonymous identifiers.
- *
- * Functions:
- * - extractIPAddress: Extract real IP address from request headers
- * - extractUserAgent: Extract User-Agent header from request
- * - createIdentifierHash: Create SHA-256 hash from IP + User-Agent
- * - getIdentifierFromRequest: Generate complete identifier object from request
+ * Anonymous scoring limit helpers that derive stable request identifiers from IP and User-Agent.
+ * The raw values are retained for diagnostics, while the hash is used for limit accounting.
  */
 
 import crypto from 'crypto';
 
 import { BACKEND_CONFIG } from '#config/backend.config.js';
 
-/**
- * Anonymous scoring limit from configuration
- * @type {number}
- */
+/** Maximum number of anonymous scoring submissions allowed per retained identifier window. */
 export const ANON_SCORING_LIMIT = BACKEND_CONFIG.scoring.anonScoringLimit;
 
+/** Retention window, in days, after which anonymous usage rows no longer count toward the limit. */
+export const ANON_SCORING_USAGE_RETENTION_DAYS =
+  BACKEND_CONFIG.scoring.anonScoringUsageRetentionDays;
+
 /**
- * Extract real IP address from request, handling proxy headers.
- * Checks multiple headers in order of reliability: x-forwarded-for, x-real-ip,
- * cf-connecting-ip, then falls back to connection/socket remote address.
+ * Resolves a best-effort client IP using proxy headers before socket fallbacks.
+ * The first `x-forwarded-for` hop is used because it represents the original client in
+ * the deployment proxy chain.
  *
- * @param {Object} req - Express request object
- * @returns {string} The extracted IP address or 'unknown' if not found
- *
- * @example
- * const ip = extractIPAddress(req);
- * // Returns: '192.168.1.1' or 'unknown'
+ * @param {import('express').Request} req - Incoming request whose proxy headers may identify the client.
+ * @returns {string} Best-effort client IP string, or `'unknown'` when no header/socket address is available.
  */
 export function extractIPAddress(req) {
   const forwarded = req.headers['x-forwarded-for'];
@@ -49,31 +38,21 @@ export function extractIPAddress(req) {
 }
 
 /**
- * Extract User-Agent header from request.
+ * Raw User-Agent header for anonymous rate-limit hashing; `'unknown'` when absent.
  *
- * @param {Object} req - Express request object
- * @returns {string} The User-Agent string or 'unknown' if not found
- *
- * @example
- * const ua = extractUserAgent(req);
- * // Returns: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)...' or 'unknown'
+ * @param {import('express').Request} req - Incoming request carrying the browser User-Agent header.
+ * @returns {string} Raw User-Agent header value, or `'unknown'` when absent.
  */
 export function extractUserAgent(req) {
   return req.headers['user-agent'] || 'unknown';
 }
 
 /**
- * Create a unique anonymous identifier hash from IP address and User-Agent.
- * Uses SHA-256 hashing to ensure the same request always produces the same hash,
- * while preventing reverse engineering of the original values.
+ * Creates the stable anonymous identifier stored for scoring rate-limit checks.
  *
- * @param {string} ip - IP address
- * @param {string} userAgent - User-Agent string
- * @returns {string} SHA-256 hash of the combined identifier
- *
- * @example
- * const hash = createIdentifierHash('192.168.1.1', 'Mozilla/5.0...');
- * // Returns: 'a1b2c3d4e5f6...' (64-character hex string)
+ * @param {string} ip - Client IP value after proxy header fallback resolution.
+ * @param {string} userAgent - Raw User-Agent value paired with the IP before hashing.
+ * @returns {string} SHA-256 hex digest for the `ip|||userAgent` tuple.
  */
 export function createIdentifierHash(ip, userAgent) {
   const identifier = `${ip}|||${userAgent}`;
@@ -81,18 +60,10 @@ export function createIdentifierHash(ip, userAgent) {
 }
 
 /**
- * Generate complete anonymous identifier object from an Express request.
- * Extracts IP and User-Agent, then creates a hash for anonymous tracking.
+ * Builds the anonymous tracking tuple used by scoring controllers and persistence.
  *
- * @param {Object} req - Express request object
- * @returns {Object} Identifier object containing hash, IP, and User-Agent
- * @returns {string} returns.hash - SHA-256 hash of IP + User-Agent
- * @returns {string} returns.ip - Extracted IP address
- * @returns {string} returns.userAgent - Extracted User-Agent string
- *
- * @example
- * const identifier = getIdentifierFromRequest(req);
- * // Returns: { hash: 'a1b2c3...', ip: '192.168.1.1', userAgent: 'Mozilla/5.0...' }
+ * @param {import('express').Request} req - Incoming request used to derive anonymous rate-limit identity fields.
+ * @returns {{ hash: string, ip: string, userAgent: string }} Hashed identifier plus raw components retained for storage/debug context.
  */
 export function getIdentifierFromRequest(req) {
   const ip = extractIPAddress(req);
