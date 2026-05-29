@@ -4,4 +4,3 @@ pipeline/
 tests/
 *.sql
 *.md
-*.txt
