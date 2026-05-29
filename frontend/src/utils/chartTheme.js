@@ -1,7 +1,4 @@
-/**
- * @module chartTheme
- * @description Resolves design-token colours into a Recharts theme object for dashboard charts.
- */
+/** Resolves design-token colours into a Recharts theme object for dashboard charts. */
 
 import { resolveCSSVar } from '@/utils/chartHelpers';
 
@@ -18,7 +15,7 @@ const getChartColors = () => ({
 
 /**
  * Chart theme snapshot (colours, fonts, tooltip styles) from current CSS variables.
- * @returns {{ colors: string[], backgroundColor: string, gridColor: string, textColor: string, axisColor: string, tooltipBg: string, tooltipBorder: string, tooltipText: string, fontFamily: string, fontSize: number }}
+ * @returns {{ colors: string[], backgroundColor: string, gridColor: string, textColor: string, axisColor: string, tooltipBg: string, tooltipBorder: string, tooltipText: string, fontFamily: string, fontSize: number }} Resolved Recharts theme values for the current document theme.
  */
 export const getChartTheme = () => {
   const colors = getChartColors();

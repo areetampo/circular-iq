@@ -1,20 +1,12 @@
 /**
- * @module content
- * @description Content utilities for extracting and parsing data from various sources.
- * Provides functions for extracting problem/solution pairs from case data,
- * calculating match strength labels, and categorizing integrity gaps.
- *
- * Functions:
- * - extractProblemSolution: Extract problem and solution from similar case
- * - getMatchStrength: Get match strength label based on similarity percentage
- * - categorizeIntegrityGaps: Categorize integrity gaps (separate strengths from gaps)
+ * Similar-case evidence helpers: problem/solution extraction, match strength labels, integrity gap grouping.
  */
 
 /**
- * Extract problem and solution from similar case
- * Uses structured metadata if available, falls back to content parsing
- * @param {Object} caseItem - Case object with metadata and content
- * @returns {Object} {problem, solution}
+ * Extracts problem and solution snippets from structured metadata or legacy case content.
+ *
+ * @param {{ metadata?: { fields?: { problem?: string, solution?: string } }, content?: string }|string|null|undefined} caseItem - Case with metadata and/or content.
+ * @returns {{ problem: string, solution: string }} Best-effort problem and solution text with fallback labels when parsing fails.
  */
 export function extractProblemSolution(caseItem) {
   // Strategy 1: Use structured metadata fields (preferred)
@@ -138,9 +130,10 @@ export function extractProblemSolution(caseItem) {
 }
 
 /**
- * Get match strength label and color based on similarity percentage
- * @param {number} similarity - Similarity score (0-1)
- * @returns {string} matchStrength
+ * Maps a similarity score to the match labels consumed by match chips.
+ *
+ * @param {number} similarity - Similarity score from vector search, expected in the 0-1 range.
+ * @returns {'excellent'|'strong'|'decent'|'poor'} Match strength label for UI color variants.
  */
 export function getMatchStrength(similarity) {
   const percentage = similarity * 100;
@@ -151,9 +144,10 @@ export function getMatchStrength(similarity) {
 }
 
 /**
- * Categorize integrity gaps (separate strengths from gaps)
- * @param {Array} integrityGaps - Array of integrity gaps from audit
- * @returns {Object} Object with strengths and gaps arrays
+ * Normalizes integrity-gap payloads into the strengths/gaps shape expected by comparison UI.
+ *
+ * @param {Array<Record<string, unknown>>} integrityGaps - Audit gap objects grouped by downstream display category.
+ * @returns {{strengths: Array<Record<string, unknown>>, gaps: Array<Record<string, unknown>>}} Categorized lists for strengths/gaps UI sections.
  */
 export function categorizeIntegrityGaps(integrityGaps) {
   if (!Array.isArray(integrityGaps)) {

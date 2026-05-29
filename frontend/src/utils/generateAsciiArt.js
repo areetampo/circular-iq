@@ -1,21 +1,4 @@
-/**
- * @module generateAsciiArt
- * @description
- * Converts an image into ASCII art using canvas pixel sampling and
- * brightness-to-character mapping.
- *
- * Features:
- * - Supports custom ASCII charsets
- * - Supports image cropping (`cover`) and fitting (`contain`)
- * - Optional inverted brightness mapping
- * - Preserves visual proportions using character aspect compensation
- *
- * The generated output is returned as a multiline string suitable for:
- * - Console banners
- * - Terminal rendering
- * - Debug overlays
- * - Text-based visualizations
- */
+/** Canvas-based image → ASCII art for production console banners (`logger.initArt`). */
 
 const ASCII_CHARSETS = {
   standard: ' .,:;i1tfLCG08@',
@@ -24,56 +7,23 @@ const ASCII_CHARSETS = {
 /**
  * Generates ASCII art from an image source.
  *
- * @async
- * @function generateAsciiArt
- *
- * @param {Object} options - Configuration options.
- *
- * @param {string} options.src
- * Image source URL/path.
- *
- * @param {number} [options.resolution=100]
- * Horizontal character resolution.
- * Higher values increase detail but also output size.
- *
- * @param {string} [options.charset='standard']
- * Charset preset name or custom character string used for brightness mapping.
- *
- * Preset example:
- * `'standard'`
- *
- * Custom example:
- * `' .:-=+*#%@'`
- *
- * @param {boolean} [options.inverted=false]
- * Reverses brightness mapping so dark pixels use dense characters
- * and bright pixels use sparse characters.
- *
- * @param {'cover' | 'contain'} [options.objectFit='cover']
- * Image fitting behavior.
- *
- * - `cover`:
- * Crops image to fill ASCII bounds.
- *
- * - `contain`:
- * Preserves full image inside bounds with padding.
- *
- * @returns {Promise<string>}
- * Resolves to a multiline ASCII art string.
- *
- * @throws {Error}
- * Throws if:
- * - Image fails to load
- * - Canvas context is unavailable
- * - Image pixel data cannot be read
+ * @param {{ src: string, resolution?: number, charset?: string, inverted?: boolean, objectFit?: 'cover'|'contain' }} options - Image source and raster-to-character mapping options.
+ * @param {string} options.src - Image source URL/path loaded into an anonymous browser `Image`.
+ * @param {number} [options.resolution=100] - Horizontal character resolution; higher values increase detail and output size.
+ * @param {string} [options.charset='standard'] - Charset preset name or custom brightness ramp such as `' .:-=+*#%@'`.
+ * @param {boolean} [options.inverted=false] - Reverses brightness mapping so dark pixels use dense characters.
+ * @param {'cover'|'contain'} [options.objectFit='cover'] - `cover` crops to fill ASCII bounds; `contain` preserves the full image with padding.
+ * @returns {Promise<string>} Multiline ASCII art string mapped from source image brightness.
  */
-export const generateAsciiArt = async ({
-  src,
-  resolution = 100,
-  charset = 'standard',
-  inverted = false,
-  objectFit = 'cover',
-}) => {
+export const generateAsciiArt = async (options) => {
+  const {
+    src,
+    resolution = 100,
+    charset = 'standard',
+    inverted = false,
+    objectFit = 'cover',
+  } = options;
+
   return new Promise((resolve, reject) => {
     const img = new Image();
 

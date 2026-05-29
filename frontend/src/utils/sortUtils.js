@@ -1,13 +1,8 @@
 /**
- * @module sortUtils
- * @description Parses My Assessments sort tokens (`field_asc` / `field_desc`) for API query params.
- */
-
-/**
- * Splits a combined sort key into `{ field, order }` for the assessments list API.
+ * Parses My Assessments sort tokens (`field_asc` / `field_desc`) for API query params.
  *
- * @param {string} [sortBy='created_at_desc'] - e.g. `overall_score_desc`, `name_asc`.
- * @returns {{ field: string, order: 'asc'|'desc' }}
+ * @param {string|number|null} [sortBy='created_at_desc'] - Sort token from UI state, such as `overall_score_desc` or `name_asc`.
+ * @returns {{ field: string, order: 'asc'|'desc' }} API sort field plus normalized direction.
  */
 export function parseSortBy(sortBy = 'created_at_desc') {
   const parts = String(sortBy).split('_');

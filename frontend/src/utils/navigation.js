@@ -1,38 +1,10 @@
-/**
- * @module navigation
- * @description React Router helpers — `useSafeBack` avoids leaving the app when history is external.
- */
-
 import { useNavigate } from 'react-router-dom';
 
 /**
- * Safely navigates back if the previous page is within the app,
- * otherwise navigates to the home route (or a custom fallback).
+ * `navigate(-1)` when in-app history exists (vs `__APP_INITIAL_HISTORY_LENGTH`); otherwise `fallbackRoute`.
  *
- * This hook must be called at the top level of a React component or another custom hook.
- * It returns a function that you can attach to event handlers like `onClick`.
- *
- * @param {string} [fallbackRoute='/'] - Route to go to when no internal history exists.
- * @returns {Function} A function that triggers the safe back navigation. Call this function
- *                     in response to user interactions (e.g., native button click).
- *
- * @example
- * ✓ Correct usage
- * function MyComponent() {
- *   const goBackSafely = useSafeBack('/');
- *
- *   return <button onClick={goBackSafely}>Go Back</button>;
- * }
- *
- * @example
- * ✕ Incorrect usage (causes "Invalid hook call" error)
- * function MyComponent() {
- *   return (
- *     <button onClick={() => useSafeBack()}>
- *       Go Back
- *     </button>
- *   );
- * }
+ * @param {string} [fallbackRoute='/'] - Route used when there is no in-app history entry to go back to.
+ * @returns {() => void} Back-navigation callback for buttons or menu actions. Because this is a hook return value, call `useSafeBack` only at component top level, not inside callbacks.
  */
 export const useSafeBack = (fallbackRoute = '/') => {
   const navigate = useNavigate();

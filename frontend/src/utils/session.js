@@ -1,13 +1,5 @@
 /**
- * @module session
- * @description Session utilities for unified session management.
- * Supports both anonymous and authenticated users with a single localStorage structure.
- * Provides session ID generation, session data persistence, and retrieval.
- *
- * Functions:
- * - getSessionId: Get or create session ID for user tracking
- * - saveSession: Save session data (inputs, results, timestamp)
- * - getSession: Retrieve current session data
+ * Anonymous `session_id` in localStorage and thin wrappers over evaluation state persistence.
  */
 
 import { loadEvaluationState, saveEvaluationState } from '@/lib/storage';
@@ -16,9 +8,10 @@ import { loadEvaluationState, saveEvaluationState } from '@/lib/storage';
 const SESSION_ID_KEY = 'session_id';
 
 /**
- * Get or create session ID for user tracking
- * @param {boolean} forceRenew - Force creation of new session ID even if one exists
- * @returns {string} Session ID
+ * Stable anonymous `session_id` in localStorage; creates one on first visit unless renewed.
+ *
+ * @param {boolean} [forceRenew=false] - When true, replaces any existing id.
+ * @returns {string} Persisted or newly generated anonymous session identifier.
  */
 export function getSessionId(forceRenew = false) {
   // If force renew is requested, create new session ID
@@ -31,16 +24,16 @@ export function getSessionId(forceRenew = false) {
   const sid = generateSimpleUUID();
   try {
     localStorage.setItem(SESSION_ID_KEY, sid);
-  } catch (e) {
-    logger.warn('Failed to save session ID:', e);
+  } catch (error) {
+    logger.warn('[SESSION:ID_SAVE_FAILED]', error);
   }
   return sid;
 }
 
 /**
- * Generate a simple UUID-like identifier
- * @private
- * @returns {string} UUID-like string
+ * Creates a lightweight pseudo-UUID for anonymous browser sessions.
+ *
+ * @returns {string} Hyphenated random identifier shaped like a UUID.
  */
 function generateSimpleUUID() {
   const s4 = () =>
@@ -51,7 +44,10 @@ function generateSimpleUUID() {
 }
 
 /**
- * Save session data (works for both anonymous and authenticated users)
+ * Persists evaluation inputs/results via `saveEvaluationState`.
+ *
+ * @param {{ inputs?: Object, results?: Object, timestamp?: string }} data - Session payload to persist.
+ * @returns {boolean} True when the session payload is stored successfully.
  */
 export function saveSession(data) {
   return saveEvaluationState({
@@ -62,7 +58,14 @@ export function saveSession(data) {
 }
 
 /**
- * Get current session data
+ * Loads the current anonymous evaluation session snapshot.
+ *
+ * @returns {{
+ *   inputs?: Object,
+ *   results?: Object|null,
+ *   timestamp?: string,
+ *   expiresAt?: string
+ * }|null} Evaluation state from localStorage, or null when missing/expired/invalid.
  */
 export function getSession() {
   return loadEvaluationState();

@@ -1,12 +1,12 @@
 /**
- * @module formHelpers
- * @description Input-quality heuristics for the landing-page evaluation form (spam / gibberish detection).
+ * Input-quality heuristics for the landing-page evaluation form (spam / gibberish detection).
  */
 
 /**
- * Checks if text has sufficient unique word ratio
- * @param {string} text - Text to check
- * @returns {number} - Unique word ratio (0-1)
+ * Unique-token ratio after normalizing punctuation — low values suggest repetitive spam.
+ *
+ * @param {string} text - Text input to inspect after punctuation and whitespace normalization.
+ * @returns {number} Ratio in [0, 1]; 0 when empty.
  */
 export const uniqueWordRatio = (text) => {
   const words = (text || '')
@@ -20,9 +20,10 @@ export const uniqueWordRatio = (text) => {
 };
 
 /**
- * Calculates non-letter character density in text
- * @param {string} text - Text to analyze
- * @returns {number} - Non-letter density (0-1)
+ * Share of characters outside `[a-z0-9\s.,_-]` — high density flags symbol-heavy gibberish.
+ *
+ * @param {string} text - Text input whose symbol density indicates possible gibberish.
+ * @returns {number} Density in [0, 1].
  */
 export const nonLetterDensity = (text) => {
   const total = text.length || 1;
@@ -31,9 +32,10 @@ export const nonLetterDensity = (text) => {
 };
 
 /**
- * Detects single-character flooding (e.g. "AAAA..." or "1111...")
- * @param {string} text - Text to analyze
- * @returns {number} - Dominant character ratio (0-1)
+ * Fraction of non-space text occupied by the most frequent character (keyboard mash detection).
+ *
+ * @param {string} text - Text input checked for repeated-character keyboard-mash patterns.
+ * @returns {number} Ratio in [0, 1].
  */
 export const dominantCharRatio = (text) => {
   const clean = text.replace(/\s/g, '');

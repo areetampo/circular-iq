@@ -1,15 +1,5 @@
 /**
- * @module logger
- * @description Centralized logging utility for the application.
- * Provides environment-aware logging with different levels (log, info, warn, error).
- * In production, only errors are logged to console. In development, all levels are logged.
- *
- * Methods:
- * - log: Development-only general logging
- * - info: Development-only informational logging
- * - warn: Development-only warning logging
- * - error: Always logged (production and development)
- * - initArt: Displays ASCII art banner in production
+ * Environment-aware console logger: `log`/`info` in dev only, `warn`/`error` always, and `initArt` in production.
  */
 
 import { SITE_NAME, SITE_FULL_NAME } from '@/components/common';
@@ -18,23 +8,29 @@ import { generateAsciiArt } from '@/utils/generateAsciiArt';
 
 const isDev = !FRONTEND_CONFIG.isProd && FRONTEND_CONFIG.mode !== 'test';
 
+/** @type {{ log: Function, info: Function, warn: Function, error: Function, initArt: Function }} */
 export const logger = {
+  /** Dev only — prefixed `[LOG]`. */
   log: (...args) => {
     if (isDev) console.log('[LOG]:', ...args);
   },
+  /** Dev only — prefixed `[INFO]`. */
   info: (...args) => {
     if (isDev) console.info('[INFO]:', ...args);
   },
+  /** Always logged (including production) — prefixed `[WARN]`. */
   warn: (...args) => {
-    if (isDev) console.warn('[WARN]:', ...args);
+    console.warn('[WARN]:', ...args);
   },
+  /** Always logged (including production) — hook external error reporting here if added. */
   error: (...args) => {
     // We always want errors in the console for production debugging
     console.error('[ERROR]:', ...args);
 
-    // If you ever add Sentry/LogRocket, you'd trigger it here:
+    // If Sentry/LogRocket is added, trigger it here:
     // if (!isDev) { reportToExternalService(args); }
   },
+  /** Production-only ASCII logo in the console; no-op in dev/test. */
   initArt: async () => {
     if (isDev) return;
 
