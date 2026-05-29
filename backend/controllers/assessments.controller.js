@@ -1,34 +1,17 @@
 /**
- * @module assessments.controller
- * @description Controller for assessment CRUD operations and related functionality.
- * Handles saving, fetching, updating, deleting user assessments, public sharing,
- * assessment comparisons, and market analysis per assessment.
- *
- * Key functions:
- * - saveAssessment: Create a new assessment with validation
- * - fetchUserAssessments: List user assessments with filtering, sorting, pagination
- * - getAssessmentByPublicId: Fetch public assessment by public ID
- * - getAssessmentById: Fetch assessment by internal ID (auth required)
- * - updateAssessment: Update assessment fields
- * - deleteAssessment: Delete an assessment
- * - compareAssessments: Compare two assessments with visibility rules
+ * Assessment CRUD, public sharing, comparison, and stats for `/api/assessments`.
  */
 
 /**
- * Saves a new assessment to the database with validation.
- * Validates title length, result structure, and handles duplicate name errors.
+ * Inserts a scored assessment row, flattening nested scoring fields for analytics columns.
+ * Maps duplicate titles to `code: 'DUPLICATE_NAME'`.
  *
- * @param {Object} supabase - Supabase client instance.
- * @param {Object} user - Authenticated user object with id property.
- * @param {Object} validatedBody - Validated request body from schema validation.
- * @param {string} validatedBody.name - Assessment title.
- * @param {string} validatedBody.industry - Industry classification.
- * @param {Object} validatedBody.result_json - Scoring result JSON.
- * @param {boolean} validatedBody.is_public - Whether assessment is publicly visible.
- * @param {boolean} validatedBody.contribute_to_global_benchmarks - Whether to include in global benchmarks.
- * @param {Object} rawBody - Raw request body with scoring result.
- * @returns {Promise<{id: string, message: string, assessment: Object}>} Saved assessment data.
- * @throws {Error} If validation fails or database error occurs.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - User-scoped Supabase client used to insert the assessment.
+ * @param {{ id: string }} user - Authenticated owner whose id is stored on the row.
+ * @param {{ name?: string, industry?: string, result_json?: Record<string, unknown>, is_public?: boolean, contribute_to_global_benchmarks?: boolean, businessProblem?: string, businessSolution?: string, parameters?: Record<string, number> }} validatedBody - Parsed body from `validateAssessment` middleware.
+ * @param {{ title?: string, result?: Record<string, unknown>, evaluation_parameters?: Record<string, number> }} rawBody - Original body used for legacy title/result aliases.
+ * @returns {Promise<{ id: string, message: string, assessment: Record<string, unknown> }>} Created assessment id, success message, and inserted row.
+ * @throws {Error} With `code: 'TITLE_LENGTH_INVALID'`, `code: 'DUPLICATE_NAME'`, missing scoring results, or Supabase insert failures.
  */
 export async function saveAssessment(supabase, user, validatedBody, rawBody) {
   const startTime = Date.now();
@@ -151,24 +134,13 @@ export async function saveAssessment(supabase, user, validatedBody, rawBody) {
 }
 
 /**
- * Fetches user's assessments with filtering, sorting, and pagination.
- * Supports filtering by industry, date range, score range, and text search.
+ * Paginated assessment list with filters; clamps `pageSize` to 100 and whitelists sort columns.
  *
- * @param {Object} supabase - Supabase client instance.
- * @param {Object} user - Authenticated user object with id property (can be null for anonymous).
- * @param {Object} query - Query parameters for filtering and pagination.
- * @param {string} [query.industry] - Comma-separated list of industries to filter by.
- * @param {string} [query.sortBy='created_at'] - Field to sort by (created_at, overall_score, title).
- * @param {string} [query.order='desc'] - Sort order (asc or desc).
- * @param {number} [query.page=1] - Page number for pagination.
- * @param {number} [query.pageSize=20] - Number of items per page (max 100).
- * @param {string} [query.search] - Text search term for title and industry.
- * @param {string} [query.createdFrom] - ISO date string for start of date range.
- * @param {string} [query.createdTo] - ISO date string for end of date range.
- * @param {number} [query.minScore] - Minimum overall score to include.
- * @param {number} [query.maxScore] - Maximum overall score to include.
- * @returns {Promise<{assessments: Array, pagination: Object}>} Paginated assessment list.
- * @throws {Error} If database query fails.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - User-scoped Supabase client used to query assessment rows.
+ * @param {{ id: string }|null} user - When set, scopes rows to `user_id`.
+ * @param {{ industry?: string, sortBy?: string, order?: string, page?: string|number, pageSize?: string|number, search?: string, createdFrom?: string, createdTo?: string, minScore?: string|number, maxScore?: string|number }} query - Filter, sort, and pagination query values from the route.
+ * @returns {Promise<{ assessments: Array<Record<string, unknown>>, total: number, page: number, pageSize: number }>} Current page rows plus pagination metadata.
+ * @throws {Error} When the Supabase query fails.
  */
 export async function fetchUserAssessments(supabase, user, query) {
   const startTime = Date.now();
@@ -226,10 +198,10 @@ export async function fetchUserAssessments(supabase, user, query) {
     if (createdTo) {
       queryBuilder = queryBuilder.lte('created_at', new Date(createdTo).toISOString());
     }
-    if (minScore != null && !Number.isNaN(Number(minScore))) {
+    if (minScore !== null && !Number.isNaN(Number(minScore))) {
       queryBuilder = queryBuilder.gte('overall_score', Number(minScore));
     }
-    if (maxScore != null && !Number.isNaN(Number(maxScore))) {
+    if (maxScore !== null && !Number.isNaN(Number(maxScore))) {
       queryBuilder = queryBuilder.lte('overall_score', Number(maxScore));
     }
 
@@ -260,8 +232,8 @@ export async function fetchUserAssessments(supabase, user, query) {
  * Returns aggregate statistics for the authenticated user's saved assessments.
  * Delegates to the `get_assessment_statistics` RPC.
  *
- * @param {Object} supabase - Supabase client (user-scoped or service-role).
- * @param {Object} user - Authenticated user with `id`.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - Supabase client, either user-scoped or service-role.
+ * @param {{ id: string }} user - Authenticated user whose id scopes the stats RPC.
  * @returns {Promise<{
  *   totalAssessments: number,
  *   completedAssessments: number,
@@ -273,10 +245,10 @@ export async function fetchUserAssessments(supabase, user, query) {
  *   avgTechnicalFeasibility: number|null,
  *   avgEconomicViability: number|null,
  *   avgCircularityPotential: number|null,
- *   assessmentsByIndustry: Object,
- *   assessmentsByRisk: Object,
- *   assessmentsByScale: Object
- * }>}
+ *   assessmentsByIndustry: Record<string, number>,
+ *   assessmentsByRisk: Record<string, number>,
+ *   assessmentsByScale: Record<string, number>
+ * }>} Per-user assessment statistics normalized for dashboard cards and charts.
  * @throws {Error} If the RPC call fails.
  */
 export async function getAssessmentStats(supabase, user) {
@@ -333,11 +305,11 @@ export async function getAssessmentStats(supabase, user) {
  * Fetches an assessment by `public_id` with visibility rules.
  * Owners may access private assessments; other users require `is_public === true`.
  *
- * @param {Object} supabase - Supabase client.
- * @param {Object|null} user - Authenticated user (optional for anonymous access).
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - Supabase client used for assessment reads.
+ * @param {{ id: string }|null} user - Optional authenticated user used for ownership checks.
  * @param {string} publicId - UUID public identifier.
- * @returns {Promise<{assessment: Object, readonly: boolean}>} Assessment row and edit flag.
- * @throws {Error} With `code` `NOT_FOUND` or `FORBIDDEN` when access is denied.
+ * @returns {Promise<{assessment: Record<string, unknown>, readonly: boolean}>} Assessment row and edit flag.
+ * @throws {Error} With `code` `NOT_FOUND`, `code` `FORBIDDEN`, or when the Supabase read fails.
  */
 export async function getPublicAssessment(supabase, user, publicId) {
   const startTime = Date.now();
@@ -395,11 +367,11 @@ export async function getPublicAssessment(supabase, user, publicId) {
  * Validates that a `public_id` exists and is accessible under visibility rules.
  * Owners may validate private assessments; other callers require a public assessment.
  *
- * @param {Object} supabase - Supabase client.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - Supabase client used for assessment reads.
  * @param {string} publicId - UUID public identifier.
- * @param {Object|null} [user=null] - Authenticated user for ownership checks.
- * @returns {Promise<{valid: true, isOwner: boolean, isPublic: boolean}>}
- * @throws {Error} With `code` `INVALID_FORMAT`, `NOT_FOUND`, or `FORBIDDEN`.
+ * @param {{ id: string }|null} [user=null] - Optional authenticated user for ownership checks.
+ * @returns {Promise<{valid: true, isOwner: boolean, isPublic: boolean}>} Visibility validation outcome for a public assessment id.
+ * @throws {Error} With `code` `INVALID_FORMAT`, `NOT_FOUND`, `FORBIDDEN`, or when the Supabase read fails.
  */
 export async function validatePublicId(supabase, publicId, user = null) {
   const startTime = Date.now();
@@ -489,11 +461,11 @@ export async function validatePublicId(supabase, publicId, user = null) {
  * Fetches a single assessment owned by the authenticated user.
  * When `user` is omitted, returns the first row matching `public_id` (service-role use).
  *
- * @param {Object} supabase - Supabase client.
- * @param {Object|null} user - Authenticated user (filters by `user_id` when present).
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - Supabase client used for assessment reads.
+ * @param {{ id: string }|null} user - Authenticated user; when present, rows are filtered by `user_id`.
  * @param {string} publicId - UUID public identifier.
- * @returns {Promise<Object>} Full assessment row.
- * @throws {Error} With `code` `NOT_FOUND` when no matching row exists.
+ * @returns {Promise<{ assessment: Record<string, unknown> }>} Matching assessment row wrapped for route handlers.
+ * @throws {Error} With `code: 'NOT_FOUND'` when no owned row matches, or when the Supabase read fails.
  */
 export async function getAssessmentById(supabase, user, publicId) {
   const startTime = Date.now();
@@ -525,15 +497,14 @@ export async function getAssessmentById(supabase, user, publicId) {
 }
 
 /**
- * Updates assessment fields with validation.
- * Validates title length if being updated and handles duplicate name errors.
+ * Patches an owned assessment; clearing `public_id` when re-publishing without an existing link.
  *
- * @param {Object} supabase - Supabase client instance.
- * @param {Object} user - Authenticated user object with id property.
- * @param {string} id - Internal assessment ID to update.
- * @param {Object} updates - Fields to update (e.g., title, is_public, etc.).
- * @returns {Promise<{assessment: Object, message: string}>} Updated assessment data.
- * @throws {Error} If validation fails, not found, or unauthorized.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - User-scoped Supabase client used for the update query.
+ * @param {{ id: string }} user - Authenticated owner required for row ownership checks.
+ * @param {string} id - Internal UUID.
+ * @param {Record<string, unknown>} updates - Patch fields already validated by request middleware.
+ * @returns {Promise<{ assessment: Record<string, unknown>, message: string }>} Updated row plus a user-facing success message.
+ * @throws {Error} With `code: 'TITLE_LENGTH_INVALID'`, `code: 'DUPLICATE_NAME'`, `code: 'NOT_FOUND'`, or Supabase update failures.
  */
 export async function updateAssessment(supabase, user, id, updates) {
   const startTime = Date.now();
@@ -604,14 +575,13 @@ export async function updateAssessment(supabase, user, id, updates) {
 }
 
 /**
- * Deletes an assessment by ID for the authenticated user.
- * Verifies ownership before deletion.
+ * Hard-deletes an assessment after verifying `user_id` ownership.
  *
- * @param {Object} supabase - Supabase client instance.
- * @param {Object} user - Authenticated user object with id property.
- * @param {string} id - Internal assessment ID to delete.
- * @returns {Promise<{message: string, id: string}>} Deletion confirmation.
- * @throws {Error} If not found or unauthorized.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - User-scoped Supabase client used for ownership lookup and deletion.
+ * @param {{ id: string }} user - Authenticated owner required for row ownership checks.
+ * @param {string} id - Internal assessment UUID to delete.
+ * @returns {Promise<{ message: string, id: string }>} Deleted assessment id and a user-facing success message.
+ * @throws {Error} With `code: 'NOT_FOUND'` when row is missing or not owned, or `code: 'DELETION_FAILED'` when the delete query fails.
  */
 export async function deleteAssessment(supabase, user, id) {
   const startTime = Date.now();
@@ -645,7 +615,9 @@ export async function deleteAssessment(supabase, user, id) {
 
     if (deleteError) {
       logger.error({ id, userId, deleteError }, 'Error deleting assessment');
-      throw new Error(`Deletion failed: ${deleteError.message}`);
+      const deletionErr = new Error('Failed to delete assessment');
+      deletionErr.code = 'DELETION_FAILED'; // add 'DELETION_FAILED' to SAFE_CODES if you want the message through, or leave it off to sanitize
+      throw deletionErr;
     }
 
     // logger.info({ id, userId }, 'Assessment deleted successfully');
@@ -660,16 +632,14 @@ export async function deleteAssessment(supabase, user, id) {
 }
 
 /**
- * Compares two assessments with visibility rules enforced.
- * For public access (user is null), both assessments must be public.
- * Authenticated users can compare their own assessments or public ones.
+ * Anonymous callers require both assessments to be public; owners may compare private rows.
  *
- * @param {Object} supabase - Supabase client instance.
- * @param {Object|null} user - Authenticated user object (null for anonymous access).
- * @param {string} publicId1 - Public ID of the first assessment.
- * @param {string} publicId2 - Public ID of the second assessment.
- * @returns {Promise<{assessment1: Object, assessment2: Object}>} Both assessment objects.
- * @throws {Error} If IDs are invalid, not found, or access is denied.
+ * @param {import('@supabase/supabase-js').SupabaseClient|Record<string, unknown>} supabase - Supabase client used to read both assessment rows.
+ * @param {{ id: string }|null} user - Optional authenticated user for private-owner comparisons.
+ * @param {string} publicId1 - Public UUID for the first assessment.
+ * @param {string} publicId2 - Public UUID for the second assessment.
+ * @returns {Promise<{ assessment1: Record<string, unknown>, assessment2: Record<string, unknown> }>} Pair of comparable assessment rows.
+ * @throws {Error} With `code: 'INVALID_IDS'`, `code: 'NOT_PUBLIC'`, `code: 'NOT_FOUND'`, or Supabase read failures.
  */
 export async function compareAssessments(supabase, user, publicId1, publicId2) {
   const startTime = Date.now();
