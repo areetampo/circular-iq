@@ -3,7 +3,7 @@
  */
 
 import { Label, Switch, Tooltip } from '@heroui/react';
-import { Activity, Minus, RotateCw, ServerCog, ServerOff } from 'lucide-react';
+import { Activity, RotateCw, ServerCog, ServerOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button, DetailsBadge } from '@/components/common';
@@ -31,15 +31,8 @@ import { useUptimeMonitor } from './hooks/useUptimeMonitor';
  * @returns {import('react').ReactElement} Dashboard with live connection state, aggregate charts, heatmap, and endpoint cards.
  */
 export default function UptimeMonitorPage() {
-  const {
-    history,
-    loadingInitial,
-    nextUpdateSeconds,
-    isUsingFallback,
-    reconnect,
-    isReconnecting,
-    dbTotalChecks,
-  } = useUptimeMonitor();
+  const { history, loadingInitial, nextUpdateSeconds, isUsingFallback, reconnect, isReconnecting } =
+    useUptimeMonitor();
 
   const [fallbackTrigger, setFallbackTrigger] = useState(0);
   useEffect(() => {
@@ -87,18 +80,8 @@ export default function UptimeMonitorPage() {
           </h1>
 
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 pl-1 text-sm/relaxed text-(--color-text-secondary)">
-            <span>
-              Server-polling {ENDPOINTS.length} endpoints every{' '}
-              {formatDuration({ ms: REFETCH_INTERVAL_MS })}
-            </span>
-            {dbTotalChecks && (
-              <>
-                <Minus size={16} strokeWidth={2} />
-                <span>
-                  <span className="font-mono">{dbTotalChecks}</span> total checks
-                </span>
-              </>
-            )}
+            Server-polling {ENDPOINTS.length} endpoints every{' '}
+            {formatDuration({ ms: REFETCH_INTERVAL_MS })}
           </p>
 
           {/* Clock-aligned toggle */}
