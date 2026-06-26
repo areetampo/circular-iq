@@ -9,7 +9,7 @@ import { cn } from '@/utils/cn';
 
 import Tilt3D from './Tilt3D';
 
-export const SITE_NAME = 'Xerneas';
+export const SITE_NAME = 'CircularIQ';
 
 export const SITE_FULL_NAME = 'Circular Economy Evaluation Platform';
 
