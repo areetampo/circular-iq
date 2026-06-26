@@ -1320,6 +1320,6 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 ## License & Support
 
-**LICENSE:** MIT
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh
-**Last Updated:** 07 June 2026
+**LICENSE:** MIT  
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
+**Last Updated:** 26 June 2026
