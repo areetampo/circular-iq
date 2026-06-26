@@ -5,9 +5,10 @@ import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { motion } from 'framer-motion';
 import { Citrus, Copyright } from 'lucide-react';
+import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 
-import { SITE_NAME, SiteFullName, SiteLogo, SiteName } from '@/components/common/Brand';
+import { SITE_NAME, SiteFullName, SiteLogo, SiteName, Separator } from '@/components/common';
 import { cn } from '@/utils/cn';
 
 const footerLinks = [
@@ -31,6 +32,11 @@ const socialLinks = [
     icon: faEnvelope,
     url: 'mailto:areebrawl@gmail.com',
   },
+];
+
+const creators = [
+  { name: 'Areeb', email: 'areebrawl@gmail.com' },
+  { name: 'Mahit', email: 'mahitsingh02@gmail.com' },
 ];
 
 /**
@@ -82,8 +88,23 @@ export default function Footer() {
                     </a>
                   ))}
                 </div>
+
                 <p className="max-w-xs text-xs/relaxed text-(--color-text-secondary) italic">
-                  ~ Made by Areeb and Mahit <Citrus className="mb-0.5 ml-0.75 inline" size={12} /> ~
+                  ~ Made by{' '}
+                  {creators.map((creator, index) => (
+                    <Fragment key={creator.name}>
+                      <a
+                        href={`mailto:${creator.email}`}
+                        className="underline decoration-dotted underline-offset-2 transition-colors duration-200 hover:text-(--color-accent) hover:decoration-solid"
+                      >
+                        {creator.name}
+                      </a>
+                      {/* Adds punctuation correctly depending on list position */}
+                      {index < creators.length - 2 && ', '}
+                      {index === creators.length - 2 && ' and '}
+                    </Fragment>
+                  ))}{' '}
+                  <Citrus className="mb-0.5 ml-0.75 inline" size={12} /> ~
                 </p>
               </div>
             </motion.div>
@@ -104,7 +125,7 @@ export default function Footer() {
                     key={link.name}
                     to={link.href}
                     className={cn(
-                      'block break-inside-avoid text-sm text-(--color-text-muted)',
+                      'block w-fit break-inside-avoid text-sm text-(--color-text-muted)',
                       'transition-all duration-200 ease-in-out',
                       'hover:translate-x-1 hover:font-medium hover:text-(--color-dark-brown)',
                     )}
@@ -140,13 +161,17 @@ export default function Footer() {
           {/* Copyright bar stays centered across responsive footer layouts. */}
           <motion.div
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
             className="mt-6"
           >
-            <div className="flex items-center justify-center gap-1 text-xs text-(--color-text-muted) md:flex-row">
-              <Copyright size={14} strokeWidth={2} />
-              <span className="leading-tight">2026 {SITE_NAME}. All rights reserved.</span>
+            <div className="flex items-center justify-center gap-1.5 text-xs text-(--color-text-muted)">
+              <Copyright size={12} strokeWidth={2.5} className="shrink-0" />
+              <span className="leading-tight">
+                {new Date().getFullYear()} {SITE_NAME}
+              </span>
+              <Separator orientation="vertical" variant="secondary" wrapperCn="mx-0.5" />
+              <span className="leading-tight">All Rights Reserved</span>
             </div>
           </motion.div>
         </div>
