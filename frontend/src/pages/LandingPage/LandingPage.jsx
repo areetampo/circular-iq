@@ -580,7 +580,7 @@ export default function LandingPage() {
             {/* Section heading */}
             <div className="mb-10">
               <h2 className="mb-2 font-sans! text-[1.375rem] tracking-tight text-(--color-text-primary)">
-                Evaluate Your Circular Economy Business
+                Evaluate Your Circular Economy Business Idea
               </h2>
               <p className="text-[0.8438rem] leading-relaxed text-(--color-text-secondary)">
                 Describe your business idea using the same structure as real circular economy

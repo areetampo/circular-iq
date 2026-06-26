@@ -24,7 +24,7 @@ const socialLinks = [
   {
     name: 'GitHub',
     icon: faGithub,
-    url: 'https://github.com/areetampo/circular-economy',
+    url: 'https://github.com/areetampo/circular-iq',
   },
   {
     name: 'Email',

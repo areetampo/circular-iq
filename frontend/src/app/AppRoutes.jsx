@@ -27,7 +27,7 @@ const UptimeMonitorPage = lazy(() => import('@/pages/UptimeMonitorPage/UptimeMon
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
 const ROUTE_TITLES = {
-  '/': 'Evaluate Circular Economy',
+  '/': 'Evaluate Circular Economy Ideas',
   '/assessments': 'My Assessments',
   '/assessments/share': 'Share Gateway',
   '/assessments/compare': 'Compare Assessments',
