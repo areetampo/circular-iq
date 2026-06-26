@@ -20,7 +20,7 @@ export const SiteName = ({ className, ...props }) => {
   return (
     // Forward link props so callers can attach native anchor behavior such as onClick.
     <Link to="/" {...props}>
-      <span className={cn('inline-block cursor-pointer text-mauve-900', className)}>
+      <span className={cn('inline-block cursor-pointer font-semibold text-mauve-900', className)}>
         {SITE_NAME}
       </span>
     </Link>
