@@ -144,7 +144,7 @@ app.use(express.urlencoded({ limit: '512kb', extended: true }));
 
 // Root pings stay public to keep deployment health checks out of CORS error logs.
 app.get('/', (req, res) => {
-  let message = 'Circular Economy API is Running ~\\(≧▽≦)/~';
+  let message = `CircularIQ API is Running ~\\(≧▽≦)/~, visit ${BACKEND_CONFIG.app.appUrl}.`;
   if (!BACKEND_CONFIG.isProduction) {
     const origins = BACKEND_CONFIG.app.allowedOrigins;
     if (origins.length > 0) {

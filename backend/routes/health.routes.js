@@ -282,7 +282,7 @@ export default function createHealthRouter() {
     try {
       const versionInfo = {
         version: '1.0.0',
-        name: 'Circular Economy API',
+        name: 'CircularIQ API',
         description: 'RAG-powered evaluator for circular economy business evaluations',
         environment: BACKEND_CONFIG.nodeEnv,
         nodeVersion: process.version,
