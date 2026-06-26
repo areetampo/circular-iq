@@ -1,9 +1,9 @@
-# Backend — Circular Economy Assessor API
+# CircularIQ Backend — Circular Economy Assessor API
 
 Node.js/Express backend powering the Circular Economy Assessor. Handles document processing, semantic search, AI-driven assessment scoring, analytics, and the data ingestion pipeline.
 
 - **Authors:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com) & [Mahit Singh](mailto:mahitsingh02@gmailcom)
-- **Repository:** [areetampo/circular-economy-evaluator](https://github.com/areetampo/circular-economy-evaluator)
+- **Repository:** [areetampo/circular-iq](https://github.com/areetampo/circular-iq)
 - **License:** MIT
 
 ## Overview
@@ -1320,6 +1320,6 @@ For dataset inventory: [DATASETS_REFERENCE.md](./DATASETS_REFERENCE.md)
 
 ## License & Support
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
 **Last Updated:** 07 June 2026

@@ -1,4 +1,4 @@
-# Circular Economy Evaluator
+# CircularIQ - Circular Economy Evaluator
 
 ![Node](https://img.shields.io/badge/node-18+-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -10,7 +10,7 @@
 AI-powered platform for evaluating circular economy business initiatives against a knowledge base of case studies. Uses semantic vector search, evidence-based scoring, and multi-layer LLM enrichment to produce comprehensive, actionable assessments.
 
 - **Authors:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com) & [Mahit Singh](mailto:mahitsingh02@gmailcom)
-- **Repository:** [areetampo/circular-economy-evaluator](https://github.com/areetampo/circular-economy-evaluator)
+- **Repository:** [areetampo/circular-iq](https://github.com/areetampo/circular-iq)
 - **License:** MIT
 
 ---
@@ -113,8 +113,8 @@ The platform guides users through a structured assessment and returns a complete
 
 ```bash
 # 1. Clone
-git clone https://github.com/areetampo/circular-economy.git
-cd circular-economy
+git clone https://github.com/areetampo/circular-iq.git
+cd circular-iq
 
 # 2. Install dependencies (workspace setup)
 npm install
@@ -967,6 +967,6 @@ DEBUG=backend:* npm run dev      # verbose backend server logs
 
 ## License
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
 **Last Updated:** 07 June 2026

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Circular Economy API includes comprehensive health monitoring endpoints that provide detailed insights into system health, dependencies, and performance metrics. The health check system is implemented in `services/health.service.js` and provides multiple levels of health verification from basic load balancer checks to detailed system diagnostics.
+The CircularIQ API includes comprehensive health monitoring endpoints that provide detailed insights into system health, dependencies, and performance metrics. The health check system is implemented in `services/health.service.js` and provides multiple levels of health verification from basic load balancer checks to detailed system diagnostics.
 
 ## Base Endpoint: `/health`
 

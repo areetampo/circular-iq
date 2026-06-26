@@ -1,9 +1,9 @@
-# Frontend — Circular Economy Assessor
+# CircularIQ Frontend — Circular Economy Assessor UI/UX
 
 React 19 + Vite 7 SPA for assessing, visualising, comparing, and managing circular economy evaluations.
 
 - **Authors:** [Areeb Ahmed Zahoori](mailto:areebrawl@gmail.com) & [Mahit Singh](mailto:mahitsingh02@gmailcom)
-- **Repository:** [areetampo/circular-economy-evaluator](https://github.com/areetampo/circular-economy-evaluator)
+- **Repository:** [areetampo/circular-iq](https://github.com/areetampo/circular-iq)
 - **License:** MIT
 
 ## Overview
@@ -1226,6 +1226,6 @@ For issues or questions:
 
 ## License & Support
 
-**LICENSE:** MIT  
-**Authors:** Areeb Ahmed Zahoori & Mahit Singh  
+**LICENSE:** MIT
+**Authors:** Areeb Ahmed Zahoori & Mahit Singh
 **Last Updated:** 07 June 2026
