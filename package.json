@@ -1,5 +1,5 @@
 {
-  "name": "circular-economy-evaluator",
+  "name": "circular-iq",
   "private": true,
   "version": "1.0.0",
   "description": "RAG-powered evaluator for circular economy business evaluations",
@@ -47,12 +47,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/areetampo/circular-economy.git"
+    "url": "git+https://github.com/areetampo/circular-iq.git"
   },
   "bugs": {
-    "url": "https://github.com/areetampo/circular-economy/issues"
+    "url": "https://github.com/areetampo/circular-iq/issues"
   },
-  "homepage": "https://github.com/areetampo/circular-economy#readme",
+  "homepage": "https://github.com/areetampo/circular-iq#readme",
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
     "@eslint/config-helpers": "^0.6.0",
