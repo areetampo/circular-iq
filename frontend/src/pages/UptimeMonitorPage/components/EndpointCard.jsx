@@ -73,59 +73,68 @@ function uptimeTextClass(pct) {
  * @returns {number|null} Rounded mean response time in milliseconds, or null when unavailable.
  */
 function avgMs(checks) {
-  if (!checks) return null;
+  if (!checks || !checks.length) return null;
   const up = checks.filter((c) => c.up && c.ms);
   if (!up.length) return null;
   return Math.round(up.reduce((s, c) => s + c.ms, 0) / up.length);
 }
 
 /**
- * Maps average latency to the text colour used by footer metrics.
+ * Returns the response time of the most recent successful check.
  *
- * @param {number|null|undefined} avg - Average latency in milliseconds.
- * @returns {string} Tailwind text colour class for muted, success, warning, or danger states.
+ * @param {Array<{ up: boolean, ms: number|null }>} checks - Windowed checks for one endpoint.
+ * @returns {number|null} Latest response time in milliseconds, or null when unavailable.
  */
-function getLatencyColor(avg) {
-  if (avg === null || avg === undefined) return 'text-(--color-text-muted)';
-  if (avg > 500) return 'text-(--color-danger)';
-  if (avg > 200) return 'text-(--color-warning)';
-  return 'text-(--color-success)';
+function latestMs(checks) {
+  if (!checks || !checks.length) return null;
+  const latest = checks[checks.length - 1];
+  if (!latest.up || !latest.ms) return null;
+  return latest.ms;
 }
 
 /**
- * Derives the endpoint status label from latest availability and window uptime.
+ * Derives the endpoint status label from the most recent check.
  *
- * @param {Array<{ up: boolean, status?: string }>} checks - Windowed checks for one endpoint.
- * @returns {string} Human-readable status such as "pending", "operational", or the latest failure status.
+ * @param {Array<{ up: boolean, ms: number|null, status?: string }>} checks - Windowed checks for one endpoint.
+ * @returns {string} Human-readable status: "pending", "operational", "slow", or the latest failure status code.
  */
 function statusLabel(checks) {
   if (!checks || !checks.length) return 'pending';
   const latest = checks[checks.length - 1];
   if (!latest.up) return latest.status || 'error';
-  const n = Number(uptimePct(checks));
-  if (n >= 99) return 'operational';
-  if (n >= 95) return 'degraded';
-  return 'down';
+  if (latest.ms >= 1000) return 'slow';
+  return 'operational';
 }
 
 /**
- * Maps endpoint status to the text colour used by the footer status label.
+ * Maps the current endpoint status to a text colour class.
  *
- * @param {Array<{ up: boolean }>} checks - Windowed checks for one endpoint.
+ * @param {Array<{ up: boolean, ms: number|null }>} checks - Windowed checks for one endpoint.
  * @returns {string} Tailwind text colour class for muted, success, warning, or error states.
  */
 function statusTextClass(checks) {
   if (!checks || !checks.length) return 'text-(--color-text-muted)';
   const latest = checks[checks.length - 1];
   if (!latest.up) return 'text-(--color-error)';
-  const n = Number(uptimePct(checks));
-  if (n >= 99) return 'text-(--color-success)';
-  if (n >= 95) return 'text-(--color-warning)';
-  return 'text-(--color-error)';
+  if (latest.ms >= 1000) return 'text-(--color-warning)';
+  return 'text-(--color-success)';
 }
 
 /**
- * Small labelled metric cell used in the endpoint card grid.
+ * Maps average or latest latency to a text colour class.
+ *
+ * @param {number|null|undefined} ms - Latency in milliseconds.
+ * @returns {string} Tailwind text colour class for muted, success, warning, or danger states.
+ */
+function latencyTextClass(ms) {
+  if (ms === null || ms === undefined) return 'text-(--color-text-muted)';
+  if (ms > 500) return 'text-(--color-danger)';
+  if (ms > 200) return 'text-(--color-warning)';
+  return 'text-(--color-success)';
+}
+
+/**
+ * Small labelled metric cell used in the endpoint card footer.
  */
 function MetricCard({
   label,
@@ -160,7 +169,8 @@ MetricCard.propTypes = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
- * Per-endpoint uptime card: status, sparkline, latency, and recent check grid.
+ * Per-endpoint uptime card: status dot, sparkline charts, and footer metrics
+ * (avg latency, latest latency, status, last check).
  */
 export default function EndpointCard({
   endpoint,
@@ -199,7 +209,7 @@ export default function EndpointCard({
     return () => {
       cancelled = true;
     };
-  }, [endpoint.id, pollCount, clockAligned]); // clockAligned in deps triggers immediate refetch
+  }, [endpoint.id, pollCount, clockAligned]);
 
   // Derive display-ready chart label from bucket start/end timestamps
   const bucketsWithLabels = useMemo(() => {
@@ -238,7 +248,7 @@ export default function EndpointCard({
   }, [checks, hasData]);
 
   // Checks scoped to ENDPOINT_CARD_HISTORY_WINDOW_HOURS — used for footer metrics.
-  // Keeps the headline numbers meaningful (24h) without being affected by session length.
+  // Keeps the headline numbers meaningful (24 h) without being affected by session length.
   const windowChecks = useMemo(() => {
     if (!hasData) return [];
     const cutoff = Date.now() - ENDPOINT_CARD_HISTORY_WINDOW_HOURS * 60 * 60 * 1000;
@@ -247,6 +257,7 @@ export default function EndpointCard({
 
   const pct = uptimePct(windowChecks);
   const avg = avgMs(windowChecks);
+  const currentLatency = latestMs(windowChecks);
 
   // ── Display conditions ───────────────────────────────────────────────────────
 
@@ -270,13 +281,12 @@ export default function EndpointCard({
   const displayPctClass =
     pct !== null && hasData ? uptimeTextClass(pct) : 'text-(--color-text-muted) pr-1';
   const displayAvg = avg !== null ? `${avg}ms` : '—';
-  const displayAvgClass = avg === null ? 'pl-1' : '';
+  const displayCurrentLatency = currentLatency !== null ? `${currentLatency}ms` : '—';
   const displayLastCheck = latest ? formatRelativeTime(latest.ts) : '—';
   const displayLastCheckClass = latest
     ? 'text-(--color-text-secondary)'
     : 'text-(--color-text-muted) pl-1';
   const displayStatus = statusLabel(windowChecks);
-  const displayChecksCount = hasData ? windowChecks.length : '—';
   const dotClass = hasData ? dotBgClass(windowChecks) : 'bg-(--color-text-muted)';
 
   return (
@@ -410,23 +420,27 @@ export default function EndpointCard({
 
       {(displayRecent || displayBuckets) && <Separator wrapperCn="-mt-4" />}
 
-      {/* Metrics footer */}
+      {/* Metrics footer: avg latency · latest latency · status · last check */}
       <div className="flex items-stretch justify-between">
         <MetricCard
           label={`Avg latency (${formatDuration({ hours: ENDPOINT_CARD_HISTORY_WINDOW_HOURS })})`}
           value={displayAvg}
           valueClassName={cn(
             'font-mono text-base font-medium',
-            getLatencyColor(avg),
-            displayAvgClass,
+            latencyTextClass(avg),
+            avg === null ? 'pl-1' : '',
           )}
           className="shrink-0"
         />
         <MetricCard
-          label="Last check"
-          value={displayLastCheck}
-          valueClassName={cn('font-mono text-sm whitespace-nowrap', displayLastCheckClass)}
-          className="px-5"
+          label="Latest latency"
+          value={displayCurrentLatency}
+          valueClassName={cn(
+            'font-mono text-base font-medium',
+            latencyTextClass(currentLatency),
+            currentLatency === null ? 'pl-1' : '',
+          )}
+          className="shrink-0"
         />
         <MetricCard
           label="Status"
@@ -435,12 +449,15 @@ export default function EndpointCard({
             'font-mono text-sm font-semibold uppercase',
             statusTextClass(windowChecks),
           )}
-          className="shrink-0"
+          className="px-5"
         />
         <MetricCard
-          label={`Checks (${formatDuration({ hours: ENDPOINT_CARD_HISTORY_WINDOW_HOURS })})`}
-          value={displayChecksCount}
-          valueClassName="text-right font-mono text-sm text-(--color-text-muted) pr-1"
+          label="Last check"
+          value={displayLastCheck}
+          valueClassName={cn(
+            'font-mono text-sm whitespace-nowrap text-right',
+            displayLastCheckClass,
+          )}
           className="shrink-0 text-right"
         />
       </div>
