@@ -10,7 +10,7 @@ export function buildApiUrl(path) {
   const API_URL = FRONTEND_CONFIG.app.apiUrl;
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
-  if (FRONTEND_CONFIG.isProd) {
+  if (FRONTEND_CONFIG.isProduction) {
     // All routes (including stream) go directly to backend via Vercel rewrite.
     // The rewrite in vercel.json forwards /api/:path* → Render backend.
     // frontend/api/proxy.js is kept but unused.

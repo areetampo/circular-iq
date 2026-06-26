@@ -342,7 +342,7 @@ export default function ScrollToTop() {
   }, [pathname, state]);
 
   // Hidden dev-only manual tester for route scroll behavior.
-  if (!FRONTEND_CONFIG.isProd) {
+  if (!FRONTEND_CONFIG.isProduction) {
     return (
       <div
         style={{
