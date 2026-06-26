@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "@circular-iq/backend",
   "private": true,
   "version": "1.0.0",
   "description": "RAG-powered evaluator for circular economy business evaluations",
