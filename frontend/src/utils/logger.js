@@ -6,7 +6,7 @@ import { SITE_NAME, SITE_FULL_NAME } from '@/components/common';
 import { FRONTEND_CONFIG } from '@/config/frontend.config';
 import { generateAsciiArt } from '@/utils/generateAsciiArt';
 
-const isDev = !FRONTEND_CONFIG.isProd && FRONTEND_CONFIG.mode !== 'test';
+const isDev = !FRONTEND_CONFIG.isProduction && FRONTEND_CONFIG.mode !== 'test';
 
 /** @type {{ log: Function, info: Function, warn: Function, error: Function, initArt: Function }} */
 export const logger = {
