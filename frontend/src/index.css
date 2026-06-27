@@ -1356,7 +1356,7 @@
   /* ============================================= */
   .checkbox,
   [data-slot='checkbox'] {
-    @apply inline-flex! w-fit items-center! gap-3!;
+    @apply inline-flex! w-fit flex-row items-center! gap-3!;
   }
 
   .checkbox__content,
@@ -1841,14 +1841,6 @@
 
   .tooltip[data-placement='right'] {
     @apply border-r-2 border-r-(--color-accent-border);
-  }
-
-  .tooltip[data-entering] {
-    @apply scale-100 opacity-100 transition-all duration-150 ease-out;
-  }
-
-  .tooltip[data-exiting] {
-    @apply scale-95 opacity-0 transition-all duration-100 ease-in;
   }
 
   /* ============================================= */
