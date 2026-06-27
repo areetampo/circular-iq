@@ -905,7 +905,13 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                       />
                     </Link>
                   )}
-                  <span className={isUpdatingPublic ? 'opacity-30' : ''}>/</span>
+                  <Separator
+                    variant="secondary"
+                    orientation="vertical"
+                    wrapperCn="ml-0.5"
+                    separatorCn={isUpdatingPublic && 'opacity-30'}
+                    pct={50}
+                  />
                   <CopyButton
                     variant="dark"
                     copyValue={publicUrl}
@@ -914,7 +920,12 @@ export default function ResultsPage({ isViewFromMyAssessments = false, isPublicS
                     isDisabled={isUpdatingPublic}
                     noBorder
                   />
-                  <span className={isUpdatingPublic ? 'opacity-30' : ''}>/</span>
+                  <Separator
+                    variant="secondary"
+                    orientation="vertical"
+                    separatorCn={isUpdatingPublic && 'opacity-30'}
+                    pct={50}
+                  />
                   <CopyButton
                     variant="dark"
                     copyValue={`${currentData.public_id}`}
