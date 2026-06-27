@@ -12,7 +12,7 @@ import { cn } from '@/utils/cn';
 function CopyIcon({ className, hasCopied = false, size = 16, strokeWidth = 2.5 }) {
   return (
     <div
-      className={cn('relative flex shrink-0 items-center justify-center', className)}
+      className={cn('relative flex shrink-0 cursor-pointer items-center justify-center', className)}
       style={{ width: size, height: size }}
     >
       <Copy
