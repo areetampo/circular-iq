@@ -37,14 +37,14 @@ const sizeStyles = {
 const iconSizeMap = {
   xs: 11,
   sm: 13,
-  md: 16, // default
+  md: 16,
   lg: 18,
 };
 
 const iconStrokeWidthMap = {
   xs: 2,
   sm: 2,
-  md: 2, // default
+  md: 2,
   lg: 2,
 };
 
@@ -64,12 +64,17 @@ const spinnerColorMap = {
 const spinnerSizeMap = {
   xs: 12,
   sm: 14,
-  md: 15, // default
+  md: 15,
   lg: 20,
 };
 
 /**
  * Renders a React Aria-backed button or link with variant styling, optional icons, and loading states.
+ *
+ * When `onPress` is provided, React Aria's full press handling is used (keyboard, pointer, touch).
+ * When only `onClick` is provided or neither is given, native event handling is used instead —
+ * this allows external triggers like HeroUI's Popover.Trigger to wire up via ref without
+ * React Aria intercepting and swallowing their events.
  */
 const Button = forwardRef(function Button(
   {
@@ -77,6 +82,7 @@ const Button = forwardRef(function Button(
     variant = 'primary',
     size = 'md',
     onPress,
+    onClick,
     isDisabled = false,
     isLoading = false,
     icon,
@@ -122,7 +128,10 @@ const Button = forwardRef(function Button(
 
   let buttonProps = {};
   if (!isLink) {
-    buttonProps = ariaButtonProps;
+    // Only engage React Aria's full press system when onPress is explicitly provided.
+    // Without this guard, useButton intercepts native pointer/click events and prevents
+    // external ref-based triggers (e.g. HeroUI Popover.Trigger) from working correctly.
+    buttonProps = onPress ? ariaButtonProps : { ...props, onClick };
   }
 
   const handleLinkClick = (event) => {
@@ -130,7 +139,7 @@ const Button = forwardRef(function Button(
       event.preventDefault();
       return;
     }
-    const pressHandler = onPress;
+    const pressHandler = onPress ?? onClick;
     if (pressHandler) pressHandler(event);
   };
 
@@ -148,14 +157,12 @@ const Button = forwardRef(function Button(
   iconSize = iconSize || iconSizeMap[size] || iconSizeMap.md;
   iconStrokeWidth = iconStrokeWidth || iconStrokeWidthMap[size] || iconStrokeWidthMap.md;
 
-  // Icon sizing follows the selected button size unless callers override it.
   const renderIcon = () => {
     if (!icon) return null;
     const IconComponent = icon;
     return <IconComponent size={iconSize} strokeWidth={iconStrokeWidth} {...iconProps} />;
   };
 
-  // Custom loading icons inherit the resolved icon metrics for visual consistency.
   const renderLoadingIcon = () => {
     if (loadingIcon) {
       const LoadingIconComponent = loadingIcon;
@@ -170,10 +177,8 @@ const Button = forwardRef(function Button(
     return <Spinner color={spinnerColor} size={spinnerSize} />;
   };
 
-  // Original content stays in layout while an absolute loading indicator overlays it.
   const content = (
     <span className="relative inline-flex items-center justify-center">
-      {/* Original children stay in layout so loading does not resize the button. */}
       <span
         className={cn(
           'inline-flex items-center justify-center gap-1.5',
@@ -187,7 +192,6 @@ const Button = forwardRef(function Button(
         {iconRight && !isLoading && renderIcon()}
       </span>
 
-      {/* Centered overlay is only used when callers do not request inline loading. */}
       {isLoading && !loadingIconInline && (
         <span className="absolute inset-0 flex items-center justify-center">
           {renderLoadingIcon()}
@@ -270,8 +274,10 @@ Button.propTypes = {
   spinLoadingIcon: PropTypes.bool,
   /** Whether to show loading icon inline (default: false) */
   loadingIconInline: PropTypes.bool,
-  /** Click handler function */
+  /** React Aria press handler — enables full keyboard/pointer/touch press system */
   onPress: PropTypes.func,
+  /** Native click handler — used when React Aria press handling is not needed */
+  onClick: PropTypes.func,
   /** Component to render as (default: 'button') */
   as: PropTypes.elementType,
   /** Navigation target for links */
