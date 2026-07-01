@@ -18,6 +18,7 @@ const footerLinks = [
   { name: 'Guide', href: '/guide' },
   { name: 'Shared Assessments', href: '/assessments/share' },
   { name: 'Compare Assessments', href: '/assessments/compare' },
+  { name: 'Sign In / Sign Up', href: '/auth' },
   { name: 'Uptime Monitor', href: '/uptime-monitor' },
 ];
 
