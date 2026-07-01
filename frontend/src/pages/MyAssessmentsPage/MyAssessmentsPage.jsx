@@ -156,25 +156,23 @@ export default function MyAssessmentsPage() {
   // Show authentication message for unauthenticated users
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="flex flex-col gap-6">
-        <DetailsDisplay
-          variant="info"
-          icon={ScrollText}
-          title="Sign in to view your assessments"
-          description="You can create an account or sign in to access your assessment history. You also get unlimited evaluations by doing so!"
-          showDefaultActions={false}
-          actions={[
-            {
-              label: 'Sign In',
-              icon: LogIn,
-              variant: 'teal',
-              as: Link,
-              to: '/auth?view=login',
-              state: { from: location },
-            },
-          ]}
-        />
-      </div>
+      <DetailsDisplay
+        variant="info"
+        icon={ScrollText}
+        title="Sign in to view your assessments"
+        description="You can create an account or sign in to access your assessment history. You also get unlimited evaluations by doing so!"
+        showDefaultActions={false}
+        actions={[
+          {
+            label: 'Sign In',
+            icon: LogIn,
+            variant: 'teal',
+            as: Link,
+            to: '/auth?view=login',
+            state: { from: location },
+          },
+        ]}
+      />
     );
   }
 
