@@ -5,7 +5,7 @@
 import { Table } from '@heroui/react';
 import { LogIn, ScrollText } from 'lucide-react';
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { BarChart, LineChart, PieChart } from '@/components/charts';
 import { DetailsDisplay } from '@/components/common';
@@ -56,6 +56,7 @@ const formatIndustry = (s) => (s ?? '').replace(/_/g, ' ').replace(/\b\w/g, (c) 
  * Renders global assessment analytics and user-specific benchmark sections when authenticated.
  */
 export default function GlobalActivity() {
+  const location = useLocation();
   const { user } = useAuth();
   const {
     totalAssessments: userTotal,
